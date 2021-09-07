@@ -1,4 +1,4 @@
-package microscenery
+package microscenery.scenes
 
 import bdv.util.AxisOrder
 import graphics.scenery.Box
@@ -11,6 +11,7 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import ij.IJ
 import ij.ImagePlus
+import microscenery.DefaultVRScene
 import net.imglib2.img.Img
 import net.imglib2.img.display.imagej.ImageJFunctions
 import net.imglib2.type.numeric.integer.UnsignedShortType
@@ -19,7 +20,7 @@ import org.scijava.ui.behaviour.ClickBehaviour
 import tpietzsch.example2.VolumeViewerOptions
 
 
-class VolRenVR : VRScene() {
+class VolRenVR : DefaultVRScene() {
     private lateinit var volume: Volume
 
     override fun init() {
