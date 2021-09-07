@@ -20,7 +20,7 @@ class MMConnection : SceneryBase(MMConnection::class.java.simpleName, windowWidt
     private val core = CMMCore()
     lateinit var volume: BufferedVolume
 
-    val slices = 30
+    val slices = 30 // has to be 0 != x%32 otherwise we have a standing wave
 
     override fun init() {
         renderer = hub.add(
