@@ -3,14 +3,7 @@ package microscenery.hardware;
 import mmcorej.CMMCore;
 
 public class CoherentObis extends Laser {
-    static {
-        Device.installFactory(new Factory() {
-            @Override
-            public Device manufacture(CMMCore core, String label) {
-                return new CoherentObis(core, label);
-            }
-        }, "CoherentObis", SPIMSetup.SPIMDevice.LASER1, SPIMSetup.SPIMDevice.LASER2);
-    }
+
 
     public CoherentObis(CMMCore core, String label) {
         super(core, label);

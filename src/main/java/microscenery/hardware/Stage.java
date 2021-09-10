@@ -9,13 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class Stage extends Device {
-	static {
-		installFactory(new Factory() {
-			public Device manufacture(CMMCore core, String label) {
-				return new Stage(core, label);
-			}
-		}, "*", SPIMSetup.SPIMDevice.STAGE_Z);
-	}
+
 
 	public Stage(CMMCore core, String label) {
 		super(core, label);

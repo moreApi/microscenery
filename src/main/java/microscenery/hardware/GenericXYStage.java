@@ -10,24 +10,7 @@ import java.util.Map;
 import static microscenery.hardware.Device.*;
 
 public class GenericXYStage {
-	static {
-		Factory factX = new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return PicardXYStage.getStage(core, label, true);
-			}
-		};
 
-		Factory factY = new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return PicardXYStage.getStage(core, label, false);
-			}
-		};
-
-		installFactory(factX, "*", SPIMSetup.SPIMDevice.STAGE_X);
-		installFactory(factY, "*", SPIMSetup.SPIMDevice.STAGE_Y);
-	}
 
 	protected double destX, destY;
 	protected SubStage stageX, stageY;

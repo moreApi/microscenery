@@ -3,14 +3,7 @@ package microscenery.hardware;
 import mmcorej.CMMCore;
 
 public class Cobolt extends Laser {
-	static {
-		Device.installFactory(new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return new Cobolt(core, label);
-			}
-		}, "Cobolt", SPIMSetup.SPIMDevice.LASER1, SPIMSetup.SPIMDevice.LASER2);
-	}
+
 
 	public Cobolt(CMMCore core, String label) {
 		super(core, label);

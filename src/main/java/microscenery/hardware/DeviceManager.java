@@ -1,5 +1,6 @@
 package microscenery.hardware;
 
+/*
 import org.micromanager.utils.ReportingUtils;
 import spim.gui.util.Layout;
 
@@ -12,7 +13,6 @@ import java.util.*;
 public class DeviceManager extends JPanel implements ItemListener, EventListener {
 	private SPIMSetup setup;
 	private JFrame display;
-
 	public DeviceManager(SPIMSetup setup) {
 		this.setup = setup;
 
@@ -90,4 +90,4 @@ public class DeviceManager extends JPanel implements ItemListener, EventListener
 
 		setup.setDevice(type, selectedLabel);
 	}
-}
+}*/

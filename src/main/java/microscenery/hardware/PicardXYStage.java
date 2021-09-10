@@ -7,24 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PicardXYStage extends GenericXYStage {
-	static {
-		Factory factX = new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return PicardXYStage.getStage(core, label, true);
-			}
-		};
 
-		Factory factY = new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return PicardXYStage.getStage(core, label, false);
-			}
-		};
-
-		Device.installFactory(factX, "Picard XY Stage", SPIMSetup.SPIMDevice.STAGE_X);
-		Device.installFactory(factY, "Picard XY Stage", SPIMSetup.SPIMDevice.STAGE_Y);
-	}
 
 	public PicardXYStage() {
 		super();

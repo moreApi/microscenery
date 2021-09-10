@@ -5,14 +5,7 @@ import mmcorej.DeviceType;
 import mmcorej.TaggedImage;
 
 public class Camera extends Device {
-	static {
-		Device.installFactory(new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return new Camera(core, label);
-			}
-		}, "*", SPIMSetup.SPIMDevice.CAMERA1, SPIMSetup.SPIMDevice.CAMERA2);
-	}
+
 
 	public Camera(CMMCore core, String label) {
 		super(core, label);

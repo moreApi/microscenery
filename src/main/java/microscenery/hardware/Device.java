@@ -186,10 +186,7 @@ public abstract class Device {
 
 	protected static Map<SPIMSetup.SPIMDevice, Map<String, Factory>> factoryMap = new EnumMap<SPIMSetup.SPIMDevice, Map<String, Factory>>(SPIMSetup.SPIMDevice.class);
 
-	static {
-		for (SPIMSetup.SPIMDevice type : SPIMSetup.SPIMDevice.values())
-			factoryMap.put(type, new HashMap<String, Factory>());
-	}
+
 
 	public static Device createDevice(CMMCore core, SPIMSetup.SPIMDevice type, String label) throws Exception {
 		String deviceName = core.getDeviceName(label);

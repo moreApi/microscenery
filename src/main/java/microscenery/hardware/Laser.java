@@ -4,14 +4,7 @@ import mmcorej.CMMCore;
 import mmcorej.DeviceType;
 
 public class Laser extends Device {
-	static {
-		installFactory(new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return new Laser(core, label);
-			}
-		}, "*", SPIMSetup.SPIMDevice.LASER1, SPIMSetup.SPIMDevice.LASER2);
-	}
+
 
 	public Laser(CMMCore core, String label) {
 		super(core, label);

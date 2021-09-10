@@ -3,14 +3,7 @@ package microscenery.hardware;
 import mmcorej.CMMCore;
 
 public class CoherentCube extends Laser {
-	static {
-		Device.installFactory(new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return new CoherentCube(core, label);
-			}
-		}, "CoherentCube", SPIMSetup.SPIMDevice.LASER1, SPIMSetup.SPIMDevice.LASER2);
-	}
+
 
 	public CoherentCube(CMMCore core, String label) {
 		super(core, label);

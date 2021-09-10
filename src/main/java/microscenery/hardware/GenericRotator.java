@@ -6,14 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 public class GenericRotator extends Stage {
-	static {
-		installFactory(new Factory() {
-			@Override
-			public Device manufacture(CMMCore core, String label) {
-				return new GenericRotator(core, label);
-			}
-		}, "*", SPIMSetup.SPIMDevice.STAGE_THETA);
-	}
+
 
 	public GenericRotator(CMMCore core, String label) {
 		super(core, label);

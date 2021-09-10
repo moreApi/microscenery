@@ -8,6 +8,7 @@ import mmcorej.TaggedImage;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SPIMSetup {
@@ -226,6 +227,7 @@ public class SPIMSetup {
 	}
 
 	public static SPIMSetup createDefaultSetup(CMMCore core) {
+		InitFactories.init();
 		SPIMSetup setup = new SPIMSetup(core);
 
 		try {
