@@ -18,7 +18,7 @@ import kotlin.concurrent.withLock
  *
  * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
  */
-class MMConnectedVolume(val slices: Int, hub: Hub) {
+class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeBetweenUpdates: Long = 333) {
 
     private val core = CMMCore()
     val volume: BufferedVolume
@@ -30,7 +30,6 @@ class MMConnectedVolume(val slices: Int, hub: Hub) {
         core.loadSystemConfiguration("C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo2.cfg")
         core.setConfig("screen", "1024")
         core.snapImage()
-        //val img1 = core.image as ShortArray// returned as a 1D array of signed integers in row-major order
         val width = core.imageWidth.toInt()
         val height = core.imageHeight.toInt()
 
@@ -84,7 +83,7 @@ class MMConnectedVolume(val slices: Int, hub: Hub) {
   */
                 }
 
-                //Thread.sleep(333L)
+                if (timeBetweenUpdates > 0) { Thread.sleep(timeBetweenUpdates) }
             }
         }
     }
@@ -93,6 +92,7 @@ class MMConnectedVolume(val slices: Int, hub: Hub) {
         var offset = 0
         (0 until slices).forEach { _ ->
             core.snapImage()
+            //val img1 = core.image as ShortArray// returned as a 1D array of signed integers in row-major order
             val sa = core.image as ShortArray
             sa.forEach {
                 intoBuffer.put(offset, it)

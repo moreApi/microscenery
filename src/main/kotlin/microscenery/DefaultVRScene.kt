@@ -13,8 +13,8 @@ import kotlin.system.exitProcess
 /**
  * Default VR Scene setup provided by [prepareVRScene] method
  */
-abstract class DefaultVRScene : SceneryBase(
-    SceneryBase::class.java.simpleName,
+abstract class DefaultVRScene(name: String) : SceneryBase(
+    name,
     windowWidth = 1920, windowHeight = 1200
 ) {
     protected lateinit var hmd: OpenVRHMD

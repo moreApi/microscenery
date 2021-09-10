@@ -31,7 +31,7 @@ class MMConnection : SceneryBase(MMConnection::class.java.simpleName, windowWidt
             scene.addChild(this)
         }
 
-        val mmVol = MMConnectedVolume(slices, hub)
+        val mmVol = MMConnectedVolume(hub, slices)
         scene.addChild(mmVol.volume)
 
     }

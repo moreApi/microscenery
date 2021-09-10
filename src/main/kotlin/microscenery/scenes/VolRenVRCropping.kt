@@ -2,6 +2,7 @@ package microscenery.scenes
 
 import bdv.util.AxisOrder
 import graphics.scenery.Box
+import graphics.scenery.SceneryBase
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Grabable
@@ -20,7 +21,7 @@ import org.scijava.ui.behaviour.ClickBehaviour
 import tpietzsch.example2.VolumeViewerOptions
 
 
-class VolRenVR : DefaultVRScene() {
+class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName) {
     private lateinit var volume: Volume
 
     override fun init() {
@@ -91,7 +92,7 @@ class VolRenVR : DefaultVRScene() {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            VolRenVR().main()
+            VolRenVRCropping().main()
         }
     }
 }
