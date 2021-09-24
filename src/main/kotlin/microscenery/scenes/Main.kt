@@ -11,6 +11,7 @@ import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.MMConnectedVolume
 import microscenery.behaviors.VRGrabWithSelfMove
+import microscenery.behaviors.VRTeleport
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
@@ -74,13 +75,7 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
                 }
             })
 
-        // slicing mode toggle
-        hmd.addBehaviour("toggleSlicing", ClickBehaviour { _, _ ->
-            val current = volume.slicingMode.id
-            val next = (current + 1) % Volume.SlicingMode.values().size
-            volume.slicingMode = Volume.SlicingMode.values()[next]
-        })
-        hmd.addKeyBinding("toggleSlicing", TrackerRole.RightHand, OpenVRHMD.OpenVRButton.A)
+        VRTeleport.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.A) ,listOf(TrackerRole.RightHand))
 
         VRSelectionWheel.createAndSet(scene, hmd, { hmd.getPosition() },
             listOf(OpenVRHMD.OpenVRButton.A), listOf(TrackerRole.LeftHand),
@@ -101,7 +96,11 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
                     croppingPlane.addTargetVolume(volume)
                     volume.slicingMode = Volume.SlicingMode.Cropping
                     croppingHandle.addChild(croppingPlane)
-
+                },
+                "Switch Slicing Mode" to {
+                    val current = volume.slicingMode.id
+                    val next = (current + 1) % Volume.SlicingMode.values().size
+                    volume.slicingMode = Volume.SlicingMode.values()[next]
                 }
             ))
     }

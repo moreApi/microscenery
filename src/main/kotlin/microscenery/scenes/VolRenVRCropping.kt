@@ -13,6 +13,7 @@ import graphics.scenery.volumes.Volume
 import ij.IJ
 import ij.ImagePlus
 import microscenery.DefaultVRScene
+import microscenery.behaviors.VRTeleport
 import net.imglib2.img.Img
 import net.imglib2.img.display.imagej.ImageJFunctions
 import net.imglib2.type.numeric.integer.UnsignedShortType
@@ -76,7 +77,7 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
             logger.info("Hull visible: ${hullbox.visible}")
         })
         //... and bind that to the A button on the left-hand controller.
-        hmd.addKeyBinding("toggle_shell", TrackerRole.LeftHand, OpenVRHMD.OpenVRButton.A)
+        //hmd.addKeyBinding("toggle_shell", TrackerRole.LeftHand, OpenVRHMD.OpenVRButton.A)
 
         // slicing mode toggle
         hmd.addBehaviour("toggleSlicing", ClickBehaviour { _, _ ->
@@ -87,6 +88,8 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
         hmd.addKeyBinding("toggleSlicing", TrackerRole.RightHand, OpenVRHMD.OpenVRButton.A)
 
         VRGrab.createAndSet(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Side), listOf(TrackerRole.RightHand))
+
+        VRTeleport.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.A) ,listOf(TrackerRole.LeftHand))
     }
 
     companion object {
