@@ -7,7 +7,7 @@ import org.joml.Vector3f
 
 class MMConnection : SceneryBase(MMConnection::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
 
-    val slices = 30 // has to be 0 != x%32 otherwise we have a standing wave
+    val slices = 112 // has to be 0 != x%32 otherwise we have a standing wave
     lateinit var mmVol: MMConnectedVolume
 
     override fun init() {

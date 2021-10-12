@@ -5,6 +5,7 @@ import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Colormap
+import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.hardware.SPIMSetup
 import mmcorej.CMMCore
@@ -33,8 +34,11 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
         println(info)
 
 
-        core.loadSystemConfiguration("C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo2.cfg")
-        core.setConfig("screen", "1024")
+        //core.loadSystemConfiguration("C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo2.cfg")
+        //core.setConfig("screen", "1024")
+        // Add MM to PATH for this to work. Otherwise it can't find the DLLs.
+        core.loadSystemConfiguration("C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg")
+        core.setConfig("FakeCam", "TiffStack_16_Cherry")
         setup = SPIMSetup.createDefaultSetup(core)
 
         core.snapImage() // do this so the following parameters are set
@@ -46,15 +50,16 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
         volume.name = "volume"
         volume.spatial {
             position = Vector3f(0.0f, 0.0f, 0.0f)
-            scale = Vector3f(0.1f, 0.1f, 10f)
+            scale = Vector3f(0.1f, 0.1f, 0.7f)
         }
         volume.colormap = Colormap.get("hot")
-        volume.pixelToWorldRatio = 0.03f
+        volume.pixelToWorldRatio = 0.1f
 
-        with(volume.transferFunction) {
+        volume.transferFunction = TransferFunction.ramp(0.001f,distance = 1f)
+        /*with(volume.transferFunction) {
             addControlPoint(0.0f, 0.0f)
             addControlPoint(7000.0f, 1.0f)
-        }
+        }*/
 
         volume.metadata["animating"] = true
 
@@ -73,7 +78,7 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
                     captureStack(currentBuffer.asShortBuffer())
 
                     //move z Stage to see change
-                    setup.zStage.position = Math.exp(count.toDouble())
+                    //setup.zStage.position = Math.exp(count.toDouble())
 
                     volume.lock.withLock {
                         volume.addTimepoint("t-${count}", currentBuffer)
@@ -101,8 +106,9 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
 
     private fun captureStack(intoBuffer: ShortBuffer) {
         var offset = 0
-        (0 until slices).forEach { _ ->
+        (0 until slices).forEach { z ->
             //core.snapImage()
+            setup.zStage.position = z.toDouble()
             val img = setup.snapImage()
             //val img1 = core.image as ShortArray// returned as a 1D array of signed integers in row-major order
             //val sa = core.image as ShortArray
