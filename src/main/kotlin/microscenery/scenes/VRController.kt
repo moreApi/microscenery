@@ -137,49 +137,49 @@ class VRController : DefaultVRScene(
          */
 
         VRGrabWithSelfMove.createAndSet(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Side), listOf(TrackerRole.LeftHand,TrackerRole.RightHand))
-
-        val selectionStorage =
-            VRSelect.createAndSetWithStorage(
-                scene,
-                hmd,
-                listOf(OpenVRHMD.OpenVRButton.Trigger),
-                listOf(TrackerRole.RightHand)
-            )
-        VRScale.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side) {
-            selectionStorage.selected?.ifSpatial { scale *= Vector3f(it) }
-        }
-
-        VRSelect.createAndSetWithAction(scene,
-            hmd,
-            listOf(OpenVRHMD.OpenVRButton.Trigger),
-            listOf(TrackerRole.LeftHand),
-            { n ->
-                // this is just some action to show a successful selection.
-                // Party Cube!
-                val w = Wiggler(n.spatialOrNull()!!, 1.0f)
-                thread {
-                    sleep(2 * 1000)
-                    w.deativate()
-                }
-            })
-
-
-        VRSelectionWheel.createAndSet(scene, hmd, { hmd.getPosition() },
-            listOf(OpenVRHMD.OpenVRButton.A), listOf(TrackerRole.LeftHand),
-            listOf(
-                "Toggle Shell" to {
-                    hullbox.visible = !hullbox.visible
-                    logger.info("Hull visible: ${hullbox.visible}")
-                },
-                "Toggle Boxes" to {
-                    boxes.forEach { it.visible = !it.visible }
-                    logger.info("Boxes visible: ${boxes.first().visible}")
-                },
-                "test" to { print("test") },
-                "Toggle Push Left" to {
-                    leftControllerPushes = !leftControllerPushes
-                }
-            ))
+// TODO adjust to new version
+//        val selectionStorage =
+//            VRSelect.createAndSetWithStorage(
+//                scene,
+//                hmd,
+//                listOf(OpenVRHMD.OpenVRButton.Trigger),
+//                listOf(TrackerRole.RightHand)
+//            )
+//        VRScale.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side) {
+//            selectionStorage.selected?.ifSpatial { scale *= Vector3f(it) }
+//        }
+//
+//        VRSelect.createAndSetWithAction(scene,
+//            hmd,
+//            listOf(OpenVRHMD.OpenVRButton.Trigger),
+//            listOf(TrackerRole.LeftHand),
+//            { n ->
+//                // this is just some action to show a successful selection.
+//                // Party Cube!
+//                val w = Wiggler(n.spatialOrNull()!!, 1.0f)
+//                thread {
+//                    sleep(2 * 1000)
+//                    w.deativate()
+//                }
+//            })
+//
+//
+//        VRSelectionWheel.createAndSet(scene, hmd, { hmd.getPosition() },
+//            listOf(OpenVRHMD.OpenVRButton.A), listOf(TrackerRole.LeftHand),
+//            listOf(
+//                "Toggle Shell" to {
+//                    hullbox.visible = !hullbox.visible
+//                    logger.info("Hull visible: ${hullbox.visible}")
+//                },
+//                "Toggle Boxes" to {
+//                    boxes.forEach { it.visible = !it.visible }
+//                    logger.info("Boxes visible: ${boxes.first().visible}")
+//                },
+//                "test" to { print("test") },
+//                "Toggle Push Left" to {
+//                    leftControllerPushes = !leftControllerPushes
+//                }
+//            ))
     }
 
 

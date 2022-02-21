@@ -1,6 +1,7 @@
 package microscenery.hardware;
 
-import ij.IJ;
+// TODO fix imports
+//import ij.IJ;
 import mmcorej.CMMCore;
 import mmcorej.DeviceType;
 import mmcorej.StrVector;
@@ -43,12 +44,12 @@ public class SPIMSetup {
 
 		deviceMap = new EnumMap<SPIMDevice, Device>(SPIMDevice.class);
 	}
-
-	public void debugLog() {
-		IJ.log("SPIM Setup " + this.toString() + ":");
-		for(Map.Entry<SPIMDevice, Device> entr : deviceMap.entrySet())
-			IJ.log(" " + entr.getKey() + " => " + (entr.getValue() != null ? "\"" + entr.getValue().getLabel() + "\" (" + entr.getValue().getDeviceName() + " / " + entr.getValue().toString() + ")" : "None"));
-	}
+// TODO fix imports
+//	public void debugLog() {
+//		IJ.log("SPIM Setup " + this.toString() + ":");
+//		for(Map.Entry<SPIMDevice, Device> entr : deviceMap.entrySet())
+//			IJ.log(" " + entr.getKey() + " => " + (entr.getValue() != null ? "\"" + entr.getValue().getLabel() + "\" (" + entr.getValue().getDeviceName() + " / " + entr.getValue().toString() + ")" : "None"));
+//	}
 
 	/*
 	 * Some methods which analyze the setup.

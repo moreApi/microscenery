@@ -38,7 +38,7 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
         //core.setConfig("screen", "1024")
         // Add MM to PATH for this to work. Otherwise it can't find the DLLs.
         core.loadSystemConfiguration("C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg")
-        core.setConfig("FakeCam", "TiffStack_16_Cherry")
+        core.setConfig("FakeCam", "TiffStack_16_Cherry_time")
         setup = SPIMSetup.createDefaultSetup(core)
 
         core.snapImage() // do this so the following parameters are set
@@ -66,7 +66,7 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
         thread {
             var count = 0
             val volumeBuffer =
-                RingBuffer<ByteBuffer>(2) { MemoryUtil.memAlloc((width * height * slices * Short.SIZE_BYTES)) }
+                RingBuffer<ByteBuffer>(2,default =  { MemoryUtil.memAlloc((width * height * slices * Short.SIZE_BYTES)) })
 
             //var secondTimer = System.currentTimeMillis()
             //var lastCount = 0

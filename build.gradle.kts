@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
-    kotlin("jvm") version "1.5.0"
+    kotlin("jvm") version "1.6.10"
 }
 
 group = "me.jancasus"
@@ -16,10 +16,11 @@ repositories {
 }
 
 dependencies {
-    implementation("graphics.scenery:scenery:b76e4bc")
-    implementation("net.imagej:ij:1.49k")
-    implementation("net.imglib2:imglib2:5.11.0")
-    implementation("net.imglib2:imglib2-ij:2.0.0-beta-46")
+    implementation("graphics.scenery:scenery:be073c7")
+    // TODO fix imports
+//    implementation("net.imagej:ij:1.49k")
+//    implementation("net.imglib2:imglib2")
+//    implementation("net.imglib2:imglib2-ij")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
@@ -33,5 +34,5 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile>() {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }

@@ -10,12 +10,9 @@ import graphics.scenery.controls.behaviours.VRGrab
 import graphics.scenery.volumes.SlicingPlane
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
-import ij.IJ
-import ij.ImagePlus
 import microscenery.DefaultVRScene
 import microscenery.behaviors.VRTeleport
 import net.imglib2.img.Img
-import net.imglib2.img.display.imagej.ImageJFunctions
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -27,11 +24,11 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
 
     override fun init() {
         prepareVRScene()
+// TODO fix imports
+//        val imp: ImagePlus = IJ.openImage("https://imagej.nih.gov/ij/images/t1-head.zip")
+//        val img: Img<UnsignedShortType> = ImageJFunctions.wrapShort(imp)
 
-        val imp: ImagePlus = IJ.openImage("https://imagej.nih.gov/ij/images/t1-head.zip")
-        val img: Img<UnsignedShortType> = ImageJFunctions.wrapShort(imp)
-
-        volume = Volume.fromRAI(img, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
+//        volume = Volume.fromRAI(img, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
         volume.transferFunction = TransferFunction.ramp(0.001f, 0.5f, 0.3f)
         volume.spatial {
             scale = Vector3f(0.5f, -0.5f, 0.5f)
