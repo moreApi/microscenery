@@ -24,28 +24,14 @@ import kotlin.concurrent.withLock
 class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeBetweenUpdates: Long = 333) {
     /** Logger for this application, will be instantiated upon first use. */
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
-    private val core = CMMCore()
-    val setup: SPIMSetup
+    val mmConnection = MMConnection(slices)
     val volume: BufferedVolume
     var running = true
 
     init {
-        val info = core.versionInfo
-        println(info)
 
 
-        //core.loadSystemConfiguration("C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo2.cfg")
-        //core.setConfig("screen", "1024")
-        // Add MM to PATH for this to work. Otherwise it can't find the DLLs.
-        core.loadSystemConfiguration("C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg")
-        core.setConfig("FakeCam", "TiffStack_16_Cherry_time")
-        setup = SPIMSetup.createDefaultSetup(core)
-
-        core.snapImage() // do this so the following parameters are set
-        val width = core.imageWidth.toInt()
-        val height = core.imageHeight.toInt()
-
-        volume = Volume.fromBuffer(emptyList(), width, height, slices, UnsignedShortType(), hub)
+        volume = Volume.fromBuffer(emptyList(), mmConnection.width, mmConnection.height, slices, UnsignedShortType(), hub)
 
         volume.name = "volume"
         volume.spatial {
@@ -66,7 +52,8 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
         thread {
             var count = 0
             val volumeBuffer =
-                RingBuffer<ByteBuffer>(2,default =  { MemoryUtil.memAlloc((width * height * slices * Short.SIZE_BYTES)) })
+                RingBuffer<ByteBuffer>(2,default =  {
+                    MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * slices * Short.SIZE_BYTES)) })
 
             //var secondTimer = System.currentTimeMillis()
             //var lastCount = 0
@@ -75,7 +62,7 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
             while (running) {
                 if (volume.metadata["animating"] == true) {
                     val currentBuffer = volumeBuffer.get()
-                    captureStack(currentBuffer.asShortBuffer())
+                    mmConnection.captureStack(currentBuffer.asShortBuffer())
 
                     //move z Stage to see change
                     //setup.zStage.position = Math.exp(count.toDouble())
@@ -100,22 +87,6 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
                 }
 
                 if (timeBetweenUpdates > 0) { Thread.sleep(timeBetweenUpdates) }
-            }
-        }
-    }
-
-    private fun captureStack(intoBuffer: ShortBuffer) {
-        var offset = 0
-        (0 until slices).forEach { z ->
-            //core.snapImage()
-            setup.zStage.position = z.toDouble()
-            val img = setup.snapImage()
-            //val img1 = core.image as ShortArray// returned as a 1D array of signed integers in row-major order
-            //val sa = core.image as ShortArray
-            val sa = img.pix as ShortArray
-            sa.forEach {
-                intoBuffer.put(offset, it)
-                offset += 1
             }
         }
     }
