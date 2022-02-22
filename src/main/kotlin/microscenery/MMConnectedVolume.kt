@@ -21,7 +21,7 @@ import kotlin.concurrent.withLock
  *
  * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
  */
-class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeBetweenUpdates: Long = 333) {
+class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeBetweenUpdates: Long = 0) {
     /** Logger for this application, will be instantiated upon first use. */
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val mmConnection = MMConnection(slices)
@@ -62,7 +62,9 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
             while (running) {
                 if (volume.metadata["animating"] == true) {
                     val currentBuffer = volumeBuffer.get()
+                    val start = System.currentTimeMillis()
                     mmConnection.captureStack(currentBuffer.asShortBuffer())
+                    println("capture stack took ${System.currentTimeMillis()-start}ms")
 
                     //move z Stage to see change
                     //setup.zStage.position = Math.exp(count.toDouble())
