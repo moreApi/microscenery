@@ -18,7 +18,7 @@ class VolumeStreamer : SceneryBase("streamer", wantREPL = false) {
     val frameBuffer: ByteBuffer
     var currentDataBuffer: ByteBuffer? = null
 
-    val fps = 5
+    val fps = 2
 
     init {
 //        val hub = Hub()
@@ -28,7 +28,7 @@ class VolumeStreamer : SceneryBase("streamer", wantREPL = false) {
 
 //             encoder = VideoEncoder(mmConnection.width, mmConnection.height, "fromMM",hub=hub,fps=1)
         encoder =
-            VideoEncoder(mmConnection.width, mmConnection.height, "fromMM", hub = hub, fps = fps, networked = true)
+            VideoEncoder(mmConnection.width, mmConnection.height, "fromMM", hub = hub, fps = fps, networked = false)
 
         volumeBuffer = RingBuffer<ByteBuffer>(3, default = {
             MemoryUtil.memAlloc(mmConnection.width * mmConnection.height * 112 * Short.SIZE_BYTES)
@@ -73,7 +73,7 @@ class VolumeStreamer : SceneryBase("streamer", wantREPL = false) {
 
 
         thread {
-            while (true) {
+            while (running) {
                 val dataBuffer = volumeBuffer.get()
                 dataBuffer.rewind()
                 val start = System.currentTimeMillis()
@@ -83,12 +83,11 @@ class VolumeStreamer : SceneryBase("streamer", wantREPL = false) {
             }
         }
         thread {
-            while (true) {
+            while (running) {
                 for (f in 0 until fps) {
                     currentDataBuffer?.let {
-                        it.position(mmConnection.width * mmConnection.height * (50) * Short.SIZE_BYTES)
                         frameBuffer.rewind()
-                        writeToFrameBuffer(frameBuffer, it)
+                        writeToFrameBuffer(frameBuffer, it,50)
                         encoder.encodeFrame(frameBuffer)
                     }
                     Thread.sleep(1000L / fps)
@@ -97,19 +96,37 @@ class VolumeStreamer : SceneryBase("streamer", wantREPL = false) {
 
             encoder.finish()
         }
+
+        thread {
+            val recordSec = 60
+            while (currentDataBuffer == null)
+                Thread.sleep(50)
+            var counter = 0
+            while (counter++ <= recordSec) {
+                Thread.sleep(1000)
+                println("Time: $counter sec")
+
+            }
+            close()
+        }
     }
 
 
     private fun writeToFrameBuffer(
         frameBuffer: ByteBuffer,
-        currentBuffer: ByteBuffer
+        dataBuffer: ByteBuffer,
+        slice: Int
     ): ByteBuffer {
         for (i in 0 until mmConnection.width * mmConnection.height) {
-            val value = currentBuffer.short.toByte()
-
+            dataBuffer.position(mmConnection.width * mmConnection.height * (slice) * Short.SIZE_BYTES + i * Short.SIZE_BYTES)
+            val value = dataBuffer.short.toByte()
             frameBuffer.put(value)
-            frameBuffer.put(value)
-            frameBuffer.put(value)
+            dataBuffer.position(mmConnection.width * mmConnection.height * (slice+1) * Short.SIZE_BYTES + i * Short.SIZE_BYTES)
+            val value2 = dataBuffer.short.toByte()
+            frameBuffer.put(value2)
+            dataBuffer.position(mmConnection.width * mmConnection.height * (slice+2) * Short.SIZE_BYTES + i * Short.SIZE_BYTES)
+            val value3 = dataBuffer.short.toByte()
+            frameBuffer.put(value3)
 
             frameBuffer.put(Byte.MAX_VALUE)
         }

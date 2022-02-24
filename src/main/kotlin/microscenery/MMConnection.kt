@@ -11,6 +11,7 @@ import java.nio.ShortBuffer
  */
 class MMConnection(
     private val slices: Int = 112,
+//    mmConfiguration: String = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo.cfg",
     mmConfiguration: String = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg",
     mmSettingsGroupName: String = "FakeCam",
     mmPresetName: String = "TiffStack_16_Cherry_time" )
