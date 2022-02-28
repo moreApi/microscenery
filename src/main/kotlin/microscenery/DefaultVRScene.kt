@@ -15,7 +15,8 @@ import kotlin.system.exitProcess
  */
 abstract class DefaultVRScene(name: String) : SceneryBase(
     name,
-    windowWidth = 1920, windowHeight = 1200
+    windowWidth = 1920, windowHeight = 1200,
+    wantREPL = false
 ) {
     protected lateinit var hmd: OpenVRHMD
     protected lateinit var hullbox: Box
