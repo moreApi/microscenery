@@ -5,6 +5,7 @@ import graphics.scenery.RichNode
 import graphics.scenery.Sphere
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.behaviours.Grabable
+import graphics.scenery.controls.behaviours.Touchable
 import graphics.scenery.primitives.Line
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
@@ -38,14 +39,21 @@ class LineBetweenNodes2(var from: Spatial, var to: Spatial, transparent: Boolean
     }
 }
 
+/**
+ * It goes stale
+ */
+class RottenTransferFunction(): TransferFunction(){
+    fun setStale() { stale = true }
+}
+
 class TransferFunction1DEditor : RichNode("Transfer function editor") {
 
-    val start = RichNode()
+    val start = Sphere(0.1f)
     val low = Sphere(0.1f)
     val high = Sphere(0.1f)
-    val end = RichNode()
+    val end = Sphere(0.1f)
 
-    val transferFunction = TransferFunction()
+    val transferFunction = RottenTransferFunction()
     val cpStart = transferFunction.addControlPoint(0.0f, 0.0f)
     val cpLow = transferFunction.addControlPoint(0.25f, 0.0f)
     val cpHigh = transferFunction.addControlPoint(0.75f, 1f)
@@ -56,6 +64,18 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
         background.spatial().position = background.sizes * 0.5f + Vector3f(0f, 0f, -0.2f)
         background.material().diffuse = Vector3f(0.3f, 0.3f, 1f)
 
+        start.addAttribute(Grabable::class.java,
+            Grabable(onDrag = {
+                start.spatial{
+                    position.x = 0f
+                    position.y = position.y.coerceIn(0f, 1f)
+                    position.z = 0f
+                    needsUpdate = true
+                }
+                this.updateTransferFunction()
+            }, lockRotation = true)
+        )
+
         low.spatial().position = Vector3f(0.5f, 0f, 0f)
         low.addAttribute(Grabable::class.java,
             Grabable(onDrag = {
@@ -63,11 +83,6 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
                     position.x = position.x.coerceIn(0f, high.spatial().position.x)
                     position.y = position.y.coerceIn(0f, 1f)
                     position.z = 0f
-                    needsUpdate = true
-
-                }
-                start.spatial{
-                    position.y = low.spatial().position.y
                     needsUpdate = true
                 }
                 this.updateTransferFunction()
@@ -84,19 +99,29 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
                     position.z = 0f
                     needsUpdate = true
                 }
-                end.spatial{
-                    position.y = high.spatial().position.y
-                    needsUpdate = true
-                }
                 this.updateTransferFunction()
             }, lockRotation = true)
         )
         this.addChild(LineBetweenNodes2(low.spatial(), high.spatial(), simple = true))
 
         end.spatial().position = Vector3f(2f, 1f, 0f)
+        end.addAttribute(Grabable::class.java,
+            Grabable(onDrag = {
+                end.spatial {
+                    position.x = 2f
+                    position.y = position.y.coerceIn(0f, 1f)
+                    position.z = 0f
+                    needsUpdate = true
+                }
+                this.updateTransferFunction()
+            }, lockRotation = true)
+        )
         this.addChild(LineBetweenNodes2(high.spatial(), end.spatial(), simple = true))
 
-        listOf(background, start, low, high, end).forEach { this.addChild(it) }
+        listOf(background, start, low, high, end).forEach {
+            this.addChild(it)
+            this.addAttribute(Touchable::class.java, Touchable())
+        }
 
         thread {
             while (true) {
@@ -108,6 +133,9 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
     }
 
     private fun updateTransferFunction() {
+        start.spatial {
+            cpStart.factor = position.y
+        }
         low.spatial {
             cpLow.value = position.x / 2f
             cpLow.factor = position.y
@@ -116,9 +144,10 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
             cpHigh.value = position.x / 2f
             cpHigh.factor = position.y
         }
-        // cant access tf.stale therefore we need a workaround
-        transferFunction.removeControlPoint(cpEnd)
-        cpEnd = transferFunction.addControlPoint(1f,cpHigh.factor)
+        end.spatial {
+            cpEnd.factor = position.y
+        }
+        transferFunction.setStale()
     }
 
 
