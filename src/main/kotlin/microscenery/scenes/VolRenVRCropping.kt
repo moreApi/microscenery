@@ -24,15 +24,14 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
 
     override fun init() {
         prepareVRScene()
-// TODO fix imports
-//        val imp: ImagePlus = IJ.openImage("https://imagej.nih.gov/ij/images/t1-head.zip")
-//        val img: Img<UnsignedShortType> = ImageJFunctions.wrapShort(imp)
 
 //        volume = Volume.fromRAI(img, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
+
+        volume = Volume.fromXML("""C:\Users\JanCasus\volumes\drosophila.xml""",hub, VolumeViewerOptions())
         volume.transferFunction = TransferFunction.ramp(0.001f, 0.5f, 0.3f)
         volume.spatial {
-            scale = Vector3f(0.5f, -0.5f, 0.5f)
-            position = Vector3f(0f, 1f, -1f)
+            scale = Vector3f(2f)
+            position = Vector3f(0f, 1f, 0f)
         }
         scene.addChild(volume)
 
