@@ -123,13 +123,7 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
             this.addAttribute(Touchable::class.java, Touchable())
         }
 
-        thread {
-            while (true) {
-                val t = (System.currentTimeMillis() / 100) % 100
-                low.spatial().position = Vector3f(0.1f + (t / 100f), 0.5f, 0f)
-                updateTransferFunction()
-            }
-        }
+
     }
 
     private fun updateTransferFunction() {

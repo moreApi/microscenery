@@ -14,6 +14,7 @@ import graphics.scenery.volumes.SlicingPlane
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.MMConnectedVolume
+import microscenery.TransferFunction1DEditor
 import microscenery.behaviors.VRGrabWithSelfMove
 import microscenery.behaviors.VRTeleport
 import org.joml.Vector3f
@@ -30,6 +31,11 @@ class Main : DefaultVRScene(Main::class.java.simpleName,) {
         val mmConnection = MMConnectedVolume(hub, 112)
         volume = mmConnection.volume
         scene.addChild(volume)
+
+        val transEdit = TransferFunction1DEditor()
+        scene.addChild(transEdit)
+
+        volume.transferFunction = transEdit.transferFunction
     }
 
     override fun inputSetup() {
@@ -93,7 +99,7 @@ class Main : DefaultVRScene(Main::class.java.simpleName,) {
                         position = Vector3f(0f, 1f, -0.5f)
                     }
                     croppingHandle.addAttribute(Grabable::class.java, Grabable())
-                    tmpWheel?.let { croppingHandle.position = it.controller.worldPosition() }
+                    tmpWheel?.let { croppingHandle.spatial().position = it.controller.worldPosition() }
                     scene.addChild(croppingHandle)
 
                     val croppingPlane = SlicingPlane()
