@@ -4,11 +4,14 @@ import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import org.joml.Vector3f
 
-class DefaultScene(val initHook: ((scene:Scene,hub:Hub)-> Unit)?, name: String = "Microscenery"):SceneryBase(name, wantREPL = false) {
+open class DefaultScene(val initHook: ((scene:Scene, hub:Hub)-> Unit)?, name: String = "Microscenery")
+    :SceneryBase(name, wantREPL = false) {
+    val cam: Camera = DetachedHeadCamera()
+
     override fun init() {
         renderer = hub.add(
             SceneryElement.Renderer,
-            Renderer.createRenderer(hub, applicationName, scene, 512, 512)
+            Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
         )
 
         val light = PointLight(radius = 15.0f)
@@ -17,12 +20,17 @@ class DefaultScene(val initHook: ((scene:Scene,hub:Hub)-> Unit)?, name: String =
         light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
         scene.addChild(light)
 
-        val cam: Camera = DetachedHeadCamera()
+        val light2 = PointLight(radius = 15.0f)
+        light2.spatial().position = Vector3f(0.0f, 0.0f, -2.0f)
+        light2.intensity = 5.0f
+        light2.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
+        scene.addChild(light2)
+
         with(cam) {
             spatial {
                 position = Vector3f(0.0f, 0.0f, 5.0f)
             }
-            perspectiveCamera(50.0f, 512, 512)
+            perspectiveCamera(50.0f, windowWidth, windowHeight)
 
             scene.addChild(this)
         }

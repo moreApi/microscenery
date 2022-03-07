@@ -1,9 +1,6 @@
 package microscenery.VRUI
 
-import graphics.scenery.Box
-import graphics.scenery.Hub
-import graphics.scenery.Hubable
-import graphics.scenery.Scene
+import graphics.scenery.*
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDevice
@@ -56,6 +53,18 @@ class VRUIManager(scene: Scene) {
             })
         )
     }
+}
+
+fun Node.addVRToolFunctionality(
+    onPickup: () -> Unit = {},
+    whileHeld: () -> Unit = {},
+    onDrop: () -> Unit = {},
+    onActivate: () -> Unit = {},
+    whileActivated: () -> Unit = {},
+    onDeactivate: () -> Unit = {}
+) {
+    this.addAttribute(Grabable::class.java, Grabable(onPickup,whileHeld,onDrop,false))
+    this.addAttribute(Pressable::class.java, Pressable(onActivate,whileActivated,onDeactivate))
 }
 
 class Demo():DefaultVRScene(VRUIManager::class.java.simpleName){
