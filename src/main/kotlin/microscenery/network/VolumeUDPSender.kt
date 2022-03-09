@@ -28,11 +28,11 @@ class VolumeUDPSender {
     }
 
     fun sendBuffer(buffer: ByteBuffer) {
-        println("send data")
+//        println("send data")
         var index: UInt = 0u
         while (buffer.remaining() >= payloadSize) {
-            if (index % 10u == 0u)
-                println("sending $index")
+//            if (index % 10u == 0u)
+//                println("sending $index")
             val frag = VolumeFragment.fromBuffer(index++, buffer, payloadSize)
             frag.send()
             buffer.position(buffer.position() + payloadSize)
@@ -43,18 +43,22 @@ class VolumeUDPSender {
 
 fun main() {
 
-    val dummyData = MemoryUtil.memAlloc(15 * 15 * Short.SIZE_BYTES * 100)
+    val dummyData = MemoryUtil.memAlloc(166*1000 * Short.SIZE_BYTES )
     dummyData.rewind()
 
     val server = VolumeUDPSender()
     val receiver = VolumeUDPReceiver()
     thread { receiver.startReceiving() }
-    Thread.sleep(100)
+    Thread.sleep(1500)
 
-    while (true) {
+    val t = System.currentTimeMillis()
+//    while (true) {
+    for (i in 0 until 500){
+        println("Sending slice $i")
         server.sendBuffer(dummyData)
         dummyData.rewind()
-        Thread.sleep(500)
     }
+    println("delta ${System.currentTimeMillis()-t}")
+    receiver.running = false
 
 }

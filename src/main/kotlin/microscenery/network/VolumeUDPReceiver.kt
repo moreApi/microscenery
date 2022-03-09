@@ -14,13 +14,17 @@ class VolumeUDPReceiver {
 
     val buffer = ByteArray(packetSize)
 
+    var running = true
+
     init {
     }
 
     fun startReceiving() {
         thread {
             println("Start receiver")
-            while (true) {
+            socket.soTimeout = 2000
+            while (running) {
+                try {
                 val packet = DatagramPacket(buffer, buffer.size)
                 socket.receive(packet)
 
@@ -30,7 +34,11 @@ class VolumeUDPReceiver {
                         ((buf.get().toUInt() and 0xFFu) shl 16) or
                         ((buf.get().toUInt() and 0xFFu) shl 8) or
                         (buf.get().toUInt() and 0xFFu)
-                println(index)
+//                println(index)
+
+                } catch (timeout: java.net.SocketTimeoutException){
+                    println("got Timeout")
+                }
             }
         }
     }
