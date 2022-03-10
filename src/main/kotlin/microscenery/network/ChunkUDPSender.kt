@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 
-class SliceUDPSender(val port: Int) {
+class ChunkUDPSender(val port: Int) {
 
     val socket = DatagramSocket()
     val address = InetAddress.getByName("localhost")
@@ -19,17 +19,31 @@ class SliceUDPSender(val port: Int) {
 
     init {
         println("init server pointing at $port")
+    }
 
-        thread {
+    fun startSending() = thread {
             while (running) {
-                sendBuffer(inputQueue.poll(2000, TimeUnit.MICROSECONDS) ?: continue)
+                sendBuffer(inputQueue.poll(2, TimeUnit.SECONDS) ?: continue)
             }
+        }
+
+    fun sendBuffer(buffer: ByteBuffer) {
+//        println("send data")
+        var index: UInt = 0u
+        while (buffer.remaining() >= FRAGMENT_PAYLOAD_SIZE) {
+            val frag = VolumeFragment.fromBuffer(index++, buffer, FRAGMENT_PAYLOAD_SIZE)
+            frag.send()
+            buffer.position(buffer.position() + FRAGMENT_PAYLOAD_SIZE)
+        }
+        if (buffer.hasRemaining()) {
+            val frag = VolumeFragment.fromBuffer(index, buffer, buffer.remaining())
+            frag.send()
         }
     }
 
     fun VolumeFragment.send() {
         data.reset()
-        packetBuffer.rewind()
+        packetBuffer.clear()
 
         packetBuffer.putInt(this.id.toInt())
         packetBuffer.put(this.data)
@@ -37,27 +51,15 @@ class SliceUDPSender(val port: Int) {
         val packet = DatagramPacket(packetBuffer.array(), packetBuffer.capacity(), address, port)
         socket.send(packet)
     }
-
-    fun sendBuffer(buffer: ByteBuffer) {
-//        println("send data")
-        var index: UInt = 0u
-        while (buffer.remaining() >= PAYLOAD_SIZE) {
-//            if (index % 10u == 0u)
-//                println("sending $index")
-            val frag = VolumeFragment.fromBuffer(index++, buffer, PAYLOAD_SIZE)
-            frag.send()
-            buffer.position(buffer.position() + PAYLOAD_SIZE)
-        }
-    }
 }
 
 
 fun main() {
     val connections = 30
     val basePort = 4400
-    val senders = (basePort until basePort+connections).map { SliceUDPSender(it) }.toList()
+    val senders = (basePort until basePort+connections).map { ChunkUDPSender(it) }.toList()
     val receivers = (basePort until basePort+connections).map {
-        val a = SliceUDPReceiver(it)
+        val a = ChunkUDPReceiver(it)
         thread { a.startReceiving() }
         a
     }.toList()
@@ -71,7 +73,10 @@ fun main() {
 //    while (true) {
     for (i in 0 until 500/connections){
         println("Sending slice $i")
-        senders.forEach { it.inputQueue.put(dummyData.duplicate()) }
+        senders.forEach {
+            it.startSending()
+            it.inputQueue.put(dummyData.duplicate())
+        }
     }
     println("delta ${System.currentTimeMillis()-t}")
     receivers.forEach {
