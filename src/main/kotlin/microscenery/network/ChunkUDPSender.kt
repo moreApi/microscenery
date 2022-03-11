@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 
-class ChunkUDPSender(val port: Int) {
+class ChunkUDPSender(val port: Int,host: String = "localhost") {
 
     val socket = DatagramSocket()
-    val address = InetAddress.getByName("localhost")
+    val address = InetAddress.getByName(host)
     val packetBuffer = ByteBuffer.wrap(ByteArray(packetSize + 1))
 
     val inputQueue = ArrayBlockingQueue<ByteBuffer>(2)
@@ -20,7 +20,7 @@ class ChunkUDPSender(val port: Int) {
     var thread: Thread? = null
 
     init {
-        println("init server pointing at $port")
+        println("init server pointing at ${address.hostAddress}:$port")
     }
 
     fun startSending(): Thread {

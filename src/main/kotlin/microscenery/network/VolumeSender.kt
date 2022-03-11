@@ -7,10 +7,10 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 
 class VolumeSender(
-    val connections: Int = 30, basePort: Int = 4400
+    val connections: Int = 30, basePort: Int = 4400, host: String = "localhost"
 ) {
     val senders = (basePort until basePort + connections).map {
-        val a = ChunkUDPSender(it)
+        val a = ChunkUDPSender(it,host)
         a.startSending()
         a
     }.toList()
