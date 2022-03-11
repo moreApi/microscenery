@@ -1,12 +1,12 @@
 package microscenery.unit.network
 
-import kotlinx.coroutines.runBlocking
 import microscenery.network.VolumeReceiver
 import microscenery.network.VolumeSender
 import org.junit.jupiter.api.Test
 import org.lwjgl.system.MemoryUtil
 import kotlin.concurrent.thread
 import kotlin.math.pow
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class VolumeTransmissionTest {
@@ -32,11 +32,9 @@ class VolumeTransmissionTest {
 
         println("delta ${System.currentTimeMillis() - t}")
 
-        runBlocking {
-            val s = sender.close()
-            receiver.close().join()
-            s.join()
-        }
+
+        sender.close()
+        receiver.close()
     }
 
     @Test
@@ -64,11 +62,8 @@ class VolumeTransmissionTest {
 
         val delta = System.currentTimeMillis() - t
 
-        runBlocking {
-            val s = sender.close()
-            receiver.close()//.join()
-            //s.join()
-        }
+        sender.close()
+        receiver.close()
 
         val through = (dummyData.capacity() / delta) / 1000
         println("delta ${delta} throughput ${through} mByte/Sec")
@@ -82,7 +77,7 @@ class VolumeTransmissionTest {
 
         val dummyData = MemoryUtil.memAlloc(166 * 10.0.pow(6.0).toInt())
         for (x in 1..6546) {
-            dummyData.put(dummyData.position().toByte())
+            dummyData.put(x.toByte())
         }
         dummyData.rewind()
 
@@ -107,6 +102,11 @@ class VolumeTransmissionTest {
                 val result = receiver.getVolume(5000)
                 assertNotNull(result)
                 println("Got volume " + x)
+                result.rewind()
+                for (i in 1..6546) {
+                    assertEquals(i.toByte(), result.get())
+                }
+                result.rewind()
             }
         }
         t1.join()
@@ -114,13 +114,10 @@ class VolumeTransmissionTest {
 
         val delta = System.currentTimeMillis() - t
 
-        runBlocking {
-            val s = sender.close()
-            receiver.close()//.join()
-            //s.join()
-        }
+        sender.close()
+        receiver.close()
 
-        val through = ((dummyData.capacity() * repeats) / delta) / 1000
+        val through = ((dummyData.capacity() * repeats.toLong()) / delta) / 1000
         println("delta ${delta} throughput ${through} mByte/Sec")
     }
 

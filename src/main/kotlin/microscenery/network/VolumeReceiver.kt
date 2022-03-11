@@ -1,8 +1,7 @@
 package microscenery.network
 
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import graphics.scenery.utils.mapAsync
+import kotlinx.coroutines.*
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
@@ -24,16 +23,21 @@ class VolumeReceiver(
     }.toList()
 
     fun getVolume(timeout: Long = 2000): ByteBuffer? {
-        val slices = receivers.map { it.outputQueue.poll(timeout, TimeUnit.MILLISECONDS) }.toList()
+        val slices = receivers.mapAsync {
+            withContext(Dispatchers.IO) {
+                it.outputQueue.poll(timeout, TimeUnit.MILLISECONDS)
+            }
+         }.toList()
 
         if (slices.all { it == null }) return null
 
         val buf = if (reuseBuffers) buffers.get() else MemoryUtil.memAlloc(volumeSize)
+        buf.clear()
         var lostChunkCounter = 0
         slices.forEach { queue ->
             if (queue == null) {
                 if (reuseBuffers) {
-                    buf.position(buf.position() + chunkSize)
+                    buf.position(buf.position() + min(chunkSize, buf.remaining()))
                 } else {
                     for (i in 0 until min(chunkSize, buf.remaining())) {
                         buf.put(0)
@@ -61,6 +65,7 @@ class VolumeReceiver(
                 }
 
 
+                //for the last, partial chunk
                 if (buf.remaining() < fragment.data.remaining()) fragment.data.limit(fragment.data.position() + buf.remaining())
                 buf.put(fragment.data)
 

@@ -21,7 +21,7 @@ class VolumeSender(
         senders.forEachIndexed { i, sender ->
             if (i != connections) buffer.limit(buffer.position() + chunkSize)
             else buffer.limit(buffer.capacity())
-            println("Sending from ${buffer.position()} to ${buffer.limit()}")
+//            println("Sending from ${buffer.position()} to ${buffer.limit()}")
             sender.inputQueue.put(buffer.duplicate())
             buffer.position(buffer.position() + chunkSize)
         }
@@ -31,7 +31,8 @@ class VolumeSender(
      * Send a bit of data so the receivers think a new chunk starts and they finish the last chunk
      */
     fun dummyFinish() {
-        val buf = MemoryUtil.memAlloc(connections)
+        val buf = MemoryUtil.memAlloc(10)
+        println("Sending dummy finish")
         senders.forEach { it.inputQueue.put(buf.duplicate()) }
     }
 
