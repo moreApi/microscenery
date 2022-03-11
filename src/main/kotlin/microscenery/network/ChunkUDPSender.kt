@@ -17,15 +17,20 @@ class ChunkUDPSender(val port: Int) {
     val inputQueue = ArrayBlockingQueue<ByteBuffer>(2)
     var running = true
 
+    var thread: Thread? = null
+
     init {
         println("init server pointing at $port")
     }
 
-    fun startSending() = thread {
+    fun startSending(): Thread {
+        thread =  thread {
             while (running) {
                 sendBuffer(inputQueue.poll(2, TimeUnit.SECONDS) ?: continue)
             }
         }
+        return thread!!
+    }
 
     fun sendBuffer(buffer: ByteBuffer) {
 //        println("send data")
@@ -50,6 +55,13 @@ class ChunkUDPSender(val port: Int) {
 
         val packet = DatagramPacket(packetBuffer.array(), packetBuffer.capacity(), address, port)
         socket.send(packet)
+    }
+
+
+    fun close(wait: Boolean = false){
+        running = false
+        socket.close()
+        if (wait) thread?.join()
     }
 }
 

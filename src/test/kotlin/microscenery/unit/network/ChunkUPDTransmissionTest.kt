@@ -16,8 +16,8 @@ class ChunkUPDTransmissionTest {
         val basePort = 4400
         val sender =  ChunkUDPSender(basePort)
         val receiver =  ChunkUDPReceiver(basePort,0u)
-        val st = sender.startSending()
-        val rt = receiver.startReceiving()
+        sender.startSending()
+        receiver.startReceiving()
 
         val dummyData = MemoryUtil.memAlloc(FRAGMENT_PAYLOAD_SIZE*2)
         for (x in 1..FRAGMENT_PAYLOAD_SIZE*2)
@@ -35,10 +35,8 @@ class ChunkUPDTransmissionTest {
         for (x in 1..5)
             assert(result.data.get() == x.toByte())
 
-        sender.running = false
-        receiver.running = false
-        st.join()
-        rt.join()
+        sender.close(true)
+        receiver.close(true)
     }
 
     @Test
@@ -46,8 +44,8 @@ class ChunkUPDTransmissionTest {
         val basePort = 4400
         val sender =  ChunkUDPSender(basePort)
         val receiver =  ChunkUDPReceiver(basePort,0u)
-        val st = sender.startSending()
-        val rt = receiver.startReceiving()
+        sender.startSending()
+        receiver.startReceiving()
 
         val dummyData = MemoryUtil.memAlloc(FRAGMENT_PAYLOAD_SIZE*2)
         for (x in 1..FRAGMENT_PAYLOAD_SIZE*2)
@@ -66,10 +64,9 @@ class ChunkUPDTransmissionTest {
             for (x in 1..5)
                 assertEquals(result.data.get(), x.toByte())
         }
-        sender.running = false
-        receiver.running = false
-        st.join()
-        rt.join()
+
+        sender.close(true)
+        receiver.close(true)
     }
 
 
@@ -78,8 +75,8 @@ class ChunkUPDTransmissionTest {
         val basePort = 4400
         val sender =  ChunkUDPSender(basePort)
         val receiver =  ChunkUDPReceiver(basePort,0u)
-        val st = sender.startSending()
-        val rt = receiver.startReceiving()
+        sender.startSending()
+        receiver.startReceiving()
 
 
         val unalignedData = MemoryUtil.memAlloc(FRAGMENT_PAYLOAD_SIZE+5)
@@ -108,10 +105,8 @@ class ChunkUPDTransmissionTest {
             assertEquals(1.toByte(), result.data.get())
         assertEquals((1).toByte(), result.data.get())
 
-        sender.running = false
-        receiver.running = false
-        st.join()
-        rt.join()
+        sender.close(true)
+        receiver.close(true)
     }
 
 
