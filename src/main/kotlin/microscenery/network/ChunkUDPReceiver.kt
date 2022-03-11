@@ -10,12 +10,10 @@ import kotlin.concurrent.thread
 const val FRAGMENT_PAYLOAD_SIZE = 15 * 15 * Short.SIZE_BYTES
 const val packetSize = FRAGMENT_PAYLOAD_SIZE + Int.SIZE_BYTES
 
-
 class ChunkUDPReceiver(val port: Int, val newChunkThreshold: UInt = 5u) {
     val socket = DatagramSocket(port)
 
     var running = true
-
     val outputQueue = ArrayBlockingQueue<PriorityQueue<VolumeFragment>>(2)
 
     var fragments = PriorityQueue<VolumeFragment>(compareBy { it.id })
@@ -39,7 +37,6 @@ class ChunkUDPReceiver(val port: Int, val newChunkThreshold: UInt = 5u) {
                         ((buf.get().toUInt() and 0xFFu) shl 16) or
                         ((buf.get().toUInt() and 0xFFu) shl 8) or
                         (buf.get().toUInt() and 0xFFu)
-                fragments.add(VolumeFragment(index, buf.mark()))
 
                 if (lastIndex+newChunkThreshold > index){
                     // start new slice
@@ -47,6 +44,8 @@ class ChunkUDPReceiver(val port: Int, val newChunkThreshold: UInt = 5u) {
                         outputQueue.put(fragments)
                     fragments = PriorityQueue<VolumeFragment>(compareBy { it.id })
                 }
+                fragments.add(VolumeFragment(index, buf.mark()))
+
                 lastIndex = index
             } catch (timeout: java.net.SocketTimeoutException) {
 //                    println("got Timeout")
