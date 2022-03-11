@@ -34,7 +34,7 @@ class ChunkUDPSender(val port: Int) {
 
     fun sendBuffer(buffer: ByteBuffer) {
 //        println("send data")
-        var index: UInt = 0u
+        var index = 0
         while (buffer.remaining() >= FRAGMENT_PAYLOAD_SIZE) {
             val frag = VolumeFragment.fromBuffer(index++, buffer, FRAGMENT_PAYLOAD_SIZE)
             frag.send()
@@ -50,18 +50,25 @@ class ChunkUDPSender(val port: Int) {
         data.reset()
         packetBuffer.clear()
 
-        packetBuffer.putInt(this.id.toInt())
+        packetBuffer.putInt(this.id)
         packetBuffer.put(this.data)
 
         val packet = DatagramPacket(packetBuffer.array(), packetBuffer.capacity(), address, port)
-        socket.send(packet)
+        try{
+            socket.send(packet)
+        } catch (e: SocketException){
+            if (!running)
+                return
+            else
+                throw e
+        }
     }
 
 
-    fun close(wait: Boolean = false){
+    fun  close(): Thread? {
         running = false
         socket.close()
-        if (wait) thread?.join()
+        return thread
     }
 }
 

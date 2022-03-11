@@ -29,6 +29,7 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 
 dependencies {
     implementation("graphics.scenery:scenery:be073c7")
+    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
     // TODO fix imports
 //    implementation("net.imagej:ij:1.49k")
 //    implementation("net.imglib2:imglib2")
@@ -43,11 +44,14 @@ dependencies {
 
     implementation(files("C:/Program Files/Micro-Manager-2.0gamma/plugins/Micro-Manager/MMCoreJ.jar"))
 
-    testImplementation(kotlin("test-junit"))
+    testImplementation(kotlin("test"))
+    //testImplementation(kotlin("test-junit"))
 }
 
 tasks.test {
-    useJUnit()
+    jvmArgs = listOf("-Xmx28G")
+    //useJUnit()
+    useJUnitPlatform()
 }
 
 tasks.withType<KotlinCompile>() {

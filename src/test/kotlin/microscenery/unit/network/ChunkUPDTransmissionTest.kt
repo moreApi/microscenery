@@ -3,7 +3,7 @@ package microscenery.unit.network
 import microscenery.network.ChunkUDPReceiver
 import microscenery.network.ChunkUDPSender
 import microscenery.network.FRAGMENT_PAYLOAD_SIZE
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
@@ -15,7 +15,7 @@ class ChunkUPDTransmissionTest {
     fun simple(){
         val basePort = 4400
         val sender =  ChunkUDPSender(basePort)
-        val receiver =  ChunkUDPReceiver(basePort,0u)
+        val receiver =  ChunkUDPReceiver(basePort,0)
         sender.startSending()
         receiver.startReceiving()
 
@@ -35,15 +35,15 @@ class ChunkUPDTransmissionTest {
         for (x in 1..5)
             assert(result.data.get() == x.toByte())
 
-        sender.close(true)
-        receiver.close(true)
+        sender.close()?.join()
+        receiver.close()?.join()
     }
 
     @Test
     fun multiple(){
         val basePort = 4400
         val sender =  ChunkUDPSender(basePort)
-        val receiver =  ChunkUDPReceiver(basePort,0u)
+        val receiver =  ChunkUDPReceiver(basePort,0)
         sender.startSending()
         receiver.startReceiving()
 
@@ -65,8 +65,8 @@ class ChunkUPDTransmissionTest {
                 assertEquals(result.data.get(), x.toByte())
         }
 
-        sender.close(true)
-        receiver.close(true)
+        sender.close()?.join()
+        receiver.close()?.join()
     }
 
 
@@ -74,7 +74,7 @@ class ChunkUPDTransmissionTest {
     fun notFullLastFragment(){
         val basePort = 4400
         val sender =  ChunkUDPSender(basePort)
-        val receiver =  ChunkUDPReceiver(basePort,0u)
+        val receiver =  ChunkUDPReceiver(basePort,0)
         sender.startSending()
         receiver.startReceiving()
 
@@ -105,8 +105,8 @@ class ChunkUPDTransmissionTest {
             assertEquals(1.toByte(), result.data.get())
         assertEquals((1).toByte(), result.data.get())
 
-        sender.close(true)
-        receiver.close(true)
+        sender.close()?.join()
+        receiver.close()?.join()
     }
 
 

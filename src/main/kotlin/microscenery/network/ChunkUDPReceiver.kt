@@ -2,6 +2,7 @@ package microscenery.network
 
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.SocketException
 import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
@@ -10,14 +11,14 @@ import kotlin.concurrent.thread
 const val FRAGMENT_PAYLOAD_SIZE = 15 * 15 * Short.SIZE_BYTES
 const val packetSize = FRAGMENT_PAYLOAD_SIZE + Int.SIZE_BYTES
 
-class ChunkUDPReceiver(val port: Int, val newChunkThreshold: UInt = 5u) {
+class ChunkUDPReceiver(val port: Int, val newChunkThreshold: Int = 5) {
     val socket = DatagramSocket(port)
 
     var running = true
     val outputQueue = ArrayBlockingQueue<PriorityQueue<VolumeFragment>>(2)
 
     var fragments = PriorityQueue<VolumeFragment>(compareBy { it.id })
-    var lastIndex = 0u
+    var lastIndex = 0
 
     var thread: Thread? = null
 
@@ -32,16 +33,23 @@ class ChunkUDPReceiver(val port: Int, val newChunkThreshold: UInt = 5u) {
                 try {
                     val buffer = ByteArray(packetSize)
                     val packet = DatagramPacket(buffer, buffer.size)
-                    socket.receive(packet)
+                    try {
+                        socket.receive(packet)
+                    } catch (e: SocketException){
+                        if (!running)
+                            break
+                        else
+                            throw e
+                    }
 
                     val buf = ByteBuffer.wrap(buffer)
 
-                    val index = ((buf.get().toUInt() and 0xFFu) shl 24) or
-                            ((buf.get().toUInt() and 0xFFu) shl 16) or
-                            ((buf.get().toUInt() and 0xFFu) shl 8) or
-                            (buf.get().toUInt() and 0xFFu)
+                    val index = ((buf.get().toInt() and 0xFF) shl 24) or
+                            ((buf.get().toInt() and 0xFF) shl 16) or
+                            ((buf.get().toInt() and 0xFF) shl 8) or
+                            (buf.get().toInt() and 0xFF)
 
-                    if (lastIndex+newChunkThreshold > index){
+                    if (lastIndex-newChunkThreshold > index){
                         // start new slice
                         if (outputQueue.remainingCapacity() != 0)
                             outputQueue.put(fragments)
@@ -58,9 +66,9 @@ class ChunkUDPReceiver(val port: Int, val newChunkThreshold: UInt = 5u) {
         return thread!!
     }
 
-    fun close(wait: Boolean = false){
+    fun  close(): Thread? {
         running = false
         socket.close()
-        if (wait) thread?.join()
+        return thread
     }
 }
