@@ -2,17 +2,17 @@ package microscenery.example.network
 
 import microscenery.network.VolumeSender
 import org.lwjgl.system.MemoryUtil
+import org.zeromq.ZContext
 
 class VolumeSenderExample {
 
     val basePort = 4000
     val connections = 10
-    val host = "10.1.39.84"
     val volumeSize = 1000 * 100 * 100
     val repeats = 5
 
 
-    val sender = VolumeSender(connections, basePort,host)
+    val sender = VolumeSender(connections, basePort, ZContext())
 
     fun run() {
 

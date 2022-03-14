@@ -38,7 +38,7 @@ object Fileio3reciver {
         //  Loop until client tells us it's done
         client.recvStr()
         val delta = System.currentTimeMillis() - t
-        println("took $delta ms ${(volumeSize/delta)/1000} mByte/sec")
+        println("took $delta ms ${(volumeSize.toLong()/delta)/1000} mByte/sec")
         //  Kill server thread
         ctx.destroy()
     }
@@ -46,7 +46,8 @@ object Fileio3reciver {
     internal class Client : IAttachedRunnable {
         override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
             val dealer = ctx.createSocket(SocketType.DEALER)
-            dealer.connect("tcp://127.0.0.1:6000")
+//            dealer.connect("tcp://127.0.0.1:6000")
+            dealer.connect("tcp://10.1.31.58:6000")
 
             //  Up to this many chunks in transit
             var credit = PIPELINE

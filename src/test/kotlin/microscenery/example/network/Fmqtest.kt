@@ -34,13 +34,13 @@ object Fileio3 {
         val t = System.currentTimeMillis()
         //  Start child threads
         ZThread.fork(ctx, Server(dummyData))
-        //val client = ZThread.fork(ctx, Client())
+        val client = ZThread.fork(ctx, Client())
         //  Loop until client tells us it's done
-        //client.recvStr()
+        client.recvStr()
         val delta = System.currentTimeMillis() - t
         println("took $delta ms ${(volumeSize/delta)/1000} mByte/sec")
         //  Kill server thread
-        //ctx.destroy()
+        ctx.destroy()
     }
 
     internal class Client : IAttachedRunnable {
