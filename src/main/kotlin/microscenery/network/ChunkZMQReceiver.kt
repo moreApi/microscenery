@@ -60,15 +60,14 @@ class ChunkZMQReceiver(port: Int,host: String = "localhost", zContext: ZContext)
                     credit--
                 }
                 val chunk = ZFrame.recvFrame(dealer)
+                credit++
                 if (chunk.data[0] != chunkId){
                     // this frame belongs to a finished chunk. Just reclaim the credit.
-                    credit++
                     continue
                 }
                 val size = chunk.size()-1 // subtract the id byte
                 if (size != 0) {
                     chunks++
-                    credit++
                     val buf = ByteBuffer.wrap(chunk.data)
                     buf.position(1)
                     buf.mark()
