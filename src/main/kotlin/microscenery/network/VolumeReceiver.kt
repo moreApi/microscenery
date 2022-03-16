@@ -1,15 +1,20 @@
 package microscenery.network
 
 import graphics.scenery.utils.mapAsync
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
-import kotlin.math.min
 
 class VolumeReceiver(
-    val volumeSize: Int, connections: Int = 30, basePort: Int = 4400, val reuseBuffers: Boolean = true, host: String = "localhost", zContext: ZContext
+    val volumeSize: Int,
+    connections: Int = 30,
+    basePort: Int = 4400,
+    val reuseBuffers: Boolean = true,
+    host: String = "localhost",
+    zContext: ZContext
 ) {
 
     val buffers = graphics.scenery.utils.RingBuffer<ByteBuffer>(
@@ -17,7 +22,7 @@ class VolumeReceiver(
         default = { MemoryUtil.memAlloc(volumeSize) })
 
     val receivers = (basePort until basePort + connections).map {
-        ChunkZMQReceiver(it,host,zContext)
+        ChunkZMQReceiver(it, host, zContext)
     }.toList()
 
     fun getVolume(timeout: Long = 2000): ByteBuffer? {
@@ -25,7 +30,7 @@ class VolumeReceiver(
             withContext(Dispatchers.IO) {
                 it.outputQueue.poll(timeout, TimeUnit.MILLISECONDS)
             }
-         }.toList()
+        }.toList()
 
         if (slices.all { it == null }) return null
 

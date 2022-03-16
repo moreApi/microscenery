@@ -3,10 +3,8 @@ package microscenery.network
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.*
 import java.nio.ByteBuffer
-import java.util.*
-import java.util.concurrent.ArrayBlockingQueue
 
-class ChunkZMQSender(val port: Int, val zContext: ZContext) {
+class ChunkZMQSender(val port: Int, zContext: ZContext) {
 
     private val server = Server(port)
     val thread = ZThread.fork(zContext, server)
@@ -18,7 +16,7 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
         }
 
     fun sendBuffer(buffer: ByteBuffer) {
-        synchronized(server.bufferLock){
+        synchronized(server.bufferLock) {
             server.currentBuffer = buffer
         }
     }
@@ -29,13 +27,12 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
     //  to act as a sanity check.
     //  The server thread waits for a chunk request from a client,
     //  reads that chunk and sends it back to the client:
-    internal class Server(val port: Int)
-        : ZThread.IAttachedRunnable {
+    internal class Server(val port: Int) : ZThread.IAttachedRunnable {
         var running = true
 
         val bufferLock = Any()
         var currentBuffer: ByteBuffer = MemoryUtil.memAlloc(0)
-        val data = ByteArray(CHUNK_SIZE+1)
+        val data = ByteArray(CHUNK_SIZE + 1)
 
         override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
 
@@ -59,8 +56,8 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
                 //  Fifth frame is chunk id
                 val chunkId = router.recvStr().toByte()
 
-                var size = 0
-                while (currentBuffer.limit() < 2 && !Thread.currentThread().isInterrupted && running){
+                var size: Int
+                while (currentBuffer.limit() < 2 && !Thread.currentThread().isInterrupted && running) {
                     Thread.sleep(200)
                 }
                 synchronized(bufferLock) {
@@ -72,7 +69,7 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
                 }
 
                 //  Send resulting chunk to client
-                val chunk = ZFrame(data.copyOf(if (size < 0) 1 else size+1))
+                val chunk = ZFrame(data.copyOf(if (size < 0) 1 else size + 1))
                 identity.sendAndDestroy(router, ZMQ.SNDMORE)
                 chunk.sendAndDestroy(router)
             }

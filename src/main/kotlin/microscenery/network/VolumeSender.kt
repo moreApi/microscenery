@@ -1,9 +1,5 @@
 package microscenery.network
 
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 import java.nio.ByteBuffer
 
@@ -11,7 +7,7 @@ class VolumeSender(
     val connections: Int = 30, basePort: Int = 4400, zContext: ZContext
 ) {
     val senders = (basePort until basePort + connections).map {
-        ChunkZMQSender(it,zContext)
+        ChunkZMQSender(it, zContext)
     }.toList()
 
     fun sendVolume(buffer: ByteBuffer) {

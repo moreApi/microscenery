@@ -1,22 +1,16 @@
-package graphics.scenery.tests.examples.advanced
+package microscenery.scenes
 
 import graphics.scenery.*
-import graphics.scenery.attribute.material.Material
-import graphics.scenery.backends.Renderer
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.*
-import graphics.scenery.numerics.Random
-import graphics.scenery.utils.Wiggler
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultVRScene
 import microscenery.behaviors.VRGrabWithSelfMove
 import org.joml.Vector3f
-import java.lang.Thread.sleep
 import kotlin.concurrent.thread
-import kotlin.system.exitProcess
 
 /**
  * Example for usage of VR controllers. Demonstrates the use of custom key bindings on the

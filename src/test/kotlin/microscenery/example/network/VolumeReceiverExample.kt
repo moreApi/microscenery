@@ -6,7 +6,7 @@ import org.zeromq.ZContext
 
 class VolumeReceiverExample {
     val basePort = 4000
-    val connections = 1
+    val connections = 10
     val volumeSize = 1000*100*100
     val host = "10.1.39.84"
 
