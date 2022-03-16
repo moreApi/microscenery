@@ -1,4 +1,4 @@
-package microscenery.scenes
+package microscenery.example
 
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
@@ -87,7 +87,7 @@ class VolumeStreamer : SceneryBase("streamer", wantREPL = false) {
                 for (f in 0 until fps) {
                     currentDataBuffer?.let {
                         frameBuffer.rewind()
-                        writeToFrameBuffer(frameBuffer, it,50)
+                        writeToFrameBuffer(frameBuffer, it, 50)
                         encoder.encodeFrame(frameBuffer)
                     }
                     Thread.sleep(1000L / fps)

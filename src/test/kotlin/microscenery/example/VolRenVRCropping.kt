@@ -1,8 +1,6 @@
-package microscenery.scenes
+package microscenery.example
 
-import bdv.util.AxisOrder
 import graphics.scenery.Box
-import graphics.scenery.SceneryBase
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Grabable
@@ -12,12 +10,9 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.behaviors.VRTeleport
-import net.imglib2.img.Img
-import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import tpietzsch.example2.VolumeViewerOptions
-
 
 class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName) {
     private lateinit var volume: Volume
@@ -27,7 +22,7 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
 
 //        volume = Volume.fromRAI(img, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
 
-        volume = Volume.fromXML("""C:\Users\JanCasus\volumes\drosophila.xml""",hub, VolumeViewerOptions())
+        volume = Volume.fromXML("""C:\Users\JanCasus\volumes\drosophila.xml""", hub, VolumeViewerOptions())
         volume.transferFunction = TransferFunction.ramp(0.001f, 0.5f, 0.3f)
         volume.spatial {
             scale = Vector3f(2f)
@@ -85,7 +80,7 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
 
         VRGrab.createAndSet(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Side), listOf(TrackerRole.RightHand))
 
-        VRTeleport.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.A) ,listOf(TrackerRole.LeftHand))
+        VRTeleport.createAndSet(scene, hmd, listOf(OpenVRHMD.OpenVRButton.A), listOf(TrackerRole.LeftHand))
     }
 
     companion object {

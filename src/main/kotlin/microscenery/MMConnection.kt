@@ -1,8 +1,11 @@
 package microscenery
 
 import graphics.scenery.utils.LazyLogger
+import graphics.scenery.utils.RingBuffer
 import microscenery.hardware.SPIMSetup
 import mmcorej.CMMCore
+import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
 /**
@@ -60,5 +63,29 @@ class MMConnection(
         }
         logger.info("slices $slices snap $snap ms copy $copy ms")
 
+    }
+
+    companion object{
+        @JvmStatic
+        fun main(args: Array<String>) {
+
+            val slices = 112
+            val mmConnection = MMConnection(slices)
+
+
+            val volumeBuffer =
+                RingBuffer<ByteBuffer>(2, default = {
+                    MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * slices * Short.SIZE_BYTES))
+                })
+
+            val start = System.currentTimeMillis()
+            for (x in 1..10){
+                val currentBuffer = volumeBuffer.get()
+                mmConnection.captureStack(currentBuffer.asShortBuffer())
+            }
+            println("took ${System.currentTimeMillis()-start}ms")
+
+
+        }
     }
 }

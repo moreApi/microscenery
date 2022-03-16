@@ -7,13 +7,10 @@ import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
-import microscenery.hardware.SPIMSetup
-import mmcorej.CMMCore
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
-import java.nio.ShortBuffer
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
@@ -23,7 +20,7 @@ import kotlin.concurrent.withLock
  */
 class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeBetweenUpdates: Long = 0) {
     /** Logger for this application, will be instantiated upon first use. */
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+//    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val mmConnection = MMConnection(slices)
     val volume: BufferedVolume
     var running = true

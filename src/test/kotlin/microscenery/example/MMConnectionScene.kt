@@ -1,11 +1,11 @@
-package microscenery.scenes
+package microscenery.example
 
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import microscenery.MMConnectedVolume
 import org.joml.Vector3f
 
-class MMConnection : SceneryBase(MMConnection::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
+class MMConnectionScene : SceneryBase(MMConnectionScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
 
     val slices = 112 // has to be 0 != x%32 for demo cam otherwise we have a standing wave
     lateinit var mmVol: MMConnectedVolume
@@ -40,7 +40,7 @@ class MMConnection : SceneryBase(MMConnection::class.java.simpleName, windowWidt
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            MMConnection().main()
+            MMConnectionScene().main()
         }
     }
 }

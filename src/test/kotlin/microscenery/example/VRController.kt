@@ -1,10 +1,12 @@
-package microscenery.scenes
+package microscenery.example
 
-import graphics.scenery.*
+import graphics.scenery.Box
+import graphics.scenery.Node
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
-import graphics.scenery.controls.behaviours.*
+import graphics.scenery.controls.behaviours.Grabable
+import graphics.scenery.controls.behaviours.Selectable
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultVRScene
@@ -76,7 +78,7 @@ class VRController : DefaultVRScene(
                         // of the controller's velocity.
                         if (device.role == TrackerRole.LeftHand) {
                             controller.update.add {
-                                if (leftControllerPushes){
+                                if (leftControllerPushes) {
                                     boxes.forEach { it.materialOrNull()?.diffuse = Vector3f(0.9f, 0.5f, 0.5f) }
                                     boxes.filter { box ->
                                         controller.children.first().spatialOrNull()?.intersects(box) ?: false
@@ -130,7 +132,12 @@ class VRController : DefaultVRScene(
         hmd.addKeyBinding("toggle_boxes", TrackerRole.RightHand, OpenVRHMD.OpenVRButton.A)
          */
 
-        VRGrabWithSelfMove.createAndSet(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Side), listOf(TrackerRole.LeftHand,TrackerRole.RightHand))
+        VRGrabWithSelfMove.createAndSet(
+            scene,
+            hmd,
+            listOf(OpenVRHMD.OpenVRButton.Side),
+            listOf(TrackerRole.LeftHand, TrackerRole.RightHand)
+        )
 // TODO adjust to new version
 //        val selectionStorage =
 //            VRSelect.createAndSetWithStorage(

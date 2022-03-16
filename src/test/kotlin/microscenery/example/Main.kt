@@ -1,7 +1,6 @@
-package microscenery.scenes
+package microscenery.example
 
 import graphics.scenery.Box
-import graphics.scenery.Node
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Grabable
@@ -18,9 +17,7 @@ import microscenery.TransferFunction1DEditor
 import microscenery.behaviors.VRGrabWithSelfMove
 import microscenery.behaviors.VRTeleport
 import org.joml.Vector3f
-import java.util.concurrent.Future
 import kotlin.concurrent.thread
-
 
 class Main : DefaultVRScene(Main::class.java.simpleName,) {
     private lateinit var volume: Volume
