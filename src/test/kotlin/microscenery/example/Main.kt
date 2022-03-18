@@ -12,21 +12,29 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.SlicingPlane
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
-import microscenery.MMConnectedVolume
+import microscenery.MMConnection
+import microscenery.StreamedVolume
 import microscenery.TransferFunction1DEditor
 import microscenery.behaviors.VRGrabWithSelfMove
 import microscenery.behaviors.VRTeleport
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
-class Main : DefaultVRScene(Main::class.java.simpleName,) {
+class Main : DefaultVRScene(Main::class.java.simpleName) {
     private lateinit var volume: Volume
 
     override fun init() {
         prepareVRScene()
 
-        val mmConnection = MMConnectedVolume(hub, 112)
-        volume = mmConnection.volume
+        val slices = 112
+        val mmConnection = MMConnection(slices)
+        val mmConnectionVolume = StreamedVolume(
+            hub,
+            mmConnection.width,
+            mmConnection.height,
+            slices
+        ) { mmConnection.captureStack(it.asShortBuffer()) }
+        volume = mmConnectionVolume.volume
         scene.addChild(volume)
 
         val transEdit = TransferFunction1DEditor()

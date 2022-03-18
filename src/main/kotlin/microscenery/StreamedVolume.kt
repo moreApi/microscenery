@@ -1,7 +1,6 @@
 package microscenery
 
 import graphics.scenery.Hub
-import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Colormap
@@ -14,21 +13,24 @@ import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
-/**
- *
- * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
- */
-class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeBetweenUpdates: Long = 0) {
+
+class StreamedVolume(
+    hub: Hub,
+    val width: Int,
+    val height: Int,
+    private val depth: Int = 10,
+    private val timeBetweenUpdates: Long = 0,
+    val getData: (ByteBuffer) -> Unit
+) {
     /** Logger for this application, will be instantiated upon first use. */
 //    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
-    val mmConnection = MMConnection(slices)
     val volume: BufferedVolume
     var running = true
 
     init {
 
 
-        volume = Volume.fromBuffer(emptyList(), mmConnection.width, mmConnection.height, slices, UnsignedShortType(), hub)
+        volume = Volume.fromBuffer(emptyList(), width, height, depth, UnsignedShortType(), hub)
 
         volume.name = "volume"
         volume.spatial {
@@ -38,7 +40,7 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
         volume.colormap = Colormap.get("hot")
         volume.pixelToWorldRatio = 0.1f
 
-        volume.transferFunction = TransferFunction.ramp(0.001f,distance = 1f)
+        volume.transferFunction = TransferFunction.ramp(0.001f, distance = 1f)
         /*with(volume.transferFunction) {
             addControlPoint(0.0f, 0.0f)
             addControlPoint(7000.0f, 1.0f)
@@ -49,19 +51,21 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
         thread {
             var count = 0
             val volumeBuffer =
-                RingBuffer<ByteBuffer>(2,default =  {
-                    MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * slices * Short.SIZE_BYTES)) })
+                RingBuffer<ByteBuffer>(2, default = {
+                    MemoryUtil.memAlloc((width * height * depth * Short.SIZE_BYTES))
+                })
 
             //var secondTimer = System.currentTimeMillis()
             //var lastCount = 0
             //var deltaTime = System.currentTimeMillis()
             //var deltas = emptyList<Int>()
             while (running) {
+
                 if (volume.metadata["animating"] == true) {
                     val currentBuffer = volumeBuffer.get()
                     val start = System.currentTimeMillis()
-                    mmConnection.captureStack(currentBuffer.asShortBuffer())
-                    println("capture stack took ${System.currentTimeMillis()-start}ms")
+                    getData(currentBuffer)
+                    println("get volume took ${System.currentTimeMillis() - start}ms")
 
                     //move z Stage to see change
                     //setup.zStage.position = Math.exp(count.toDouble())
@@ -85,7 +89,9 @@ class MMConnectedVolume(hub: Hub, private val slices:Int = 10, private val timeB
   */
                 }
 
-                if (timeBetweenUpdates > 0) { Thread.sleep(timeBetweenUpdates) }
+                if (timeBetweenUpdates > 0) {
+                    Thread.sleep(timeBetweenUpdates)
+                }
             }
         }
     }

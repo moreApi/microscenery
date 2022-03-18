@@ -1,5 +1,6 @@
 package microscenery.network
 
+import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.mapAsync
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -8,14 +9,18 @@ import org.zeromq.ZContext
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 
+/**
+ * @param volumeSize in bytes
+ */
 class VolumeReceiver(
     val volumeSize: Int,
-    connections: Int = 30,
-    basePort: Int = 4400,
+    val connections: Int = 30,
+    val basePort: Int = 4400,
     val reuseBuffers: Boolean = true,
-    host: String = "localhost",
+    val host: String = "localhost",
     zContext: ZContext
 ) {
+    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val buffers = graphics.scenery.utils.RingBuffer<ByteBuffer>(
         if (reuseBuffers) 2 else 0,
@@ -25,16 +30,19 @@ class VolumeReceiver(
         ChunkZMQReceiver(it, host, zContext)
     }.toList()
 
-    fun getVolume(timeout: Long = 2000): ByteBuffer? {
+    fun getVolume(timeout: Long = 2000, buffer: ByteBuffer? = null): ByteBuffer? {
         val slices = receivers.mapAsync {
             withContext(Dispatchers.IO) {
                 it.outputQueue.poll(timeout, TimeUnit.MILLISECONDS)
             }
         }.toList()
 
-        if (slices.all { it == null }) return null
+        if (slices.all { it == null }) {
+            logger.warn("All slices I got from host $host : $basePort + $connections connections where empty ")
+            return null
+        }
 
-        val buf = if (reuseBuffers) buffers.get() else MemoryUtil.memAlloc(volumeSize)
+        val buf = buffer ?: if (reuseBuffers) buffers.get() else MemoryUtil.memAlloc(volumeSize)
         buf.clear()
 
         slices.forEach { slice ->

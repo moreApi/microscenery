@@ -2,13 +2,15 @@ package microscenery.example
 
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
-import microscenery.MMConnectedVolume
+import microscenery.MMConnection
+import microscenery.StreamedVolume
 import org.joml.Vector3f
 
-class MMConnectionScene : SceneryBase(MMConnectionScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
+class MMConnectionScene :
+    SceneryBase(MMConnectionScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
 
     val slices = 112 // has to be 0 != x%32 for demo cam otherwise we have a standing wave
-    lateinit var mmVol: MMConnectedVolume
+    lateinit var mmVol: StreamedVolume
 
     override fun init() {
         renderer = hub.add(
@@ -32,7 +34,13 @@ class MMConnectionScene : SceneryBase(MMConnectionScene::class.java.simpleName, 
             scene.addChild(this)
         }
 
-        mmVol = MMConnectedVolume(hub, slices)
+        val mmConnection = MMConnection(slices)
+        mmVol = StreamedVolume(
+            hub,
+            mmConnection.width,
+            mmConnection.height,
+            slices
+        ) { mmConnection.captureStack(it.asShortBuffer()) }
         scene.addChild(mmVol.volume)
 
     }

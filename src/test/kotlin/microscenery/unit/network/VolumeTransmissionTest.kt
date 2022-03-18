@@ -2,7 +2,6 @@ package microscenery.unit.network
 
 import microscenery.network.VolumeReceiver
 import microscenery.network.VolumeSender
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.lwjgl.system.MemoryUtil
@@ -18,10 +17,9 @@ class VolumeTransmissionTest {
     var ctx = ZContext()
 
     @AfterEach
-    fun reset(){
+    fun reset() {
         ctx.destroy()
     }
-
 
 
     @Test
@@ -33,7 +31,7 @@ class VolumeTransmissionTest {
         dummyData.rewind()
 
         val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, false, zContext = ctx)
-        val sender = VolumeSender(connections, basePort,ctx)
+        val sender = VolumeSender(connections, basePort, ctx)
 
         Thread.sleep(1500)
 
@@ -62,7 +60,7 @@ class VolumeTransmissionTest {
         dummyData.rewind()
 
         val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, true, zContext = ctx)
-        val sender = VolumeSender(connections, basePort,ctx)
+        val sender = VolumeSender(connections, basePort, ctx)
 
         Thread.sleep(1500)
 
@@ -94,7 +92,7 @@ class VolumeTransmissionTest {
         dummyData.rewind()
 
         val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, true, zContext = ctx)
-        val sender = VolumeSender(connections, basePort,zContext = ctx)
+        val sender = VolumeSender(connections, basePort, zContext = ctx)
 
         Thread.sleep(1500)
 
@@ -121,6 +119,8 @@ class VolumeTransmissionTest {
             }
             sender.close()
             receiver.close()
+            ctx.destroy()
+            t1.interrupt()
         }
         t1.join()
         t2.join()

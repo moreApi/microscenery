@@ -1,5 +1,6 @@
 package microscenery.network
 
+import graphics.scenery.utils.LazyLogger
 import org.zeromq.*
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
@@ -10,8 +11,8 @@ internal const val CHUNK_SIZE = 250000
 
 class ChunkZMQReceiver(port: Int, host: String = "localhost", zContext: ZContext) {
 
-    val outputQueue = ArrayBlockingQueue<List<ByteBuffer>>(2)
 
+    val outputQueue = ArrayBlockingQueue<List<ByteBuffer>>(2)
 
     private val client = Client(outputQueue, port, host)
     val clientThread = ZThread.fork(zContext, client)
@@ -25,15 +26,16 @@ class ChunkZMQReceiver(port: Int, host: String = "localhost", zContext: ZContext
     internal class Client(
         val outputQueue: ArrayBlockingQueue<List<ByteBuffer>>, val port: Int, val host: String = "localhost"
     ) : ZThread.IAttachedRunnable {
+        private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
         var running = true
         var collector = mutableListOf<ByteBuffer>()
 
         override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
             val dealer = ctx.createSocket(SocketType.DEALER)
-            //            dealer.connect("tcp://127.0.0.1:6000")
             dealer.connect("tcp://$host:$port")
 
+            logger.info("${ChunkZMQReceiver::class.simpleName} connected to tcp://$host:$port")
 
             var chunkId = 0.toByte()
 

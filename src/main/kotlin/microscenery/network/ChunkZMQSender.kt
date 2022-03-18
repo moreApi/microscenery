@@ -1,5 +1,6 @@
 package microscenery.network
 
+import graphics.scenery.utils.LazyLogger
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.*
 import java.nio.ByteBuffer
@@ -33,12 +34,14 @@ class ChunkZMQSender(val port: Int, zContext: ZContext) {
         val bufferLock = Any()
         var currentBuffer: ByteBuffer = MemoryUtil.memAlloc(0)
         val data = ByteArray(CHUNK_SIZE + 1)
+        private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
         override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
 
             val router = ctx.createSocket(SocketType.ROUTER)
             router.hwm = PIPELINE * 2
             router.bind("tcp://*:$port")
+            logger.info("${ChunkZMQSender::class.simpleName} bound to tcp://*:$port")
 
             while (!Thread.currentThread().isInterrupted && running) {
                 //  First frame in each message is the sender identity
