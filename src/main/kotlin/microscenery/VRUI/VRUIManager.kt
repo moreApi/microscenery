@@ -1,16 +1,15 @@
 package microscenery.VRUI
 
-import graphics.scenery.*
+import graphics.scenery.Box
+import graphics.scenery.Node
+import graphics.scenery.Scene
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
-import graphics.scenery.controls.TrackedDevice
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.*
-import graphics.scenery.controls.behaviours.VRSelectionWheel.Companion.toActions
 import microscenery.DefaultVRScene
 import microscenery.behaviors.VRGrabWithSelfMove
-import microscenery.scenes.VolRenVRCropping
 import org.joml.Vector3f
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
@@ -18,13 +17,12 @@ import java.util.concurrent.Future
 
 class VRUIManager(scene: Scene) {
 
-    val dummyTool = Box(Vector3f(0.1f,0.2f,0.07f)).let {
+    val dummyTool = Box(Vector3f(0.1f, 0.2f, 0.07f)).let {
         scene.addChild(it)
         it.addVRToolFunctionality()
         it.visible = false
         it
     }
-
 
 
     fun initBehavior(scene: Scene, hmd: OpenVRHMD) {
@@ -40,14 +38,14 @@ class VRUIManager(scene: Scene) {
             hmd,
             listOf(OpenVRHMD.OpenVRButton.Trigger),
             listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
-        )
+        ) { VRTouch.unapplySelectionColor(it) }
 
         VRSelectionWheelCreateAndSet(
             scene,
             hmd,
             listOf(OpenVRHMD.OpenVRButton.Menu),
             listOf(TrackerRole.RightHand, TrackerRole.LeftHand),
-            listOf("dummy" to {device ->
+            listOf("dummy" to { device ->
                 dummyTool.visible = true
                 dummyTool.spatial().position = device.worldPosition()
             })
@@ -63,11 +61,12 @@ fun Node.addVRToolFunctionality(
     whileActivated: () -> Unit = {},
     onDeactivate: () -> Unit = {}
 ) {
-    this.addAttribute(Grabable::class.java, Grabable(onPickup,whileHeld,onDrop,false))
-    this.addAttribute(Pressable::class.java, Pressable(onActivate,whileActivated,onDeactivate))
+    this.addAttribute(Touchable::class.java, Touchable())
+    this.addAttribute(Grabable::class.java, Grabable(onPickup, whileHeld, onDrop, false))
+    this.addAttribute(Pressable::class.java, Pressable(onActivate, whileActivated, onDeactivate))
 }
 
-class Demo():DefaultVRScene(VRUIManager::class.java.simpleName){
+class Demo : DefaultVRScene(VRUIManager::class.java.simpleName) {
 
 
     override fun init() {
@@ -94,7 +93,7 @@ class Demo():DefaultVRScene(VRUIManager::class.java.simpleName){
             }
         }
 
-        VRUIManager(scene).initBehavior(scene,hmd)
+        VRUIManager(scene).initBehavior(scene, hmd)
 
     }
 }
@@ -110,7 +109,7 @@ fun VRSelectionWheelCreateAndSet(
     button: List<OpenVRHMD.OpenVRButton>,
     controllerSide: List<TrackerRole>,
     actions: List<Pair<String, (Spatial) -> Unit>>,
-) : Future<VRSelectionWheel> {
+): Future<VRSelectionWheel> {
     val future = CompletableFuture<VRSelectionWheel>()
     hmd.events.onDeviceConnect.add { _, device, _ ->
         if (device.type == TrackedDeviceType.Controller) {
@@ -122,7 +121,11 @@ fun VRSelectionWheelCreateAndSet(
                             ?: throw IllegalArgumentException("The target controller needs a spatial."),
                         scene,
                         hmd,
-                        actions.toActions(controller.children.first().spatialOrNull()?: throw IllegalArgumentException("The target controller needs a spatial."))
+                        actions.toActions(
+                            controller.children.first().spatialOrNull() ?: throw IllegalArgumentException(
+                                "The target controller needs a spatial."
+                            )
+                        )
                     )
                     hmd.addBehaviour(name, vrToolSelector)
                     button.forEach {
@@ -137,4 +140,5 @@ fun VRSelectionWheelCreateAndSet(
 }
 
 
-fun List<Pair<String, (Spatial) -> Unit>>.toActions(device: Spatial): List<Action> = map { Action(it.first) { it.second.invoke(device) } }
+fun List<Pair<String, (Spatial) -> Unit>>.toActions(device: Spatial): List<Action> =
+    map { Action(it.first) { it.second.invoke(device) } }
