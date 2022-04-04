@@ -19,7 +19,7 @@ class VRGrabWithSelfMove(
     targets: () -> List<Node>,
     multiTarget: Boolean,
     private val cam: Spatial?,
-    onGrab: (() -> Unit)?
+    onGrab: ((Node) -> Unit)?
 ) : VRGrab(name, controllerHitbox, targets, multiTarget, onGrab) {
 
     var camDiff = Vector3f()

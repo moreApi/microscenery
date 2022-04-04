@@ -2,6 +2,7 @@ package microscenery.VRUI
 
 import graphics.scenery.Box
 import graphics.scenery.Sphere
+import graphics.scenery.controls.behaviours.SimplePressable
 import org.joml.Vector3f
 
 class PointEntityTool: Box(Vector3f(0.05f, 0.13f, 0.05f)) {
@@ -12,12 +13,13 @@ class PointEntityTool: Box(Vector3f(0.05f, 0.13f, 0.05f)) {
         }
         addChild(tip)
 
-        this.addVRToolFunctionality (
-            onActivate= {
+        this.addVRToolFunctionality ( pressable = SimplePressable(
+            onPress = {
                 val ink = Sphere(0.03f)
                 ink.spatial().position=tip.spatial().worldPosition()
                 this.parent?.addChild(ink)
             }
+        )
         )
     }
 }

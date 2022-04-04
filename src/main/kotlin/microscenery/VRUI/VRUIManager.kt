@@ -38,9 +38,9 @@ class VRUIManager(scene: Scene) {
             hmd,
             listOf(OpenVRHMD.OpenVRButton.Trigger),
             listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
-        ) { VRTouch.unapplySelectionColor(it) }
+        ) {it,_ -> VRTouch.unapplySelectionColor(it) }
 
-        VRSelectionWheelCreateAndSet(
+        VRSelectionWheel.createAndSet(
             scene,
             hmd,
             listOf(OpenVRHMD.OpenVRButton.Menu),
@@ -57,13 +57,11 @@ fun Node.addVRToolFunctionality(
     onPickup: () -> Unit = {},
     whileHeld: () -> Unit = {},
     onDrop: () -> Unit = {},
-    onActivate: () -> Unit = {},
-    whileActivated: () -> Unit = {},
-    onDeactivate: () -> Unit = {}
+    pressable: Pressable = SimplePressable()
 ) {
     this.addAttribute(Touchable::class.java, Touchable())
     this.addAttribute(Grabable::class.java, Grabable(onPickup, whileHeld, onDrop, false))
-    this.addAttribute(Pressable::class.java, Pressable(onActivate, whileActivated, onDeactivate))
+    this.addAttribute(Pressable::class.java, pressable)
 }
 
 class Demo : DefaultVRScene(VRUIManager::class.java.simpleName) {
@@ -101,44 +99,3 @@ class Demo : DefaultVRScene(VRUIManager::class.java.simpleName) {
 fun main() {
     Demo().main()
 }
-
-
-fun VRSelectionWheelCreateAndSet(
-    scene: Scene,
-    hmd: OpenVRHMD,
-    button: List<OpenVRHMD.OpenVRButton>,
-    controllerSide: List<TrackerRole>,
-    actions: List<Pair<String, (Spatial) -> Unit>>,
-): Future<VRSelectionWheel> {
-    val future = CompletableFuture<VRSelectionWheel>()
-    hmd.events.onDeviceConnect.add { _, device, _ ->
-        if (device.type == TrackedDeviceType.Controller) {
-            device.model?.let { controller ->
-                if (controllerSide.contains(device.role)) {
-                    val name = "VRSelectionWheel:${hmd.trackingSystemName}:${device.role}:$button"
-                    val vrToolSelector = VRSelectionWheel(
-                        controller.children.first().spatialOrNull()
-                            ?: throw IllegalArgumentException("The target controller needs a spatial."),
-                        scene,
-                        hmd,
-                        actions.toActions(
-                            controller.children.first().spatialOrNull() ?: throw IllegalArgumentException(
-                                "The target controller needs a spatial."
-                            )
-                        )
-                    )
-                    hmd.addBehaviour(name, vrToolSelector)
-                    button.forEach {
-                        hmd.addKeyBinding(name, device.role, it)
-                    }
-                    future.complete(vrToolSelector)
-                }
-            }
-        }
-    }
-    return future
-}
-
-
-fun List<Pair<String, (Spatial) -> Unit>>.toActions(device: Spatial): List<Action> =
-    map { Action(it.first) { it.second.invoke(device) } }
