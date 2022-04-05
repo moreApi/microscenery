@@ -14,7 +14,7 @@ import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.MMConnection
 import microscenery.StreamedVolume
-import microscenery.TransferFunction1DEditor
+import microscenery.VRUI.TransferFunction1DEditor
 import microscenery.behaviors.VRGrabWithSelfMove
 import microscenery.behaviors.VRTeleport
 import org.joml.Vector3f
@@ -37,7 +37,7 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
         volume = mmConnectionVolume.volume
         scene.addChild(volume)
 
-        val transEdit = TransferFunction1DEditor()
+        val transEdit = TransferFunction1DEditor(hmd)
         scene.addChild(transEdit)
 
         volume.transferFunction = transEdit.transferFunction

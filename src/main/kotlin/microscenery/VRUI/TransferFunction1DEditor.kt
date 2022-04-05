@@ -1,20 +1,21 @@
-package microscenery
+package microscenery.VRUI
 
 import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.Sphere
 import graphics.scenery.attribute.spatial.Spatial
-import graphics.scenery.controls.behaviours.Grabable
-import graphics.scenery.controls.behaviours.Touchable
+import graphics.scenery.controls.TrackerInput
+import graphics.scenery.controls.behaviours.*
 import graphics.scenery.primitives.Line
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
+import microscenery.DefaultScene
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import tpietzsch.example2.VolumeViewerOptions
-import kotlin.concurrent.thread
 
 class LineBetweenNodes2(var from: Spatial, var to: Spatial, transparent: Boolean = false, simple: Boolean = false) :
     Line(capacity = 3, transparent, simple) {
@@ -42,22 +43,24 @@ class LineBetweenNodes2(var from: Spatial, var to: Spatial, transparent: Boolean
 /**
  * It goes stale
  */
-class RottenTransferFunction(): TransferFunction(){
+class RottingTransferFunction(): TransferFunction(){
     fun setStale() { stale = true }
 }
 
-class TransferFunction1DEditor : RichNode("Transfer function editor") {
+class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function editor") {
 
     val start = Sphere(0.1f)
     val low = Sphere(0.1f)
     val high = Sphere(0.1f)
     val end = Sphere(0.1f)
 
-    val transferFunction = RottenTransferFunction()
+    val transferFunction = RottingTransferFunction()
     val cpStart = transferFunction.addControlPoint(0.0f, 0.0f)
     val cpLow = transferFunction.addControlPoint(0.25f, 0.0f)
     val cpHigh = transferFunction.addControlPoint(0.75f, 1f)
     var cpEnd = transferFunction.addControlPoint(1f,1f)
+
+    var followHead = true
 
     init {
         val background = Box(Vector3f(2f, 1f, 0.1f))
@@ -121,9 +124,19 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
         listOf(background, start, low, high, end).forEach {
             this.addChild(it)
             this.addAttribute(Touchable::class.java, Touchable())
+            this.addAttribute(Pressable::class.java, PerButtonPressable(mapOf(CLOSE_BUTTON to SimplePressable(onPress = {
+                this.visible = false
+                this.parent?.removeChild(this)
+            }))))
         }
 
-
+        update.add {
+            if (followHead && hmd != null) {
+                spatial {
+                    rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
+                }
+            }
+        }
     }
 
     private fun updateTransferFunction() {
@@ -149,7 +162,7 @@ class TransferFunction1DEditor : RichNode("Transfer function editor") {
         @JvmStatic
         fun main(args: Array<String>) {
             DefaultScene({ scene, hub ->
-                val tfe = TransferFunction1DEditor()
+                val tfe = TransferFunction1DEditor(null)
                 scene.addChild(tfe)
                 val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\drosophila.xml""",hub, VolumeViewerOptions())
                 volume.transferFunction = tfe.transferFunction

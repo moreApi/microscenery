@@ -1,6 +1,5 @@
 package microscenery.behaviors
 
-import graphics.scenery.Camera
 import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.attribute.spatial.Spatial
@@ -32,15 +31,16 @@ class VRGrabWithSelfMove(
     }
 
     override fun drag(x: Int, y: Int) {
-        if (selected.isEmpty() && cam != null){
+        if (selected.isEmpty() && cam != null) {
             //grabbed world
-            val newCamDiff = controllerSpatial.worldPosition()-cam.position
+            val newCamDiff = controllerSpatial.worldPosition() - cam.position
             val diffTranslation = camDiff - newCamDiff //reversed
             cam.position += diffTranslation
             camDiff = newCamDiff
         }
         super.drag(x, y)
     }
+
     companion object {
 
         /**
@@ -50,7 +50,8 @@ class VRGrabWithSelfMove(
             scene: Scene,
             hmd: OpenVRHMD,
             button: List<OpenVRHMD.OpenVRButton>,
-            controllerSide: List<TrackerRole>
+            controllerSide: List<TrackerRole>,
+            onGrab: ((Node) -> Unit)? = null
         ) {
             hmd.events.onDeviceConnect.add { _, device, _ ->
                 if (device.type == TrackedDeviceType.Controller) {
@@ -63,7 +64,7 @@ class VRGrabWithSelfMove(
                                 { scene.discover(scene, { n -> n.getAttributeOrNull(Grabable::class.java) != null }) },
                                 false,
                                 scene.findObserver()!!.spatial(),
-                                { (hmd as? OpenVRHMD)?.vibrate(device) })
+                                { (hmd as? OpenVRHMD)?.vibrate(device); onGrab?.invoke(it) })
 
                             hmd.addBehaviour(name, grabBehaviour)
                             button.forEach {
