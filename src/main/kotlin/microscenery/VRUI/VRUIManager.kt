@@ -9,19 +9,12 @@ import graphics.scenery.controls.behaviours.VRTouch
 import microscenery.behaviors.VRGrabWithSelfMove
 import microscenery.behaviors.VRTeleport
 
-
 class VRUIManager {
-
-
     companion object {
-
         fun initBehavior(scene: Scene, hmd: OpenVRHMD, inputHandler: InputHandler?) {
 
             VRGrabWithSelfMove.createAndSet(
-                scene,
-                hmd,
-                listOf(OpenVRHMD.OpenVRButton.Side),
-                listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
+                scene, hmd, listOf(OpenVRHMD.OpenVRButton.Side), listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
             ) { VRTouch.unapplySelectionColor(it) }
             inputHandler?.let { initStickMovement(it, hmd) }
             VRTeleport.createAndSet(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu), listOf(TrackerRole.LeftHand))

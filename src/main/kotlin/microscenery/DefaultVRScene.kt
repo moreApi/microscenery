@@ -59,7 +59,7 @@ abstract class DefaultVRScene(name: String) : SceneryBase(
 
         (0..5).map {
             val light = PointLight(radius = 15.0f)
-            light.emissionColor = Random.random3DVectorFromRange(0.5f, 1.0f)
+            light.emissionColor = Random.random3DVectorFromRange(0.75f, 1.0f)
             light.spatial {
                 position = Random.random3DVectorFromRange(-5.0f, 5.0f)
             }
@@ -69,6 +69,7 @@ abstract class DefaultVRScene(name: String) : SceneryBase(
         }.forEach { scene.addChild(it) }
 
         hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
+        hullbox.name = "hullbox"
         hullbox.material {
             ambient = Vector3f(0.6f, 0.6f, 0.6f)
             diffuse = Vector3f(0.4f, 0.4f, 0.4f)
