@@ -37,7 +37,7 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
         volume = mmConnectionVolume.volume
         scene.addChild(volume)
 
-        val transEdit = TransferFunction1DEditor(hmd)
+        val transEdit = TransferFunction1DEditor()
         scene.addChild(transEdit)
 
         volume.transferFunction = transEdit.transferFunction

@@ -3,42 +3,15 @@ package microscenery.VRUI
 import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.Sphere
-import graphics.scenery.attribute.spatial.Spatial
-import graphics.scenery.controls.TrackerInput
 import graphics.scenery.controls.behaviours.*
-import graphics.scenery.primitives.Line
-import graphics.scenery.utils.extensions.minus
+import graphics.scenery.primitives.LineBetweenNodes
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultScene
-import org.joml.Quaternionf
 import org.joml.Vector3f
 import tpietzsch.example2.VolumeViewerOptions
-
-class LineBetweenNodes2(var from: Spatial, var to: Spatial, transparent: Boolean = false, simple: Boolean = false) :
-    Line(capacity = 3, transparent, simple) {
-
-    init {
-
-        addPoint(Vector3f())
-        addPoint(Vector3f(0f, 1f, 0f))
-
-        update.add {
-            if (!visible) {
-                return@add
-            }
-            spatial() {
-                val p1 = from.worldPosition(Vector3f())
-                val p2 = to.worldPosition(Vector3f())
-                orientBetweenPoints(p1, p2)
-                scale = Vector3f(p1.distance(p2)) //todo: times the inverse of world
-                position = p1 - (parent?.spatialOrNull()?.worldPosition() ?: Vector3f())
-            }
-        }
-    }
-}
 
 /**
  * It goes stale
@@ -47,7 +20,7 @@ class RottingTransferFunction(): TransferFunction(){
     fun setStale() { stale = true }
 }
 
-class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function editor") {
+class TransferFunction1DEditor() : RichNode("Transfer function editor") {
 
     val start = Sphere(0.1f)
     val low = Sphere(0.1f)
@@ -59,8 +32,6 @@ class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function
     val cpLow = transferFunction.addControlPoint(0.25f, 0.0f)
     val cpHigh = transferFunction.addControlPoint(0.75f, 1f)
     var cpEnd = transferFunction.addControlPoint(1f,1f)
-
-    var followHead = true
 
     init {
         val background = Box(Vector3f(2f, 1f, 0.1f))
@@ -91,7 +62,7 @@ class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function
                 this.updateTransferFunction()
             }, lockRotation = true)
         )
-        this.addChild(LineBetweenNodes2(start.spatial(), low.spatial(), simple = true))
+        this.addChild(LineBetweenNodes(start.spatial(), low.spatial(), simple = true))
 
         high.spatial().position = Vector3f(1.5f, 1f, 0f)
         high.addAttribute(Grabable::class.java,
@@ -105,7 +76,7 @@ class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function
                 this.updateTransferFunction()
             }, lockRotation = true)
         )
-        this.addChild(LineBetweenNodes2(low.spatial(), high.spatial(), simple = true))
+        this.addChild(LineBetweenNodes(low.spatial(), high.spatial(), simple = true))
 
         end.spatial().position = Vector3f(2f, 1f, 0f)
         end.addAttribute(Grabable::class.java,
@@ -119,7 +90,7 @@ class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function
                 this.updateTransferFunction()
             }, lockRotation = true)
         )
-        this.addChild(LineBetweenNodes2(high.spatial(), end.spatial(), simple = true))
+        this.addChild(LineBetweenNodes(high.spatial(), end.spatial(), simple = true))
 
         listOf(background, start, low, high, end).forEach {
             this.addChild(it)
@@ -130,13 +101,6 @@ class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function
             }))))
         }
 
-        update.add {
-            if (followHead && hmd != null) {
-                spatial {
-                    rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
-                }
-            }
-        }
     }
 
     private fun updateTransferFunction() {
@@ -162,7 +126,7 @@ class TransferFunction1DEditor(hmd: TrackerInput?) : RichNode("Transfer function
         @JvmStatic
         fun main(args: Array<String>) {
             DefaultScene({ scene, hub ->
-                val tfe = TransferFunction1DEditor(null)
+                val tfe = TransferFunction1DEditor()
                 scene.addChild(tfe)
                 val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\drosophila.xml""",hub, VolumeViewerOptions())
                 volume.transferFunction = tfe.transferFunction

@@ -28,7 +28,7 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 }
 
 dependencies {
-    implementation("graphics.scenery:scenery:4f19acb")
+    implementation("graphics.scenery:scenery:e008e9c")
     // TODO fix imports
 //    implementation("net.imagej:ij:1.49k")
 //    implementation("net.imglib2:imglib2")

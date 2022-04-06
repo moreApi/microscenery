@@ -10,7 +10,7 @@ class Toolbox(val scene: Scene, hmd: OpenVRHMD,button: List<OpenVRHMD.OpenVRButt
               controllerSide: List<TrackerRole>) {
     val pointTool = PointEntityTool()
     val croppingTool = CroppingTool()
-    val tfe = TransferFunction1DEditor(hmd)
+    val tfe = TransferFunction1DEditor()
 
 
     init {
@@ -31,7 +31,6 @@ class Toolbox(val scene: Scene, hmd: OpenVRHMD,button: List<OpenVRHMD.OpenVRButt
                         scene.findByClassname("Volume").firstOrNull() as? Volume
                             ?: throw IllegalStateException("did not found a volume for slicing plane")
                     )
-
                 },
                 "point marker" to { device ->
                     scene.addChild(pointTool)
@@ -40,7 +39,11 @@ class Toolbox(val scene: Scene, hmd: OpenVRHMD,button: List<OpenVRHMD.OpenVRButt
                 },
                 "transfer function" to { device ->
                     scene.addChild(tfe)
-                    tfe.spatial().position = device.worldPosition()
+                    tfe.spatial {
+                        position = device.worldPosition()
+                        // this breaks everything :(
+                        //rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
+                    }
                     tfe.visible = true
                     (scene.findByClassname("Volume").firstOrNull() as? Volume
                         ?: throw IllegalStateException("did not found a volume for transfer function editor"))
