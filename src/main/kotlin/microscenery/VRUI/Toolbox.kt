@@ -7,9 +7,14 @@ import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.VRSelectionWheel
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Volume
+import microscenery.behaviors.VRScaleNode
 
 class Toolbox(
-    val scene: Scene, hmd: OpenVRHMD, button: List<OpenVRHMD.OpenVRButton>, controllerSide: List<TrackerRole>
+    val scene: Scene,
+    hmd: OpenVRHMD,
+    button: List<OpenVRHMD.OpenVRButton>,
+    controllerSide: List<TrackerRole>,
+    volume: Volume
 ) {
     val pointTool = PointEntityTool()
     val croppingTool = CroppingTool()
@@ -23,10 +28,7 @@ class Toolbox(
         VRSelectionWheel.createAndSet(scene, hmd, button, controllerSide, listOf("slicing tool" to { device ->
             scene.addChild(croppingTool)
             croppingTool.spatial().position = device.worldPosition()
-            croppingTool.activate(
-                scene.findByClassname("Volume").firstOrNull() as? Volume
-                    ?: throw IllegalStateException("did not found a volume for slicing plane")
-            )
+            croppingTool.activate(volume)
         }, "point marker" to { device ->
             scene.addChild(pointTool)
             pointTool.visible = true
@@ -39,13 +41,13 @@ class Toolbox(
                 //rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
             }
             tfe.visible = true
-            (scene.findByClassname("Volume").firstOrNull() as? Volume
-                ?: throw IllegalStateException("did not found a volume for transfer function editor")).transferFunction =
-                tfe.transferFunction
+            volume.transferFunction = tfe.transferFunction
         }, "options" to {
             val m = WheelMenu(hmd, listOf(Switch("hull", true) { scene.find("hullbox")?.visible = it }), true)
             m.spatial().position = it.worldPosition()
             scene.addChild(m)
         }))
+
+        VRScaleNode(volume)
     }
 }

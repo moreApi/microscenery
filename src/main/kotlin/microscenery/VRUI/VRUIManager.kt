@@ -8,13 +8,14 @@ import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.VRPress
 import graphics.scenery.controls.behaviours.VRTouch
+import graphics.scenery.volumes.Volume
 import microscenery.behaviors.VRGrabWithSelfMove
 import microscenery.behaviors.VRTeleport
 import org.joml.Vector3f
 
 class VRUIManager {
     companion object {
-        fun initBehavior(scene: Scene, hmd: OpenVRHMD, inputHandler: InputHandler?) {
+        fun initBehavior(scene: Scene, hmd: OpenVRHMD, inputHandler: InputHandler?, volume: Volume) {
             initControllerIndicator(hmd)
 
             VRGrabWithSelfMove.createAndSet(
@@ -31,7 +32,7 @@ class VRUIManager {
                 listOf(OpenVRHMD.OpenVRButton.Trigger, OpenVRHMD.OpenVRButton.A),
                 listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
             )
-            Toolbox(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu), listOf(TrackerRole.RightHand))
+            Toolbox(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu), listOf(TrackerRole.RightHand), volume)
         }
 
         private fun InputHandler.initStickMovement(hmd: OpenVRHMD) {
