@@ -1,12 +1,14 @@
 package microscenery.unit.network
 
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import microscenery.network.VolumeReceiver
 import microscenery.network.VolumeSender
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
-import kotlin.concurrent.thread
 import kotlin.math.pow
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -14,38 +16,19 @@ import kotlin.test.assertNotNull
 
 class VolumeTransmissionTest {
 
+    //lateinit var ctx : ZContext
     var ctx = ZContext()
 
     @AfterEach
     fun reset() {
+        ctx.linger =  0
         ctx.destroy()
+        ctx = ZContext()
+        ctx.linger =  0
     }
 
-
-    @Test
-    fun notReusingBuffer() {
-        val connections = 10
-        val basePort = 4400
-
-        val dummyData = MemoryUtil.memAlloc(166 * 10.0.pow(6.0).toInt())
-        dummyData.rewind()
-
-        val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, false, zContext = ctx)
-        val sender = VolumeSender(connections, basePort, ctx)
-
-        Thread.sleep(1500)
-
-        val t = System.currentTimeMillis()
-        sender.sendVolume(dummyData)
-        val result = receiver.getVolume(5000)
-        assertNotNull(result)
-
-        println("delta ${System.currentTimeMillis() - t}")
-
-
-        sender.close()
-        receiver.close()
-
+    @BeforeEach
+    fun init(){
     }
 
     @Test
@@ -80,6 +63,33 @@ class VolumeTransmissionTest {
     }
 
     @Test
+    fun notReusingBuffer() {
+        val connections = 10
+        val basePort = 4400
+
+        val dummyData = MemoryUtil.memAlloc(166 * 10.0.pow(6.0).toInt())
+        dummyData.rewind()
+
+        val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, false, zContext = ctx)
+        val sender = VolumeSender(connections, basePort, ctx)
+
+        Thread.sleep(1500)
+
+        val t = System.currentTimeMillis()
+        sender.sendVolume(dummyData)
+        val result = receiver.getVolume(5000)
+        assertNotNull(result)
+
+        println("delta ${System.currentTimeMillis() - t}")
+
+
+        sender.close()
+        receiver.close()
+
+    }
+
+
+    @Test
     fun reusingBufferMultipleVolumes() {
         val connections = 10
         val basePort = 4400
@@ -98,15 +108,16 @@ class VolumeTransmissionTest {
 
         val t = System.currentTimeMillis()
 
-        val t1 = thread {
-            for (x in 1..repeats) {
-                println("dummy " + x)
-                dummyData.rewind()
-                sender.sendVolume(dummyData)
-            }
-        }
+        runBlocking {
 
-        val t2 = thread {
+            val t1 = launch {
+                for (x in 1..repeats) {
+                    println("dummy " + x)
+                    dummyData.rewind()
+                    sender.sendVolume(dummyData)
+                }
+            }
+
             for (x in 1..repeats) {
                 val result = receiver.getVolume(5000)
                 assertNotNull(result)
@@ -119,11 +130,9 @@ class VolumeTransmissionTest {
             }
             sender.close()
             receiver.close()
-            ctx.destroy()
-            t1.interrupt()
+
+            t1.join()
         }
-        t1.join()
-        t2.join()
 
         val delta = System.currentTimeMillis() - t
 

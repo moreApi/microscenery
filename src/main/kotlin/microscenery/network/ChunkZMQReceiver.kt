@@ -9,18 +9,17 @@ import java.util.concurrent.ArrayBlockingQueue
 internal const val PIPELINE = 10
 internal const val CHUNK_SIZE = 250000
 
-class ChunkZMQReceiver(port: Int, host: String = "localhost", zContext: ZContext) {
+class ChunkZMQReceiver(port: Int, host: String = "localhost", val zContext: ZContext) {
 
 
     val outputQueue = ArrayBlockingQueue<List<ByteBuffer>>(2)
 
     private val client = Client(outputQueue, port, host)
-    val clientThread = ZThread.fork(zContext, client)
-    var running
-        get() = client.running
-        set(value) {
-            client.running = value
-        }
+    val thread = ZThread.fork(zContext, client)
+
+    fun close(){
+        client.running = false
+    }
 
     // taken from https://zguide.zeromq.org/docs/chapter7/#Transferring-Files
     internal class Client(
@@ -30,9 +29,10 @@ class ChunkZMQReceiver(port: Int, host: String = "localhost", zContext: ZContext
 
         var running = true
         var collector = mutableListOf<ByteBuffer>()
+        lateinit var dealer: ZMQ.Socket
 
         override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
-            val dealer = ctx.createSocket(SocketType.DEALER)
+            dealer = ctx.createSocket(SocketType.DEALER)
             dealer.connect("tcp://$host:$port")
 
             logger.info("${ChunkZMQReceiver::class.simpleName} connected to tcp://$host:$port")
@@ -85,6 +85,8 @@ class ChunkZMQReceiver(port: Int, host: String = "localhost", zContext: ZContext
                     chunkId = ((chunkId + 1) % 100).toByte() // just something that is not the old value
                 } //  Last chunk received
             }
+            dealer.linger = 0
+            dealer.close()
             pipe.send("OK")
         }
     }

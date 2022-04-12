@@ -46,6 +46,10 @@ class VolumeReceiver(
         buf.clear()
 
         slices.forEach { slice ->
+            if (slice == null) {
+                logger.warn("A slice is null. This should not happen?")
+                return@forEach
+            }
             slice.forEach {
                 buf.put(it)
             }
@@ -61,7 +65,7 @@ class VolumeReceiver(
      */
     fun close() {
         receivers.forEach {
-            it.running = false
+            it.close()
         }
     }
 

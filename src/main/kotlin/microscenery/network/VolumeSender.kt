@@ -30,6 +30,8 @@ class VolumeSender(
      */
     fun close() {
 
-        senders.forEach { it.running = false }
+        senders.forEach {
+            it.close()
+        }
     }
 }

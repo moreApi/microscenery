@@ -5,16 +5,14 @@ import org.lwjgl.system.MemoryUtil
 import org.zeromq.*
 import java.nio.ByteBuffer
 
-class ChunkZMQSender(val port: Int, zContext: ZContext) {
+class ChunkZMQSender(val port: Int, val zContext: ZContext) {
 
     private val server = Server(port)
     val thread = ZThread.fork(zContext, server)
 
-    var running
-        get() = server.running
-        set(value) {
-            server.running = value
-        }
+    fun close(){
+        server.running = false
+    }
 
     fun sendBuffer(buffer: ByteBuffer) {
         synchronized(server.bufferLock) {
@@ -35,10 +33,11 @@ class ChunkZMQSender(val port: Int, zContext: ZContext) {
         var currentBuffer: ByteBuffer = MemoryUtil.memAlloc(0)
         val data = ByteArray(CHUNK_SIZE + 1)
         private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+        lateinit var router: ZMQ.Socket
 
         override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
 
-            val router = ctx.createSocket(SocketType.ROUTER)
+            router = ctx.createSocket(SocketType.ROUTER)
             router.hwm = PIPELINE * 2
             router.bind("tcp://*:$port")
             logger.info("${ChunkZMQSender::class.simpleName} bound to tcp://*:$port")
@@ -76,6 +75,9 @@ class ChunkZMQSender(val port: Int, zContext: ZContext) {
                 identity.sendAndDestroy(router, ZMQ.SNDMORE)
                 chunk.sendAndDestroy(router)
             }
+            router.linger = 0
+            router.close()
+            pipe.send("OK")
         }
     }
 }
