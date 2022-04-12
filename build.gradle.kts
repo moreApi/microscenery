@@ -57,3 +57,29 @@ tasks.test {
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "11"
 }
+
+tasks{
+    // This registers gradle tasks for all scenes
+    sourceSets.test.get().allSource.files
+        .filter { it.name.endsWith("Scene.kt") }
+        .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
+        .forEach { className ->
+            val exampleName = className.substringAfterLast(".")
+            val exampleType = className.substringBeforeLast(".").substringAfterLast(".")
+
+            register<JavaExec>(name = exampleName) {
+                classpath = sourceSets.test.get().runtimeClasspath
+                main = className
+                group = "examples.$exampleType"
+
+                val props = System.getProperties().filter { (k, _) -> k.toString().startsWith("scenery.") }
+
+                val additionalArgs = System.getenv("SCENERY_JVM_ARGS")
+                allJvmArgs = if (additionalArgs != null) {
+                    allJvmArgs + props.flatMap { (k, v) -> listOf("-D$k=$v") } + additionalArgs
+                } else {
+                    allJvmArgs + props.flatMap { (k, v) -> listOf("-D$k=$v") }
+                }
+            }
+        }
+}
