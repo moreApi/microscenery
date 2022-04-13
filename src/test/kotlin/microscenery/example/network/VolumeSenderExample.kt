@@ -6,13 +6,11 @@ import org.zeromq.ZContext
 
 class VolumeSenderExample {
 
-    val basePort = 4000
-    val connections = 10
     val volumeSize = 1000 * 100 * 100
     val repeats = 5
 
 
-    val sender = VolumeSender(connections, basePort, ZContext())
+    val sender = VolumeSender(ZContext())
 
     fun run() {
 

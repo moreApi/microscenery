@@ -1,5 +1,7 @@
 package microscenery.network
 
+import getPropertyInt
+import getPropertyString
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.mapAsync
 import kotlinx.coroutines.Dispatchers
@@ -13,12 +15,12 @@ import java.util.concurrent.TimeUnit
  * @param volumeSize in bytes
  */
 class VolumeReceiver(
-    val volumeSize: Int,
-    val connections: Int = 30,
-    val basePort: Int = 4400,
     val reuseBuffers: Boolean = true,
-    val host: String = "localhost",
-    zContext: ZContext
+    zContext: ZContext,
+    val volumeSize: Int,
+    val connections: Int = getPropertyInt("Network.connections"),
+    val basePort: Int = getPropertyInt("Network.basePort"),
+    val host: String = getPropertyString("Network.host")
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 

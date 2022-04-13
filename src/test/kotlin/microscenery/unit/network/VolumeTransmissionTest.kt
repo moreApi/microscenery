@@ -42,8 +42,8 @@ class VolumeTransmissionTest {
         }
         dummyData.rewind()
 
-        val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, true, zContext = ctx)
-        val sender = VolumeSender(connections, basePort, ctx)
+        val receiver = VolumeReceiver(true, zContext = ctx, dummyData.capacity(), connections, basePort)
+        val sender = VolumeSender(ctx, connections, basePort)
 
         Thread.sleep(1500)
 
@@ -70,8 +70,8 @@ class VolumeTransmissionTest {
         val dummyData = MemoryUtil.memAlloc(166 * 10.0.pow(6.0).toInt())
         dummyData.rewind()
 
-        val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, false, zContext = ctx)
-        val sender = VolumeSender(connections, basePort, ctx)
+        val receiver = VolumeReceiver(false, zContext = ctx, dummyData.capacity(), connections, basePort)
+        val sender = VolumeSender(ctx, connections, basePort)
 
         Thread.sleep(1500)
 
@@ -101,8 +101,8 @@ class VolumeTransmissionTest {
         }
         dummyData.rewind()
 
-        val receiver = VolumeReceiver(dummyData.capacity(), connections, basePort, true, zContext = ctx)
-        val sender = VolumeSender(connections, basePort, zContext = ctx)
+        val receiver = VolumeReceiver(true, zContext = ctx, dummyData.capacity(), connections, basePort)
+        val sender = VolumeSender(zContext = ctx, connections, basePort)
 
         Thread.sleep(1500)
 

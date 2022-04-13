@@ -9,9 +9,6 @@ import java.awt.Rectangle
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
-const val connections: Int = 1
-const val basePort: Int = 4400
-
 val zContext = ZContext()
 
 class MMVolumeSenderScene{
@@ -19,7 +16,7 @@ class MMVolumeSenderScene{
     val mmConnection = MMConnection()
 
     val volumeSize = mmConnection.width * mmConnection.height * mmConnection.slices * Short.SIZE_BYTES
-    val volumeSender = VolumeSender(connections, basePort, zContext)
+    val volumeSender = VolumeSender(zContext)
 
     val timeBetweenUpdates = 1000
 
@@ -32,7 +29,7 @@ class MMVolumeSenderScene{
 
 
     init {
-        println("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort = $volumeSize bytes at port $basePort")
+        println("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort = $volumeSize bytes at port ${volumeSender.basePort}")
 
         // imaging and sending thread
         thread {

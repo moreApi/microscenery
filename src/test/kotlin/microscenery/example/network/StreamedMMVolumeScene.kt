@@ -41,8 +41,7 @@ class StreamedMMVolumeScene : SceneryBase(
         }
 
         val connection = VolumeReceiver(
-            660 * 700 * slices * Short.SIZE_BYTES, connections = connections,
-            basePort = basePort, reuseBuffers = false, zContext = zContext, host = "localhost"
+            reuseBuffers = false, zContext = zContext, 660 * 700 * slices * Short.SIZE_BYTES
         )
         var time = 0L
         val timeBetweenUpdates = 1000
