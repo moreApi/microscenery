@@ -14,7 +14,7 @@ const val basePort: Int = 4400
 
 val zContext = ZContext()
 
-class MMVolumeSender {
+class MMVolumeSenderScene {
 
     val mmConnection = MMConnection(slices)
 
@@ -52,7 +52,7 @@ class MMVolumeSender {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            MMVolumeSender()
+            MMVolumeSenderScene()
         }
     }
 }

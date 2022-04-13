@@ -61,7 +61,7 @@ tasks.withType<KotlinCompile>() {
 tasks{
     // This registers gradle tasks for all scenes
     sourceSets.test.get().allSource.files
-        .filter { it.name.endsWith("Scene.kt") }
+        .filter { it.name.endsWith("Scene.kt") || it.name.endsWith("Example.kt") }
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
         .forEach { className ->
             val exampleName = className.substringAfterLast(".")
