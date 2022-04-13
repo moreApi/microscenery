@@ -14,7 +14,7 @@ const val basePort: Int = 4400
 
 val zContext = ZContext()
 
-class MMVolumeSenderScene {
+class MMVolumeSenderScene{
 
     val mmConnection = MMConnection(slices)
 
@@ -28,11 +28,16 @@ class MMVolumeSenderScene {
     })
     var time = 0L
 
+    var running = true
+
 
     init {
         println("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${slices}xShort = $volumeSize bytes at port $basePort")
+
+        // imaging and sending thread
         thread {
-            while (true) {
+            Thread.sleep(200)
+            while (running) {
                 //wait at least timeBetweenUpdates
                 (System.currentTimeMillis() - time).let {
                     if (it in 1..timeBetweenUpdates)
@@ -46,7 +51,24 @@ class MMVolumeSenderScene {
                 buf.rewind()
                 volumeSender.sendVolume(buf)
             }
+            println("stopped capturing")
+            zContext.destroy()
+
         }
+
+        //io thread
+        thread {
+            while (running){
+                val input = readLine()
+                println("got "+input)
+
+                if (input?.trim() == "q"){
+                    running = false
+                }
+            }
+        }
+
+
     }
 
     companion object {
