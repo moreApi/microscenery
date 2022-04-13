@@ -9,7 +9,6 @@ import org.joml.Vector3f
 class MMConnectionScene :
     SceneryBase(MMConnectionScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
 
-    val slices = 112 // has to be 0 != x%32 for demo cam otherwise we have a standing wave
     lateinit var mmVol: StreamedVolume
 
     override fun init() {
@@ -34,12 +33,12 @@ class MMConnectionScene :
             scene.addChild(this)
         }
 
-        val mmConnection = MMConnection(slices)
+        val mmConnection = MMConnection()
         mmVol = StreamedVolume(
             hub,
             mmConnection.width,
             mmConnection.height,
-            slices
+            mmConnection.slices
         ) { mmConnection.captureStack(it.asShortBuffer()) }
         scene.addChild(mmVol.volume)
 

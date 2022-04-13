@@ -16,7 +16,7 @@ class StreamedMMVolumeScene : SceneryBase(
 
     lateinit var mmVol: StreamedVolume
 
-    val slices = getPropertyInt("volume.slices")
+    val slices = getPropertyInt("MMConnection.slices")
 
     override fun init() {
         renderer = hub.add(

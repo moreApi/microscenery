@@ -1,6 +1,7 @@
 package microscenery
 
 import getPropertyInt
+import getPropertyString
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import microscenery.hardware.SPIMSetup
@@ -14,11 +15,11 @@ import java.nio.ShortBuffer
  * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
  */
 class MMConnection(
-    val slices: Int = getPropertyInt("volume.slices"),
+    val slices: Int = getPropertyInt("MMConnection.slices"),
 //    mmConfiguration: String = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo.cfg",
-    mmConfiguration: String = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg",
-    mmSettingsGroupName: String = "FakeCam",
-    mmPresetName: String = "TiffStack_16_Cherry_time" )
+    mmConfiguration: String = getPropertyString("MMConnection.configuration"),
+    mmSettingsGroupName: String = getPropertyString("MMConnection.settingsGroupName"),
+    mmPresetName: String = getPropertyString("MMConnection.presetName") )
 {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     private val core = CMMCore()

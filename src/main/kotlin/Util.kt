@@ -21,6 +21,10 @@ fun getProperty(name:String): String? {
     }
 }
 
+fun getPropertyString(name: String): String{
+    return getProperty(name) ?: throw IllegalStateException("Could not get property $name")
+}
+
 fun getPropertyInt(name: String): Int{
     val raw = getProperty(name) ?: throw IllegalStateException("Could not get property $name")
     return (raw.toIntOrNull())?: throw IllegalStateException("Property $name cant be casted to Int")
