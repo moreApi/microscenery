@@ -5,6 +5,7 @@ import microscenery.MMConnection
 import microscenery.network.VolumeSender
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
+import java.awt.Rectangle
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
@@ -58,11 +59,19 @@ class MMVolumeSenderScene{
         //io thread
         thread {
             while (running){
-                val input = readLine()
-                println("got "+input)
+                val input = readLine()?.trim() ?: continue
+                println("got $input")
 
-                if (input?.trim() == "q"){
-                    running = false
+                when {
+                    input == "q" -> {
+                        running = false
+                    }
+                    input.startsWith("roi") -> {
+                        val v = input.substringAfter("roi").trim().split(",").map { it.toInt() }.toList()
+                        val r = Rectangle(v[0],v[1],v[2],v[3])
+                        println("Setting ROI to $r")
+                        mmConnection.setRoi(r)
+                    }
                 }
             }
         }

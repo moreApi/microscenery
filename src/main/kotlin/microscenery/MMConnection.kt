@@ -9,6 +9,7 @@ import let
 import microscenery.hardware.SPIMSetup
 import mmcorej.CMMCore
 import org.lwjgl.system.MemoryUtil
+import java.awt.Rectangle
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
@@ -53,11 +54,21 @@ class MMConnection(
             core.setProperty("Camera", "Binning", it)
         }
 
+        getProperty("MMConnection.core.roi")?.let {
+            val v = it.trim().split(",").map { it.toInt() }.toList()
+            setRoi(Rectangle(v[0],v[1],v[2],v[3]))
+        }
+
+
         setup = SPIMSetup.createDefaultSetup(core)
 
         core.snapImage() // do this so the following parameters are set
         width = core.imageWidth.toInt()
         height = core.imageHeight.toInt()
+    }
+
+    fun setRoi(roi: Rectangle){
+        core.setROI(roi.x,roi.y,roi.width,roi.height)
     }
 
     fun captureStack(intoBuffer: ShortBuffer) {
