@@ -1,5 +1,6 @@
 package microscenery
 
+import getPropertyInt
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import microscenery.hardware.SPIMSetup
@@ -13,7 +14,7 @@ import java.nio.ShortBuffer
  * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
  */
 class MMConnection(
-    private val slices: Int = 112,
+    val slices: Int = getPropertyInt("volume.slices"),
 //    mmConfiguration: String = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo.cfg",
     mmConfiguration: String = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg",
     mmSettingsGroupName: String = "FakeCam",
@@ -33,6 +34,7 @@ class MMConnection(
         core.loadSystemConfiguration(mmConfiguration)
         core.setConfig(mmSettingsGroupName, mmPresetName)
         setup = SPIMSetup.createDefaultSetup(core)
+
 
         core.snapImage() // do this so the following parameters are set
         width = core.imageWidth.toInt()

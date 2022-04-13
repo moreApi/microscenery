@@ -8,7 +8,6 @@ import org.zeromq.ZContext
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
-const val slices: Int = 112
 const val connections: Int = 1
 const val basePort: Int = 4400
 
@@ -16,15 +15,15 @@ val zContext = ZContext()
 
 class MMVolumeSenderScene{
 
-    val mmConnection = MMConnection(slices)
+    val mmConnection = MMConnection()
 
-    val volumeSize = mmConnection.width * mmConnection.height * slices * Short.SIZE_BYTES
+    val volumeSize = mmConnection.width * mmConnection.height * mmConnection.slices * Short.SIZE_BYTES
     val volumeSender = VolumeSender(connections, basePort, zContext)
 
     val timeBetweenUpdates = 1000
 
     val volumeBuffers = RingBuffer<ByteBuffer>(2, default = {
-        MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * slices * Short.SIZE_BYTES))
+        MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * mmConnection.slices * Short.SIZE_BYTES))
     })
     var time = 0L
 
@@ -32,7 +31,7 @@ class MMVolumeSenderScene{
 
 
     init {
-        println("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${slices}xShort = $volumeSize bytes at port $basePort")
+        println("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort = $volumeSize bytes at port $basePort")
 
         // imaging and sending thread
         thread {
