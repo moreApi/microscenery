@@ -30,3 +30,10 @@ fun getPropertyInt(name: String): Int{
     return (raw.toIntOrNull())?: throw IllegalStateException("Property $name cant be casted to Int")
 }
 
+fun <T,U,W>T?.let(any: U?, call: (T,U)->W): W? =
+    if (this != null && any != null)
+        call(this,any)
+    else
+        null
+
+

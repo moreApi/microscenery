@@ -1,9 +1,11 @@
 package microscenery
 
+import getProperty
 import getPropertyInt
 import getPropertyString
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
+import let
 import microscenery.hardware.SPIMSetup
 import mmcorej.CMMCore
 import org.lwjgl.system.MemoryUtil
@@ -16,10 +18,7 @@ import java.nio.ShortBuffer
  */
 class MMConnection(
     val slices: Int = getPropertyInt("MMConnection.slices"),
-//    mmConfiguration: String = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo.cfg",
-    mmConfiguration: String = getPropertyString("MMConnection.configuration"),
-    mmSettingsGroupName: String = getPropertyString("MMConnection.settingsGroupName"),
-    mmPresetName: String = getPropertyString("MMConnection.presetName") )
+    mmConfiguration: String = getPropertyString("MMConnection.core.configuration"))
 {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     private val core = CMMCore()
@@ -33,9 +32,28 @@ class MMConnection(
         println(info)
 
         core.loadSystemConfiguration(mmConfiguration)
-        core.setConfig(mmSettingsGroupName, mmPresetName)
-        setup = SPIMSetup.createDefaultSetup(core)
 
+        val mmSettingsGroupName = getProperty("MMConnection.core.settingsGroupName")
+        val mmPresetName = getProperty("MMConnection.core.presetName")
+        mmSettingsGroupName?.let(mmSettingsGroupName){_, _ ->
+            logger.info("Setting $mmSettingsGroupName to $mmPresetName")
+            core.setConfig(mmSettingsGroupName, mmPresetName)
+        }
+
+        getProperty("MMConnection.core.exposure")?.let{
+            val d = it.toDoubleOrNull()
+            if (d == null){
+                logger.error("MMConnection.core.exposure is set to $it but could not be cast to double.")
+                return@let
+            }
+            core.exposure = d
+        }
+
+        getProperty("MMConnection.core.binning")?.let {
+            core.setProperty("Camera", "Binning", it)
+        }
+
+        setup = SPIMSetup.createDefaultSetup(core)
 
         core.snapImage() // do this so the following parameters are set
         width = core.imageWidth.toInt()
