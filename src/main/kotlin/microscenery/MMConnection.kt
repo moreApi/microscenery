@@ -19,44 +19,54 @@ import java.nio.ShortBuffer
  */
 class MMConnection(
     val slices: Int = getPropertyInt("MMConnection.slices"),
-    mmConfiguration: String = getPropertyString("MMConnection.core.configuration"))
+    core_ :CMMCore? = null)
 {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
-    private val core = CMMCore()
+
+    private val core: CMMCore
     private val setup: SPIMSetup
 
     val width: Int
     val height: Int
 
     init {
-        val info = core.versionInfo
-        println(info)
 
-        core.loadSystemConfiguration(mmConfiguration)
+        if (core_ != null){
+            core = core_
+        } else {
+            //init core from properties
+            core = CMMCore()
 
-        val mmSettingsGroupName = getProperty("MMConnection.core.settingsGroupName")
-        val mmPresetName = getProperty("MMConnection.core.presetName")
-        mmSettingsGroupName?.let(mmSettingsGroupName){_, _ ->
-            logger.info("Setting $mmSettingsGroupName to $mmPresetName")
-            core.setConfig(mmSettingsGroupName, mmPresetName)
-        }
+            val info = core.versionInfo
+            println(info)
 
-        getProperty("MMConnection.core.exposure")?.let{
-            val d = it.toDoubleOrNull()
-            if (d == null){
-                logger.error("MMConnection.core.exposure is set to $it but could not be cast to double.")
-                return@let
+            val mmConfiguration = getPropertyString("MMConnection.core.configuration")
+            core.loadSystemConfiguration(mmConfiguration)
+
+            val mmSettingsGroupName = getProperty("MMConnection.core.settingsGroupName")
+            val mmPresetName = getProperty("MMConnection.core.presetName")
+            mmSettingsGroupName?.let(mmSettingsGroupName){_, _ ->
+                logger.info("Setting $mmSettingsGroupName to $mmPresetName")
+                core.setConfig(mmSettingsGroupName, mmPresetName)
             }
-            core.exposure = d
-        }
 
-        getProperty("MMConnection.core.binning")?.let {
-            core.setProperty("Camera", "Binning", it)
-        }
+            getProperty("MMConnection.core.exposure")?.let{
+                val d = it.toDoubleOrNull()
+                if (d == null){
+                    logger.error("MMConnection.core.exposure is set to $it but could not be cast to double.")
+                    return@let
+                }
+                core.exposure = d
+            }
 
-        getProperty("MMConnection.core.roi")?.let {
-            val v = it.trim().split(",").map { it.toInt() }.toList()
-            setRoi(Rectangle(v[0],v[1],v[2],v[3]))
+            getProperty("MMConnection.core.binning")?.let {
+                core.setProperty("Camera", "Binning", it)
+            }
+
+            getProperty("MMConnection.core.roi")?.let {
+                val v = it.trim().split(",").map { it.toInt() }.toList()
+                setRoi(Rectangle(v[0],v[1],v[2],v[3]))
+            }
         }
 
 

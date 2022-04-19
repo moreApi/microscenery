@@ -40,12 +40,15 @@ class StreamedMMVolumeScene : SceneryBase(
             scene.addChild(this)
         }
 
+        val width = 700
+        val height = 660
+
         val connection = VolumeReceiver(
-            reuseBuffers = false, zContext = zContext, 660 * 700 * slices * Short.SIZE_BYTES
+            reuseBuffers = false, zContext = zContext, width * height * slices * Short.SIZE_BYTES
         )
         var time = 0L
         val timeBetweenUpdates = 1000
-        mmVol = StreamedVolume(hub, 700, 660, slices) {
+        mmVol = StreamedVolume(hub, width, height, slices) {
             //wait at least timeBetweenUpdates
             (System.currentTimeMillis() - time).let {
                 if (it in 1..timeBetweenUpdates)
