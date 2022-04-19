@@ -29,7 +29,6 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 
 dependencies {
     implementation("graphics.scenery:scenery:be073c7")
-    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
     // TODO fix imports
 //    implementation("net.imagej:ij:1.49k")
 //    implementation("net.imglib2:imglib2")
@@ -38,12 +37,13 @@ dependencies {
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
 
-    implementation("org.bytedeco:ffmpeg:4.3.2-1.5.5", ffmpegNatives)
+//    implementation("org.bytedeco:ffmpeg:4.3.2-1.5.5", ffmpegNatives)
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg:4.1-1.4.4")
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg-platform:4.1-1.4.4")
 
     implementation(files("C:/Program Files/Micro-Manager-2.0gamma/plugins/Micro-Manager/MMCoreJ.jar"))
 
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation(kotlin("test"))
     //testImplementation(kotlin("test-junit"))
 }
@@ -57,6 +57,8 @@ tasks.test {
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "11"
 }
+
+
 
 tasks{
     // This registers gradle tasks for all scenes
@@ -82,4 +84,9 @@ tasks{
                 }
             }
         }
+
+    register("copyRuntimeLibs", Copy::class) {
+        into("lib")
+        from(configurations.runtimeClasspath)
+    }
 }
