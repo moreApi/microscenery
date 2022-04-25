@@ -2,6 +2,7 @@ package microscenery.example
 
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
+import graphics.scenery.volumes.Colormap
 import microscenery.MMConnection
 import microscenery.StreamedVolume
 import org.joml.Vector3f
@@ -40,6 +41,7 @@ class MMConnectionScene :
             mmConnection.height,
             mmConnection.slices
         ) { mmConnection.captureStack(it.asShortBuffer()) }
+        mmVol.volume.colormap = Colormap.get("hot")
         scene.addChild(mmVol.volume)
 
     }

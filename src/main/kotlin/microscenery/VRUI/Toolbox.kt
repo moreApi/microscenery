@@ -3,9 +3,11 @@ package microscenery.VRUI
 import graphics.scenery.Scene
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
+import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.VRSelectionWheel
 import graphics.scenery.controls.behaviours.WheelMenu
+import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
 import microscenery.behaviors.VRScaleNode
 
@@ -29,11 +31,11 @@ class Toolbox(
             scene.addChild(croppingTool)
             croppingTool.spatial().position = device.worldPosition()
             croppingTool.activate(volume)
-        }, "point marker" to { device ->
+        }, "point" to { device ->
             scene.addChild(pointTool)
             pointTool.visible = true
             pointTool.spatial().position = device.worldPosition()
-        }, "transfer function" to { device ->
+        }, "trans fun" to { device ->
             scene.addChild(tfe)
             tfe.spatial {
                 position = device.worldPosition()
@@ -44,6 +46,13 @@ class Toolbox(
             volume.transferFunction = tfe.transferFunction
         }, "options" to {
             val m = WheelMenu(hmd, listOf(Switch("hull", true) { scene.find("hullbox")?.visible = it }), true)
+            m.spatial().position = it.worldPosition()
+            scene.addChild(m)
+        }, "color" to {
+            val m = WheelMenu(hmd, Colormap.list().map {
+                Action(it) { volume.colormap = Colormap.get(it) }
+            }.toList(), true)
+
             m.spatial().position = it.worldPosition()
             scene.addChild(m)
         }))
