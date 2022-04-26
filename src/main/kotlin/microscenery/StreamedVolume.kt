@@ -49,6 +49,8 @@ class StreamedVolume(
         volume.metadata["animating"] = true
 
         thread {
+            Thread.sleep(200)
+
             var count = 0
             val volumeBuffer =
                 RingBuffer<ByteBuffer>(2, default = {

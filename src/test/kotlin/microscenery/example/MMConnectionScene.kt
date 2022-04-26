@@ -41,8 +41,8 @@ class MMConnectionScene :
             mmConnection.height,
             mmConnection.slices
         ) { mmConnection.captureStack(it.asShortBuffer()) }
-        mmVol.volume.colormap = Colormap.get("hot")
         scene.addChild(mmVol.volume)
+        mmVol.volume.colormap = Colormap.get("hot")
 
     }
 
