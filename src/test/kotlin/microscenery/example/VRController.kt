@@ -10,7 +10,7 @@ import graphics.scenery.controls.behaviours.Selectable
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultVRScene
-import microscenery.behaviors.VRGrabWithSelfMove
+import microscenery.VRUI.behaviors.VRGrabWithSelfMove
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 

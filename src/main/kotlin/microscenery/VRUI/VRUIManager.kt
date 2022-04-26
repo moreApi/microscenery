@@ -9,8 +9,8 @@ import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.VRPress
 import graphics.scenery.controls.behaviours.VRTouch
 import graphics.scenery.volumes.Volume
-import microscenery.behaviors.VRGrabWithSelfMove
-import microscenery.behaviors.VRTeleport
+import microscenery.VRUI.behaviors.VRGrabWithSelfMove
+import microscenery.VRUI.behaviors.VRTeleport
 import org.joml.Vector3f
 
 class VRUIManager {

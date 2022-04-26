@@ -1,4 +1,4 @@
-package microscenery.behaviors
+package microscenery.VRUI.behaviors
 
 import graphics.scenery.Node
 import graphics.scenery.attribute.spatial.Spatial

@@ -9,7 +9,7 @@ import graphics.scenery.controls.behaviours.VRSelectionWheel
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
-import microscenery.behaviors.VRScaleNode
+import microscenery.VRUI.behaviors.VRScaleNode
 
 class Toolbox(
     val scene: Scene,
