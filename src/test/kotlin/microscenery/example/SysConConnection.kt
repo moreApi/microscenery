@@ -1,4 +1,4 @@
-package microscenery.scenes
+package microscenery.example
 
 import graphics.scenery.BoundingGrid
 import graphics.scenery.Origin
