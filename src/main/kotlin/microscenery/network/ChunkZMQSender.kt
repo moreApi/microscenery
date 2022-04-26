@@ -31,7 +31,7 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
 
         val bufferLock = Any()
         var currentBuffer: ByteBuffer = MemoryUtil.memAlloc(0)
-        val data = ByteArray(CHUNK_SIZE + 1)
+        val data = ByteArray(CHUNK_SIZE)
         private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
         lateinit var router: ZMQ.Socket
 
@@ -56,7 +56,7 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
                 //  Fourth frame is maximum chunk size
                 val chunkSize = router.recvStr().toInt()
                 //  Fifth frame is chunk id
-                val chunkId = router.recvStr().toByte()
+                val chunkId = router.recvStr()
 
                 var size: Int
                 while (currentBuffer.limit() < 2 && !Thread.currentThread().isInterrupted && running) {
@@ -66,13 +66,13 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
                     currentBuffer.reset()
                     currentBuffer.position(currentBuffer.position() + offset.coerceAtMost(currentBuffer.remaining()))
                     size = chunkSize.coerceAtMost(currentBuffer.remaining())
-                    data[0] = chunkId
-                    currentBuffer.get(data, 1, size)
+                    currentBuffer.get(data, 0, size)
                 }
 
                 //  Send resulting chunk to client
-                val chunk = ZFrame(data.copyOf(if (size < 0) 1 else size + 1))
+                val chunk = ZFrame(data.copyOf(if (size <= 0) 1 else size))
                 identity.sendAndDestroy(router, ZMQ.SNDMORE)
+                router.sendMore(chunkId)
                 chunk.sendAndDestroy(router)
             }
             router.linger = 0

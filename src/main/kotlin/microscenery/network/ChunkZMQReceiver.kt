@@ -37,7 +37,7 @@ class ChunkZMQReceiver(port: Int, host: String = "localhost", val zContext: ZCon
 
             logger.info("${ChunkZMQReceiver::class.simpleName} connected to tcp://$host:$port")
 
-            var chunkId = 0.toByte()
+            var chunkId = 0
 
             //  Up to this many chunks in transit
             var credit = PIPELINE
@@ -59,17 +59,18 @@ class ChunkZMQReceiver(port: Int, host: String = "localhost", val zContext: ZCon
                     offset += CHUNK_SIZE
                     credit--
                 }
-                val chunk = ZFrame.recvFrame(dealer)
                 credit++
-                if (chunk.data[0] != chunkId) {
+                val recChunkId = dealer.recvStr()
+                val chunk = ZFrame.recvFrame(dealer)
+                if (recChunkId != chunkId.toString()) {
                     // this frame belongs to a finished chunk. Just reclaim the credit.
                     continue
                 }
-                val size = chunk.size() - 1 // subtract the id byte
+                val size = chunk.size()
                 if (size != 0) {
                     chunks++
                     val buf = ByteBuffer.wrap(chunk.data)
-                    buf.position(1)
+                    buf.position(0)
                     buf.mark()
                     collector.add(buf)
                     chunk.destroy()
@@ -82,7 +83,7 @@ class ChunkZMQReceiver(port: Int, host: String = "localhost", val zContext: ZCon
                     chunks = 0
                     offset = 0
                     total = 0 //  Total bytes received
-                    chunkId = ((chunkId + 1) % 100).toByte() // just something that is not the old value
+                    chunkId = ((chunkId + 1) % 100) // just something that is not the old value
                 } //  Last chunk received
             }
             dealer.linger = 0
