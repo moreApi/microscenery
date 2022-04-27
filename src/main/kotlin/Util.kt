@@ -1,5 +1,6 @@
 @file:Suppress("unused")
 
+import com.esotericsoftware.kryo.Kryo
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.*
@@ -35,5 +36,12 @@ fun <T,U,W>T?.let(any: U?, call: (T,U)->W): W? =
         call(this,any)
     else
         null
+
+fun freeze(): Kryo {
+    val kryo = Kryo()
+    kryo.isRegistrationRequired = false
+    kryo.references = true
+    return kryo
+}
 
 

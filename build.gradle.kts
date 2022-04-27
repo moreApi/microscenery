@@ -40,6 +40,7 @@ dependencies {
 //    implementation("org.bytedeco:ffmpeg:4.3.2-1.5.5", ffmpegNatives)
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg:4.1-1.4.4")
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg-platform:4.1-1.4.4")
+    implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
 
     implementation(files("C:/Program Files/Micro-Manager-2.0gamma/plugins/Micro-Manager/MMCoreJ.jar"))
 
