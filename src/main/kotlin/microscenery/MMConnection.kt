@@ -26,8 +26,8 @@ class MMConnection(
     private val core: CMMCore
     private val setup: SPIMSetup
 
-    val width: Int
-    val height: Int
+    var width: Int
+    var height: Int
 
     init {
 
@@ -72,7 +72,13 @@ class MMConnection(
 
         setup = SPIMSetup.createDefaultSetup(core)
 
-        core.snapImage() // do this so the following parameters are set
+        setup.snapImage() // do this so the following parameters are set
+        width = core.imageWidth.toInt()
+        height = core.imageHeight.toInt()
+    }
+
+    fun updateSize(){
+        setup.snapImage() // do this so the following parameters are set
         width = core.imageWidth.toInt()
         height = core.imageHeight.toInt()
     }

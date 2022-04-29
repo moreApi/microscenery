@@ -5,7 +5,10 @@ import com.esotericsoftware.kryo.io.Output
 import freeze
 import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
-import org.zeromq.*
+import org.zeromq.SocketType
+import org.zeromq.ZContext
+import org.zeromq.ZMQ
+import org.zeromq.ZThread
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ArrayBlockingQueue
@@ -15,37 +18,52 @@ import java.util.concurrent.ArrayBlockingQueue
  *
  * Shuts down when a signal with shutdown status has been received.
  */
-class ControlZMQClient(val port: Int, val zContext: ZContext) {
+class ControlZMQClient(
+    val zContext: ZContext,
+    val port: Int,
+    val host: String,
+    listeners: List<(ServerSignal) -> Unit> = emptyList()
+) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val server = NetworkThread(port, this)
     val kryo = freeze()
-    val thread = ZThread.fork(zContext, server)
+    val thread: ZMQ.Socket
 
     private val signalsOut = ArrayBlockingQueue<ClientSignal>(100)
     private val signalsIn = event<ServerSignal>()
+
+    init {
+        listeners.forEach { signalsIn += it }
+        thread = ZThread.fork(zContext, NetworkThread(this))
+    }
 
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
     fun addListener(listener: (ServerSignal) -> Unit) {
-        synchronized(signalsIn){
+        synchronized(signalsIn) {
             signalsIn += listener
         }
     }
 
-    fun sendSignal(signal: ClientSignal){
+    fun sendSignal(signal: ClientSignal) {
         signalsOut.add(signal)
     }
 
-    internal class NetworkThread(val port: Int, val parent: ControlZMQClient) : ZThread.IAttachedRunnable {
+    private class NetworkThread(val parent: ControlZMQClient) : ZThread.IAttachedRunnable {
 
         override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
+            val timeout = 200 //ms
             val socket: ZMQ.Socket = ctx.createSocket(SocketType.DEALER)
-            socket.bind("tcp://*:$port")
-            parent.logger.info("${ControlZMQClient::class.simpleName} bound to tcp://*:$port")
+            socket.receiveTimeOut = timeout
+            if (socket.connect("tcp://${parent.host}:${parent.port}")) {
+                parent.logger.info("${ControlZMQClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
+            } else {
+                throw IllegalStateException("Could not connect to ${ControlZMQClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
+            }
 
             var running = true
+            parent.signalsOut += ClientSignal.ClientSignOn()
 
             while (!Thread.currentThread().isInterrupted && running) {
 
@@ -62,7 +80,7 @@ class ControlZMQClient(val port: Int, val zContext: ZContext) {
                         parent.signalsIn(event)
                     }
 
-                    if (event is ServerSignal.Status && event.status == ServerStatus.ShuttingDown)
+                    if (event is ServerSignal.Status && event.state == ServerState.ShuttingDown)
                         running = false
 
                     payloadIn = socket.recv(ZMQ.DONTWAIT)

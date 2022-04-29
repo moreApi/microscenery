@@ -13,6 +13,8 @@ class VolumeSender(
         ChunkZMQSender(it, zContext)
     }.toList()
 
+    fun usedPorts() = senders.map { it.port }
+
     fun sendVolume(buffer: ByteBuffer) {
         val chunkSize = buffer.remaining() / connections
 

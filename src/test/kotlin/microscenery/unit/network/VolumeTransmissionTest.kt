@@ -27,9 +27,6 @@ class VolumeTransmissionTest {
         ctx.linger =  0
     }
 
-    @BeforeEach
-    fun init(){
-    }
 
     @Test
     fun reusingBuffer() {
