@@ -10,6 +10,7 @@ import org.zeromq.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.concurrent.thread
 
 /**
  *
@@ -21,7 +22,7 @@ class ControlZMQServer(val zContext: ZContext, val port: Int = getPropertyInt("N
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val kryo = freeze()
-    val thread : ZMQ.Socket
+    val thread : Thread
 
     private val signalsOut = ArrayBlockingQueue<ServerSignal>(100)
     private val signalsIn = event<ClientSignal>()
@@ -30,7 +31,7 @@ class ControlZMQServer(val zContext: ZContext, val port: Int = getPropertyInt("N
 
     init {
         listeners.forEach { signalsIn += it }
-        thread = ZThread.fork(zContext, NetworkThread(this))
+        thread = networkThread(this)
     }
 
     /**
@@ -52,10 +53,8 @@ class ControlZMQServer(val zContext: ZContext, val port: Int = getPropertyInt("N
         }
     }
 
-    private class NetworkThread(val parent: ControlZMQServer) : ZThread.IAttachedRunnable {
-
-        override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
-            val socket: ZMQ.Socket = ctx.createSocket(SocketType.ROUTER)
+    private fun networkThread(parent: ControlZMQServer) = thread {
+            val socket: ZMQ.Socket = zContext.createSocket(SocketType.ROUTER)
             socket.bind("tcp://*:${parent.port}")
             parent.logger.info("${ControlZMQServer::class.simpleName} bound to tcp://*:${parent.port}")
 
@@ -103,6 +102,7 @@ class ControlZMQServer(val zContext: ZContext, val port: Int = getPropertyInt("N
 
                     if (outSignal is ServerSignal.Status && outSignal.state == ServerState.ShuttingDown) {
                         running = false
+                        outSignal = null
                     }else {
                         outSignal = parent.signalsOut.poll()
                     }
@@ -110,6 +110,6 @@ class ControlZMQServer(val zContext: ZContext, val port: Int = getPropertyInt("N
             }
             socket.linger = 0
             socket.close()
-        }
+
     }
 }

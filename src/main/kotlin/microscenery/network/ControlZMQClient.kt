@@ -8,10 +8,10 @@ import kotlinx.event.event
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
-import org.zeromq.ZThread
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.concurrent.thread
 
 /**
  *
@@ -27,14 +27,14 @@ class ControlZMQClient(
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val kryo = freeze()
-    val thread: ZMQ.Socket
+    val thread: Thread
 
     private val signalsOut = ArrayBlockingQueue<ClientSignal>(100)
     private val signalsIn = event<ServerSignal>()
 
     init {
         listeners.forEach { signalsIn += it }
-        thread = ZThread.fork(zContext, NetworkThread(this))
+        thread = networkThread(this)
     }
 
     /**
@@ -50,11 +50,9 @@ class ControlZMQClient(
         signalsOut.add(signal)
     }
 
-    private class NetworkThread(val parent: ControlZMQClient) : ZThread.IAttachedRunnable {
-
-        override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
+    private fun networkThread(parent: ControlZMQClient) = thread{
             val timeout = 200 //ms
-            val socket: ZMQ.Socket = ctx.createSocket(SocketType.DEALER)
+            val socket: ZMQ.Socket = zContext.createSocket(SocketType.DEALER)
             socket.receiveTimeOut = timeout
             if (socket.connect("tcp://${parent.host}:${parent.port}")) {
                 parent.logger.info("${ControlZMQClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
@@ -80,10 +78,12 @@ class ControlZMQClient(
                         parent.signalsIn(event)
                     }
 
-                    if (event is ServerSignal.Status && event.state == ServerState.ShuttingDown)
+                    if (event is ServerSignal.Status && event.state == ServerState.ShuttingDown) {
                         running = false
-
-                    payloadIn = socket.recv(ZMQ.DONTWAIT)
+                        payloadIn = null
+                    } else {
+                        payloadIn = socket.recv(ZMQ.DONTWAIT)
+                    }
                 }
 
                 // process outgoing messages
@@ -107,6 +107,6 @@ class ControlZMQClient(
             }
             socket.linger = 0
             socket.close()
-        }
+
     }
 }
