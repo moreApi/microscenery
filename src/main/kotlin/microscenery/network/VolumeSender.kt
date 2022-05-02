@@ -31,12 +31,9 @@ class VolumeSender(
     /**
      * Starts closing all connections and threads.
      *
-     * @return Job that waits on all threads to finish
+     * @return closing connection threads that can be joined on
      */
-    fun close() {
-
-        senders.forEach {
+    fun close() = senders.map {
             it.close()
-        }
-    }
+        }.toList()
 }

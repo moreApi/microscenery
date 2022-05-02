@@ -5,7 +5,6 @@ import kotlinx.coroutines.runBlocking
 import microscenery.network.VolumeReceiver
 import microscenery.network.VolumeSender
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
@@ -16,7 +15,6 @@ import kotlin.test.assertNotNull
 
 class VolumeTransmissionTest {
 
-    //lateinit var ctx : ZContext
     var ctx = ZContext()
 
     @AfterEach
@@ -52,8 +50,7 @@ class VolumeTransmissionTest {
 
         val delta = System.currentTimeMillis() - t
 
-        sender.close()
-        receiver.close()
+        (receiver.close() + sender.close()).forEach { it.join() }
 
         val through = (dummyData.capacity() / delta) / 1000
         println("delta ${delta} throughput ${through} mByte/Sec")
@@ -77,12 +74,11 @@ class VolumeTransmissionTest {
         val result = receiver.getVolume(5000)
         assertNotNull(result)
 
-        println("delta ${System.currentTimeMillis() - t}")
+        val delta = System.currentTimeMillis() - t
+        val through = (dummyData.capacity() / delta) / 1000
+        println("delta ${delta} throughput ${through} mByte/Sec")
 
-
-        sender.close()
-        receiver.close()
-
+        (receiver.close() + sender.close()).forEach { it.join() }
     }
 
 
@@ -125,14 +121,13 @@ class VolumeTransmissionTest {
                 }
                 result.rewind()
             }
-            sender.close()
-            receiver.close()
 
             t1.join()
         }
 
         val delta = System.currentTimeMillis() - t
 
+        (receiver.close() + sender.close()).forEach { it.join() }
 
         val through = ((dummyData.capacity() * repeats.toLong()) / delta) / 1000
         println("delta ${delta} throughput ${through} mByte/Sec")

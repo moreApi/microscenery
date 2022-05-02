@@ -29,7 +29,7 @@ class VolumeReceiver(
         default = { MemoryUtil.memAlloc(volumeSize) })
 
     val receivers = (basePort until basePort + connections).map {
-        ChunkZMQReceiver(it, host, zContext)
+        ChunkZMQReceiver(zContext, it, host)
     }.toList()
 
     fun getVolume(timeout: Long = 2000, buffer: ByteBuffer? = null): ByteBuffer? {
@@ -64,11 +64,10 @@ class VolumeReceiver(
 
     /**
      * Starts closing all connections and threads.
+     * @return closing connection threads that can be joined on
      */
-    fun close() {
-        receivers.forEach {
-            it.close()
-        }
-    }
+    fun close() = receivers.map {
+        it.close()
+    }.toList()
 
 }
