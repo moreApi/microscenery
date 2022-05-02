@@ -14,9 +14,9 @@ import java.util.concurrent.ArrayBlockingQueue
 import kotlin.concurrent.thread
 
 /**
+ * A Client to send control [ClientSignal]s to [ControlZMQServer] and receive [ServerSignal]s.
  *
- *
- * Shuts down when a signal with shutdown status has been received.
+ * Client shuts down when a signal with shutdown status has been received.
  */
 class ControlZMQClient(
     val zContext: ZContext,

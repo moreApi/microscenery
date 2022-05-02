@@ -13,7 +13,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import kotlin.concurrent.thread
 
 /**
- *
+ * A server to receive [ClientSignal]s and send [ServerSignal]s from.
  *
  * Server shuts down when a signal with shutdown status has been send.
  */
