@@ -1,5 +1,6 @@
 package microscenery.unit.network
 
+import lightSleepOn
 import microscenery.example.network.zContext
 import microscenery.network.*
 import org.joml.Vector3i
@@ -72,15 +73,4 @@ class ControlZMQTest {
         assert(!client.thread.isAlive)
 
     }
-
-    /**
-     * sleep but continue once a value is there. Should speed up tests
-     */
-    fun lightSleepOn(mills: Int = 1000, target: () -> Any? ){
-        for (t in 1..10){
-            if (target() == null)
-                Thread.sleep(mills/10L)
-        }
-    }
-
 }

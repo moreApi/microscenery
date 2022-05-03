@@ -4,10 +4,12 @@ import getPropertyInt
 import getPropertyString
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
+import lightSleepOn
 import microscenery.StreamedVolume
 import microscenery.network.*
 import org.joml.Vector3f
 import org.zeromq.ZContext
+import kotlin.concurrent.thread
 
 class ControlledVolumeStreamClientScene(
     val basePort: Int = getPropertyInt("Network.basePort"),
@@ -16,13 +18,31 @@ class ControlledVolumeStreamClientScene(
     ControlledVolumeStreamClientScene::class.java.simpleName,
     windowWidth = 1920,
     windowHeight = 1200,
-    wantREPL = false
+    wantREPL = true
 ) {
     private val zContext = ZContext()
     private val controlConnection = ControlZMQClient(zContext, basePort, host)
 
     lateinit var mmVol: StreamedVolume
 
+    var latestServerStatus : ServerSignal.Status? = null
+
+    fun start(){
+        logger.info("Got Start Command")
+        if (latestServerStatus?.state == ServerState.Paused)
+            controlConnection.sendSignal(ClientSignal.StartImaging())
+    }
+
+    fun pause(){
+        logger.info("Got Pause Command")
+        if (latestServerStatus?.state == ServerState.Imaging)
+            controlConnection.sendSignal(ClientSignal.StopImaging())
+    }
+
+    fun shutdown(){
+        logger.info("Got Stop Command")
+        controlConnection.sendSignal(ClientSignal.Shutdown())
+    }
 
     override fun init() {
         baseInit()
@@ -30,6 +50,7 @@ class ControlledVolumeStreamClientScene(
         controlConnection.addListener { signal ->
             when(signal){
                 is ServerSignal.Status -> {
+                    latestServerStatus = signal
                     when(signal.state){
                         ServerState.Imaging -> {
                             if (signal.dataPorts.isEmpty()){
@@ -66,10 +87,7 @@ class ControlledVolumeStreamClientScene(
                 }
             }
         }
-
-        controlConnection.sendSignal(ClientSignal.StartImaging())
-
-
+        controlConnection.sendSignal(ClientSignal.ClientSignOn())
     }
 
     private fun baseInit() {
@@ -98,7 +116,15 @@ class ControlledVolumeStreamClientScene(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            ControlledVolumeStreamClientScene().main()
+            val b = ControlledVolumeStreamClientScene()
+            thread {
+                lightSleepOn(5000) { b.latestServerStatus }
+                println("stauts there")
+                Thread.sleep(5000)
+                println("awake awake")
+                b.start()
+            }
+            b.main()
         }
     }
 }
