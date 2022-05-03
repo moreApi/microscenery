@@ -19,14 +19,10 @@ import kotlin.concurrent.thread
  * Client shuts down when a signal with shutdown status has been received.
  */
 class ControlZMQClient(
-    val zContext: ZContext,
-    val port: Int,
-    val host: String,
-    listeners: List<(ServerSignal) -> Unit> = emptyList()
+    val zContext: ZContext, val port: Int, val host: String, listeners: List<(ServerSignal) -> Unit> = emptyList()
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    val kryo = freeze()
     val thread: Thread
 
     private val signalsOut = ArrayBlockingQueue<ClientSignal>(100)
@@ -50,63 +46,66 @@ class ControlZMQClient(
         signalsOut.add(signal)
     }
 
-    private fun networkThread(parent: ControlZMQClient) = thread{
-            val timeout = 200 //ms
-            val socket: ZMQ.Socket = zContext.createSocket(SocketType.DEALER)
-            socket.receiveTimeOut = timeout
-            if (socket.connect("tcp://${parent.host}:${parent.port}")) {
-                parent.logger.info("${ControlZMQClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
-            } else {
-                throw IllegalStateException("Could not connect to ${ControlZMQClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
-            }
+    private fun networkThread(parent: ControlZMQClient) = thread {
+        val timeout = 200 //ms
 
-            var running = true
-            parent.signalsOut += ClientSignal.ClientSignOn()
+        val socket: ZMQ.Socket = zContext.createSocket(SocketType.DEALER)
+        socket.receiveTimeOut = timeout
+        if (socket.connect("tcp://${parent.host}:${parent.port}")) {
+            parent.logger.info("${ControlZMQClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
+        } else {
+            throw IllegalStateException("Could not connect to ${ControlZMQClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
+        }
+        val kryoIn = freeze()
+        val kryoOut = freeze()
 
-            while (!Thread.currentThread().isInterrupted && running) {
+        var running = true
+        parent.signalsOut += ClientSignal.ClientSignOn()
 
-                // process incoming messages first.
-                // First frame in each message is the sender identity
-                var payloadIn = socket.recv(ZMQ.DONTWAIT)
-                while (payloadIn != null){
-                    val bin = ByteArrayInputStream(payloadIn)
-                    val input = Input(bin)
-                    val event = parent.kryo.readClassAndObject(input) as? ServerSignal
-                        ?: throw IllegalStateException("Received unknown, not ClientSignal payload")
+        while (!Thread.currentThread().isInterrupted && running) {
 
-                    synchronized(parent.signalsIn) {
-                        parent.signalsIn(event)
-                    }
+            // process incoming messages first.
+            // First frame in each message is the sender identity
+            var payloadIn = socket.recv(ZMQ.DONTWAIT)
+            while (payloadIn != null) {
+                val bin = ByteArrayInputStream(payloadIn)
+                val input = Input(bin)
+                val event = kryoIn.readClassAndObject(input) as? ServerSignal
+                    ?: throw IllegalStateException("Received unknown, not ClientSignal payload")
 
-                    if (event is ServerSignal.Status && event.state == ServerState.ShuttingDown) {
-                        running = false
-                        payloadIn = null
-                    } else {
-                        payloadIn = socket.recv(ZMQ.DONTWAIT)
-                    }
+                synchronized(parent.signalsIn) {
+                    parent.signalsIn(event)
                 }
 
-                // process outgoing messages
-                var outSignal = parent.signalsOut.poll()
-                while (outSignal != null && running){
-                    val bos = ByteArrayOutputStream()
-                    val output = Output(bos)
-                    parent.kryo.writeClassAndObject(output, outSignal)
-                    output.flush()
-
-                    val payloadOut = bos.toByteArray()
-                    socket.send(payloadOut)
-                    Thread.sleep(1)
-
-                    output.close()
-                    bos.close()
-
-                    outSignal = parent.signalsOut.poll()
+                if (event is ServerSignal.Status && event.state == ServerState.ShuttingDown) {
+                    running = false
+                    payloadIn = null
+                } else {
+                    payloadIn = socket.recv(ZMQ.DONTWAIT)
                 }
-                Thread.sleep(200)
             }
-            socket.linger = 0
-            socket.close()
+
+            // process outgoing messages
+            var outSignal = parent.signalsOut.poll()
+            while (outSignal != null && running) {
+                val bos = ByteArrayOutputStream()
+                val output = Output(bos)
+                kryoOut.writeClassAndObject(output, outSignal)
+                output.flush()
+
+                val payloadOut = bos.toByteArray()
+                socket.send(payloadOut)
+                Thread.sleep(1)
+
+                output.close()
+                bos.close()
+
+                outSignal = parent.signalsOut.poll()
+            }
+            Thread.sleep(200)
+        }
+        socket.linger = 0
+        socket.close()
 
     }
 }

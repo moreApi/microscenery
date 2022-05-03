@@ -47,8 +47,8 @@ class ControlledVolumeStreamServer (core: CMMCore? = null,
                 }
                 is ClientSignal.StartImaging -> {
                     if (status.state == ServerState.Paused) {
-                        logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort at port ${volumeSender.basePort}")
                         mmConnection.updateSize()
+                        logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort at port ${volumeSender.basePort+1}")
                         status = status.copy(
                             imageSize = Vector3i(
                                 mmConnection.width,
@@ -108,5 +108,12 @@ class ControlledVolumeStreamServer (core: CMMCore? = null,
     fun shutdown() {
         controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown()))
         microscenery.zContext.destroy()
+    }
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            ControlledVolumeStreamServer()
+        }
     }
 }

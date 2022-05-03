@@ -18,18 +18,25 @@ class VolumeReceiver(
     val reuseBuffers: Boolean = true,
     zContext: ZContext,
     val volumeSize: Int,
-    val connections: Int = getPropertyInt("Network.connections"),
-    val basePort: Int = getPropertyInt("Network.basePort"),
-    val host: String = getPropertyString("Network.host")
+    connections: List<Pair<String,Int>>
 ) {
+    constructor(reuseBuffers: Boolean = true,                zContext: ZContext,                volumeSize: Int,
+                connections: Int = getPropertyInt("Network.connections"),
+                basePort: Int = getPropertyInt("Network.basePort"),
+                host: String = getPropertyString("Network.host")) : this(
+        reuseBuffers,zContext,volumeSize,
+        (0 until connections).map { host to basePort+it }
+                )
+
+
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val buffers = graphics.scenery.utils.RingBuffer<ByteBuffer>(
         if (reuseBuffers) 2 else 0,
         default = { MemoryUtil.memAlloc(volumeSize) })
 
-    val receivers = (basePort until basePort + connections).map {
-        ChunkZMQReceiver(zContext, it, host)
+    val receivers = connections.map {
+        ChunkZMQReceiver(zContext, it.second, it.first)
     }.toList()
 
     fun getVolume(timeout: Long = 2000, buffer: ByteBuffer? = null): ByteBuffer? {
@@ -40,7 +47,7 @@ class VolumeReceiver(
         }.toList()
 
         if (slices.all { it == null }) {
-            logger.warn("All slices I got from host $host : $basePort + $connections connections where empty ")
+            logger.warn("All slices I got from host ${receivers.first().host}:${receivers.first().port} * ${receivers.size} connections was empty ")
             return null
         }
 

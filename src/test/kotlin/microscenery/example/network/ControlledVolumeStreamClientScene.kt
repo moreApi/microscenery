@@ -1,24 +1,25 @@
 package microscenery.example.network
 
 import getPropertyInt
+import getPropertyString
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import microscenery.StreamedVolume
-import microscenery.network.ControlZMQClient
-import microscenery.network.VolumeReceiver
+import microscenery.network.*
 import org.joml.Vector3f
 import org.zeromq.ZContext
 
 class ControlledVolumeStreamClientScene(
-    val basePort: Int = getPropertyInt("Network.basePort"))
+    val basePort: Int = getPropertyInt("Network.basePort"),
+    val host: String = getPropertyString("Network.host"))
     : SceneryBase(
     ControlledVolumeStreamClientScene::class.java.simpleName,
     windowWidth = 1920,
     windowHeight = 1200,
     wantREPL = false
 ) {
-    val zContext = ZContext()
-    private val controlConnection = ControlZMQClient(zContext, basePort, "localhost")
+    private val zContext = ZContext()
+    private val controlConnection = ControlZMQClient(zContext, basePort, host)
 
     lateinit var mmVol: StreamedVolume
 
@@ -26,30 +27,48 @@ class ControlledVolumeStreamClientScene(
     override fun init() {
         baseInit()
 
-        val width = 700
-        val height = 660
-
         controlConnection.addListener { signal ->
             when(signal){
+                is ServerSignal.Status -> {
+                    when(signal.state){
+                        ServerState.Imaging -> {
+                            if (signal.dataPorts.isEmpty()){
+                                logger.warn("Got imaging status but empty port list.")
+                                return@addListener
+                            }
 
+                            val width = signal.imageSize.x
+                            val height = signal.imageSize.y
+                            val slices = signal.imageSize.z
+
+                            val connection = VolumeReceiver(
+                                reuseBuffers = false,
+                                zContext = zContext,
+                                width * height * slices * Short.SIZE_BYTES,
+                                connections = signal.dataPorts.map { host to it}
+                            )
+                            var time = 0L
+                            val timeBetweenUpdates = 1000
+                            mmVol = StreamedVolume(hub, width, height, slices) {
+                                //wait at least timeBetweenUpdates
+                                (System.currentTimeMillis() - time).let {
+                                    if (it in 1..timeBetweenUpdates)
+                                        Thread.sleep(timeBetweenUpdates - it)
+                                }
+                                time = System.currentTimeMillis()
+                                connection.getVolume(2000, it)
+                            }
+                            scene.addChild(mmVol.volume)
+                        }
+                        ServerState.Paused -> {}
+                        ServerState.ShuttingDown -> TODO()
+                    }
+                }
             }
         }
-//
-//        val connection = VolumeReceiver(
-//            reuseBuffers = false, zContext = zContext, width * height * slices * Short.SIZE_BYTES
-//        )
-//        var time = 0L
-//        val timeBetweenUpdates = 1000
-//        mmVol = StreamedVolume(hub, width, height, slices) {
-//            //wait at least timeBetweenUpdates
-//            (System.currentTimeMillis() - time).let {
-//                if (it in 1..timeBetweenUpdates)
-//                    Thread.sleep(timeBetweenUpdates - it)
-//            }
-//            time = System.currentTimeMillis()
-//            connection.getVolume(2000, it)
-//        }
-//        scene.addChild(mmVol.volume)
+
+        controlConnection.sendSignal(ClientSignal.StartImaging())
+
 
     }
 

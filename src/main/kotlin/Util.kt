@@ -1,6 +1,10 @@
 @file:Suppress("unused")
 
 import com.esotericsoftware.kryo.Kryo
+import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy
+import microscenery.network.ClientSignal
+import microscenery.network.ServerSignal
+import org.objenesis.strategy.StdInstantiatorStrategy
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.*
@@ -37,11 +41,21 @@ fun <T,U,W>T?.let(any: U?, call: (T,U)->W): W? =
     else
         null
 
+// why this? -> https://github.com/EsotericSoftware/kryo#pooling
+val ky = object : ThreadLocal<Kryo>() {
+    override fun initialValue(): Kryo {
+        val kryo = Kryo()
+        kryo.instantiatorStrategy = DefaultInstantiatorStrategy(StdInstantiatorStrategy())
+        kryo.isRegistrationRequired = false
+        kryo.references = true
+        kryo.setCopyReferences(true)
+        kryo.register(ServerSignal::class.java)
+        kryo.register(ClientSignal::class.java)
+        return kryo
+    }
+}
 fun freeze(): Kryo {
-    val kryo = Kryo()
-    kryo.isRegistrationRequired = false
-    kryo.references = true
-    return kryo
+    return ky.get()
 }
 
 

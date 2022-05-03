@@ -10,16 +10,15 @@ import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
 class ChunkZMQSender(val port: Int, val zContext: ZContext) {
+    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val thread: Thread = networkThread()
 
     var running = true
 
     val bufferLock = Any()
-
     var currentBuffer: ByteBuffer = MemoryUtil.memAlloc(0)
     val data = ByteArray(CHUNK_SIZE)
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     lateinit var router: ZMQ.Socket
 
     fun close(): Thread {
