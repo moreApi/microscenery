@@ -13,7 +13,7 @@ import org.zeromq.ZContext
 import kotlin.concurrent.thread
 
 class ControlledVolumeStreamClientScene(
-    val basePort: Int = getPropertyInt("Network.basePort"),
+    basePort: Int = getPropertyInt("Network.basePort"),
     val host: String = getPropertyString("Network.host"))
     : SceneryBase(
     ControlledVolumeStreamClientScene::class.java.simpleName,
@@ -29,18 +29,21 @@ class ControlledVolumeStreamClientScene(
 
     var latestServerStatus : ServerSignal.Status? = null
 
+    @Suppress("unused")
     fun start(){
         logger.info("Got Start Command")
         if (latestServerStatus?.state == ServerState.Paused)
             controlConnection.sendSignal(ClientSignal.StartImaging())
     }
 
+    @Suppress("unused")
     fun pause(){
         logger.info("Got Pause Command")
         if (latestServerStatus?.state == ServerState.Imaging)
             controlConnection.sendSignal(ClientSignal.StopImaging())
     }
 
+    @Suppress("unused")
     fun shutdown(){
         logger.info("Got Stop Command")
         controlConnection.sendSignal(ClientSignal.Shutdown())
@@ -101,7 +104,11 @@ class ControlledVolumeStreamClientScene(
                             mmVol?.running = false
                             connection?.close()
                         }
-                        ServerState.ShuttingDown -> TODO()
+                        ServerState.ShuttingDown -> {
+                            mmVol?.running = false
+                            connection?.close()?.forEach { it.join() }
+                            logger.warn("Server shutdown")
+                        }
                     }
                 }
             }

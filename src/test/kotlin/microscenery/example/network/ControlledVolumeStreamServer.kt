@@ -13,8 +13,8 @@ import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
 class ControlledVolumeStreamServer (core: CMMCore? = null,
-                                    val basePort: Int = getPropertyInt("Network.basePort"),
-                                    val connections: Int = getPropertyInt("Network.connections") ) {
+                                    basePort: Int = getPropertyInt("Network.basePort"),
+                                    connections: Int = getPropertyInt("Network.connections") ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val zContext = ZContext()
     val mmConnection = MMConnection(core_ = core)
@@ -71,8 +71,11 @@ class ControlledVolumeStreamServer (core: CMMCore? = null,
                 }
                 is ClientSignal.Shutdown ->{
                     stopImaging()
+                    controlConnection.sendSignal(status)
                     status = status.copy( state = ServerState.ShuttingDown)
                     controlConnection.sendSignal(status)
+                    volumeSender.close().forEach { it.join() }
+                    microscenery.zContext.destroy()
                 }
             }
         }
@@ -105,9 +108,24 @@ class ControlledVolumeStreamServer (core: CMMCore? = null,
         }
     }
 
-    fun shutdown() {
+    @Suppress("unused")
+    fun start(){
+        logger.info("Got Start Command")
+        if (status.state == ServerState.Paused)
+            controlConnection.sendInternalSignals(listOf(ClientSignal.StartImaging()))
+    }
+
+    @Suppress("unused")
+    fun pause(){
+        logger.info("Got Pause Command")
+        if (status.state == ServerState.Imaging)
+            controlConnection.sendInternalSignals(listOf(ClientSignal.StopImaging()))
+    }
+
+    @Suppress("unused")
+    fun shutdown(){
+        logger.info("Got Stop Command")
         controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown()))
-        microscenery.zContext.destroy()
     }
 
     companion object {
