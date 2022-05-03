@@ -3,6 +3,7 @@ package microscenery.example.network
 import getPropertyInt
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
+import kotlinx.event.event
 import microscenery.MMConnection
 import microscenery.network.*
 import mmcorej.CMMCore
@@ -11,69 +12,79 @@ import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
+import kotlin.properties.Delegates
 
-class ControlledVolumeStreamServer (core: CMMCore? = null,
-                                    basePort: Int = getPropertyInt("Network.basePort"),
-                                    connections: Int = getPropertyInt("Network.connections") ) {
+class ControlledVolumeStreamServer(
+    core: CMMCore? = null,
+    basePort: Int = getPropertyInt("Network.basePort"),
+    connections: Int = getPropertyInt("Network.connections")
+) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val zContext = ZContext()
     val mmConnection = MMConnection(core_ = core)
-    private val controlConnection = ControlZMQServer(zContext,basePort)
-    val volumeSender = VolumeSender(microscenery.zContext,connections,basePort+1)
+    private val controlConnection = ControlZMQServer(zContext, basePort)
+    val volumeSender = VolumeSender(microscenery.zContext, connections, basePort + 1)
 
     val timeBetweenUpdates = 1000
 
     var imagingRunning = false
-    var imagingThread : Thread? = null
+    var imagingThread: Thread? = null
 
-    var status = ServerSignal.Status(Vector3i(0),ServerState.Paused, volumeSender.usedPorts())
+    val statusChange = event<ServerSignal.Status>()
+    private var status by Delegates.observable(
+        ServerSignal.Status(
+            Vector3i(0),
+            ServerState.Paused,
+            volumeSender.usedPorts()
+        )
+    ) { _, _, newStatus: ServerSignal.Status ->
+        statusChange(newStatus)
+    }
 
     init {
-        fun stopImaging(){
-            if (status.state == ServerState.Imaging){
+        statusChange += {
+            controlConnection.sendSignal(it)
+        }
+
+        fun stopImaging() {
+            if (status.state == ServerState.Imaging) {
                 logger.info("Stopping Imaging")
                 imagingRunning = false
                 imagingThread?.join()
                 imagingThread = null
-                status = status.copy( state = ServerState.Paused)
+                status = status.copy(state = ServerState.Paused)
                 logger.info("imaging stopped")
             }
         }
 
         controlConnection.addListener { signal ->
-            when(signal){
+            when (signal) {
                 is ClientSignal.ClientSignOn -> {
                     controlConnection.sendSignal(status)
                 }
                 is ClientSignal.StartImaging -> {
                     if (status.state == ServerState.Paused) {
                         mmConnection.updateSize()
-                        logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort at port ${volumeSender.basePort+1}")
+                        logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort at port ${volumeSender.basePort + 1}")
                         status = status.copy(
                             imageSize = Vector3i(
-                                mmConnection.width,
-                                mmConnection.height,
-                                mmConnection.slices
+                                mmConnection.width, mmConnection.height, mmConnection.slices
                             ), state = ServerState.Imaging
                         )
 
-                        if (imagingThread != null){
+                        if (imagingThread != null) {
                             throw IllegalStateException("There is a reference to an imaging thread where none should be.")
                         }
                         imagingRunning = true
                         imagingThread = startImagingAndSendingThread()
                     }
-                    controlConnection.sendSignal(status)
                 }
                 is ClientSignal.StopImaging -> {
                     stopImaging()
-                    controlConnection.sendSignal(status)
                 }
-                is ClientSignal.Shutdown ->{
+                is ClientSignal.Shutdown -> {
                     stopImaging()
-                    controlConnection.sendSignal(status)
-                    status = status.copy( state = ServerState.ShuttingDown)
-                    controlConnection.sendSignal(status)
+                    status = status.copy(state = ServerState.ShuttingDown)
                     volumeSender.close().forEach { it.join() }
                     microscenery.zContext.destroy()
                 }
@@ -93,8 +104,7 @@ class ControlledVolumeStreamServer (core: CMMCore? = null,
             while (imagingRunning) {
                 //wait at least timeBetweenUpdates
                 (System.currentTimeMillis() - time).let {
-                    if (it in 1..timeBetweenUpdates)
-                        Thread.sleep(timeBetweenUpdates - it)
+                    if (it in 1..timeBetweenUpdates) Thread.sleep(timeBetweenUpdates - it)
                 }
                 time = System.currentTimeMillis()
 
@@ -109,21 +119,19 @@ class ControlledVolumeStreamServer (core: CMMCore? = null,
     }
 
     @Suppress("unused")
-    fun start(){
+    fun start() {
         logger.info("Got Start Command")
-        if (status.state == ServerState.Paused)
-            controlConnection.sendInternalSignals(listOf(ClientSignal.StartImaging()))
+        if (status.state == ServerState.Paused) controlConnection.sendInternalSignals(listOf(ClientSignal.StartImaging()))
     }
 
     @Suppress("unused")
-    fun pause(){
+    fun pause() {
         logger.info("Got Pause Command")
-        if (status.state == ServerState.Imaging)
-            controlConnection.sendInternalSignals(listOf(ClientSignal.StopImaging()))
+        if (status.state == ServerState.Imaging) controlConnection.sendInternalSignals(listOf(ClientSignal.StopImaging()))
     }
 
     @Suppress("unused")
-    fun shutdown(){
+    fun shutdown() {
         logger.info("Got Stop Command")
         controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown()))
     }
