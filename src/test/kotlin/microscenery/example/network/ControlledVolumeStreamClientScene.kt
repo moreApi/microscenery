@@ -4,6 +4,7 @@ import getPropertyInt
 import getPropertyString
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
+import graphics.scenery.volumes.Volume
 import lightSleepOn
 import microscenery.StreamedVolume
 import microscenery.network.*
@@ -23,7 +24,8 @@ class ControlledVolumeStreamClientScene(
     private val zContext = ZContext()
     private val controlConnection = ControlZMQClient(zContext, basePort, host)
 
-    lateinit var mmVol: StreamedVolume
+    var mmVol: StreamedVolume? = null
+    var connection: VolumeReceiver? = null
 
     var latestServerStatus : ServerSignal.Status? = null
 
@@ -46,6 +48,7 @@ class ControlledVolumeStreamClientScene(
 
     override fun init() {
         baseInit()
+        initDummyNode(scene)
 
         controlConnection.addListener { signal ->
             when(signal){
@@ -58,11 +61,24 @@ class ControlledVolumeStreamClientScene(
                                 return@addListener
                             }
 
+                            // clean old stuff if there
+                            mmVol?.let {
+                                if (it.running) {
+                                    logger.info("Got imaging status but found active streaming vol. Changing nothing")
+                                    return@addListener
+                                } else {
+                                    scene.removeChild(it.volume)
+                                }
+
+                            }
+                            connection?.close()?.forEach { it.join() }
+
+                            // build new stuff
                             val width = signal.imageSize.x
                             val height = signal.imageSize.y
                             val slices = signal.imageSize.z
 
-                            val connection = VolumeReceiver(
+                            connection = VolumeReceiver(
                                 reuseBuffers = false,
                                 zContext = zContext,
                                 width * height * slices * Short.SIZE_BYTES,
@@ -72,22 +88,38 @@ class ControlledVolumeStreamClientScene(
                             val timeBetweenUpdates = 1000
                             mmVol = StreamedVolume(hub, width, height, slices) {
                                 //wait at least timeBetweenUpdates
-                                (System.currentTimeMillis() - time).let {
-                                    if (it in 1..timeBetweenUpdates)
-                                        Thread.sleep(timeBetweenUpdates - it)
+                                (System.currentTimeMillis() - time).let { delta ->
+                                    if (delta in 1..timeBetweenUpdates)
+                                        Thread.sleep(timeBetweenUpdates - delta)
                                 }
                                 time = System.currentTimeMillis()
-                                connection.getVolume(2000, it)
+                                connection?.getVolume(2000, it)
                             }
-                            scene.addChild(mmVol.volume)
+                            scene.addChild(mmVol!!.volume)
                         }
-                        ServerState.Paused -> {}
+                        ServerState.Paused -> {
+                            mmVol?.running = false
+                            connection?.close()
+                        }
                         ServerState.ShuttingDown -> TODO()
                     }
                 }
             }
         }
         controlConnection.sendSignal(ClientSignal.ClientSignOn())
+    }
+
+    /**
+     * Required so the volumeManager is initialized later in the scene -.-
+     */
+    private fun initDummyNode(scene: Scene) {
+        val head = Volume.VolumeFileSource(
+            Volume.VolumeFileSource.VolumePath.Given("C:\\Users\\JanCasus\\volumes\\t1-head.tif"),
+            Volume.VolumeFileSource.VolumeType.DEFAULT
+        )
+        val dummyVolume = Volume.forNetwork(head, hub)
+        dummyVolume.spatial().position = Vector3f(999f)
+        scene.addChild(dummyVolume)
     }
 
     private fun baseInit() {
@@ -118,10 +150,8 @@ class ControlledVolumeStreamClientScene(
         fun main(args: Array<String>) {
             val b = ControlledVolumeStreamClientScene()
             thread {
-                lightSleepOn(5000) { b.latestServerStatus }
-                println("stauts there")
-                Thread.sleep(5000)
-                println("awake awake")
+                lightSleepOn(15000) { b.latestServerStatus }
+                println("status here")
                 b.start()
             }
             b.main()
