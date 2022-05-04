@@ -1,10 +1,9 @@
-package microscenery.example.network
+package microscenery
 
 import getPropertyInt
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import kotlinx.event.event
-import microscenery.MMConnection
 import microscenery.network.*
 import mmcorej.CMMCore
 import org.joml.Vector3i
@@ -33,9 +32,7 @@ class ControlledVolumeStreamServer(
     val statusChange = event<ServerSignal.Status>()
     private var status by Delegates.observable(
         ServerSignal.Status(
-            Vector3i(0),
-            ServerState.Paused,
-            volumeSender.usedPorts()
+            Vector3i(0), ServerState.Paused, volumeSender.usedPorts()
         )
     ) { _, _, newStatus: ServerSignal.Status ->
         statusChange(newStatus)
