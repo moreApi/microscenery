@@ -18,7 +18,7 @@ import java.nio.ShortBuffer
  * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
  */
 class MMConnection(
-    val slices: Int = getPropertyInt("MMConnection.slices"),
+    var slices: Int = getPropertyInt("MMConnection.slices"),
     core_ :CMMCore? = null)
 {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))

@@ -28,8 +28,6 @@ class StreamedVolume(
     var running = true
 
     init {
-
-
         volume = Volume.fromBuffer(emptyList(), width, height, depth, UnsignedShortType(), hub)
 
         volume.name = "volume"
