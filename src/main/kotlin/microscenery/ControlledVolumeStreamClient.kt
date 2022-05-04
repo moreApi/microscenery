@@ -7,6 +7,7 @@ import graphics.scenery.Scene
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Volume
 import microscenery.network.*
+import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
 import org.zeromq.ZContext
 
@@ -118,11 +119,7 @@ class ControlledVolumeStreamClient(
      * Required so the volumeManager is initialized later in the scene -.-
      */
     private fun initDummyNode(scene: Scene, hub: Hub) {
-        val head = Volume.VolumeFileSource(
-            Volume.VolumeFileSource.VolumePath.Given("C:\\Users\\JanCasus\\volumes\\t1-head.tif"),
-            Volume.VolumeFileSource.VolumeType.DEFAULT
-        )
-        val dummyVolume = Volume.forNetwork(head, hub)
+        val dummyVolume = Volume.fromBuffer(emptyList(), 5, 5, 5, UnsignedShortType(), hub)
         dummyVolume.spatial().position = Vector3f(999f)
         scene.addChild(dummyVolume)
     }
