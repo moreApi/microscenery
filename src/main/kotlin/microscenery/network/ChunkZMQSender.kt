@@ -62,6 +62,7 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
 
             var size: Int
             while (currentBuffer.limit() < 2 && !Thread.currentThread().isInterrupted && running) {
+                //wait for buffer to fill
                 Thread.sleep(200)
             }
             synchronized(bufferLock) {
@@ -72,7 +73,7 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
             }
 
             //  Send resulting chunk to client
-            val chunk = ZFrame(data.copyOf(if (size <= 0) 1 else size))
+            val chunk = ZFrame(data.copyOf( size))
             identity.sendAndDestroy(router, ZMQ.SNDMORE)
             router.sendMore(chunkId)
             chunk.sendAndDestroy(router)

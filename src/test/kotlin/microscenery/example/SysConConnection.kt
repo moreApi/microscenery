@@ -85,7 +85,7 @@ class SysConConnection : DefaultScene({ _, _ -> }) {
 
 
         inputHandler?.addBehaviour(
-            "genSysCon", behaviour = ClickBehaviour { x, y ->
+            "genSysCon", behaviour = ClickBehaviour { _, _ ->
                 generateSysCon(listOf(onev, v2, v3).map { it.spatial().position })
             }
         )

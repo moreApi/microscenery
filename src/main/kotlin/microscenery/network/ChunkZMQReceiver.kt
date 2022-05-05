@@ -45,7 +45,7 @@ class ChunkZMQReceiver(val zContext: ZContext, val port: Int, val host: String =
         var total = 0 //  Total bytes received
         var chunks = 0 //  Total chunks received
         var offset = 0 //  Offset of next chunk request
-        while (running) {
+        while (running && !Thread.currentThread().isInterrupted) {
             if (outputQueue.remainingCapacity() == 0) {
                 Thread.sleep(200)
                 continue
@@ -60,9 +60,9 @@ class ChunkZMQReceiver(val zContext: ZContext, val port: Int, val host: String =
                 offset += CHUNK_SIZE
                 credit--
             }
-            credit++
-            val recChunkId = dealer.recvStr()
+            val recChunkId = dealer.recvStr() ?: continue
             val chunk = ZFrame.recvFrame(dealer)
+            credit++
             if (recChunkId != chunkId.toString()) {
                 // this frame belongs to a finished chunk. Just reclaim the credit.
                 continue

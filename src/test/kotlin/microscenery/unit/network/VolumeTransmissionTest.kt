@@ -28,7 +28,7 @@ class VolumeTransmissionTest {
 
     @Test
     fun reusingBuffer() {
-        val connections = 10
+        val connections = 2
         val basePort = 4400
 
         val dummyData = MemoryUtil.memAlloc(166 * 10.0.pow(6.0).toInt())
@@ -58,7 +58,7 @@ class VolumeTransmissionTest {
 
     @Test
     fun notReusingBuffer() {
-        val connections = 10
+        val connections = 2
         val basePort = 4400
 
         val dummyData = MemoryUtil.memAlloc(166 * 10.0.pow(6.0).toInt())
@@ -84,7 +84,7 @@ class VolumeTransmissionTest {
 
     @Test
     fun reusingBufferMultipleVolumes() {
-        val connections = 10
+        val connections = 2
         val basePort = 4400
         val repeats = 10
 
