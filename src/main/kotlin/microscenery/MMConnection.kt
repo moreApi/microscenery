@@ -1,8 +1,6 @@
 package microscenery
 
-import getProperty
-import getPropertyInt
-import getPropertyString
+import GlobalSettings
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import let
@@ -18,16 +16,17 @@ import java.nio.ShortBuffer
  * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
  */
 class MMConnection(
-    var slices: Int = getPropertyInt("MMConnection.slices"),
-    core_ :CMMCore? = null)
+    var slices: Int = GlobalSettings.get("MMConnection.slices"),
+    core_: CMMCore? = null
+)
 {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val core: CMMCore
     private val setup: SPIMSetup
 
-    var width: Int
-    var height: Int
+    var width: Int = 0
+    var height: Int = 0
 
     init {
 
@@ -40,41 +39,21 @@ class MMConnection(
             val info = core.versionInfo
             println(info)
 
-            val mmConfiguration = getPropertyString("MMConnection.core.configuration")
+            val mmConfiguration = GlobalSettings.get<String>("MMConnection.core.configuration")
             core.loadSystemConfiguration(mmConfiguration)
 
-            val mmSettingsGroupName = getProperty("MMConnection.core.settingsGroupName")
-            val mmPresetName = getProperty("MMConnection.core.presetName")
-            mmSettingsGroupName?.let(mmSettingsGroupName){_, _ ->
+            val mmSettingsGroupName = GlobalSettings.getOrNull<String>("MMConnection.core.settingsGroupName")
+            val mmPresetName = GlobalSettings.getOrNull<String>("MMConnection.core.presetName")
+            mmSettingsGroupName?.let(mmSettingsGroupName) { _, _ ->
                 logger.info("Setting $mmSettingsGroupName to $mmPresetName")
                 core.setConfig(mmSettingsGroupName, mmPresetName)
-            }
-
-            getProperty("MMConnection.core.exposure")?.let{
-                val d = it.toDoubleOrNull()
-                if (d == null){
-                    logger.error("MMConnection.core.exposure is set to $it but could not be cast to double.")
-                    return@let
-                }
-                core.exposure = d
-            }
-
-            getProperty("MMConnection.core.binning")?.let {
-                core.setProperty("Camera", "Binning", it)
-            }
-
-            getProperty("MMConnection.core.roi")?.let {
-                val v = it.trim().split(",").map { it.toInt() }.toList()
-                setRoi(Rectangle(v[0],v[1],v[2],v[3]))
             }
         }
 
 
         setup = SPIMSetup.createDefaultSetup(core)
 
-        setup.snapImage() // do this so the following parameters are set
-        width = core.imageWidth.toInt()
-        height = core.imageHeight.toInt()
+        updateSize()
     }
 
     fun updateSize(){
@@ -87,14 +66,21 @@ class MMConnection(
         core.setROI(roi.x,roi.y,roi.width,roi.height)
     }
 
-    fun captureStack(intoBuffer: ShortBuffer) {
+    fun captureStack(intoBuffer: ShortBuffer, minZ: Double = 0.0, maxZ: Double = slices.toDouble(), steps: Int = slices) {
         var offset = 0
         var snap = 0L
         var copy = 0L
-        (0 until slices).forEach { z ->
+
+        val range = maxZ - minZ
+        if (range <= 0)
+            throw IllegalArgumentException("MaxZ needs to be larger thank MinZ.")
+        val stepSize = range / steps
+
+        (0 until steps).forEach { step ->
+            val z = minZ + stepSize * step
             //core.snapImage()
             val start = System.currentTimeMillis()
-            setup.zStage.position = z.toDouble()
+            setup.zStage.position = z
             val img = setup.snapImage()
             snap += (System.currentTimeMillis()-start)
             //val img1 = core.image as ShortArray// returned as a 1D array of signed integers in row-major order

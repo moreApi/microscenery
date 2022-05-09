@@ -1,6 +1,6 @@
 package microscenery
 
-import getPropertyInt
+import GlobalSettings
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import kotlinx.event.event
@@ -15,8 +15,8 @@ import kotlin.properties.Delegates
 
 class ControlledVolumeStreamServer(
     core: CMMCore? = null,
-    basePort: Int = getPropertyInt("Network.basePort"),
-    connections: Int = getPropertyInt("Network.connections")
+    basePort: Int = GlobalSettings.get("Network.basePort"),
+    connections: Int = GlobalSettings.get("Network.connections")
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val zContext = ZContext()

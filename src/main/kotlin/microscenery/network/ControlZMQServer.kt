@@ -1,9 +1,9 @@
 package microscenery.network
 
+import GlobalSettings
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import freeze
-import getPropertyInt
 import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
 import org.zeromq.SocketType
@@ -20,7 +20,7 @@ import kotlin.concurrent.thread
  * Server shuts down when a signal with shutdown status has been send.
  */
 class ControlZMQServer(
-    val zContext: ZContext, val port: Int = getPropertyInt("Network.basePort"),
+    val zContext: ZContext, val port: Int = GlobalSettings.get("Network.basePort"),
     listeners: List<(ClientSignal) -> Unit> = emptyList()
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
