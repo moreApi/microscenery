@@ -1,6 +1,6 @@
 package microscenery
 
-import GlobalSettings
+import MicroscenerySettings
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import kotlinx.event.event
@@ -13,10 +13,11 @@ import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.properties.Delegates
 
-class ControlledVolumeStreamServer(
+
+class ControlledVolumeStreamServer @JvmOverloads constructor(
     core: CMMCore? = null,
-    basePort: Int = GlobalSettings.get("Network.basePort"),
-    connections: Int = GlobalSettings.get("Network.connections")
+    val basePort: Int = MicroscenerySettings.get("Network.basePort"),
+    val connections: Int = MicroscenerySettings.get("Network.connections")
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val zContext = ZContext()
@@ -62,10 +63,11 @@ class ControlledVolumeStreamServer(
                 is ClientSignal.StartImaging -> {
                     if (status.state == ServerState.Paused) {
                         mmConnection.updateSize()
-                        logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort at port ${volumeSender.basePort + 1}")
+                        mmConnection.updateParamters()
+                        logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.steps}xShort at port ${volumeSender.basePort + 1}")
                         status = status.copy(
                             imageSize = Vector3i(
-                                mmConnection.width, mmConnection.height, mmConnection.slices
+                                mmConnection.width, mmConnection.height, mmConnection.steps
                             ), state = ServerState.Imaging
                         )
 
@@ -90,7 +92,7 @@ class ControlledVolumeStreamServer(
     }
 
     private fun startImagingAndSendingThread(): Thread {
-        val volumeSize = mmConnection.width * mmConnection.height * mmConnection.slices * Short.SIZE_BYTES
+        val volumeSize = mmConnection.width * mmConnection.height * mmConnection.steps * Short.SIZE_BYTES
         val volumeBuffers = RingBuffer<ByteBuffer>(2, default = {
             MemoryUtil.memAlloc((volumeSize))
         })
@@ -98,6 +100,7 @@ class ControlledVolumeStreamServer(
         return thread {
             Thread.sleep(200)
             print("start capturing")
+
             while (imagingRunning) {
                 //wait at least timeBetweenUpdates
                 (System.currentTimeMillis() - time).let {
@@ -132,6 +135,12 @@ class ControlledVolumeStreamServer(
         logger.info("Got Stop Command")
         controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown()))
     }
+
+    /**
+     * Access settings. Java comparability function
+     */
+    @Suppress("unused")
+    fun getSettings() = MicroscenerySettings
 
     companion object {
         @JvmStatic

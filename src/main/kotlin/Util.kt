@@ -1,4 +1,6 @@
 @file:Suppress("unused")
+@file:JvmName("Util")
+@file:JvmMultifileClass
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy
@@ -7,7 +9,8 @@ import microscenery.network.ClientSignal
 import microscenery.network.ServerSignal
 import org.objenesis.strategy.StdInstantiatorStrategy
 
-val GlobalSettings = Settings(prefix = "microscenery.", propertiesFile = "microscenery.properties")
+
+val MicroscenerySettings = Settings(prefix = "microscenery.", propertiesFile = "microscenery.properties")
 
 
 fun <T,U,W>T?.let(any: U?, call: (T,U)->W): W? =

@@ -1,6 +1,6 @@
 package microscenery.network
 
-import GlobalSettings
+import MicroscenerySettings
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import freeze
@@ -20,7 +20,7 @@ import kotlin.concurrent.thread
  * Server shuts down when a signal with shutdown status has been send.
  */
 class ControlZMQServer(
-    val zContext: ZContext, val port: Int = GlobalSettings.get("Network.basePort"),
+    val zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
     listeners: List<(ClientSignal) -> Unit> = emptyList()
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))

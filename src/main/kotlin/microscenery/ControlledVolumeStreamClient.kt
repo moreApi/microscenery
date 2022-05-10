@@ -1,6 +1,6 @@
 package microscenery
 
-import GlobalSettings
+import MicroscenerySettings
 import graphics.scenery.Hub
 import graphics.scenery.Scene
 import graphics.scenery.utils.LazyLogger
@@ -18,8 +18,8 @@ import org.zeromq.ZContext
 class ControlledVolumeStreamClient(
     val scene: Scene,
     val hub: Hub,
-    basePort: Int = GlobalSettings.get("Network.basePort"),
-    val host: String = GlobalSettings.get("Network.host"),
+    basePort: Int = MicroscenerySettings.get("Network.basePort"),
+    val host: String = MicroscenerySettings.get("Network.host"),
     val zContext: ZContext = ZContext()
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))

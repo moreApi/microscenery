@@ -34,12 +34,14 @@ class MMConnectionScene :
             scene.addChild(this)
         }
 
+
+
         val mmConnection = MMConnection()
         mmVol = StreamedVolume(
             hub,
             mmConnection.width,
             mmConnection.height,
-            mmConnection.slices
+            mmConnection.steps
         ) { mmConnection.captureStack(it.asShortBuffer()) }
         scene.addChild(mmVol.volume)
         mmVol.volume.colormap = Colormap.get("hot")

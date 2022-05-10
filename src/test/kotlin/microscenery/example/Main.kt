@@ -17,7 +17,7 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
             hub,
             mmConnection.width,
             mmConnection.height,
-            mmConnection.slices
+            mmConnection.steps
         ) { mmConnection.captureStack(it.asShortBuffer()) }
         volume = mmConnectionVolume.volume
         scene.addChild(volume)

@@ -1,13 +1,13 @@
 package microscenery.network
 
-import GlobalSettings
+import MicroscenerySettings
 import org.zeromq.ZContext
 import java.nio.ByteBuffer
 
 class VolumeSender(
     zContext: ZContext,
-    val connections: Int = GlobalSettings.get("Network.connections"),
-    val basePort: Int = GlobalSettings.get("Network.basePort")
+    val connections: Int = MicroscenerySettings.get("Network.connections"),
+    val basePort: Int = MicroscenerySettings.get("Network.basePort")
 ) {
     val senders = (basePort until basePort + connections).map {
         ChunkZMQSender(it, zContext)

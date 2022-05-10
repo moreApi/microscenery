@@ -1,22 +1,25 @@
 package microscenery
 
-import GlobalSettings
+import MicroscenerySettings
 import graphics.scenery.utils.LazyLogger
-import graphics.scenery.utils.RingBuffer
 import let
 import microscenery.hardware.SPIMSetup
 import mmcorej.CMMCore
-import org.lwjgl.system.MemoryUtil
 import java.awt.Rectangle
-import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 
 /**
+ * Connection to MicroManger Core. Does the imaging.
  *
- * @param slices Should be not divisible by 32, otherwise the animation will be a standing wave.
+ * RelevantProperties:
+ * MMConnection.core.configuration
+ * MMConnection.core.settingsGroupName
+ * MMConnection.core.presetName
+ * MMConnection.minZ
+ * MMConnection.maxZ
+ * MMConnection.slices
  */
 class MMConnection(
-    var slices: Int = GlobalSettings.get("MMConnection.slices"),
     core_: CMMCore? = null
 )
 {
@@ -27,6 +30,10 @@ class MMConnection(
 
     var width: Int = 0
     var height: Int = 0
+
+    var minZ: Double = MicroscenerySettings.get("MMConnection.minZ",0.0)
+    var maxZ: Double = MicroscenerySettings.get("MMConnection.maxZ",10.0)
+    var steps: Int = MicroscenerySettings.get("MMConnection.slices",10)
 
     init {
 
@@ -39,11 +46,11 @@ class MMConnection(
             val info = core.versionInfo
             println(info)
 
-            val mmConfiguration = GlobalSettings.get<String>("MMConnection.core.configuration")
+            val mmConfiguration = MicroscenerySettings.get<String>("MMConnection.core.configuration")
             core.loadSystemConfiguration(mmConfiguration)
 
-            val mmSettingsGroupName = GlobalSettings.getOrNull<String>("MMConnection.core.settingsGroupName")
-            val mmPresetName = GlobalSettings.getOrNull<String>("MMConnection.core.presetName")
+            val mmSettingsGroupName = MicroscenerySettings.getOrNull<String>("MMConnection.core.settingsGroupName")
+            val mmPresetName = MicroscenerySettings.getOrNull<String>("MMConnection.core.presetName")
             mmSettingsGroupName?.let(mmSettingsGroupName) { _, _ ->
                 logger.info("Setting $mmSettingsGroupName to $mmPresetName")
                 core.setConfig(mmSettingsGroupName, mmPresetName)
@@ -62,14 +69,20 @@ class MMConnection(
         height = core.imageHeight.toInt()
     }
 
+    fun updateParamters(){
+        minZ = MicroscenerySettings.get("MMConnection.minZ",0.0)
+        maxZ = MicroscenerySettings.get("MMConnection.maxZ",10.0)
+        steps = MicroscenerySettings.get("MMConnection.slices",10)
+    }
+
     fun setRoi(roi: Rectangle){
         core.setROI(roi.x,roi.y,roi.width,roi.height)
     }
 
-    fun captureStack(intoBuffer: ShortBuffer, minZ: Double = 0.0, maxZ: Double = slices.toDouble(), steps: Int = slices) {
+    fun captureStack(intoBuffer: ShortBuffer) {
         var offset = 0
-        var snap = 0L
-        var copy = 0L
+        var snapTime = 0L
+        var copyTime = 0L
 
         val range = maxZ - minZ
         if (range <= 0)
@@ -82,7 +95,7 @@ class MMConnection(
             val start = System.currentTimeMillis()
             setup.zStage.position = z
             val img = setup.snapImage()
-            snap += (System.currentTimeMillis()-start)
+            snapTime += (System.currentTimeMillis()-start)
             //val img1 = core.image as ShortArray// returned as a 1D array of signed integers in row-major order
             //val sa = core.image as ShortArray
 
@@ -92,34 +105,8 @@ class MMConnection(
                 intoBuffer.put(offset, it)
                 offset += 1
             }
-            copy += (System.currentTimeMillis()-start2)
-
+            copyTime += (System.currentTimeMillis()-start2)
         }
-        logger.info("slices $slices snap $snap ms copy $copy ms")
-
-    }
-
-    companion object{
-        @JvmStatic
-        fun main(args: Array<String>) {
-
-            val slices = 112
-            val mmConnection = MMConnection(slices)
-
-
-            val volumeBuffer =
-                RingBuffer<ByteBuffer>(2, default = {
-                    MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * slices * Short.SIZE_BYTES))
-                })
-
-            val start = System.currentTimeMillis()
-            for (x in 1..10){
-                val currentBuffer = volumeBuffer.get()
-                mmConnection.captureStack(currentBuffer.asShortBuffer())
-            }
-            println("took ${System.currentTimeMillis()-start}ms")
-
-
-        }
+        logger.info("$steps slices from $minZ to $maxZ took snap $snapTime ms copy $copyTime ms")
     }
 }

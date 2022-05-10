@@ -1,6 +1,6 @@
 package microscenery.network
 
-import GlobalSettings
+import MicroscenerySettings
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.mapAsync
 import kotlinx.coroutines.Dispatchers
@@ -21,9 +21,9 @@ class VolumeReceiver(
 ) {
     constructor(
         reuseBuffers: Boolean = true, zContext: ZContext, volumeSize: Int,
-        connections: Int = GlobalSettings.get("Network.connections"),
-        basePort: Int = GlobalSettings.get("Network.basePort"),
-        host: String = GlobalSettings.get("Network.host")
+        connections: Int = MicroscenerySettings.get("Network.connections"),
+        basePort: Int = MicroscenerySettings.get("Network.basePort"),
+        host: String = MicroscenerySettings.get("Network.host")
     ) : this(
         reuseBuffers, zContext, volumeSize,
         (0 until connections).map { host to basePort + it }
