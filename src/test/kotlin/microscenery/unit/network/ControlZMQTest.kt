@@ -45,7 +45,7 @@ class ControlZMQTest {
         assert(s1trans.imageSize == s1.imageSize)
 
         lastSignalClient = null
-        client.sendSignal(ClientSignal.StartImaging())
+        client.sendSignal(ClientSignal.StartImaging)
         lightSleepOn { lastSignalClient }
         assertNotNull(lastSignalClient as ClientSignal.StartImaging)
 

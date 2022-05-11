@@ -60,7 +60,7 @@ class ControlZMQClient(
         val kryoOut = freeze()
 
         var running = true
-        parent.signalsOut += ClientSignal.ClientSignOn()
+        parent.signalsOut += ClientSignal.ClientSignOn
 
         while (!Thread.currentThread().isInterrupted && running) {
 

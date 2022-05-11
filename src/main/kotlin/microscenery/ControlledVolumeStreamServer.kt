@@ -31,13 +31,14 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
     var imagingThread: Thread? = null
 
     val statusChange = event<ServerSignal.Status>()
-    private var status by Delegates.observable(
+    var status by Delegates.observable(
         ServerSignal.Status(
             Vector3i(0), ServerState.Paused, volumeSender.usedPorts()
         )
     ) { _, _, newStatus: ServerSignal.Status ->
         statusChange(newStatus)
     }
+    private set
 
     init {
         statusChange += {
@@ -58,7 +59,7 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
         controlConnection.addListener { signal ->
             when (signal) {
                 is ClientSignal.ClientSignOn -> {
-                    controlConnection.sendSignal(status)
+                    status = status.copy(connectedClients = controlConnection.connectedClients)
                 }
                 is ClientSignal.StartImaging -> {
                     if (status.state == ServerState.Paused) {
@@ -121,19 +122,19 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
     @Suppress("unused")
     fun start() {
         logger.info("Got Start Command")
-        if (status.state == ServerState.Paused) controlConnection.sendInternalSignals(listOf(ClientSignal.StartImaging()))
+        if (status.state == ServerState.Paused) controlConnection.sendInternalSignals(listOf(ClientSignal.StartImaging))
     }
 
     @Suppress("unused")
     fun pause() {
         logger.info("Got Pause Command")
-        if (status.state == ServerState.Imaging) controlConnection.sendInternalSignals(listOf(ClientSignal.StopImaging()))
+        if (status.state == ServerState.Imaging) controlConnection.sendInternalSignals(listOf(ClientSignal.StopImaging))
     }
 
     @Suppress("unused")
     fun shutdown() {
         logger.info("Got Stop Command")
-        controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown()))
+        controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown))
     }
 
     /**

@@ -31,6 +31,8 @@ class ControlZMQServer(
     private val signalsIn = event<ClientSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
+    val connectedClients
+        get() = clients.size
 
     init {
         listeners.forEach { signalsIn += it }
