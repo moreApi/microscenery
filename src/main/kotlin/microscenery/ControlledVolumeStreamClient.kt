@@ -33,26 +33,30 @@ class ControlledVolumeStreamClient(
     @Suppress("unused")
     fun start() {
         logger.info("Got Start Command")
-        if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.StartImaging())
+        if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.StartImaging)
     }
 
     @Suppress("unused")
     fun pause() {
         logger.info("Got Pause Command")
-        if (latestServerStatus?.state == ServerState.Imaging) controlConnection.sendSignal(ClientSignal.StopImaging())
+        if (latestServerStatus?.state == ServerState.Imaging) controlConnection.sendSignal(ClientSignal.StopImaging)
     }
 
     @Suppress("unused")
     fun shutdown() {
         logger.info("Got Stop Command")
-        controlConnection.sendSignal(ClientSignal.Shutdown())
+        controlConnection.sendSignal(ClientSignal.Shutdown)
     }
 
     /**
      * Adds a dummy Volume to the scene to avoid a bug later and adds and manages the streamed volume.
      */
     fun init() {
-        initDummyNode(scene, hub)
+        // Required so the volumeManager is initialized later in the scene -.-
+        val dummyVolume = Volume.fromBuffer(emptyList(), 5, 5, 5, UnsignedShortType(), hub)
+        dummyVolume.spatial().position = Vector3f(999f)
+        dummyVolume.name = "dummy volume"
+        scene.addChild(dummyVolume)
 
         controlConnection.addListener { signal ->
             when (signal) {
@@ -97,6 +101,8 @@ class ControlledVolumeStreamClient(
                                 connection?.getVolume(2000, it)
                             }
                             scene.addChild(mmVol!!.volume)
+                            scene.removeChild(dummyVolume)
+                            dummyVolume.volumeManager
                         }
                         ServerState.Paused -> {
                             mmVol?.running = false
@@ -111,16 +117,6 @@ class ControlledVolumeStreamClient(
                 }
             }
         }
-        controlConnection.sendSignal(ClientSignal.ClientSignOn())
+        controlConnection.sendSignal(ClientSignal.ClientSignOn)
     }
-
-    /**
-     * Required so the volumeManager is initialized later in the scene -.-
-     */
-    private fun initDummyNode(scene: Scene, hub: Hub) {
-        val dummyVolume = Volume.fromBuffer(emptyList(), 5, 5, 5, UnsignedShortType(), hub)
-        dummyVolume.spatial().position = Vector3f(999f)
-        scene.addChild(dummyVolume)
-    }
-
 }
