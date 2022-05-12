@@ -69,17 +69,16 @@ class ControlledVolumeStreamClient(
                                 return@addListener
                             }
 
-                            // clean old stuff if there
-                            mmVol?.let {
-                                if (it.running) {
-                                    logger.info("Got imaging status but found active streaming vol. Changing nothing")
-                                    return@addListener
-                                } else {
-                                    scene.removeChild(it.volume)
-                                }
-
+                            if (mmVol?.running == true) {
+                                logger.info("Got imaging status but found active streaming vol. Changing nothing")
+                                return@addListener
                             }
+
+                            // close old connections of there are any, like after a pause
                             connection?.close()?.forEach { it.join() }
+
+                            val oldVolume = mmVol
+                            mmVol?.running = false
 
                             // build new stuff
                             val width = signal.imageSize.x
@@ -92,6 +91,7 @@ class ControlledVolumeStreamClient(
                                 connections = signal.dataPorts.map { host to it })
                             var time = 0L
                             val timeBetweenUpdates = 1000
+
                             mmVol = StreamedVolume(hub, width, height, slices) {
                                 //wait at least timeBetweenUpdates
                                 (System.currentTimeMillis() - time).let { delta ->
@@ -101,8 +101,15 @@ class ControlledVolumeStreamClient(
                                 connection?.getVolume(2000, it)
                             }
                             scene.addChild(mmVol!!.volume)
-                            scene.removeChild(dummyVolume)
-                            dummyVolume.volumeManager
+
+                            // there always has to be at least one volume in the scene otherwise the volume manager goes nuts :/
+                            // by now we have at least two and we can clean the old volumes now
+                            oldVolume?.let {
+                                it.running = false
+                                scene.removeChild(it.volume)
+                            }
+                            if (dummyVolume.parent != null)
+                                scene.removeChild(dummyVolume)
                         }
                         ServerState.Paused -> {
                             mmVol?.running = false
