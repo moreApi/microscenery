@@ -8,6 +8,7 @@ import graphics.scenery.volumes.Volume
 import microscenery.network.*
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
+import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 
 /**
@@ -56,6 +57,7 @@ class ControlledVolumeStreamClient(
         val dummyVolume = Volume.fromBuffer(emptyList(), 5, 5, 5, UnsignedShortType(), hub)
         dummyVolume.spatial().position = Vector3f(999f)
         dummyVolume.name = "dummy volume"
+        dummyVolume.addTimepoint("bums", MemoryUtil.memAlloc(5 * 5 * 5 * Short.SIZE_BYTES))
         scene.addChild(dummyVolume)
 
         controlConnection.addListener { signal ->
