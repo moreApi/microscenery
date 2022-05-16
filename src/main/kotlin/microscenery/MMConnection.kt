@@ -35,6 +35,14 @@ class MMConnection(
     var maxZ: Double = MicroscenerySettings.get("MMConnection.maxZ",10.0)
     var steps: Int = MicroscenerySettings.get("MMConnection.slices",10)
 
+    var snapTimes = listOf<Long>()
+    var copyTimes = listOf<Long>()
+
+    @Suppress("unused")
+    val meanSnapTime get() = if(snapTimes.isNotEmpty()) snapTimes.sum()/snapTimes.size else 0
+    @Suppress("unused")
+    val meanCopyTime get() = if(copyTimes.isNotEmpty())copyTimes.sum()/copyTimes.size else 0
+
     init {
 
         if (core_ != null){
@@ -108,5 +116,15 @@ class MMConnection(
             copyTime += (System.currentTimeMillis()-start2)
         }
         logger.info("$steps slices from $minZ to $maxZ took snap $snapTime ms copy $copyTime ms")
+        recordTimes(snapTime,copyTime)
+    }
+
+    private fun recordTimes(snap: Long, copy: Long){
+        snapTimes = snapTimes + (snap)
+        while (snapTimes.size > 10)
+            snapTimes = snapTimes.subList(1,snapTimes.size)
+        copyTimes = copyTimes + (copy)
+        while (copyTimes.size > 10)
+            copyTimes = copyTimes.subList(1,copyTimes.size)
     }
 }
