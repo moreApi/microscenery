@@ -7,7 +7,9 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.VRPress
+import graphics.scenery.controls.behaviours.VRScale
 import graphics.scenery.controls.behaviours.VRTouch
+import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Volume
 import microscenery.VRUI.behaviors.VRGrabWithSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
@@ -24,6 +26,9 @@ class VRUIManager {
             inputHandler?.initStickMovement(hmd)
             VRTeleport.createAndSet(scene, hmd, listOf(OpenVRHMD.OpenVRButton.Up,OpenVRHMD.OpenVRButton.Down), listOf(TrackerRole.LeftHand))
 
+            VRScale.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side) {
+                volume.ifSpatial { scale *= Vector3f(it) }
+            }
 
             VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand, TrackerRole.LeftHand), false)
             VRPress.createAndSet(
