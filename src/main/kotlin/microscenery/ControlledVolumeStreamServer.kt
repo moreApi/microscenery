@@ -64,7 +64,7 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
                 is ClientSignal.StartImaging -> {
                     if (status.state == ServerState.Paused) {
                         mmConnection.updateSize()
-                        mmConnection.updateParamters()
+                        mmConnection.updateParameters()
                         logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.steps}xShort at port ${volumeSender.basePort + 1}")
                         status = status.copy(
                             imageSize = Vector3i(

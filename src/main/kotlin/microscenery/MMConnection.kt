@@ -65,7 +65,6 @@ class MMConnection(
             }
         }
 
-
         setup = SPIMSetup.createDefaultSetup(core)
 
         updateSize()
@@ -77,7 +76,7 @@ class MMConnection(
         height = core.imageHeight.toInt()
     }
 
-    fun updateParamters(){
+    fun updateParameters(){
         minZ = MicroscenerySettings.get("MMConnection.minZ",0.0)
         maxZ = MicroscenerySettings.get("MMConnection.maxZ",10.0)
         steps = MicroscenerySettings.get("MMConnection.slices",10)
