@@ -20,7 +20,7 @@ class StreamedVolume(
     val height: Int,
     private val depth: Int = 10,
     private val timeBetweenUpdates: Long = 0,
-    val getData: (ByteBuffer) -> Unit
+    val getData: (ByteBuffer) -> ByteBuffer?
 ) {
     /** Logger for this application, will be instantiated upon first use. */
 //    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -64,14 +64,14 @@ class StreamedVolume(
                 if (volume.metadata["animating"] == true) {
                     val currentBuffer = volumeBuffer.get()
                     val start = System.currentTimeMillis()
-                    getData(currentBuffer)
+                    val buf = getData(currentBuffer) ?: continue
                     println("get volume took ${System.currentTimeMillis() - start}ms")
 
                     //move z Stage to see change
                     //setup.zStage.position = Math.exp(count.toDouble())
 
                     volume.lock.withLock {
-                        volume.addTimepoint("t-${count}", currentBuffer)
+                        volume.addTimepoint("t-${count}", buf)
                         volume.goToLastTimepoint()
                         volume.purgeFirst(3, 3)
                     }
