@@ -5,6 +5,8 @@ import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Volume
 import microscenery.ControlledVolumeStreamClient
 import microscenery.DefaultVRScene
+import microscenery.MMConnection
+import microscenery.StreamedVolume
 import microscenery.VRUI.VRUIManager
 
 class Main : DefaultVRScene(Main::class.java.simpleName) {
@@ -13,19 +15,20 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
 
     override fun init() {
         prepareVRScene()
-        cvsc.init()
+//        cvsc.init()
 
-        /*val mmConnection = MMConnection()
+        val mmConnection = MMConnection()
         val mmConnectionVolume = StreamedVolume(
             hub,
             mmConnection.width,
             mmConnection.height,
             mmConnection.steps
-        ) { mmConnection.captureStack(it.asShortBuffer()) }
-        volume = mmConnectionVolume.volume
+        ) { mmConnection.captureStack(it.asShortBuffer())
+        it}
+        val volume = mmConnectionVolume.volume
         scene.addChild(volume)
 
-         */
+
     }
 
     override fun inputSetup() {

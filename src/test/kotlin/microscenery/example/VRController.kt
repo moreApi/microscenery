@@ -10,7 +10,7 @@ import graphics.scenery.controls.behaviours.Selectable
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultVRScene
-import microscenery.VRUI.behaviors.VRGrabWithSelfMove
+import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
@@ -132,7 +132,7 @@ class VRController : DefaultVRScene(
         hmd.addKeyBinding("toggle_boxes", TrackerRole.RightHand, OpenVRHMD.OpenVRButton.A)
          */
 
-        VRGrabWithSelfMove.createAndSet(
+        VRGrabTheWorldSelfMove.createAndSet(
             scene,
             hmd,
             listOf(OpenVRHMD.OpenVRButton.Side),
