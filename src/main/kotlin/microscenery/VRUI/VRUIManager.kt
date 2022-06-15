@@ -11,6 +11,7 @@ import graphics.scenery.controls.behaviours.VRPress
 import graphics.scenery.controls.behaviours.VRTouch
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Volume
+import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
 import org.joml.Vector3f
@@ -36,7 +37,7 @@ class VRUIManager {
 
             inputHandler?.initStickMovement(hmd)
 
-//            VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene)
+            VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene)
 
             VRGrab.createAndSet(
                 scene,
