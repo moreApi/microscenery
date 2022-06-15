@@ -10,6 +10,10 @@ import graphics.scenery.controls.TrackerInput
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
 import wrapForAnalogInputIfNeeded
@@ -22,7 +26,7 @@ class VRTeleport(
     protected val name: String,
     protected val controllerHitbox: Node,
     private val cam: Spatial,
-    private val hmd: TrackerInput
+    private val hmd: OpenVRHMD
 ) : DragBehaviour {
 
     val controllerSpatial: Spatial = controllerHitbox.spatialOrNull()
@@ -47,10 +51,16 @@ class VRTeleport(
         target.spatial().position.z = dist.pow(3) * -1f
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun end(x: Int, y: Int) {
-        cam.position = target.spatial().worldPosition() - hmd.getPosition().mul(0.5f)
+        GlobalScope.launch {
+            val fadeTime = 300L
+            hmd.fadeToBlack(fadeTime * 0.001f)
+            delay(fadeTime)
+            cam.position = target.spatial().worldPosition() - hmd.getPosition().mul(0.5f)
+            hmd.fateToClear(fadeTime * 0.001f)
+        }
         controllerHitbox.removeChild(target)
-
     }
 
     companion object {
