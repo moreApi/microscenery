@@ -2,6 +2,9 @@ package microscenery.example
 
 
 import bdv.util.AxisOrder
+import graphics.scenery.BoundingGrid
+import graphics.scenery.Origin
+import graphics.scenery.Sphere
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import ij.IJ
@@ -56,6 +59,7 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
 
         //Defining shear factor
         //Shear factor calculation here is different from that in utilities
+        // shear_factor = math.sin((90 - angle_in_degrees) * math.pi / 180.0) * (voxel_size_z / voxel_size_y)
         val shear_factor = sin(Math.toRadians(90.0 - angle_in_degrees)) * (voxel_size_z / voxel_size_y)
         affine.set(-shear_factor,1,2)
 
@@ -66,24 +70,30 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
         val scale_factor_z = (new_dz / voxel_size_y) * scale_factor
         //affine.scale(scale_factor,scale_factor,scale_factor_z)
         //affine.scale(1.0,0.5,1.0)
-//        affine.scale(0.75,0.5,0.75)
 
         // correct orientation so that the new Z-plane goes proximal-distal from the objective.
-        // affine.rotate(0,  (0 - angle_in_degrees) * Math.PI / 180.0)
-        //affine.rotate(0,  Math.toRadians(-angle_in_degrees))
+        //affine.rotate(0,  Math.toRadians(angle_in_degrees.toDouble()))
 
 
         // affine.scale(2.3)
         //affine.translate(0.0,img.max(1)/2.0,0.0)
 
-        val bottomCorner = floatArrayOf(0f,0f,img.max(2).toFloat())
-        val deskewedBottomCorner = FloatArray(3)
-        affine.apply(bottomCorner,deskewedBottomCorner)
+        val topRight = floatArrayOf(0f,0f,img.max(2).toFloat())
+        val deskewedTopRight = FloatArray(3)
+        affine.apply(topRight,deskewedTopRight)
+
+        val bottomLeft = floatArrayOf(0f,img.max(1).toFloat(),0f)
+        val deskewedBottomLeft = FloatArray(3)
+        affine.apply(bottomLeft,deskewedBottomLeft)
+
+        val min = longArrayOf(0            ,deskewedTopRight[1].toLong(),   deskewedBottomLeft[2].toLong())
+        val max = longArrayOf(img.max(0),deskewedBottomLeft[1].toLong(), deskewedTopRight[2].toLong())
 
         val realview: RealRandomAccessible<UnsignedShortType> = RealViews.affineReal(interpolated, affine)
 //        val view: RandomAccessibleInterval<UnsignedShortType> = Views.interval(Views.raster(realview), img)
         val view: RandomAccessibleInterval<UnsignedShortType> = Views.interval(Views.raster(realview),
-            longArrayOf(0,deskewedBottomCorner[1].toLong()+1,0),img.dimensionsAsLongArray()
+            min,max
+//            longArrayOf(0,deskewedBottomCorner[1].toLong()+1,0),img.dimensionsAsLongArray()
         )
 
 
@@ -91,11 +101,19 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
         volume.transferFunction = TransferFunction.ramp(0.003f, 0.5f, 0.3f)
         volume.spatial(){
             //scale = Vector3f(0.1f,0.1f,0.5f,)
-            scale = Vector3f(0.07f,0.07f,0.3f,)
+            scale = Vector3f(0.07f,0.07f,0.07f,)
             rotation = Quaternionf().rotateY((PI/2).toFloat()) // now z goes right
-            position = Vector3f(0f,-0.5f,0f)
+            //position = Vector3f(0f,-0.5f,0f)
         }
+        volume.origin = Origin.FrontBottomLeft
         scene.addChild(volume)
+
+        val bg = BoundingGrid()
+        bg.node = volume
+        volume.metadata["BoundingGrid"] = bg
+        scene.addChild(bg)
+
+        scene.addChild(Sphere(0.05f))
 
 
 //        thread {
