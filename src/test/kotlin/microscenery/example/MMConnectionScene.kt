@@ -7,6 +7,9 @@ import microscenery.MMConnection
 import microscenery.StreamedVolume
 import org.joml.Vector3f
 
+/**
+ * local mmConnection, no VR
+ */
 class MMConnectionScene :
     SceneryBase(MMConnectionScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
 
