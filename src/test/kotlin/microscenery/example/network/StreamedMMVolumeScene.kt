@@ -1,6 +1,6 @@
 package microscenery.example.network
 
-import getPropertyInt
+import MicroscenerySettings
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import microscenery.StreamedVolume
@@ -16,7 +16,7 @@ class StreamedMMVolumeScene : SceneryBase(
 
     lateinit var mmVol: StreamedVolume
 
-    val slices = getPropertyInt("MMConnection.slices")
+    val slices = MicroscenerySettings.get<Int>("MMConnection.slices")
 
     override fun init() {
         renderer = hub.add(

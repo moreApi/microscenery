@@ -2,21 +2,33 @@ package microscenery.network
 
 import graphics.scenery.utils.LazyLogger
 import org.lwjgl.system.MemoryUtil
-import org.zeromq.*
+import org.zeromq.SocketType
+import org.zeromq.ZContext
+import org.zeromq.ZFrame
+import org.zeromq.ZMQ
 import java.nio.ByteBuffer
+import kotlin.concurrent.thread
 
 class ChunkZMQSender(val port: Int, val zContext: ZContext) {
+    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val server = Server(port)
-    val thread = ZThread.fork(zContext, server)
+    val thread: Thread = networkThread()
 
-    fun close(){
-        server.running = false
+    var running = true
+
+    val bufferLock = Any()
+    var currentBuffer: ByteBuffer = MemoryUtil.memAlloc(0)
+    val data = ByteArray(CHUNK_SIZE)
+    lateinit var router: ZMQ.Socket
+
+    fun close(): Thread {
+        running = false
+        return thread
     }
 
     fun sendBuffer(buffer: ByteBuffer) {
-        synchronized(server.bufferLock) {
-            server.currentBuffer = buffer
+        synchronized(bufferLock) {
+            currentBuffer = buffer
         }
     }
 
@@ -26,58 +38,47 @@ class ChunkZMQSender(val port: Int, val zContext: ZContext) {
     //  to act as a sanity check.
     //  The server thread waits for a chunk request from a client,
     //  reads that chunk and sends it back to the client:
-    internal class Server(val port: Int) : ZThread.IAttachedRunnable {
-        var running = true
+    private fun networkThread() = thread {
+        router = zContext.createSocket(SocketType.ROUTER)
+        router.hwm = PIPELINE * 2
+        router.bind("tcp://*:$port")
+        router.receiveTimeOut = 500
+        logger.info("${ChunkZMQSender::class.simpleName} bound to tcp://*:$port")
 
-        val bufferLock = Any()
-        var currentBuffer: ByteBuffer = MemoryUtil.memAlloc(0)
-        val data = ByteArray(CHUNK_SIZE)
-        private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
-        lateinit var router: ZMQ.Socket
+        while (!Thread.currentThread().isInterrupted && running) {
+            //  First frame in each message is the sender identity
+            val identity = ZFrame.recvFrame(router) ?: continue
 
-        override fun run(args: Array<Any>, ctx: ZContext, pipe: ZMQ.Socket) {
+            //  Second frame is "fetch" command
+            val command = router.recvStr()
+            assert("fetch" == command)
 
-            router = ctx.createSocket(SocketType.ROUTER)
-            router.hwm = PIPELINE * 2
-            router.bind("tcp://*:$port")
-            logger.info("${ChunkZMQSender::class.simpleName} bound to tcp://*:$port")
+            //  Third frame is chunk offset in file
+            val offset = router.recvStr().toInt()
+            //  Fourth frame is maximum chunk size
+            val chunkSize = router.recvStr().toInt()
+            //  Fifth frame is chunk id
+            val chunkId = router.recvStr()
 
-            while (!Thread.currentThread().isInterrupted && running) {
-                //  First frame in each message is the sender identity
-                val identity = ZFrame.recvFrame(router)
-                if (identity.data == null) break //  Shutting down, quit
-
-                //  Second frame is "fetch" command
-                val command = router.recvStr()
-                assert("fetch" == command)
-
-                //  Third frame is chunk offset in file
-                val offset = router.recvStr().toInt()
-                //  Fourth frame is maximum chunk size
-                val chunkSize = router.recvStr().toInt()
-                //  Fifth frame is chunk id
-                val chunkId = router.recvStr()
-
-                var size: Int
-                while (currentBuffer.limit() < 2 && !Thread.currentThread().isInterrupted && running) {
-                    Thread.sleep(200)
-                }
-                synchronized(bufferLock) {
-                    currentBuffer.reset()
-                    currentBuffer.position(currentBuffer.position() + offset.coerceAtMost(currentBuffer.remaining()))
-                    size = chunkSize.coerceAtMost(currentBuffer.remaining())
-                    currentBuffer.get(data, 0, size)
-                }
-
-                //  Send resulting chunk to client
-                val chunk = ZFrame(data.copyOf(if (size <= 0) 1 else size))
-                identity.sendAndDestroy(router, ZMQ.SNDMORE)
-                router.sendMore(chunkId)
-                chunk.sendAndDestroy(router)
+            var size: Int
+            while (currentBuffer.limit() < 2 && !Thread.currentThread().isInterrupted && running) {
+                //wait for buffer to fill
+                Thread.sleep(200)
             }
-            router.linger = 0
-            router.close()
-            pipe.send("OK")
+            synchronized(bufferLock) {
+                currentBuffer.reset()
+                currentBuffer.position(currentBuffer.position() + offset.coerceAtMost(currentBuffer.remaining()))
+                size = chunkSize.coerceAtMost(currentBuffer.remaining())
+                currentBuffer.get(data, 0, size)
+            }
+
+            //  Send resulting chunk to client
+            val chunk = ZFrame(data.copyOf( size))
+            identity.sendAndDestroy(router, ZMQ.SNDMORE)
+            router.sendMore(chunkId)
+            chunk.sendAndDestroy(router)
         }
+        router.linger = 0
+        router.close()
     }
 }

@@ -1,17 +1,19 @@
 package microscenery.network
 
-import getPropertyInt
+import MicroscenerySettings
 import org.zeromq.ZContext
 import java.nio.ByteBuffer
 
 class VolumeSender(
     zContext: ZContext,
-    val connections: Int = getPropertyInt("Network.connections"),
-    val basePort: Int = getPropertyInt("Network.basePort")
+    val connections: Int = MicroscenerySettings.get("Network.connections"),
+    val basePort: Int = MicroscenerySettings.get("Network.basePort")
 ) {
     val senders = (basePort until basePort + connections).map {
         ChunkZMQSender(it, zContext)
     }.toList()
+
+    fun usedPorts() = senders.map { it.port }
 
     fun sendVolume(buffer: ByteBuffer) {
         val chunkSize = buffer.remaining() / connections
@@ -29,12 +31,9 @@ class VolumeSender(
     /**
      * Starts closing all connections and threads.
      *
-     * @return Job that waits on all threads to finish
+     * @return closing connection threads that can be joined on
      */
-    fun close() {
-
-        senders.forEach {
+    fun close() = senders.map {
             it.close()
-        }
-    }
+        }.toList()
 }

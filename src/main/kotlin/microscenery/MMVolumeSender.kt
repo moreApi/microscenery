@@ -14,13 +14,13 @@ class MMVolumeSender(core: CMMCore? = null){
 
     val mmConnection = MMConnection(core_ = core)
 
-    val volumeSize = mmConnection.width * mmConnection.height * mmConnection.slices * Short.SIZE_BYTES
+    val volumeSize = mmConnection.width * mmConnection.height * mmConnection.steps * Short.SIZE_BYTES
     val volumeSender = VolumeSender(zContext)
 
     val timeBetweenUpdates = 1000
 
     val volumeBuffers = RingBuffer<ByteBuffer>(2, default = {
-        MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * mmConnection.slices * Short.SIZE_BYTES))
+        MemoryUtil.memAlloc((mmConnection.width * mmConnection.height * mmConnection.steps * Short.SIZE_BYTES))
     })
     var time = 0L
 
@@ -28,7 +28,7 @@ class MMVolumeSender(core: CMMCore? = null){
 
 
     init {
-        println("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.slices}xShort = $volumeSize bytes at port ${volumeSender.basePort}")
+        println("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.steps}xShort = $volumeSize bytes at port ${volumeSender.basePort}")
 
         // imaging and sending thread
         thread {

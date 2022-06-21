@@ -31,7 +31,7 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
     override fun inputSetup() {
         super.inputSetup()
 
-        VRUIManager.initBehavior(scene, hmd, inputHandler, volume)
+        VRUIManager.initBehavior(scene, hmd, inputHandler, null) { volume }
     }
 
     companion object {

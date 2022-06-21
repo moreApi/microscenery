@@ -28,7 +28,7 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 }
 
 dependencies {
-    implementation("graphics.scenery:scenery:bfc54f2")
+    implementation("graphics.scenery:scenery:448ae6")
     // TODO fix imports
 //    implementation("net.imagej:ij:1.49k")
 //    implementation("net.imglib2:imglib2")
@@ -40,6 +40,7 @@ dependencies {
 //    implementation("org.bytedeco:ffmpeg:4.3.2-1.5.5", ffmpegNatives)
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg:4.1-1.4.4")
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg-platform:4.1-1.4.4")
+    implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
 
     implementation(files("C:/Program Files/Micro-Manager-2.0gamma/plugins/Micro-Manager/MMCoreJ.jar"))
 
@@ -63,8 +64,8 @@ tasks.withType<KotlinCompile>() {
 tasks{
     // This registers gradle tasks for all scenes
     sourceSets.test.get().allSource.files
-        .filter { it.name.endsWith("Scene.kt") || it.name.endsWith("Example.kt") }
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
+        .filter { it.contains("microscenery.example.") }
         .forEach { className ->
             val exampleName = className.substringAfterLast(".")
             val exampleType = className.substringBeforeLast(".").substringAfterLast(".")

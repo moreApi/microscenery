@@ -7,6 +7,9 @@ import microscenery.MMConnection
 import microscenery.StreamedVolume
 import org.joml.Vector3f
 
+/**
+ * local mmConnection, no VR
+ */
 class MMConnectionScene :
     SceneryBase(MMConnectionScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200) {
 
@@ -34,13 +37,18 @@ class MMConnectionScene :
             scene.addChild(this)
         }
 
+
+
         val mmConnection = MMConnection()
         mmVol = StreamedVolume(
             hub,
             mmConnection.width,
             mmConnection.height,
-            mmConnection.slices
-        ) { mmConnection.captureStack(it.asShortBuffer()) }
+            mmConnection.steps
+        ) {
+            mmConnection.captureStack(it.asShortBuffer())
+            it
+        }
         scene.addChild(mmVol.volume)
         mmVol.volume.colormap = Colormap.get("hot")
 

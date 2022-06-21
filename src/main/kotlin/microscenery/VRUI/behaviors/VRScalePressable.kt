@@ -7,7 +7,9 @@ import graphics.scenery.controls.behaviours.SimplePressable
 import graphics.scenery.utils.extensions.times
 import org.joml.Vector3f
 
-
+/**
+ * Scaling implemented as a pressable. Both controllers need to start touching the node.
+ */
 class VRScaleNode(
     node: Node,
     private val setScale: (Float) -> Unit = { node.ifSpatial { scale *= Vector3f(it) } }
