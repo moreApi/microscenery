@@ -15,13 +15,13 @@ open class DefaultScene(val initHook: ((scene:Scene, hub:Hub)-> Unit)?, name: St
         )
 
         val light = PointLight(radius = 15.0f)
-        light.spatial().position = Vector3f(0.0f, 0.0f, 2.0f)
+        light.spatial().position = Vector3f(2.0f, 0.0f, 2.0f)
         light.intensity = 5.0f
         light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
         scene.addChild(light)
 
         val light2 = PointLight(radius = 15.0f)
-        light2.spatial().position = Vector3f(0.0f, 0.0f, -2.0f)
+        light2.spatial().position = Vector3f(-2.0f, 0.0f, -2.0f)
         light2.intensity = 5.0f
         light2.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
         scene.addChild(light2)
