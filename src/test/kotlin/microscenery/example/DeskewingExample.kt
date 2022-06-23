@@ -54,14 +54,14 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
         val maiglocke = """C:\Users\JanCasus\volumes\20220523 maiglocke\RoI_1\RoI_1_MMStack_Default.ome.tif"""
         val maiglocke_desk = """C:\Users\JanCasus\volumes\20220523 maiglocke\RoI_1\RoI_1_MMStack_Default.ome.deskewed.tif"""
 
-        ImageJFunctions.show( openVolume<UnsignedShortType>(maiglocke_desk))
+//        ImageJFunctions.show( openVolume<UnsignedShortType>(deskewed))
 
-        val imp: ImagePlus = IJ.openImage(maiglocke)
+//        val imp: ImagePlus = IJ.openImage(maiglocke)
 //        val imp: ImagePlus = IJ.openImage(maiglocke_desk)
 //        val imp: ImagePlus = IJ.openImage(orignal)
 //        val img: Img<UnsignedShortType> = ImageJFunctions.wrapShort(imp)
         val img = openVolume<UnsignedShortType>(maiglocke)
-        ImageJFunctions.show( img )
+//        ImageJFunctions.show( img )
         val input: RandomAccessible<UnsignedShortType> = Views.extendValue(img, UnsignedShortType(0))
         val interpolated: RealRandomAccessible<UnsignedShortType> = Views.interpolate(input, NLinearInterpolatorFactory())
 
@@ -77,35 +77,27 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
         val scale_factor = 1.0
 
 
-        val skewM = AffineTransform3D()
+        val affine = AffineTransform3D()
+
         //Defining shear factor
         //Shear factor calculation here is different from that in utilities
-        // shear_factor = math.sin((90 - angle_in_degrees) * math.pi / 180.0) * (voxel_size_z / voxel_size_y)
+        // py: shear_factor = math.sin((90 - angle_in_degrees) * math.pi / 180.0) * (voxel_size_z / voxel_size_y)
+        // py: self._matrix[1, 2] = shear_factor
         val shear_factor = sin(Math.toRadians(90.0 - angle_in_degrees)) * (voxel_size_z / voxel_size_y)
-        skewM.set(-shear_factor,1,2)
+        affine.set(-shear_factor,1,2)
 
 
         // make voxels isotropic, calculate the new scaling factor for Z after shearing
         // https://github.com/tlambert03/napari-ndtiffs/blob/092acbd92bfdbf3ecb1eb9c7fc146411ad9e6aae/napari_ndtiffs/affine.py//L57
         // py: new_dz = math.sin(angle_in_degrees * math.pi / 180.0) * voxel_size_z
         // pY: scale_factor_z = (new_dz / voxel_size_y) * scale_factor
-        val new_dz = Math.sin(angle_in_degrees * Math.PI / 180.0) * voxel_size_z
+        val new_dz = Math.sin(Math.toRadians(angle_in_degrees)) * voxel_size_z
         val scale_factor_z = (new_dz / voxel_size_y) * scale_factor
-        val scaleM = AffineTransform3D()
-        scaleM.scale(scale_factor,scale_factor,scale_factor_z)
+        affine.scale(scale_factor,scale_factor,scale_factor_z)
 
-        val rotateM = AffineTransform3D()
         // correct orientation so that the new Z-plane goes proximal-distal from the objective.
         // py: self.rotate(angle_in_degrees = 0 - angle_in_degrees, axis=0)
-        rotateM.rotate(0,  Math.toRadians(-angle_in_degrees))
-
-        val affine = AffineTransform3D()
-            .concatenate(rotateM)
-            .concatenate(scaleM)
-            .concatenate(skewM)
-
-        // affine.scale(2.3)
-        //affine.translate(0.0,img.max(1)/2.0,0.0)
+        affine.rotate(0,  Math.toRadians(angle_in_degrees))
 
         // as seen viewing along x:
         val topRight =      floatArrayOf(0f, 0f,                       img.max(2).toFloat())
@@ -137,18 +129,17 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
 //            longArrayOf(0,deskewedBottomCorner[1].toLong()+1,0),img.dimensionsAsLongArray())
 
 
-        ImageJFunctions.show( view )
+//        ImageJFunctions.show( view )
 
 
         volume = Volume.fromRAI(view, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
 //        volume = Volume.fromRAI(img, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
-        volume.transferFunction = TransferFunction.ramp(0.00f, 0.5f, 0.3f)
+        volume.transferFunction = TransferFunction.ramp(0.003f, 0.5f, 0.3f)
         volume.spatial(){
             //scale = Vector3f(0.1f,0.1f,0.5f,)
-            scale = Vector3f(0.2f, 0.2f, 0.2f)
+            scale = Vector3f(0.2f, 0.2f, 1.2f)
             rotation = Quaternionf()
                 .rotateY((PI/2).toFloat()) // now z goes right
-//                .rotateX(Math.toRadians(-angle_in_degrees).toFloat())
             //position = Vector3f(0f,-0.5f,0f)
         }
         volume.origin = Origin.FrontBottomLeft
@@ -161,9 +152,9 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
 
         scene.addChild(Sphere(0.05f))
 
-        val plane = Box(Vector3f(0.001f,100f,100f))
-        plane.material().diffuse = Vector3f(0.0f,1f,0.1f)
-        scene.addChild(plane)
+//        val plane = Box(Vector3f(0.001f,100f,100f))
+//        plane.material().diffuse = Vector3f(0.0f,1f,0.1f)
+//        scene.addChild(plane)
 
 
 //        thread {
