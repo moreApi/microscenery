@@ -2,15 +2,18 @@ package microscenery.example
 
 
 import bdv.util.AxisOrder
-import graphics.scenery.BoundingGrid
-import graphics.scenery.Box
-import graphics.scenery.Origin
-import graphics.scenery.Sphere
-import graphics.scenery.utils.extensions.times
+import graphics.scenery.*
+import graphics.scenery.utils.LazyLogger
+import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import ij.IJ
 import ij.ImagePlus
+import io.scif.config.SCIFIOConfig
+import io.scif.config.SCIFIOConfig.ImgMode
+import io.scif.img.ImgIOException
+import io.scif.img.ImgOpener
+import io.scif.util.FormatTools
 import microscenery.DefaultScene
 import net.imglib2.RandomAccessible
 import net.imglib2.RandomAccessibleInterval
@@ -20,15 +23,23 @@ import net.imglib2.img.display.imagej.ImageJFunctions
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory
 import net.imglib2.realtransform.AffineTransform3D
 import net.imglib2.realtransform.RealViews
-import net.imglib2.type.numeric.integer.UnsignedShortType
+import net.imglib2.type.NativeType
+import net.imglib2.type.numeric.NumericType
+import net.imglib2.type.numeric.RealType
+import net.imglib2.type.numeric.integer.*
+import net.imglib2.type.numeric.real.FloatType
 import net.imglib2.view.Views
 import org.joml.Quaternionf
-import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector3i
+import org.lwjgl.system.MemoryUtil
+import org.scijava.io.location.FileLocation
 import tpietzsch.example2.VolumeViewerOptions
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.file.Path
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.PI
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sin
 
 
@@ -43,11 +54,14 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
         val maiglocke = """C:\Users\JanCasus\volumes\20220523 maiglocke\RoI_1\RoI_1_MMStack_Default.ome.tif"""
         val maiglocke_desk = """C:\Users\JanCasus\volumes\20220523 maiglocke\RoI_1\RoI_1_MMStack_Default.ome.deskewed.tif"""
 
+        ImageJFunctions.show( openVolume<UnsignedShortType>(maiglocke_desk))
+
         val imp: ImagePlus = IJ.openImage(maiglocke)
 //        val imp: ImagePlus = IJ.openImage(maiglocke_desk)
 //        val imp: ImagePlus = IJ.openImage(orignal)
-        val img: Img<UnsignedShortType> = ImageJFunctions.wrapShort(imp)
-
+//        val img: Img<UnsignedShortType> = ImageJFunctions.wrapShort(imp)
+        val img = openVolume<UnsignedShortType>(maiglocke)
+        ImageJFunctions.show( img )
         val input: RandomAccessible<UnsignedShortType> = Views.extendValue(img, UnsignedShortType(0))
         val interpolated: RealRandomAccessible<UnsignedShortType> = Views.interpolate(input, NLinearInterpolatorFactory())
 
@@ -73,17 +87,22 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
 
         // make voxels isotropic, calculate the new scaling factor for Z after shearing
         // https://github.com/tlambert03/napari-ndtiffs/blob/092acbd92bfdbf3ecb1eb9c7fc146411ad9e6aae/napari_ndtiffs/affine.py//L57
+        // py: new_dz = math.sin(angle_in_degrees * math.pi / 180.0) * voxel_size_z
+        // pY: scale_factor_z = (new_dz / voxel_size_y) * scale_factor
         val new_dz = Math.sin(angle_in_degrees * Math.PI / 180.0) * voxel_size_z
         val scale_factor_z = (new_dz / voxel_size_y) * scale_factor
-        //affine.scale(scale_factor,scale_factor,scale_factor_z)
-        //affine.scale(1.0,0.5,1.0)
+        val scaleM = AffineTransform3D()
+        scaleM.scale(scale_factor,scale_factor,scale_factor_z)
 
         val rotateM = AffineTransform3D()
         // correct orientation so that the new Z-plane goes proximal-distal from the objective.
-        // self.rotate(angle_in_degrees = 0 - angle_in_degrees, axis=0)
-//        rotateM.rotate(0,  Math.toRadians(angle_in_degrees))
+        // py: self.rotate(angle_in_degrees = 0 - angle_in_degrees, axis=0)
+        rotateM.rotate(0,  Math.toRadians(-angle_in_degrees))
 
-        val affine = AffineTransform3D().concatenate(skewM).concatenate(rotateM)
+        val affine = AffineTransform3D()
+            .concatenate(rotateM)
+            .concatenate(scaleM)
+            .concatenate(skewM)
 
         // affine.scale(2.3)
         //affine.translate(0.0,img.max(1)/2.0,0.0)
@@ -118,13 +137,15 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
 //            longArrayOf(0,deskewedBottomCorner[1].toLong()+1,0),img.dimensionsAsLongArray())
 
 
+        ImageJFunctions.show( view )
+
 
         volume = Volume.fromRAI(view, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
 //        volume = Volume.fromRAI(img, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
         volume.transferFunction = TransferFunction.ramp(0.00f, 0.5f, 0.3f)
         volume.spatial(){
             //scale = Vector3f(0.1f,0.1f,0.5f,)
-            scale = Vector3f(0.07f,0.07f,0.07f,)
+            scale = Vector3f(0.2f, 0.2f, 0.2f)
             rotation = Quaternionf()
                 .rotateY((PI/2).toFloat()) // now z goes right
 //                .rotateX(Math.toRadians(-angle_in_degrees).toFloat())
@@ -156,6 +177,23 @@ class DeskewingExample: DefaultScene({ _, _ -> }) {
 
     override fun inputSetup() {
         setupCameraModeSwitching()
+    }
+
+    @Throws(ImgIOException::class)
+    fun <T> openVolume(path:String): Img<T> where T : RealType<T>?, T : NativeType<T>? {
+        // define the file to open
+        val file = File(path)
+        val path: String = file.getAbsolutePath()
+
+        // create the ImgOpener
+        val imgOpener = ImgOpener()
+
+        // open with ImgOpener. The type (e.g. ArrayImg, PlanarImg, CellImg) is
+        // automatically determined. For a small image that fits in memory, this
+        // should open as an ArrayImg.
+        val image = imgOpener.openImgs(path)[0] as Img<T>
+
+        return image
     }
 
     companion object {
