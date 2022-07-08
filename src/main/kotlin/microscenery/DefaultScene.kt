@@ -4,7 +4,7 @@ import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import org.joml.Vector3f
 
-open class DefaultScene(val initHook: ((scene:Scene, hub:Hub)-> Unit)?, name: String = "Microscenery")
+open class DefaultScene(val initHook: ((scene:Scene, hub:Hub)-> Unit)? = null, name: String = "Microscenery")
     :SceneryBase(name, wantREPL = false) {
     val cam: Camera = DetachedHeadCamera()
 
