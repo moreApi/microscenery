@@ -3,9 +3,12 @@ package microscenery.example
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import graphics.scenery.volumes.Colormap
+import graphics.scenery.volumes.TransferFunction
 import microscenery.MMConnection
 import microscenery.StreamedVolume
+import microscenery.VRUI.TransferFunction1DEditor
 import org.joml.Vector3f
+import kotlin.concurrent.thread
 
 /**
  * local mmConnection, no VR
@@ -50,7 +53,15 @@ class MMConnectionScene :
             it
         }
         scene.addChild(mmVol.volume)
-        mmVol.volume.colormap = Colormap.get("hot")
+        mmVol.volume.colormap = Colormap.get("plasma")
+        mmVol.volume.transferFunction = TransferFunction.ramp(0.0015f,1f,0.09f)
+
+        thread {
+            while (true){
+                Thread.sleep(200)
+                print(scene)
+            }
+        }
 
     }
 
