@@ -18,7 +18,8 @@ import java.util.concurrent.CompletableFuture
 class VR2HandSpatialManipulation  (name: String,
                                    controller: Spatial,
                                    offhand: VRTwoHandDragOffhand,
-                                   val scene:Scene
+                                   val scene:Scene,
+                                   var scaleLocked: Boolean = false
 ) : VRTwoHandDragBehavior(name, controller, offhand)  {
 
     override fun dragDelta(
@@ -42,7 +43,9 @@ class VR2HandSpatialManipulation  (name: String,
 
         volume.ifSpatial {
             this.rotation.mul(diff)
-            this.scale *= Vector3f(scaleDelta)
+            if (!scaleLocked)
+                this.scale *= Vector3f(scaleDelta)
+            this.needsUpdate = true
         }
     }
 
