@@ -33,7 +33,7 @@ class StreamedVolume(
         volume.name = "volume"
         volume.spatial {
             position = Vector3f(0.0f, 0.0f, 0.0f)
-            scale = Vector3f(0.1f, 0.1f, 0.7f)
+            scale = Vector3f(0.1f, 0.1f, 0.1f)
         }
         volume.colormap = Colormap.get("hot")
         volume.pixelToWorldRatio = 0.1f

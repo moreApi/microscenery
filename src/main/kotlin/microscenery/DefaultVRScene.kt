@@ -15,9 +15,10 @@ import kotlin.system.exitProcess
  */
 abstract class DefaultVRScene(name: String) : SceneryBase(
     name,
-    windowWidth = 1920, windowHeight = 1200,
+    windowWidth = 1920, windowHeight = 1080,
     wantREPL = false
 ) {
+    protected lateinit var cam: Camera
     protected lateinit var hmd: OpenVRHMD
     protected lateinit var hullbox: Box
 
@@ -33,7 +34,7 @@ abstract class DefaultVRScene(name: String) : SceneryBase(
         renderer = hub.add(Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight))
         renderer?.toggleVR()
 
-        val cam: Camera = DetachedHeadCamera(hmd)
+        cam = DetachedHeadCamera(hmd)
         cam.spatial {
             position = Vector3f(0.0f, 0.0f, 5.0f)
         }
@@ -57,11 +58,19 @@ abstract class DefaultVRScene(name: String) : SceneryBase(
             }
         }
 
-        (0..5).map {
+        val lightPositions = listOf(
+            Vector3f(3f,3f,3f),
+            Vector3f(3f,3f,-3f),
+            Vector3f(-3f,3f,3f),
+            Vector3f(-3f,3f,-3f),
+            Vector3f(0f,-3f,0f),
+        )
+
+        lightPositions.map {
             val light = PointLight(radius = 15.0f)
             light.emissionColor = Random.random3DVectorFromRange(0.75f, 1.0f)
             light.spatial {
-                position = Random.random3DVectorFromRange(-5.0f, 5.0f)
+                position = it
             }
             light.intensity = 1.0f
 
@@ -77,5 +86,11 @@ abstract class DefaultVRScene(name: String) : SceneryBase(
             cullingMode = Material.CullingMode.Front
         }
         scene.addChild(hullbox)
+    }
+
+
+    override fun init() {
+        super.init()
+        prepareVRScene()
     }
 }

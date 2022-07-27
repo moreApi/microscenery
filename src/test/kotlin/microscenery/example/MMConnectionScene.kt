@@ -6,7 +6,6 @@ import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import microscenery.MMConnection
 import microscenery.StreamedVolume
-import microscenery.VRUI.TransferFunction1DEditor
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
@@ -53,8 +52,9 @@ class MMConnectionScene :
             it
         }
         scene.addChild(mmVol.volume)
+        mmVol.volume.spatial().scale= Vector3f(0.1f,0.1f,0.4f)
         mmVol.volume.colormap = Colormap.get("plasma")
-        mmVol.volume.transferFunction = TransferFunction.ramp(0.0015f,1f,0.09f)
+        mmVol.volume.transferFunction = TransferFunction.ramp(0.0017f,1f,0.01f)
 
         thread {
             while (true){
