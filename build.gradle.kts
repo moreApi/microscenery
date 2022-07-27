@@ -28,7 +28,7 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 }
 
 dependencies {
-    implementation("graphics.scenery:scenery:448ae6")
+    implementation("graphics.scenery:scenery:4b176f")
     // TODO fix imports
 //    implementation("net.imagej:ij:1.49k")
 //    implementation("net.imglib2:imglib2")
@@ -65,7 +65,7 @@ tasks{
     // This registers gradle tasks for all scenes
     sourceSets.test.get().allSource.files
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
-        .filter { it.contains("microscenery.example.") }
+        .filter { it.contains("microscenery.example.") && !it.contains("resources") }
         .forEach { className ->
             val exampleName = className.substringAfterLast(".")
             val exampleType = className.substringBeforeLast(".").substringAfterLast(".")
