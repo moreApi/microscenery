@@ -6,10 +6,7 @@ import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
-import graphics.scenery.controls.behaviours.VRGrab
-import graphics.scenery.controls.behaviours.VRPress
-import graphics.scenery.controls.behaviours.VRTouch
-import graphics.scenery.controls.behaviours.WheelMenu
+import graphics.scenery.controls.behaviours.*
 import graphics.scenery.volumes.Volume
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
@@ -37,7 +34,13 @@ class VRUIManager {
 
             inputHandler?.initStickMovement(hmd)
 
-            VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene)
+            val vr2HandSpatialManipulation =
+                VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene)
+            val scalingLockToggle = Switch(
+                "lock scaling", false
+            ) { vr2HandSpatialManipulation.getNow(null)?.scaleLocked = it }
+            val customActionsPlusScaleSwitch =
+                WheelMenu(hmd, (customActions?.actions ?: emptyList()) + scalingLockToggle, true)
 
             VRGrab.createAndSet(
                 scene,
@@ -57,7 +60,7 @@ class VRUIManager {
                 hmd,
                 listOf(OpenVRHMD.OpenVRButton.Menu),
                 listOf(TrackerRole.RightHand),
-                customActions,
+                customActionsPlusScaleSwitch,
                 volume
             )
         }
