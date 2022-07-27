@@ -20,11 +20,13 @@ class Toolbox(
     volume: () -> Volume
 ) {
     val pointTool = PointEntityTool()
+    val lineTool = LineEntityTool()
     val croppingTool = CroppingTool()
     val tfe = TransferFunction1DEditor()
 
     init {
         pointTool.visible = false
+        lineTool.visible = false
         croppingTool.visible = false
         tfe.visible = false
 
@@ -36,6 +38,10 @@ class Toolbox(
             scene.addChild(pointTool)
             pointTool.visible = true
             pointTool.spatial().position = device.worldPosition()
+        }, "line" to { device ->
+            scene.addChild(lineTool)
+            lineTool.visible = true
+            lineTool.spatial().position = device.worldPosition()
         }, "trans fun" to { device ->
             scene.addChild(tfe)
             tfe.spatial {
