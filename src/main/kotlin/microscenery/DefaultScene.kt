@@ -5,8 +5,9 @@ import graphics.scenery.backends.Renderer
 import graphics.scenery.utils.extensions.times
 import org.joml.Vector3f
 
-open class DefaultScene(val initHook: ((scene:Scene, hub:Hub)-> Unit)? = null, name: String = "Microscenery")
-    :SceneryBase(name, wantREPL = false) {
+open class DefaultScene(val initHook: ((scene:Scene, hub:Hub)-> Unit)? = null, name: String = "Microscenery",
+                        width: Int = 400, height: Int = 400)
+    :SceneryBase(name, wantREPL = false, windowWidth = width, windowHeight = height) {
     val cam: Camera = DetachedHeadCamera()
 
     override fun init() {
