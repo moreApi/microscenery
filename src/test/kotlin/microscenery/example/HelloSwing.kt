@@ -3,13 +3,23 @@ package microscenery.example
 import copy
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.controls.OpenVRHMD
+import graphics.scenery.controls.TrackedDeviceType
+import graphics.scenery.controls.behaviours.Selectable
+import graphics.scenery.controls.behaviours.VRSelect
+import graphics.scenery.primitives.Cylinder
+import graphics.scenery.primitives.LineBetweenNodes
+import graphics.scenery.primitives.Plane
 import graphics.scenery.textures.Texture
 import graphics.scenery.utils.Image
+import graphics.scenery.utils.Wiggler
 import graphics.scenery.utils.extensions.plus
 import microscenery.DefaultScene
+import microscenery.DefaultVRScene
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.scijava.ui.behaviour.ClickBehaviour
+import org.scijava.ui.behaviour.DragBehaviour
 import java.awt.*
 import java.awt.event.ActionListener
 import java.awt.event.MouseEvent
@@ -19,6 +29,7 @@ import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 import kotlin.concurrent.thread
+import kotlin.math.PI
 
 
 class HelloSwing {
@@ -173,9 +184,10 @@ class HelloSwing {
     }
 }
 
-class TexturedCubeExample2 : DefaultScene(height = 300, width = 300) {
+class TexturedCubeExample2 : DefaultVRScene("Main") {
+//class TexturedCubeExample2 : DefaultScene() {
     val hs = HelloSwing()
-    val swingUiNode = Box(Vector3f(1.0f, 1.0f, 1.0f))
+    val swingUiNode = Box(Vector3f(1.0f, 1.0f, 0.1f))
 
     var swingUiDimension = 0 to 0
 
@@ -241,12 +253,114 @@ class TexturedCubeExample2 : DefaultScene(height = 300, width = 300) {
             }
         )
         inputHandler?.addKeyBinding("sphereDragObject", "1")
+
+        val button = OpenVRHMD.OpenVRButton.Trigger
+        hmd.events.onDeviceConnect.add { _, device, _ ->
+            if (device.type == TrackedDeviceType.Controller) {
+                device.model?.let { controller ->
+//                    if (controllerSide.contains(device.role)) {
+                        val name = "VRDrag:${hmd.trackingSystemName}:${device.role}:$button"
+                        val select = VRUICursor(
+                            name,
+                            controller.children.first(),
+                            scene,
+                            this
+                        )
+                        hmd.addBehaviour(name, select)
+//                        button.forEach {
+                            hmd.addKeyBinding(name, device.role, button)
+//                        }
+//                    }
+                }
+            }
+        }
     }
+
 
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             TexturedCubeExample2().main()
+        }
+    }
+}
+
+
+open class VRUICursor(
+    protected val name: String,
+    protected val controller: Node,
+    protected val scene: Scene,
+    val ex: TexturedCubeExample2
+) : DragBehaviour {
+
+
+    private val laser = Cylinder(0.0025f, 1f, 20)
+    private val selectionIndicator: LineBetweenNodes
+
+    init {
+        laser.material().diffuse = Vector3f(5.0f, 0.0f, 0.02f)
+        laser.material().metallic = 0.0f
+        laser.material().roughness = 1.0f
+        laser.spatial().rotation.rotateX(-PI.toFloat() * 1.25f / 2.0f)
+        laser.visible = false
+
+        if (controller.spatialOrNull() == null) {
+            throw IllegalArgumentException("The controller needs to have a spatial property!")
+        }
+
+        controller.addChild(laser)
+        selectionIndicator = LineBetweenNodes(
+            laser.spatial(), laser.spatial(),
+            transparent = false,
+            simple = true
+        )
+        selectionIndicator.visible = false
+        scene.addChild(selectionIndicator)
+    }
+
+    /**
+     * Activates the target las0r.
+     */
+    override fun init(x: Int, y: Int) {
+        laser.visible = true
+    }
+
+    /**
+     * Wiggles potential targets and adjust the length of the target laser visualisation.
+     */
+    override fun drag(x: Int, y: Int) {
+        val hit = scene.raycast(
+            controller.spatialOrNull()!!.worldPosition(),
+            laser.spatial().worldRotation().transform(Vector3f(0f, 1f, 0f))
+        )
+            .matches.firstOrNull { it.node.getAttributeOrNull(Selectable::class.java) != null }
+
+
+        laser.spatial().scale.y = hit?.distance ?: 1000f
+
+        val hitSpatial = hit?.node?.spatialOrNull()
+    }
+
+    /**
+     * Performs the selection
+     */
+    override fun end(x: Int, y: Int) {
+
+        laser.visible = false
+
+        val ray = scene.raycast(
+            controller.spatialOrNull()!!.worldPosition(),
+            laser.spatial().worldRotation().transform(Vector3f(0f, 1f, 0f))
+        )
+            ray.matches.firstOrNull { it.node == ex.swingUiNode }?.let { hit ->
+            val hitPos = ray.initialPosition + ray.initialDirection.normalize(hit.distance)
+            val hitPosModel = Vector4f(hitPos,1f).mul(ex.swingUiNode.spatial().model.copy().invert())
+            println("${hitPosModel.x},${hitPosModel.y},${hitPosModel.z},${hitPosModel.w},")
+
+            val swingX = (hitPosModel.x +0.5f) * ex.swingUiDimension.first
+            val swingY = ex.swingUiDimension.second - (hitPosModel.y +0.5f) * ex.swingUiDimension.second
+            println("Cliky at $swingX : $swingY")
+            ex.hs.click(swingX.toInt(),swingY.toInt())
         }
     }
 }
