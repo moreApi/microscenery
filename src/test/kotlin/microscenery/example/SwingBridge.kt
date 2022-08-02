@@ -1,10 +1,5 @@
 package microscenery.example
 
-import UP
-import graphics.scenery.Box
-import graphics.scenery.attribute.material.Material
-import graphics.scenery.controls.OpenVRHMD
-import graphics.scenery.controls.TrackerRole
 import graphics.scenery.utils.extensions.plus
 import microscenery.DefaultScene
 import microscenery.DefaultVRScene

@@ -1,25 +1,21 @@
 package microscenery.VRUI.swingBridge
 
-import copy
 import graphics.scenery.primitives.Plane
 import graphics.scenery.textures.Texture
 import graphics.scenery.utils.Image
+import microscenery.copy
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.concurrent.thread
 
-class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame, val refreshRate: Long = 100) : Plane(
+class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame) : Plane(
     Vector3f(-0.5f,-0.5f,0f),
     Vector3f(-0.5f,0.5f,0f),
     Vector3f(0.5f,-0.5f,0f),
     Vector3f(0.5f,0.5f,0f)
 ) {
 
-    val swingUiNode = this
-
     var swingUiDimension = 0 to 0
-
 
     init {
 
@@ -28,11 +24,9 @@ class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame, val refreshRate: Long 
         backSide.material().diffuse = Vector3f(0.5f)
         this.addChild(backSide)
 
-        thread {
-            while (true) {
-                updateUITexture()
-                Thread.sleep(refreshRate)
-            }
+        this.update += {
+            updateUITexture()
+            spatial().needsUpdate = true
         }
     }
 
@@ -41,7 +35,7 @@ class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame, val refreshRate: Long 
         val flipped = Image.createFlipped(bimage)
         val buffer = Image.bufferedImageToRGBABuffer(flipped)
         val final = Image(buffer, bimage.width, bimage.height)
-        swingUiNode.material {
+        this.material {
             textures["diffuse"] = Texture.fromImage(final)
         }
         swingUiDimension = bimage.width to bimage.height
