@@ -1,18 +1,40 @@
 package microscenery.VRUI.swingBridge
 
 import copy
-import graphics.scenery.Box
+import graphics.scenery.primitives.Plane
 import graphics.scenery.textures.Texture
 import graphics.scenery.utils.Image
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.concurrent.thread
 
-class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame) : Box(Vector3f(1.0f, 1.0f, 0.1f)) {
+class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame, val refreshRate: Long = 100) : Plane(
+    Vector3f(-0.5f,-0.5f,0f),
+    Vector3f(-0.5f,0.5f,0f),
+    Vector3f(0.5f,-0.5f,0f),
+    Vector3f(0.5f,0.5f,0f)
+) {
 
     val swingUiNode = this
 
     var swingUiDimension = 0 to 0
+
+
+    init {
+
+        val backSide = Plane(Vector3f(0.5f))
+        backSide.spatial().rotation = Quaternionf().rotationY(Math.PI.toFloat())
+        backSide.material().diffuse = Vector3f(0.5f)
+        this.addChild(backSide)
+
+        thread {
+            while (true) {
+                updateUITexture()
+                Thread.sleep(refreshRate)
+            }
+        }
+    }
 
     private fun updateUITexture() {
         val bimage = swingBridgeFrame.getScreen()
@@ -36,12 +58,4 @@ class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame) : Box(Vector3f(1.0f, 1
         swingBridgeFrame.click(swingX.toInt(), swingY.toInt())
     }
 
-    init {
-        thread {
-            while (true) {
-                updateUITexture()
-                Thread.sleep(100)
-            }
-        }
-    }
 }

@@ -53,7 +53,7 @@ class SwingBridge : DefaultScene() {
                 override fun click(x: Int, y: Int) {
                     val ray = cam.getNodesForScreenSpacePosition(x,y)
                     ray.matches.firstOrNull()?.let { hit ->
-                        val node = hit.node as? SwingUiNode ?: return
+                        val node = hit.node as? SwingUiNode ?: hit.node.parent as? SwingUiNode ?: return //backside might get hit first
                         val hitPos = ray.initialPosition + ray.initialDirection.normalize(hit.distance)
                         node.click(hitPos)
                     }

@@ -76,7 +76,7 @@ open class VRUICursor(
             laser.spatial().worldRotation().transform(Vector3f(0f, 1f, 0f))
         )
         ray.matches.firstOrNull()?.let { hit ->
-            val node = hit.node as? SwingUiNode ?: return
+            val node = hit.node as? SwingUiNode ?: hit.node.parent as? SwingUiNode ?: return //backside might get hit first
             val hitPos = ray.initialPosition + ray.initialDirection.normalize(hit.distance)
             node.click(hitPos)
         }
