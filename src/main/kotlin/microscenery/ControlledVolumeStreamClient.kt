@@ -4,17 +4,13 @@ import MicroscenerySettings
 import graphics.scenery.Hub
 import graphics.scenery.Scene
 import graphics.scenery.utils.LazyLogger
-import graphics.scenery.volumes.Volume
 import microscenery.network.*
-import net.imglib2.type.numeric.integer.UnsignedShortType
-import org.joml.Vector3f
-import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 
 /**
  * Adds and manages the streamed volume.
  *
- * call [init] in [SceneryBase.init]
+ * call [init] in SceneryBase.init
  */
 class ControlledVolumeStreamClient(
     val scene: Scene,
@@ -54,11 +50,11 @@ class ControlledVolumeStreamClient(
      */
     fun init() {
         // Required so the volumeManager is initialized later in the scene -.-
-        val dummyVolume = Volume.fromBuffer(emptyList(), 5, 5, 5, UnsignedShortType(), hub)
+        /*val dummyVolume = Volume.fromBuffer(emptyList(), 5, 5, 5, UnsignedShortType(), hub)
         dummyVolume.spatial().position = Vector3f(999f)
         dummyVolume.name = "dummy volume"
         dummyVolume.addTimepoint("bums", MemoryUtil.memAlloc(5 * 5 * 5 * Short.SIZE_BYTES))
-        scene.addChild(dummyVolume)
+        scene.addChild(dummyVolume)*/
 
         controlConnection.addListener { signal ->
             when (signal) {
@@ -66,45 +62,8 @@ class ControlledVolumeStreamClient(
                     latestServerStatus = signal
                     when (signal.state) {
                         ServerState.Imaging -> {
-                            if (signal.dataPorts.isEmpty()) {
-                                logger.warn("Got imaging status but empty port list.")
-                                return@addListener
-                            }
-
-                            if (mmVol?.running == true) {
-                                logger.info("Got imaging status but found active streaming vol. Changing nothing")
-                                return@addListener
-                            }
-
-                            // close old connections of there are any, like after a pause
-                            connection?.close()?.forEach { it.join() }
-
-                            val oldVolume = mmVol
-                            mmVol?.running = false
-
-                            // build new stuff
-                            val width = signal.imageSize.x
-                            val height = signal.imageSize.y
-                            val slices = signal.imageSize.z
-
-                            connection = VolumeReceiver(reuseBuffers = false,
-                                zContext = zContext,
-                                width * height * slices * Short.SIZE_BYTES,
-                                connections = signal.dataPorts.map { host to it })
-
-                            mmVol = StreamedVolume(hub, width, height, slices) {
-                                connection?.getVolume(2000, it)
-                            }
-                            scene.addChild(mmVol!!.volume)
-
-                            // there always has to be at least one volume in the scene otherwise the volume manager goes nuts :/
-                            // by now we have at least two and we can clean the old volumes now
-                            oldVolume?.let {
-                                it.running = false
-                                scene.removeChild(it.volume)
-                            }
-                            if (dummyVolume.parent != null)
-                                scene.removeChild(dummyVolume)
+                            if (!refresh(signal)) return@addListener
+                            mmVol?.paused = false
                         }
                         ServerState.Paused -> {
                             mmVol?.running = false
@@ -117,8 +76,58 @@ class ControlledVolumeStreamClient(
                         }
                     }
                 }
+                ServerSignal.StackAcquired -> {
+                    latestServerStatus?.let {
+                        if (!refresh(it)) return@addListener
+                        mmVol?.paused = false
+                    } ?: let {
+                        logger.warn("Got stack signal but do not know the server status.")
+                    }
+                }
             }
         }
         controlConnection.sendSignal(ClientSignal.ClientSignOn)
+    }
+
+    private fun refresh(signal: ServerSignal.Status): Boolean {
+        if (signal.dataPorts.isEmpty()) {
+            logger.warn("Got imaging status but empty port list.")
+            return false
+        }
+
+        if (mmVol?.running == true) {
+            logger.info("Got imaging status but found active streaming vol. Changing nothing")
+            return false
+        }
+
+        // build new stuff
+        val width = signal.imageSize.x
+        val height = signal.imageSize.y
+        val slices = signal.imageSize.z
+
+        if(width == mmVol?.width && height == mmVol?.height && slices == mmVol?.depth)
+            connection // no need the create new volume
+
+        // close old connections of there are any
+        connection?.close()?.forEach { it.join() }
+
+        val oldVolume = mmVol
+        mmVol?.running = false
+
+        connection = VolumeReceiver(reuseBuffers = false,
+            zContext = zContext,
+            width * height * slices * Short.SIZE_BYTES,
+            connections = signal.dataPorts.map { host to it })
+
+        mmVol = StreamedVolume(hub, width, height, slices, getData = {
+            connection?.getVolume(2000, it)
+        }, paused = true)
+        oldVolume?.let {
+            it.running = false
+            scene.removeChild(it.volume)
+        }
+        scene.addChild(mmVol!!.volume)
+
+        return true
     }
 }

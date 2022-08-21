@@ -19,12 +19,14 @@ class StreamedVolume(
     hub: Hub,
     val width: Int,
     val height: Int,
-    private val depth: Int = 10,
-    private val timeBetweenUpdates: Long = MicroscenerySettings.get("Network.TimeBetweenStacksRequests",0),
+    val depth: Int = 10,
+    private val timeBetweenUpdates: Long = MicroscenerySettings.get("Network.TimeBetweenStacksRequests", 0),
+    var paused: Boolean = false,
     val getData: (ByteBuffer) -> ByteBuffer?
 ) {
     val volume: BufferedVolume
     var running = true
+    var once = false
 
     init {
         volume = Volume.fromBuffer(emptyList(), width, height, depth, UnsignedShortType(), hub)
@@ -56,6 +58,11 @@ class StreamedVolume(
             //var deltas = emptyList<Int>()
             var time: Long
             while (running) {
+                if (paused){
+                    Thread.sleep(200)
+                    continue
+                }
+
                 time = System.currentTimeMillis()
                 if (volume.metadata["animating"] == true) {
                     val currentBuffer = volumeBuffer.get()
@@ -91,6 +98,10 @@ class StreamedVolume(
                         if (delta in 1..timeBetweenUpdates) Thread.sleep(timeBetweenUpdates - delta)
                     }
                     Thread.sleep(timeBetweenUpdates)
+                }
+                if (once){
+                    once = false
+                    paused = true
                 }
             }
         }

@@ -7,6 +7,7 @@ sealed class ClientSignal {
     object StopImaging : ClientSignal()
     object ClientSignOn : ClientSignal()
     object Shutdown : ClientSignal()
+    object SnapStack: ClientSignal()
 }
 
 sealed class ServerSignal {
@@ -16,6 +17,7 @@ sealed class ServerSignal {
         val dataPorts: List<Int> = emptyList(),
         val connectedClients: Int = 0
     ) : ServerSignal()
+    object StackAcquired: ServerSignal()
 }
 
 enum class ServerState {

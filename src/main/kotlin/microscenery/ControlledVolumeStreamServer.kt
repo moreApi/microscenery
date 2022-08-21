@@ -75,7 +75,6 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
                         if (imagingThread != null) {
                             throw IllegalStateException("There is a reference to an imaging thread where none should be.")
                         }
-                        imagingRunning = true
                         imagingThread = startImagingAndSendingThread()
                     }
                 }
@@ -88,16 +87,35 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
                     volumeSender.close().forEach { it.join() }
                     microscenery.zContext.destroy()
                 }
+                ClientSignal.SnapStack -> {
+                    if (status.state == ServerState.Paused) {
+                        mmConnection.updateSize()
+                        mmConnection.updateParameters()
+                        logger.info("Start MM Sender with  ${mmConnection.width}x${mmConnection.height}x${mmConnection.steps}xShort at port ${volumeSender.basePort + 1}")
+                        status = status.copy(
+                            imageSize = Vector3i(
+                                mmConnection.width, mmConnection.height, mmConnection.steps
+                            ), state = ServerState.Imaging
+                        )
+
+                        if (imagingThread != null) {
+                            throw IllegalStateException("There is a reference to an imaging thread where none should be.")
+                        }
+                        imagingThread = startImagingAndSendingThread(true)
+                    }
+
+                }
             }
         }
     }
 
-    private fun startImagingAndSendingThread(): Thread {
+    private fun startImagingAndSendingThread(once: Boolean = false): Thread {
         val volumeSize = mmConnection.width * mmConnection.height * mmConnection.steps * Short.SIZE_BYTES
         val volumeBuffers = RingBuffer<ByteBuffer>(2, default = {
             MemoryUtil.memAlloc((volumeSize))
         })
         var time = 0L
+        imagingRunning = true
         return thread {
             Thread.sleep(200)
             print("start capturing")
@@ -114,6 +132,9 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
                 mmConnection.captureStack(buf.asShortBuffer())
                 buf.rewind()
                 volumeSender.sendVolume(buf)
+                controlConnection.sendSignal(ServerSignal.StackAcquired)
+                if (once)
+                    imagingRunning = false
             }
             println("stopped capturing")
         }
