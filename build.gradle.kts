@@ -29,10 +29,6 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 
 dependencies {
     implementation("graphics.scenery:scenery:5613da")
-    // TODO fix imports
-//    implementation("net.imagej:ij:1.49k")
-//    implementation("net.imglib2:imglib2")
-//    implementation("net.imglib2:imglib2-ij")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
@@ -44,6 +40,10 @@ dependencies {
 
     implementation(files("C:/Program Files/Micro-Manager-2.0gamma/plugins/Micro-Manager/MMCoreJ.jar"))
 
+    testImplementation("net.imagej:ij:1.53k")
+    testImplementation("net.imagej:imagej-ops:0.45.5")
+    testImplementation("net.imglib2:imglib2")
+    testImplementation("net.imglib2:imglib2-ij:2.0.0-beta-30")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation(kotlin("test"))
     //testImplementation(kotlin("test-junit"))
