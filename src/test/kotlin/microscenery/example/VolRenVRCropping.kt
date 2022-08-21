@@ -15,7 +15,7 @@ class VolRenVRCropping : DefaultVRScene(VolRenVRCropping::class.java.simpleName)
 
         val head = Volume.VolumeFileSource(
             Volume.VolumeFileSource.VolumePath.Given("C:\\Users\\JanCasus\\volumes\\t1-head.tif"),
-            Volume.VolumeFileSource.VolumeType.DEFAULT
+            Volume.VolumeFileSource.VolumeType.TIFF
         )
         volume = Volume.forNetwork(head, hub)
         volume.origin = Origin.FrontBottomLeft
