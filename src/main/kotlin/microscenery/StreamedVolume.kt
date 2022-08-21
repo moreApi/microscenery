@@ -20,7 +20,7 @@ class StreamedVolume(
     val width: Int,
     val height: Int,
     private val depth: Int = 10,
-    private val timeBetweenUpdates: Long = MicroscenerySettings.get("MMConnection.TimeBetweenStacksRequests",0),
+    private val timeBetweenUpdates: Long = MicroscenerySettings.get("Network.TimeBetweenStacksRequests",0),
     val getData: (ByteBuffer) -> ByteBuffer?
 ) {
     val volume: BufferedVolume

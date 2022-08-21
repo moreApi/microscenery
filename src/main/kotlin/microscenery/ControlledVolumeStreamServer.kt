@@ -17,7 +17,8 @@ import kotlin.properties.Delegates
 class ControlledVolumeStreamServer @JvmOverloads constructor(
     core: CMMCore? = null,
     val basePort: Int = MicroscenerySettings.get("Network.basePort"),
-    val connections: Int = MicroscenerySettings.get("Network.connections")
+    val connections: Int = MicroscenerySettings.get("Network.connections"),
+    val timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition",1000)
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val zContext = ZContext()
@@ -25,7 +26,6 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
     private val controlConnection = ControlZMQServer(zContext, basePort)
     val volumeSender = VolumeSender(microscenery.zContext, connections, basePort + 1)
 
-    val timeBetweenUpdates = 1000
 
     var imagingRunning = false
     var imagingThread: Thread? = null
