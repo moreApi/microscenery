@@ -8,7 +8,7 @@ import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 class ControlledVolumeStreamClientScene : SceneryBase(
-    ControlledVolumeStreamClientScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200, wantREPL = true
+    ControlledVolumeStreamClientScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200, wantREPL = false
 ) {
 
     val cvsc = ControlledVolumeStreamClient(scene, hub)

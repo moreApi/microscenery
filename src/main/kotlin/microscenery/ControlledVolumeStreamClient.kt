@@ -91,15 +91,8 @@ class ControlledVolumeStreamClient(
                                 zContext = zContext,
                                 width * height * slices * Short.SIZE_BYTES,
                                 connections = signal.dataPorts.map { host to it })
-                            var time = 0L
-                            val timeBetweenUpdates = 1000
 
                             mmVol = StreamedVolume(hub, width, height, slices) {
-                                //wait at least timeBetweenUpdates
-                                (System.currentTimeMillis() - time).let { delta ->
-                                    if (delta in 1..timeBetweenUpdates) Thread.sleep(timeBetweenUpdates - delta)
-                                }
-                                time = System.currentTimeMillis()
                                 connection?.getVolume(2000, it)
                             }
                             scene.addChild(mmVol!!.volume)

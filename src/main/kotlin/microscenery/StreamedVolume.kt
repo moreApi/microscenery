@@ -1,5 +1,6 @@
 package microscenery
 
+import MicroscenerySettings
 import graphics.scenery.Hub
 import graphics.scenery.utils.RingBuffer
 import graphics.scenery.volumes.BufferedVolume
@@ -19,11 +20,9 @@ class StreamedVolume(
     val width: Int,
     val height: Int,
     private val depth: Int = 10,
-    private val timeBetweenUpdates: Long = 0,
+    private val timeBetweenUpdates: Long = MicroscenerySettings.get("MMConnection.TimeBetweenStacksRequests",0),
     val getData: (ByteBuffer) -> ByteBuffer?
 ) {
-    /** Logger for this application, will be instantiated upon first use. */
-//    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val volume: BufferedVolume
     var running = true
 
@@ -39,10 +38,6 @@ class StreamedVolume(
         volume.pixelToWorldRatio = 0.1f
 
         volume.transferFunction = TransferFunction.ramp(0.001f, distance = 1f)
-        /*with(volume.transferFunction) {
-            addControlPoint(0.0f, 0.0f)
-            addControlPoint(7000.0f, 1.0f)
-        }*/
 
         volume.metadata["animating"] = true
 
@@ -59,8 +54,9 @@ class StreamedVolume(
             //var lastCount = 0
             //var deltaTime = System.currentTimeMillis()
             //var deltas = emptyList<Int>()
+            var time: Long
             while (running) {
-
+                time = System.currentTimeMillis()
                 if (volume.metadata["animating"] == true) {
                     val currentBuffer = volumeBuffer.get()
                     val start = System.currentTimeMillis()
@@ -90,6 +86,10 @@ class StreamedVolume(
                 }
 
                 if (timeBetweenUpdates > 0) {
+                    //wait at least timeBetweenUpdates
+                    (System.currentTimeMillis() - time).let { delta ->
+                        if (delta in 1..timeBetweenUpdates) Thread.sleep(timeBetweenUpdates - delta)
+                    }
                     Thread.sleep(timeBetweenUpdates)
                 }
             }
