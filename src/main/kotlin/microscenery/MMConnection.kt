@@ -2,11 +2,15 @@ package microscenery
 
 import MicroscenerySettings
 import graphics.scenery.utils.LazyLogger
+import graphics.scenery.volumes.Colormap
+import graphics.scenery.volumes.TransferFunction
 import let
 import microscenery.hardware.SPIMSetup
 import mmcorej.CMMCore
+import org.joml.Vector3f
 import java.awt.Rectangle
 import java.nio.ShortBuffer
+import kotlin.concurrent.thread
 
 /**
  * Connection to MicroManger Core. Does the imaging.
@@ -125,5 +129,36 @@ class MMConnection(
         copyTimes = copyTimes + (copy)
         while (copyTimes.size > 10)
             copyTimes = copyTimes.subList(1,copyTimes.size)
+    }
+
+    companion object{
+        @JvmStatic
+        fun main(args: Array<String>) {
+            DefaultScene({ scene,hub ->
+
+                val mmConnection = MMConnection()
+                val mmVol = StreamedVolume(
+                    hub,
+                    mmConnection.width,
+                    mmConnection.height,
+                    mmConnection.steps
+                ) {
+                    mmConnection.captureStack(it.asShortBuffer())
+                    it
+                }
+                scene.addChild(mmVol.volume)
+                mmVol.volume.spatial().scale= Vector3f(0.1f,0.1f,0.4f)
+                mmVol.volume.colormap = Colormap.get("plasma")
+                mmVol.volume.transferFunction = TransferFunction.ramp(0.0017f,1f,0.01f)
+
+                thread {
+                    while (true){
+                        Thread.sleep(200)
+                        val s = scene
+                    }
+                }
+
+            })
+        }
     }
 }
