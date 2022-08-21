@@ -40,6 +40,8 @@ dependencies {
 
     implementation(files("manualLib/MMCoreJ.jar"))
 
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+
     testImplementation("net.imagej:ij:1.53k")
     testImplementation("net.imagej:imagej-ops:0.45.5")
     testImplementation("net.imglib2:imglib2")
