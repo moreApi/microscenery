@@ -3,8 +3,10 @@ package microscenery
 import MicroscenerySettings
 import graphics.scenery.Hub
 import graphics.scenery.Scene
+import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.LazyLogger
 import microscenery.network.*
+import org.joml.Vector4f
 import org.zeromq.ZContext
 
 /**
@@ -26,6 +28,7 @@ class ControlledVolumeStreamClient(
     var connection: VolumeReceiver? = null
 
     var latestServerStatus: ServerSignal.Status? = null
+    var lastAcquisitionSignal = 0L
 
     @Suppress("unused")
     fun start() {
@@ -34,7 +37,7 @@ class ControlledVolumeStreamClient(
     }
 
     @Suppress("unused")
-    fun snap(){
+    fun snap() {
         logger.info("Got Snap Command")
         if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.SnapStack)
     }
@@ -83,8 +86,9 @@ class ControlledVolumeStreamClient(
                     }
                 }
                 is ServerSignal.StackAcquired -> {
+                    lastAcquisitionSignal = System.currentTimeMillis()
                     latestServerStatus?.let {
-                        if (it.state ==  ServerState.Imaging) return@addListener // the live imaging will take care of this stack
+                        if (it.state == ServerState.Imaging) return@addListener // the live imaging will take care of this stack
                         if (!refresh(it)) return@addListener
                         mmVol?.once = true
                     } ?: let {
@@ -112,7 +116,7 @@ class ControlledVolumeStreamClient(
         val height = signal.imageSize.y
         val slices = signal.imageSize.z
 
-        if(width == mmVol?.width && height == mmVol?.height && slices == mmVol?.depth)
+        if (width == mmVol?.width && height == mmVol?.height && slices == mmVol?.depth)
             return true // no need the create new volume
 
         // close old connections of there are any
@@ -136,5 +140,21 @@ class ControlledVolumeStreamClient(
         scene.addChild(mmVol!!.volume)
 
         return true
+    }
+
+
+    fun lastAcquisitionTextBoard(): TextBoard {
+        val lastUpdateBoard = TextBoard()
+        lastUpdateBoard.text = "Last Acquisition Signal: never"
+        lastUpdateBoard.transparent = 0
+        lastUpdateBoard.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+        lastUpdateBoard.backgroundColor = Vector4f(100f, 100f, 100f, 1.0f)
+        lastUpdateBoard.update += {
+            if (this.lastAcquisitionSignal != 0L) {
+                val dif = System.currentTimeMillis() - this.lastAcquisitionSignal
+                lastUpdateBoard.text = "Last Acquisition Signal: " + (dif / 100).toFloat() / 10 + "sec"
+            }
+        }
+        return lastUpdateBoard
     }
 }

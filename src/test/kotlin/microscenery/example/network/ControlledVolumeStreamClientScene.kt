@@ -2,6 +2,8 @@ package microscenery.example.network
 
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
+import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.TransferFunction
 import lightSleepOn
 import microscenery.ControlledVolumeStreamClient
 import org.joml.Vector3f
@@ -39,7 +41,27 @@ class ControlledVolumeStreamClientScene : SceneryBase(
 
             scene.addChild(this)
         }
+
+        val lastUpdateBoard = cvsc.lastAcquisitionTextBoard()
+        lastUpdateBoard.spatial {
+            position = Vector3f(0f, 9f, -9f)
+            scale = Vector3f(0.5f, 0.5f, 0.5f)
+            //rotation = Quaternionf().rotationX(-PI.toFloat())
+        }
+        scene.addChild(lastUpdateBoard)
+
+        thread {
+            while (cvsc.mmVol == null) {
+                Thread.sleep(200)
+            }
+            cvsc.mmVol?.let {
+                it.volume.spatial().scale = Vector3f(0.225f, 0.225f, 1.524f) * 0.3f
+                it.volume.transferFunction = TransferFunction.ramp(0.002f, 1f, 0.05f)
+                //it.volume.transferFunction = TransferFunction.ramp(0.002934f,1f,0.01f)
+            }
+        }
     }
+
 
     companion object {
         @JvmStatic
@@ -50,7 +72,7 @@ class ControlledVolumeStreamClientScene : SceneryBase(
                 println("status here")
                 b.cvsc.start()
                 thread {
-                    while (true){
+                    while (true) {
                         Thread.sleep(200)
                         @Suppress("UNUSED_EXPRESSION")
                         b
