@@ -19,7 +19,6 @@ class ControlledVolumeStreamClientScene : SceneryBase(
 
     }
 
-
     private fun baseInit() {
         renderer = hub.add(
             SceneryElement.Renderer, Renderer.createRenderer(hub, applicationName, scene, 512, 512)
@@ -50,6 +49,13 @@ class ControlledVolumeStreamClientScene : SceneryBase(
                 lightSleepOn(15000) { b.cvsc.latestServerStatus }
                 println("status here")
                 b.cvsc.start()
+                thread {
+                    while (true){
+                        Thread.sleep(200)
+                        @Suppress("UNUSED_EXPRESSION")
+                        b
+                    }
+                }
             }
             b.main()
         }

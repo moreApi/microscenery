@@ -58,7 +58,7 @@ class StreamedVolume(
             //var deltas = emptyList<Int>()
             var time: Long
             while (running) {
-                if (paused){
+                if (paused && !once){
                     Thread.sleep(200)
                     continue
                 }
@@ -92,7 +92,7 @@ class StreamedVolume(
   */
                 }
 
-                if (timeBetweenUpdates > 0) {
+                if (timeBetweenUpdates > 0 && !once) {
                     //wait at least timeBetweenUpdates
                     (System.currentTimeMillis() - time).let { delta ->
                         if (delta in 1..timeBetweenUpdates) Thread.sleep(timeBetweenUpdates - delta)

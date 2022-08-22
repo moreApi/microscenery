@@ -1,6 +1,7 @@
 package microscenery.example
 
 import MicroscenerySettings
+import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
@@ -58,7 +59,8 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
                         } else {
                             cvsc.pause()
                         }
-                    }
+                    },
+                    Action("snap", false){cvsc.snap()}
                 )
             )
         ) {

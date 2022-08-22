@@ -21,5 +21,5 @@ sealed class ServerSignal {
 }
 
 enum class ServerState {
-    Imaging, Paused, ShuttingDown
+    Imaging, Paused, ShuttingDown, Snapping
 }

@@ -34,6 +34,12 @@ class ControlledVolumeStreamClient(
     }
 
     @Suppress("unused")
+    fun snap(){
+        logger.info("Got Snap Command")
+        if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.SnapStack)
+    }
+
+    @Suppress("unused")
     fun pause() {
         logger.info("Got Pause Command")
         if (latestServerStatus?.state == ServerState.Imaging) controlConnection.sendSignal(ClientSignal.StopImaging)
@@ -66,20 +72,21 @@ class ControlledVolumeStreamClient(
                             mmVol?.paused = false
                         }
                         ServerState.Paused -> {
-                            mmVol?.running = false
-                            connection?.close()
+                            mmVol?.paused = true
                         }
                         ServerState.ShuttingDown -> {
                             mmVol?.running = false
                             connection?.close()?.forEach { it.join() }
                             logger.warn("Server shutdown")
                         }
+                        ServerState.Snapping -> {}
                     }
                 }
-                ServerSignal.StackAcquired -> {
+                is ServerSignal.StackAcquired -> {
                     latestServerStatus?.let {
+                        if (it.state ==  ServerState.Imaging) return@addListener // the live imaging will take care of this stack
                         if (!refresh(it)) return@addListener
-                        mmVol?.paused = false
+                        mmVol?.once = true
                     } ?: let {
                         logger.warn("Got stack signal but do not know the server status.")
                     }
@@ -95,8 +102,8 @@ class ControlledVolumeStreamClient(
             return false
         }
 
-        if (mmVol?.running == true) {
-            logger.info("Got imaging status but found active streaming vol. Changing nothing")
+        if (mmVol?.paused == false && mmVol?.running == true) {
+            logger.info("Found active streaming vol. Changing nothing")
             return false
         }
 
@@ -106,7 +113,7 @@ class ControlledVolumeStreamClient(
         val slices = signal.imageSize.z
 
         if(width == mmVol?.width && height == mmVol?.height && slices == mmVol?.depth)
-            connection // no need the create new volume
+            return true // no need the create new volume
 
         // close old connections of there are any
         connection?.close()?.forEach { it.join() }

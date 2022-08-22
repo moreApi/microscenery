@@ -14,6 +14,7 @@ import kotlin.concurrent.thread
 import kotlin.properties.Delegates
 
 
+@Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class ControlledVolumeStreamServer @JvmOverloads constructor(
     core: CMMCore? = null,
     val basePort: Int = MicroscenerySettings.get("Network.basePort"),
@@ -46,7 +47,7 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
         }
 
         fun stopImaging() {
-            if (status.state == ServerState.Imaging) {
+            if (status.state == ServerState.Imaging || status.state == ServerState.Snapping) {
                 logger.info("Stopping Imaging")
                 imagingRunning = false
                 imagingThread?.join()
@@ -87,7 +88,7 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
                     volumeSender.close().forEach { it.join() }
                     microscenery.zContext.destroy()
                 }
-                ClientSignal.SnapStack -> {
+                is ClientSignal.SnapStack -> {
                     if (status.state == ServerState.Paused) {
                         mmConnection.updateSize()
                         mmConnection.updateParameters()
@@ -95,15 +96,18 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
                         status = status.copy(
                             imageSize = Vector3i(
                                 mmConnection.width, mmConnection.height, mmConnection.steps
-                            ), state = ServerState.Imaging
+                            ), state = ServerState.Snapping
                         )
 
                         if (imagingThread != null) {
                             throw IllegalStateException("There is a reference to an imaging thread where none should be.")
                         }
                         imagingThread = startImagingAndSendingThread(true)
+                        thread {
+                            imagingThread?.join()
+                            stopImaging()
+                        }
                     }
-
                 }
             }
         }
@@ -123,7 +127,7 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
             while (imagingRunning) {
                 //wait at least timeBetweenUpdates
                 (System.currentTimeMillis() - time).let {
-                    if (it in 1..timeBetweenUpdates) Thread.sleep(timeBetweenUpdates - it)
+                    if (it in 1..timeBetweenUpdates && !once) Thread.sleep(timeBetweenUpdates - it)
                 }
                 time = System.currentTimeMillis()
 
