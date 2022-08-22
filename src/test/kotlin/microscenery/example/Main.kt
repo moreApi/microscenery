@@ -58,9 +58,9 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
                 Thread.sleep(200)
             }
             cvsc.mmVol?.let {
-                it.volume.spatial().scale = Vector3f(0.225f, 0.225f, 1.524f) * 0.3f
-                it.volume.transferFunction = TransferFunction.ramp(0.00293f, 1f, 0.05f)
-                //it.volume.transferFunction = TransferFunction.ramp(0.002934f,1f,0.01f)
+                it.volume.spatial().scale= Vector3f(0.225f,0.225f,3.348f) * 0.3f
+                it.volume.transferFunction = TransferFunction.ramp(0.002925f,1f,0.25f)
+            //it.volume.transferFunction = TransferFunction.ramp(0.002934f,1f,0.01f)
             }
         }
     }

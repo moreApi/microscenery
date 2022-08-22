@@ -55,9 +55,9 @@ class ControlledVolumeStreamClientScene : SceneryBase(
                 Thread.sleep(200)
             }
             cvsc.mmVol?.let {
-                it.volume.spatial().scale = Vector3f(0.225f, 0.225f, 1.524f) * 0.3f
-                it.volume.transferFunction = TransferFunction.ramp(0.002f, 1f, 0.05f)
-                //it.volume.transferFunction = TransferFunction.ramp(0.002934f,1f,0.01f)
+                it.volume.spatial().scale= Vector3f(0.225f,0.225f,3.348f) * 0.3f
+                it.volume.transferFunction = TransferFunction.ramp(0.0027f,1f,0.1f)
+            //it.volume.transferFunction = TransferFunction.ramp(0.002934f,1f,0.01f)
             }
         }
     }
@@ -70,7 +70,7 @@ class ControlledVolumeStreamClientScene : SceneryBase(
             thread {
                 lightSleepOn(15000) { b.cvsc.latestServerStatus }
                 println("status here")
-                b.cvsc.start()
+                b.cvsc.snap()
                 thread {
                     while (true) {
                         Thread.sleep(200)
