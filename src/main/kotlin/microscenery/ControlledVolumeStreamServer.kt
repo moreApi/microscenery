@@ -19,7 +19,7 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
     core: CMMCore? = null,
     val basePort: Int = MicroscenerySettings.get("Network.basePort"),
     val connections: Int = MicroscenerySettings.get("Network.connections"),
-    val timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition",1000)
+    var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000)
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
     val zContext = ZContext()
@@ -39,7 +39,7 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
     ) { _, _, newStatus: ServerSignal.Status ->
         statusChange(newStatus)
     }
-    private set
+        private set
 
     init {
         statusChange += {
@@ -125,11 +125,6 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
             print("start capturing")
 
             while (imagingRunning) {
-                //wait at least timeBetweenUpdates
-                (System.currentTimeMillis() - time).let {
-                    if (it in 1..timeBetweenUpdates && !once) Thread.sleep(timeBetweenUpdates - it)
-                }
-                time = System.currentTimeMillis()
 
                 val buf = volumeBuffers.get()
                 buf.clear()
@@ -137,8 +132,14 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
                 buf.rewind()
                 volumeSender.sendVolume(buf)
                 controlConnection.sendSignal(ServerSignal.StackAcquired)
-                if (once)
-                    imagingRunning = false
+
+                if (once) imagingRunning = false
+
+                //wait at least timeBetweenUpdates
+                (System.currentTimeMillis() - time).let {
+                    if (it in 1..timeBetweenUpdates && !once) Thread.sleep(timeBetweenUpdates - it)
+                }
+                time = System.currentTimeMillis()
             }
             println("stopped capturing")
         }
