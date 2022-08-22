@@ -38,7 +38,7 @@ dependencies {
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg-platform:4.1-1.4.4")
     implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
 
-    implementation(files("C:/Program Files/Micro-Manager-2.0gamma/plugins/Micro-Manager/MMCoreJ.jar"))
+    implementation(files("manualLib/MMCoreJ.jar"))
 
     testImplementation("net.imagej:ij:1.53k")
     testImplementation("net.imagej:imagej-ops:0.45.5")
@@ -87,7 +87,7 @@ tasks{
         }
 
     register("copyRuntimeLibs", Copy::class) {
-        into("lib")
+        into("microsceneryDependencies")
         from(configurations.runtimeClasspath)
     }
 }
