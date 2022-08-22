@@ -154,11 +154,12 @@ class MMConnection(
                 thread {
                     while (true){
                         Thread.sleep(200)
-                        val s = scene
+                        @Suppress("UNUSED_EXPRESSION")
+                        scene
                     }
                 }
 
-            })
+            }).main()
         }
     }
 }

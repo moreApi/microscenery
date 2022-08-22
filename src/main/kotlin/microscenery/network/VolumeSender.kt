@@ -19,8 +19,10 @@ class VolumeSender(
         val chunkSize = buffer.remaining() / connections
 
         senders.forEachIndexed { i, sender ->
-            if (i != connections) buffer.limit(buffer.position() + chunkSize)
-            else buffer.limit(buffer.capacity())
+            if (i != connections)
+                buffer.limit(buffer.position() + chunkSize)
+            else
+                buffer.limit(buffer.capacity())
 //            println("Sending from ${buffer.position()} to ${buffer.limit()}")
             buffer.mark()
             sender.sendBuffer(buffer.duplicate())
