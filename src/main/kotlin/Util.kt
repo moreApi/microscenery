@@ -15,8 +15,10 @@ import graphics.scenery.utils.LazyLogger
 import microscenery.VRUI.behaviors.AnalogInputWrapper
 import microscenery.network.ClientSignal
 import microscenery.network.ServerSignal
+import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
+import org.joml.Vector4f
 import org.objenesis.strategy.StdInstantiatorStrategy
 import org.scijava.ui.behaviour.Behaviour
 import org.scijava.ui.behaviour.DragBehaviour
@@ -98,4 +100,11 @@ fun wrapForAnalogInputIfNeeded(
         behavior
 }
 
+fun Matrix4f.copy(): Matrix4f = Matrix4f(this)
+
+fun Vector3f.toVector4f(w: Float): Vector4f = Vector4f(this,w)
+fun Vector4f.toVector3f(): Vector3f = Vector3f(x,y,z)
+
+fun Vector3f.toReadableString() = String.format("(%.3f,%.3f,%.3f)", x,y,z)
+fun Vector4f.toReadableString() = String.format("(%.3f,%.3f,%.3f,%.3f)", x,y,z,w)
 
