@@ -1,6 +1,7 @@
 package microscenery
 
 import MicroscenerySettings
+import graphics.scenery.Camera
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
@@ -149,7 +150,12 @@ class MMConnection(
                 scene.addChild(mmVol.volume)
                 mmVol.volume.spatial().scale= Vector3f(0.1f,0.1f,0.4f)
                 mmVol.volume.colormap = Colormap.get("plasma")
-                mmVol.volume.transferFunction = TransferFunction.ramp(0.0017f,1f,0.01f)
+                mmVol.volume.transferFunction = TransferFunction.ramp()
+                mmVol.volume
+                    .converterSetups.first()
+                    .setDisplayRange(17.0,3000.0)
+
+                (scene.findByClassname("Camera").first() as Camera).spatial().position = Vector3f(2f,-5f,7f)
 
                 thread {
                     while (true){

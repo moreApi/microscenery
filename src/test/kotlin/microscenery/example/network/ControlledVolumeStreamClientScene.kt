@@ -6,8 +6,10 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunction
 import lightSleepOn
 import microscenery.ControlledVolumeStreamClient
+import microscenery.UI.DisplayRangeEditor
 import org.joml.Vector3f
 import kotlin.concurrent.thread
+
 
 class ControlledVolumeStreamClientScene : SceneryBase(
     ControlledVolumeStreamClientScene::class.java.simpleName, windowWidth = 1920, windowHeight = 1200, wantREPL = false
@@ -56,12 +58,14 @@ class ControlledVolumeStreamClientScene : SceneryBase(
             }
             cvsc.mmVol?.let {
                 it.volume.spatial().scale= Vector3f(0.225f,0.225f,3.348f) * 0.3f
-                it.volume.transferFunction = TransferFunction.ramp(0.0027f,1f,0.1f)
+                //it.volume.transferFunction = TransferFunction.ramp(0.0027f,1f,0.1f)
+                it.volume.transferFunction = TransferFunction.ramp()
             //it.volume.transferFunction = TransferFunction.ramp(0.002934f,1f,0.01f)
+
+                DisplayRangeEditor(it.volume.converterSetups.first()).isVisible = true
             }
         }
     }
-
 
     companion object {
         @JvmStatic

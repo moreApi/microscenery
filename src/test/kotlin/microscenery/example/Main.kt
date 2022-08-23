@@ -12,6 +12,7 @@ import microscenery.ControlledVolumeStreamClient
 import microscenery.DefaultVRScene
 import microscenery.MMConnection
 import microscenery.StreamedVolume
+import microscenery.UI.DisplayRangeEditor
 import microscenery.VRUI.VRUIManager
 import org.joml.Vector3f
 import kotlin.concurrent.thread
@@ -26,7 +27,7 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
     override fun init() {
         prepareVRScene()
 
-        cam.spatial().position = Vector3f(0f, -5f, 5f)
+        cam.spatial().position = Vector3f(0f, 0f, 5f)
 
 
         if (MicroscenerySettings.get("Main.remote", false)) {
@@ -58,9 +59,15 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
                 Thread.sleep(200)
             }
             cvsc.mmVol?.let {
-                it.volume.spatial().scale= Vector3f(0.225f,0.225f,3.348f) * 0.3f
-                it.volume.transferFunction = TransferFunction.ramp(0.002925f,1f,0.25f)
+                //it.volume.spatial().scale= Vector3f(0.225f,0.225f,3.348f) * 0.3f
+                it.volume.spatial().scale= Vector3f(0.225f,0.225f,1.524f) * 0.3f
+                //it.volume.spatial().scale= Vector3f(0.1125f,0.1125f,1.524f) * 0.3f
+                it.volume.transferFunction = TransferFunction.ramp(0f,0.8f,1f)
+                it.volume.converterSetups.first().setDisplayRange(200.0,860.0)
+                //it.volume.transferFunction = TransferFunction.ramp(0.002925f,1f,0.25f)
             //it.volume.transferFunction = TransferFunction.ramp(0.002934f,1f,0.01f)
+
+                DisplayRangeEditor(it.volume.converterSetups.first()).isVisible = true
             }
         }
     }
