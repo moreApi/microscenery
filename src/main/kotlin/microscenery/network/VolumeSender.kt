@@ -1,6 +1,6 @@
 package microscenery.network
 
-import MicroscenerySettings
+import microscenery.MicroscenerySettings
 import org.zeromq.ZContext
 import java.nio.ByteBuffer
 

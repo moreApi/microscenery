@@ -1,6 +1,5 @@
 package microscenery
 
-import MicroscenerySettings
 import graphics.scenery.Hub
 import graphics.scenery.utils.RingBuffer
 import graphics.scenery.volumes.BufferedVolume

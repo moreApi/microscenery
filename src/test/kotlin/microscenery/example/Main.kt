@@ -1,6 +1,6 @@
 package microscenery.example
 
-import MicroscenerySettings
+import microscenery.MicroscenerySettings
 import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.WheelMenu

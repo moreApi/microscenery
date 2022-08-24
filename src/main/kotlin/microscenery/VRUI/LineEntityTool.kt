@@ -1,6 +1,5 @@
 package microscenery.VRUI
 
-import UP
 import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.Sphere
@@ -10,6 +9,7 @@ import graphics.scenery.controls.behaviours.*
 import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.extensions.minus
 import microscenery.DefaultScene
+import microscenery.UP
 import org.joml.Quaternionf
 import org.joml.Vector3f
 

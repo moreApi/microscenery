@@ -1,6 +1,6 @@
 package microscenery.unit.network
 
-import lightSleepOn
+import microscenery.lightSleepOn
 import microscenery.example.network.zContext
 import microscenery.network.*
 import org.joml.Vector3i

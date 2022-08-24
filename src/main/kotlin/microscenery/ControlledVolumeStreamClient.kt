@@ -1,6 +1,5 @@
 package microscenery
 
-import MicroscenerySettings
 import graphics.scenery.Hub
 import graphics.scenery.Scene
 import graphics.scenery.primitives.TextBoard

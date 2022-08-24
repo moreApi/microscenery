@@ -4,7 +4,7 @@ import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunction
-import lightSleepOn
+import microscenery.lightSleepOn
 import microscenery.ControlledVolumeStreamClient
 import microscenery.UI.DisplayRangeEditor
 import org.joml.Vector3f

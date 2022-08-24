@@ -8,9 +8,9 @@ import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plusAssign
+import microscenery.wrapForAnalogInputIfNeeded
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
-import wrapForAnalogInputIfNeeded
 
 class VRGrabTheWorldSelfMove(
     name: String,

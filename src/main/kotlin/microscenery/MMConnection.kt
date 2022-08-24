@@ -1,11 +1,9 @@
 package microscenery
 
-import MicroscenerySettings
 import graphics.scenery.Camera
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
-import let
 import microscenery.hardware.SPIMSetup
 import mmcorej.CMMCore
 import org.joml.Vector3f

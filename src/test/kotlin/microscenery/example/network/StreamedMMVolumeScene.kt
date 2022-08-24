@@ -1,6 +1,6 @@
 package microscenery.example.network
 
-import MicroscenerySettings
+import microscenery.MicroscenerySettings
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
 import microscenery.StreamedVolume

@@ -1,6 +1,5 @@
 package microscenery.VRUI.behaviors
 
-import UP
 import graphics.scenery.Scene
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
@@ -10,6 +9,7 @@ import graphics.scenery.controls.behaviours.VRTwoHandDragOffhand
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Volume
+import microscenery.UP
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.concurrent.CompletableFuture

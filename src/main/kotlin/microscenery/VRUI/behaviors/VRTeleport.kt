@@ -16,7 +16,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
-import wrapForAnalogInputIfNeeded
+import microscenery.wrapForAnalogInputIfNeeded
 import kotlin.math.pow
 
 /**

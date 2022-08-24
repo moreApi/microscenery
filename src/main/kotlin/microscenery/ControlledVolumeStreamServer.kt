@@ -1,6 +1,5 @@
 package microscenery
 
-import MicroscenerySettings
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import kotlinx.event.event

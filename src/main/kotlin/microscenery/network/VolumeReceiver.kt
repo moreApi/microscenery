@@ -1,6 +1,6 @@
 package microscenery.network
 
-import MicroscenerySettings
+import microscenery.MicroscenerySettings
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.mapAsync
 import kotlinx.coroutines.Dispatchers

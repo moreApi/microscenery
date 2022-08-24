@@ -2,6 +2,8 @@
 @file:JvmName("Util")
 @file:JvmMultifileClass
 
+package microscenery
+
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.Serializer
 import com.esotericsoftware.kryo.io.Input

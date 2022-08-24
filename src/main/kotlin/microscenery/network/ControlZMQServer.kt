@@ -1,9 +1,9 @@
 package microscenery.network
 
-import MicroscenerySettings
+import microscenery.MicroscenerySettings
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
-import freeze
+import microscenery.freeze
 import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
 import org.zeromq.SocketType
