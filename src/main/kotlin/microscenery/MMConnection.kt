@@ -117,6 +117,7 @@ class MMConnection(
             }
             copyTime += (System.currentTimeMillis()-start2)
         }
+        setup.zStage.position = minZ
         logger.info("$steps slices from $minZ to $maxZ took snap $snapTime ms copy $copyTime ms")
         recordTimes(snapTime,copyTime)
     }
