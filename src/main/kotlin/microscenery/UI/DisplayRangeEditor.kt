@@ -7,19 +7,33 @@ import java.awt.Insets
 import javax.swing.*
 import kotlin.math.max
 
-class DisplayRangeEditor(var converter: ConverterSetup): JFrame("DisplayRangeEditor") {
+class DisplayRangeEditor(var converter: ConverterSetup, visibility: Boolean = true): JFrame("DisplayRangeEditor") {
 
-    val minMinText = JTextField("0", 5)
-    val minSlider = JSlider(JSlider.HORIZONTAL)
-    val minMaxText = JTextField(max(converter.displayRangeMin.toInt(), 100).toString(), 5)
-    val minValueLabel = JLabel("0")
 
-    val maxMinText = JTextField("100", 5)
-    val maxSlider = JSlider(JSlider.HORIZONTAL)
-    val maxMaxText = JTextField(max(converter.displayRangeMax.toInt(), 100).toString(), 5)
-    val maxValueLabel = JLabel("0")
+    val minMinText: JTextField
+    val minSlider: JSlider
+    val minMaxText: JTextField
+    val minValueLabel: JLabel
+
+    val maxMinText: JTextField
+    val maxSlider: JSlider
+    val maxMaxText: JTextField
+    val maxValueLabel: JLabel
 
     init {
+
+        val initMinValue = max(converter.displayRangeMin.toInt(), 100)
+        minMinText = JTextField("0", 5)
+        minSlider = JSlider(JSlider.HORIZONTAL,0,(initMinValue*1.5).toInt(),initMinValue)
+        minMaxText = JTextField((initMinValue*1.5).toInt().toString(), 5)
+        minValueLabel = JLabel(initMinValue.toString())
+
+        val initMaxValue = max(converter.displayRangeMax.toInt(), 100)
+        maxMinText = JTextField((initMinValue*1.5).toInt().toString(), 5)
+        maxSlider = JSlider(JSlider.HORIZONTAL,(initMinValue*1.5).toInt(),initMaxValue,initMaxValue)
+        maxMaxText = JTextField(initMaxValue.toString(), 5)
+        maxValueLabel = JLabel(initMaxValue.toString())
+
         val contentPanel = JPanel()
         val padding = BorderFactory.createEmptyBorder(10, 10, 10, 10)
         contentPanel.border = padding
@@ -61,6 +75,7 @@ class DisplayRangeEditor(var converter: ConverterSetup): JFrame("DisplayRangeEdi
 
         updateSliderRange()
         this.pack()
+        this.isVisible = visibility
     }
 
     private fun updateSliderRange(){
