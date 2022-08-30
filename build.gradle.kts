@@ -1,8 +1,10 @@
+import com.google.protobuf.gradle.protoc
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
     kotlin("jvm") version "1.7.10"
+    id("com.google.protobuf") version "0.8.19"
 }
 
 group = "me.jancasus"
@@ -37,6 +39,7 @@ dependencies {
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg:4.1-1.4.4")
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg-platform:4.1-1.4.4")
     implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
+    implementation ("com.google.protobuf:protobuf-java:3.21.5")
 
     implementation(files("manualLib/MMCoreJ.jar"))
 
@@ -47,6 +50,16 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation(kotlin("test"))
     //testImplementation(kotlin("test-junit"))
+}
+
+java.sourceSets["main"].java {
+    srcDir("build/generated/source/proto/main/java")
+}
+
+protobuf {
+    this.protobuf.protoc {
+        this.path = "protoc/bin/protoc.exe"
+    }
 }
 
 tasks.test {
@@ -60,9 +73,8 @@ tasks.withType<KotlinCompile>() {
 }
 
 
-
 tasks{
-    // This registers gradle tasks for all scenes
+    // This registers gradle tasks for all example scenes
     sourceSets.test.get().allSource.files
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
         .filter { it.contains("microscenery.example.") && !it.contains("resources") }
