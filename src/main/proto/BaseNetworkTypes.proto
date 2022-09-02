@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_package = "me.jancasus.microscenery.network.v2";
+option java_outer_classname = "BaseNetworkTypes";
+option java_multiple_files = true;
+
+message Vector3Int{
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
+}
+message Vector2Int{
+  int32 x = 1;
+  int32 y = 2;
+}
+message Vector3Float{
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}

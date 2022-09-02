@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "BaseNetworkTypes.proto";
+
+option java_package = "me.jancasus.microscenery.network.v2";
+option java_outer_classname = "ClientSignals";
+option java_multiple_files = true;
+
+message ClientSignal {
+  oneof signal{
+      Live live = 1;
+      MoveStage moveStage = 2;
+      ClientSignOn clientSignOn = 3;
+      Shutdown shutdown = 4;
+      SnapImage snapImage = 5;
+      AcquireStack acquireStack = 6;
+  }
+}
+message Live {
+  bool value = 1;
+}
+message MoveStage {
+  Vector3Float target = 1;
+}
+message ClientSignOn {}
+message Shutdown {}
+message SnapImage {}
+message AcquireStack{
+  Vector3Float stageStartPosition = 1;
+  float endZPosition = 2;
+  float stepSize = 3;
+  bool live = 4;
+  Vector2Int roiStart = 5;
+  Vector2Int roiEnd = 6;
+}

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "BaseNetworkTypes.proto";
+
+option java_package = "me.jancasus.microscenery.network.v2";
+option java_outer_classname = "ServerSignals";
+option java_multiple_files = true;
+
+
+message ServerSignal{
+  oneof signal{
+    ServerStatus serverStatus = 1;
+    Stack stack = 2;
+    Slice slice = 3;
+  }
+}
+
+message ServerStatus{
+  EnumServerState state = 2;
+  repeated int32 dataPorts = 3;
+  int32 connectedClients = 4;
+  HardwareDimensions hwDimensions = 5;
+}
+
+enum EnumServerState{
+  SERVER_STATE_UNKNOWN = 0;
+  SERVER_STATE_LIVE = 1;
+  SERVER_STATE_MANUAL = 2;
+  SERVER_STATE_SHUTTING_DOWN = 3;
+  SERVER_STATE_STACK = 4;
+  SERVER_STATE_STARTUP = 5;
+}
+
+message HardwareDimensions{
+  Vector3Float stageMin = 1;
+  Vector3Float stageMax = 2;
+  Vector2Int imageSize = 3;
+  Vector3Float vertexSize = 4;
+  EnumNumericType numericType = 5;
+}
+
+enum EnumNumericType{
+  VALUE_NUMERIC_UNKNOWN = 0;
+  VALUE_NUMERIC_INT16 = 1;
+}
+
+message Stack{
+  int32 id = 1;
+  bool live = 2;
+  Vector3Float stageMin = 3;
+  Vector3Int size = 4;
+  google.protobuf.Timestamp created = 5;
+}
+
+message Slice{
+  int32 id = 1;
+  google.protobuf.Timestamp created = 2;
+  Vector3Float stagePos = 3;
+  Vector3Int size = 4;
+  int32 stackId = 5;
+}
+
