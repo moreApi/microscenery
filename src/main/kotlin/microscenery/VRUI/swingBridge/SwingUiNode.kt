@@ -1,5 +1,6 @@
 package microscenery.VRUI.swingBridge
 
+import graphics.scenery.attribute.material.Material
 import graphics.scenery.primitives.Plane
 import graphics.scenery.textures.Texture
 import graphics.scenery.utils.Image
@@ -19,10 +20,8 @@ class SwingUiNode(val swingBridgeFrame: SwingBridgeFrame) : Plane(
 
     init {
 
-        val backSide = Plane(Vector3f(0.5f))
-        backSide.spatial().rotation = Quaternionf().rotationY(Math.PI.toFloat())
-        backSide.material().diffuse = Vector3f(0.5f)
-        this.addChild(backSide)
+
+        this.material().cullingMode = Material.CullingMode.None
 
         this.update += {
             updateUITexture()
