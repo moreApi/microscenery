@@ -37,7 +37,7 @@ class VolumeReceiver(
         default = { MemoryUtil.memAlloc(volumeSize) })
 
     val receivers = connections.map {
-        ChunkZMQReceiver(zContext, it.second, it.first)
+        BiggishDataClient(zContext, it.second, it.first)
     }.toList()
 
     fun getVolume(timeout: Long = 2000, buffer: ByteBuffer? = null): ByteBuffer? {
@@ -60,9 +60,10 @@ class VolumeReceiver(
                 logger.warn("A slice is null. This should not happen?")
                 return@forEach
             }
-            slice.forEach {
-                buf.put(it)
-            }
+            // TODO
+            //slice.forEach {
+            //    buf.put(it)
+            //}
         }
 
         buf.rewind()

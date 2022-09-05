@@ -34,3 +34,4 @@ message AcquireStack{
   Vector2Int roiStart = 5;
   Vector2Int roiEnd = 6;
 }
+

@@ -10,7 +10,7 @@ class VolumeSender(
     val basePort: Int = MicroscenerySettings.get("Network.basePort")
 ) {
     val senders = (basePort until basePort + connections).map {
-        ChunkZMQSender(it, zContext)
+        BiggishDataServer(it, SliceStorage(5),zContext) // TODO
     }.toList()
 
     fun usedPorts() = senders.map { it.port }
@@ -25,7 +25,8 @@ class VolumeSender(
                 buffer.limit(buffer.capacity())
 //            println("Sending from ${buffer.position()} to ${buffer.limit()}")
             buffer.mark()
-            sender.sendBuffer(buffer.duplicate())
+            // todo
+            //sender.sendBuffer(buffer.duplicate())
             buffer.position(buffer.position() + chunkSize)
         }
     }
