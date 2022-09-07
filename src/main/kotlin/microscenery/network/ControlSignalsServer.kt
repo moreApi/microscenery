@@ -1,16 +1,14 @@
 package microscenery.network
 
-import microscenery.MicroscenerySettings
-import com.esotericsoftware.kryo.io.Input
-import com.esotericsoftware.kryo.io.Output
-import microscenery.freeze
 import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
+import me.jancasus.microscenery.network.v2.ClientSignal
+import me.jancasus.microscenery.network.v2.EnumServerState
+import me.jancasus.microscenery.network.v2.ServerSignal
+import microscenery.MicroscenerySettings
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.concurrent.thread
 
@@ -19,7 +17,7 @@ import kotlin.concurrent.thread
  *
  * Server shuts down when a signal with shutdown status has been send.
  */
-class ControlZMQServer(
+class ControlSignalsServer(
     val zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
     listeners: List<(ClientSignal) -> Unit> = emptyList()
 ) {
@@ -58,14 +56,12 @@ class ControlZMQServer(
         }
     }
 
-    private fun networkThread(parent: ControlZMQServer) = thread {
+    private fun networkThread(parent: ControlSignalsServer) = thread {
         val socket: ZMQ.Socket = zContext.createSocket(SocketType.ROUTER)
         socket.bind("tcp://*:${parent.port}")
-        parent.logger.info("${ControlZMQServer::class.simpleName} bound to tcp://*:${parent.port}")
+        parent.logger.info("${ControlSignalsServer::class.simpleName} bound to tcp://*:${parent.port}")
 
         var running = true
-        val kryoIn = freeze()
-        val kryoOut = freeze()
 
         while (!Thread.currentThread().isInterrupted && running) {
             Thread.sleep(200)
@@ -75,11 +71,7 @@ class ControlZMQServer(
             var identity = socket.recv(ZMQ.DONTWAIT)
             while (identity != null) {
                 parent.clients += identity
-                val payload = socket.recv()
-                val bin = ByteArrayInputStream(payload)
-                val input = Input(bin)
-                val event = kryoIn.readClassAndObject(input) as? ClientSignal
-                    ?: throw IllegalStateException("Received unknown, not ClientSignal payload")
+                val event = ClientSignal.parseFrom(socket.recv())
 
                 synchronized(parent.signalsIn) {
                     parent.signalsIn(event)
@@ -91,11 +83,7 @@ class ControlZMQServer(
             // process outgoing messages
             var outSignal = parent.signalsOut.poll()
             while (outSignal != null) {
-                val bos = ByteArrayOutputStream()
-                val output = Output(bos)
-                kryoOut.writeClassAndObject(output, outSignal)
-                output.flush()
-                val payload = bos.toByteArray()
+                val payload = outSignal.toByteArray()
 
                 // publish to all clients
                 parent.clients.forEach { ident ->
@@ -104,10 +92,9 @@ class ControlZMQServer(
                     Thread.sleep(1)
                 }
 
-                output.close()
-                bos.close()
-
-                if (outSignal is ServerSignal.Status && outSignal.state == ServerState.ShuttingDown) {
+                if (outSignal.hasServerStatus()
+                    && outSignal.serverStatus.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
+                ) {
                     running = false
                     outSignal = null
                 } else {

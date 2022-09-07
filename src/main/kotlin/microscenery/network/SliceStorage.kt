@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentSkipListMap
  * Stores bytebuffers and takes up to [maxStorageSize] bytes.
  * If more data is added the oldest data is discarded until enough space is freed.
  */
-class SliceStorage(val maxStorageSize: Int = MicroscenerySettings.get("Network.dataStorageSize", 2 * 1024 * 1024)) {
+class SliceStorage(val maxStorageSize: Int = MicroscenerySettings.get("Network.DataStorageSizeMb", 2) * 1024 * 1024) {
 
     private var currentlyStoredBytes = 0
 
