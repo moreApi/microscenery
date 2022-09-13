@@ -11,7 +11,7 @@ sealed class ClientSignal {
         when(this){
             is AcquireStack -> throw NotImplementedError("This case should be overwritten.")
             ClientSignOn -> cs.clientSignOnBuilder.build()
-            is Live -> throw NotImplementedError("This case should be overwritten.")
+            is Live -> cs.liveBuilder.build()
             is MoveStage -> throw NotImplementedError("This case should be overwritten.")
             Shutdown -> cs.shutdownBuilder.build()
             SnapImage -> cs.snapImageBuilder.build()
@@ -20,13 +20,7 @@ sealed class ClientSignal {
         return cs.build()
     }
 
-    data class Live(val value: Boolean) : ClientSignal(){
-        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
-            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
-            cs.liveBuilder.setValue(this.value).build()
-            return cs.build()
-        }
-    }
+    object Live : ClientSignal()
 
     data class MoveStage(val target: Vector3f) : ClientSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
@@ -70,7 +64,7 @@ sealed class ClientSignal {
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.SIGNAL_NOT_SET ->
                     throw IllegalArgumentException("Signal is not set in Client signal message")
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.LIVE ->
-                    Live(this.live.value)
+                    Live
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.MOVESTAGE ->
                     MoveStage(this.moveStage.target.toPoko())
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.CLIENTSIGNON ->

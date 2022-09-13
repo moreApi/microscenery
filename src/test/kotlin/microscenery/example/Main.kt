@@ -42,9 +42,9 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
         } else {
             val mmConnection = MMConnection()
             val mmConnectionVolume = StreamedVolume(
-                hub, mmConnection.width, mmConnection.height, mmConnection.steps
+                hub, mmConnection.width, mmConnection.height, 5//mmConnection.steps
             ) {
-                mmConnection.captureStack(it.asShortBuffer())
+                //mmConnection.captureStack(it.asShortBuffer())
                 it
             }
             val volume = mmConnectionVolume.volume
