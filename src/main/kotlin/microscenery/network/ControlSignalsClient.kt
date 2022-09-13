@@ -5,6 +5,7 @@ import kotlinx.event.event
 import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
 import me.jancasus.microscenery.network.v2.ServerSignal
+import microscenery.network.ServerSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -34,14 +35,14 @@ class ControlSignalsClient(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (ServerSignal) -> Unit) {
+    fun addListener(listener: (microscenery.network.ServerSignal) -> Unit) {
         synchronized(signalsIn) {
-            signalsIn += listener
+            signalsIn += {listener(it.toPoko())}
         }
     }
 
-    fun sendSignal(signal: ClientSignal) {
-        signalsOut.add(signal)
+    fun sendSignal(signal: microscenery.network.ClientSignal) {
+        signalsOut.add(signal.toProto())
     }
 
     private fun networkThread(parent: ControlSignalsClient) = thread {

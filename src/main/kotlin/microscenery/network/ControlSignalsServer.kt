@@ -6,6 +6,7 @@ import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
 import me.jancasus.microscenery.network.v2.ServerSignal
 import microscenery.MicroscenerySettings
+import microscenery.network.ClientSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -40,19 +41,19 @@ class ControlSignalsServer(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (ClientSignal) -> Unit) {
+    fun addListener(listener: (microscenery.network.ClientSignal) -> Unit) {
         synchronized(signalsIn) {
-            signalsIn += listener
+            signalsIn += { listener(it.toPoko()) }
         }
     }
 
-    fun sendSignal(signal: ServerSignal) {
-        signalsOut.add(signal)
+    fun sendSignal(signal: microscenery.network.ServerSignal) {
+        signalsOut.add(signal.toProto())
     }
 
-    fun sendInternalSignals(signals: List<ClientSignal>) {
+    fun sendInternalSignals(signals: List<microscenery.network.ClientSignal>) {
         synchronized(signalsIn) {
-            signals.forEach { signalsIn(it) }
+            signals.forEach { signalsIn(it.toProto()) }
         }
     }
 

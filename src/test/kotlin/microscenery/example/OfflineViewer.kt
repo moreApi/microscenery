@@ -18,7 +18,7 @@ import kotlin.io.path.Path
 val openSpimScale3 = Vector3f(.225f,.225f,3.348f)
 val openSpimScale15 = Vector3f(.225f,.225f,1.524f)
 
-fun currentVolume(hub:Hub) = ceratitis(hub)
+fun currentVolume(hub:Hub) = cherry(hub)
 
 
 fun hydra(hub:Hub):Volume {
@@ -45,6 +45,21 @@ fun hydra(hub:Hub):Volume {
             lastTimepoint = now
         }
     }
+
+    return volume
+}
+
+
+fun cherry(hub:Hub):Volume {
+    //val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\embo\MariaPlant\export.xml""",hub, VolumeViewerOptions())
+    val volume = Volume.fromPath(Path("""C:\Users\JanCasus\volumes\unpublished\Pdu_H2BeGFP_CAAXmCherry_0123_20130312_192018.corrected-histone\SPC0_TM0008_CM0_CM1_CHN00_CHN01.fusedStack.tif"""),hub)
+    volume.spatial() {
+        scale = openSpimScale15
+    }
+    volume.origin = Origin.FrontBottomLeft
+    volume.transferFunction = TransferFunction.ramp(0f,0.8f,1f)
+    volume.colormap = Colormap.get("hot")
+    volume.setTransferFunctionRange(400f, 2962f)
 
     return volume
 }

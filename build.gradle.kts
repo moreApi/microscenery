@@ -40,6 +40,7 @@ dependencies {
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg-platform:4.1-1.4.4")
     implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
     implementation ("com.google.protobuf:protobuf-java:3.21.5")
+    implementation("com.google.protobuf:protobuf-java-util:3.21.5")
 
     implementation(files("manualLib/MMCoreJ.jar"))
 

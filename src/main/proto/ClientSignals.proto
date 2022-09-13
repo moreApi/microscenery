@@ -15,11 +15,10 @@ message ClientSignal {
       Shutdown shutdown = 4;
       SnapImage snapImage = 5;
       AcquireStack acquireStack = 6;
+      Stop stop = 7;
   }
 }
-message Live {
-  bool value = 1;
-}
+message Live {}
 message MoveStage {
   Vector3Float target = 1;
 }
@@ -34,4 +33,5 @@ message AcquireStack{
   Vector2Int roiStart = 5;
   Vector2Int roiEnd = 6;
 }
+message Stop {};
 

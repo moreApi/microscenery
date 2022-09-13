@@ -15,8 +15,6 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.serialization.Vector3fSerializer
 import graphics.scenery.utils.LazyLogger
 import microscenery.VRUI.behaviors.AnalogInputWrapper
-import microscenery.network.ClientSignal
-import microscenery.network.ServerSignal
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -44,8 +42,6 @@ val ky = object : ThreadLocal<Kryo>() {
         kryo.isRegistrationRequired = false
         kryo.references = true
         kryo.setCopyReferences(true)
-        kryo.register(ServerSignal::class.java)
-        kryo.register(ClientSignal::class.java)
         kryo.register(Vector3f::class.java, Vector3fSerializer())
         kryo.register(Vector3i::class.java, Vector3iSerializer())
         return kryo
