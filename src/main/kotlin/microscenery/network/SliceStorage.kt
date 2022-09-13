@@ -37,4 +37,6 @@ class SliceStorage(val maxStorageSize: Int = MicroscenerySettings.get("Network.D
 
     fun getSlice(id: Int): ByteBuffer? = storage[id]
 
+    fun newSlice(size: Int): ByteBuffer = ByteBuffer.allocateDirect(size)
+
 }

@@ -5,7 +5,9 @@ import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import microscenery.hardware.SPIMSetup
+import microscenery.network.ServerSignal
 import mmcorej.CMMCore
+import org.joml.Vector3d
 import org.joml.Vector3f
 import java.awt.Rectangle
 import java.nio.ShortBuffer
@@ -34,10 +36,6 @@ class MMConnection(
     var width: Int = 0
     var height: Int = 0
 
-    var minZ: Double = MicroscenerySettings.get("MMConnection.minZ",0.0)
-    var maxZ: Double = MicroscenerySettings.get("MMConnection.maxZ",10.0)
-    var steps: Int = MicroscenerySettings.get("MMConnection.slices",10)
-
     var snapTimes = listOf<Long>()
     var copyTimes = listOf<Long>()
 
@@ -45,6 +43,12 @@ class MMConnection(
     val meanSnapTime get() = if(snapTimes.isNotEmpty()) snapTimes.sum()/snapTimes.size else 0
     @Suppress("unused")
     val meanCopyTime get() = if(copyTimes.isNotEmpty())copyTimes.sum()/copyTimes.size else 0
+
+    val stagePosition
+        get() = Vector3f(
+            setup.xStage.position.toFloat(),
+            setup.yStage.position.toFloat(),
+            setup.zStage.position.toFloat())
 
     init {
 
@@ -79,47 +83,51 @@ class MMConnection(
         height = core.imageHeight.toInt()
     }
 
-    fun updateParameters(){
-        minZ = MicroscenerySettings.get("MMConnection.minZ",0.0)
-        maxZ = MicroscenerySettings.get("MMConnection.maxZ",10.0)
-        steps = MicroscenerySettings.get("MMConnection.slices",10)
-    }
-
     fun setRoi(roi: Rectangle){
         core.setROI(roi.x,roi.y,roi.width,roi.height)
     }
 
-    fun captureStack(intoBuffer: ShortBuffer) {
-        var offset = 0
+    fun snapSlice(intoBuffer: ShortBuffer){
         var snapTime = 0L
         var copyTime = 0L
 
-        val range = maxZ - minZ
-        if (range <= 0)
-            throw IllegalArgumentException("MaxZ needs to be larger thank MinZ.")
-        val stepSize = range / steps
+        val start = System.currentTimeMillis()
+        val img = setup.snapImage()
+        snapTime += (System.currentTimeMillis()-start)
 
-        (0 until steps).forEach { step ->
-            val z = minZ + stepSize * step
-            //core.snapImage()
-            val start = System.currentTimeMillis()
-            setup.zStage.position = z
-            val img = setup.snapImage()
-            snapTime += (System.currentTimeMillis()-start)
-            //val img1 = core.image as ShortArray// returned as a 1D array of signed integers in row-major order
-            //val sa = core.image as ShortArray
-
-            val start2 = System.currentTimeMillis()
-            val sa = img.pix as ShortArray
-            sa.forEach {
-                intoBuffer.put(offset, it)
-                offset += 1
-            }
-            copyTime += (System.currentTimeMillis()-start2)
-        }
-        setup.zStage.position = minZ
-        logger.info("$steps slices from $minZ to $maxZ took snap $snapTime ms copy $copyTime ms")
+        val start2 = System.currentTimeMillis()
+        intoBuffer.put(img.pix as ShortArray)
+        intoBuffer.flip()
+        copyTime += (System.currentTimeMillis()-start2)
         recordTimes(snapTime,copyTime)
+    }
+
+
+    /**
+     *  @param wait if true wait until stage reached target.
+     */
+    fun moveStage(target: Vector3f, wait: Boolean){
+        val stages = listOf(setup.xStage,setup.yStage,setup.zStage)
+        val precisions = listOf(
+            MicroscenerySettings.get("Stage.precisionXY",1.0),
+            MicroscenerySettings.get("Stage.precisionXY",1.0),
+            MicroscenerySettings.get("Stage.precisionZ",1.0),
+        )
+
+        for (i in 0..2){
+            val stage = stages[i]
+            val precision = precisions[i]
+            val from = stage.position.toFloat()
+            val to = target[i]
+
+            if (to < from-precision || from+precision < to){
+                stage.position = to.toDouble()
+            }
+        }
+
+        if (wait)
+            stages.forEach { core.waitForDevice(it.deviceName)}
+
     }
 
     private fun recordTimes(snap: Long, copy: Long){
@@ -141,9 +149,9 @@ class MMConnection(
                     hub,
                     mmConnection.width,
                     mmConnection.height,
-                    mmConnection.steps
+                    10
                 ) {
-                    mmConnection.captureStack(it.asShortBuffer())
+                    //mmConnection.captureStack(it.asShortBuffer())
                     it
                 }
                 scene.addChild(mmVol.volume)
