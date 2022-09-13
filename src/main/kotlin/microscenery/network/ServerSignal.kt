@@ -1,12 +1,11 @@
 package microscenery.network
 
 import com.google.protobuf.util.Timestamps.fromMillis
-import me.jancasus.microscenery.network.v2.*
+import me.jancasus.microscenery.network.v2.EnumNumericType
+import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.network.HardwareDimensions.Companion.toPoko
 import org.joml.Vector2i
 import org.joml.Vector3f
-import org.joml.Vector3i
-import java.lang.System.currentTimeMillis
 
 
 sealed class ServerSignal {
@@ -18,7 +17,7 @@ sealed class ServerSignal {
         val dataPorts: List<Int>,
         val connectedClients: Int,
         val hwDimensions: HardwareDimensions
-    ):ServerSignal() {
+    ) : ServerSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ServerSignal {
             val serverSignal = me.jancasus.microscenery.network.v2.ServerSignal.newBuilder()
 
@@ -32,11 +31,13 @@ sealed class ServerSignal {
             return serverSignal.build()
         }
     }
-    data class Slice(val Id: Int,
-                     val  created: Long,
-                     val  stagePos:Vector3f,
-                     val  size: Int,
-                     val stackId: Int?
+
+    data class Slice(
+        val Id: Int,
+        val created: Long,
+        val stagePos: Vector3f,
+        val size: Int,
+        val stackId: Int?
     ) : ServerSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ServerSignal {
             val serverSignal = me.jancasus.microscenery.network.v2.ServerSignal.newBuilder()
@@ -61,23 +62,24 @@ sealed class ServerSignal {
 
     companion object {
         fun me.jancasus.microscenery.network.v2.ServerSignal.toPoko() =
-            when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")){
+            when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
                 me.jancasus.microscenery.network.v2.ServerSignal.SignalCase.SERVERSTATUS -> {
                     val ss = this.serverStatus
-                    ServerSignal.ServerStatus(
+                    ServerStatus(
                         ss.state.toPoko(),
                         ss.dataPortsList,
                         ss.connectedClients,
-                        ss.hwDimensions.toPoko())
+                        ss.hwDimensions.toPoko()
+                    )
                 }
                 me.jancasus.microscenery.network.v2.ServerSignal.SignalCase.STACK -> {
                     TODO("stack")
                 }
                 me.jancasus.microscenery.network.v2.ServerSignal.SignalCase.SLICE -> {
                     val s = this.slice
-                    ServerSignal.Slice(
+                    Slice(
                         s.id,
-                        s.created.seconds*1000 + s.created.nanos.div(1000),
+                        s.created.seconds * 1000 + s.created.nanos.div(1000),
                         s.stagePos.toPoko(),
                         s.size,
                         if (s.stackId == -1) null else s.stackId
@@ -94,20 +96,22 @@ sealed class ServerSignal {
 enum class ServerState {
     LIVE, MANUAL, SHUTTING_DOWN, STACK, STARTUP,
 }
-fun ServerState.toProto() = when(this){
+
+fun ServerState.toProto() = when (this) {
     ServerState.LIVE -> EnumServerState.SERVER_STATE_LIVE
     ServerState.MANUAL -> EnumServerState.SERVER_STATE_MANUAL
     ServerState.SHUTTING_DOWN -> EnumServerState.SERVER_STATE_SHUTTING_DOWN
     ServerState.STACK -> EnumServerState.SERVER_STATE_STACK
     ServerState.STARTUP -> EnumServerState.SERVER_STATE_STARTUP
 }
-fun EnumServerState.toPoko() = when(this){
+
+fun EnumServerState.toPoko() = when (this) {
     EnumServerState.SERVER_STATE_UNKNOWN -> throw IllegalArgumentException("Cant convert to ServerState")
     EnumServerState.SERVER_STATE_LIVE -> ServerState.LIVE
-    EnumServerState.SERVER_STATE_MANUAL ->  ServerState.MANUAL
-    EnumServerState.SERVER_STATE_SHUTTING_DOWN ->  ServerState.SHUTTING_DOWN
-    EnumServerState.SERVER_STATE_STACK ->  ServerState.STACK
-    EnumServerState.SERVER_STATE_STARTUP ->  ServerState.STARTUP
+    EnumServerState.SERVER_STATE_MANUAL -> ServerState.MANUAL
+    EnumServerState.SERVER_STATE_SHUTTING_DOWN -> ServerState.SHUTTING_DOWN
+    EnumServerState.SERVER_STATE_STACK -> ServerState.STACK
+    EnumServerState.SERVER_STATE_STARTUP -> ServerState.STARTUP
     EnumServerState.UNRECOGNIZED -> throw IllegalArgumentException("Cant convert to ServerState")
 }
 
@@ -120,7 +124,7 @@ data class HardwareDimensions(
     val numericType: NumericType
 ) {
     fun toProto(): me.jancasus.microscenery.network.v2.HardwareDimensions {
-        val hd =me.jancasus.microscenery.network.v2.HardwareDimensions.newBuilder()
+        val hd = me.jancasus.microscenery.network.v2.HardwareDimensions.newBuilder()
 
         hd.stageMin = this.stageMin.toProto()
         hd.stageMax = this.stageMax.toProto()
@@ -149,10 +153,12 @@ data class HardwareDimensions(
 enum class NumericType(val bytes: Int) {
     INT16(2)
 }
+
 fun NumericType.toProto() = when (this) {
     NumericType.INT16 -> EnumNumericType.VALUE_NUMERIC_INT16
 }
-fun EnumNumericType.toPoko() = when (this){
+
+fun EnumNumericType.toPoko() = when (this) {
     EnumNumericType.VALUE_NUMERIC_UNKNOWN -> throw IllegalArgumentException("Cant convert to NumericType")
     EnumNumericType.VALUE_NUMERIC_INT16 -> NumericType.INT16
     EnumNumericType.UNRECOGNIZED -> throw IllegalArgumentException("Cant convert to NumericType")

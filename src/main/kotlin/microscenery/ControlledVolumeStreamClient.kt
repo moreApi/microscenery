@@ -18,33 +18,35 @@ class ControlledVolumeStreamClient(
     val hub: Hub,
     basePort: Int = MicroscenerySettings.get("Network.basePort"),
     val host: String = MicroscenerySettings.get("Network.host"),
-    val zContext: ZContext = ZContext()
+    val zContext: ZContext = microscenery.zContext
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
-    private val controlConnection = ControlZMQClient(zContext, basePort, host)
+    private val controlConnection = ControlSignalsClient(zContext, basePort, host)
+
 
     var mmVol: StreamedVolume? = null
     var connection: VolumeReceiver? = null
 
-    var latestServerStatus: ServerSignal.Status? = null
+    var latestServerStatus: ServerSignal.ServerStatus? = null
     var lastAcquisitionSignal = 0L
 
     @Suppress("unused")
     fun start() {
+
         logger.info("Got Start Command")
-        if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.StartImaging)
+        //if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.StartImaging)
     }
 
     @Suppress("unused")
     fun snap() {
         logger.info("Got Snap Command")
-        if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.SnapStack)
+        //if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.SnapStack)
     }
 
     @Suppress("unused")
     fun pause() {
         logger.info("Got Pause Command")
-        if (latestServerStatus?.state == ServerState.Imaging) controlConnection.sendSignal(ClientSignal.StopImaging)
+        //if (latestServerStatus?.state == ServerState.Imaging) controlConnection.sendSignal(ClientSignal.StopImaging)
     }
 
     @Suppress("unused")
@@ -57,13 +59,7 @@ class ControlledVolumeStreamClient(
      * Adds a dummy Volume to the scene to avoid a bug later and adds and manages the streamed volume.
      */
     fun init() {
-        // Required so the volumeManager is initialized later in the scene -.-
-        /*val dummyVolume = Volume.fromBuffer(emptyList(), 5, 5, 5, UnsignedShortType(), hub)
-        dummyVolume.spatial().position = Vector3f(999f)
-        dummyVolume.name = "dummy volume"
-        dummyVolume.addTimepoint("bums", MemoryUtil.memAlloc(5 * 5 * 5 * Short.SIZE_BYTES))
-        scene.addChild(dummyVolume)*/
-
+/*
         controlConnection.addListener { signal ->
             when (signal) {
                 is ServerSignal.Status -> {
@@ -96,10 +92,10 @@ class ControlledVolumeStreamClient(
                 }
             }
         }
-        controlConnection.sendSignal(ClientSignal.ClientSignOn)
+        controlConnection.sendSignal(ClientSignal.ClientSignOn)*/
     }
 
-    private fun refresh(signal: ServerSignal.Status): Boolean {
+    private fun refresh(signal: ServerSignal.ServerStatus): Boolean {
         if (signal.dataPorts.isEmpty()) {
             logger.warn("Got imaging status but empty port list.")
             return false
@@ -111,9 +107,9 @@ class ControlledVolumeStreamClient(
         }
 
         // build new stuff
-        val width = signal.imageSize.x
-        val height = signal.imageSize.y
-        val slices = signal.imageSize.z
+        val width = 7//signal.imageSize.x
+        val height = 7//signal.imageSize.y
+        val slices = 7//signal.imageSize.z
 
         if (width == mmVol?.width && height == mmVol?.height && slices == mmVol?.depth)
             return true // no need the create new volume
