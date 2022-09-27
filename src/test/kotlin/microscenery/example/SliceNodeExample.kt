@@ -1,16 +1,12 @@
 package microscenery.example
 
-import graphics.scenery.textures.Texture
-import graphics.scenery.attribute.material.Material
-import graphics.scenery.primitives.Plane
-import graphics.scenery.utils.Image
 import graphics.scenery.volumes.Volume
 import io.scif.util.FormatTools
 import microscenery.DefaultScene
+import microscenery.SliceRenderNode
 import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.*
 import net.imglib2.type.numeric.real.FloatType
-import org.joml.Vector3f
 import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import org.scijava.io.location.FileLocation
@@ -26,32 +22,19 @@ class SliceRenderExample: DefaultScene() {
             Path("""C:\Users\JanCasus\volumes\unpublished\cherry_slice_55_tf_applied_RGB.tif""")
         )
 
-        val dataExpaned = MemoryUtil.memAlloc((data.capacity() * 4))
-        for ( i in 1..data.capacity()){
-            val v = data.get()
-            dataExpaned.put(v)
-            dataExpaned.put(v)
-            dataExpaned.put(v)
-            dataExpaned.put(Byte.MAX_VALUE)
-        }
-        dataExpaned.rewind()
 
 
-        val plane = Plane(
-            Vector3f(-0.5f,-0.5f,0f),
-            Vector3f(-0.5f,0.5f,0f),
-            Vector3f(0.5f,-0.5f,0f),
-            Vector3f(0.5f,0.5f,0f))
+
+        SliceRenderNode(
+            data,
+            dims[0],
+            dims[1],
+            0.005f,
+            1
+        )
             .apply { scene.addChild(this) }
 
 
-        plane.material().cullingMode = Material.CullingMode.None
-
-
-        val final = Image(dataExpaned, dims[0], dims[1])
-        plane.material {
-            textures["diffuse"] = Texture.fromImage(final)
-        }
 
     }
 
@@ -126,3 +109,4 @@ class SliceRenderExample: DefaultScene() {
         }
     }
 }
+
