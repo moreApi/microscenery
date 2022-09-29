@@ -5,9 +5,7 @@ import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import microscenery.hardware.SPIMSetup
-import microscenery.network.ServerSignal
 import mmcorej.CMMCore
-import org.joml.Vector3d
 import org.joml.Vector3f
 import java.awt.Rectangle
 import java.nio.ShortBuffer
@@ -109,9 +107,9 @@ class MMConnection(
     fun moveStage(target: Vector3f, wait: Boolean){
         val stages = listOf(setup.xStage,setup.yStage,setup.zStage)
         val precisions = listOf(
-            MicroscenerySettings.get("Stage.precisionXY",1.0),
-            MicroscenerySettings.get("Stage.precisionXY",1.0),
-            MicroscenerySettings.get("Stage.precisionZ",1.0),
+            MicroscenerySettings.get("Stage.precisionXY",1.0f),
+            MicroscenerySettings.get("Stage.precisionXY",1.0f),
+            MicroscenerySettings.get("Stage.precisionZ",1.0f),
         )
 
         for (i in 0..2){

@@ -3,10 +3,12 @@ package microscenery.example
 import graphics.scenery.volumes.Volume
 import io.scif.util.FormatTools
 import microscenery.DefaultScene
+import microscenery.MMConnection
 import microscenery.SliceRenderNode
 import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.*
 import net.imglib2.type.numeric.real.FloatType
+import org.joml.Vector3f
 import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import org.scijava.io.location.FileLocation
@@ -14,7 +16,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import kotlin.io.path.Path
 
-class SliceRenderExample: DefaultScene() {
+class SliceRenderFromFileExample : DefaultScene() {
     override fun init() {
         super.init()
 
@@ -33,7 +35,6 @@ class SliceRenderExample: DefaultScene() {
             1
         )
             .apply { scene.addChild(this) }
-
 
 
     }
@@ -80,7 +81,7 @@ class SliceRenderExample: DefaultScene() {
 
         logger.debug("Loading $id from disk")
         val imageData: ByteBuffer = MemoryUtil.memAlloc((bytesPerVoxel * dims.x * dims.y * dims.z))
-        logger.debug("${file.fileName}: Allocated ${imageData.capacity()} bytes for $type ${8*bytesPerVoxel}bit image of $dims")
+        logger.debug("${file.fileName}: Allocated ${imageData.capacity()} bytes for $type ${8 * bytesPerVoxel}bit image of $dims")
 
         val start = System.nanoTime()
 
@@ -102,10 +103,38 @@ class SliceRenderExample: DefaultScene() {
         imageData.flip()
         return imageData to dims
     }
-    companion object{
+
+    companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            SliceRenderExample().main()
+            SliceRenderFromFileExample().main()
+        }
+    }
+}
+
+class SliceNodeMMExample() : DefaultScene() {
+
+    override fun init() {
+        super.init()
+
+
+        val mmConnection = MMConnection()
+
+        for (i in 0..100) {
+            val buffer = MemoryUtil.memAlloc(mmConnection.height * mmConnection.width * 2)//shortType
+            mmConnection.moveStage(Vector3f(0f, 0f, i.toFloat()), false)
+            mmConnection.snapSlice(buffer.asShortBuffer())
+            SliceRenderNode(buffer, mmConnection.width, mmConnection.height, 0.005f, 2).let {
+                scene.addChild(it)
+                it.spatial().position = Vector3f(i.toFloat())
+            }
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            SliceNodeMMExample().main()
         }
     }
 }
