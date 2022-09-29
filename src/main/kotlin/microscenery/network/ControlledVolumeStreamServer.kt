@@ -1,8 +1,9 @@
-package microscenery
+package microscenery.network
 
 import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
-import microscenery.network.*
+import microscenery.MMConnection
+import microscenery.MicroscenerySettings
 import mmcorej.CMMCore
 import org.joml.Vector2i
 import org.joml.Vector3f

@@ -5,7 +5,7 @@ import graphics.scenery.backends.Renderer
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunction
 import microscenery.lightSleepOn
-import microscenery.ControlledVolumeStreamClient
+import microscenery.network.ControlledVolumeStreamClient
 import microscenery.UI.DisplayRangeEditor
 import org.joml.Vector3f
 import kotlin.concurrent.thread

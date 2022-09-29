@@ -8,7 +8,7 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
-import microscenery.ControlledVolumeStreamClient
+import microscenery.network.ControlledVolumeStreamClient
 import microscenery.DefaultVRScene
 import microscenery.MMConnection
 import microscenery.StreamedVolume

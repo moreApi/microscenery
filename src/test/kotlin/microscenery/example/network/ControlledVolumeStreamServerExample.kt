@@ -1,6 +1,6 @@
 package microscenery.example.network
 
-import microscenery.ControlledVolumeStreamServer
+import microscenery.network.ControlledVolumeStreamServer
 
 class ControlledVolumeStreamServerExample {
     companion object{

@@ -1,10 +1,11 @@
-package microscenery
+package microscenery.network
 
 import graphics.scenery.Hub
 import graphics.scenery.Scene
 import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.LazyLogger
-import microscenery.network.*
+import microscenery.MicroscenerySettings
+import microscenery.StreamedVolume
 import org.joml.Vector4f
 import org.zeromq.ZContext
 
