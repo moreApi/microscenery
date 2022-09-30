@@ -1,6 +1,7 @@
 package microscenery.network
 
 import microscenery.MicroscenerySettings
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentSkipListMap
 
@@ -24,10 +25,11 @@ class SliceStorage(val maxStorageSize: Int = MicroscenerySettings.get("Network.D
             val toBeDropped = sliceTimestamps.firstEntry()
             sliceTimestamps.remove(toBeDropped.key)
             val sliceTBDid = toBeDropped.value
-            // seems like the buffer does not need to be freed since we are not using direct buffers
             val sliceTBDdata = storage.get(sliceTBDid)
                 ?: throw IllegalStateException("Wanted to drop slice $sliceTBDid but data was not to be found.")
             storage = storage.minus(sliceTBDid)
+            MemoryUtil.memFree(sliceTBDdata)
+            //TODO somehow propagate status of freed buffer
             currentlyStoredBytes -= sliceTBDdata.capacity()
         }
         storage = storage.plus(id to data)
@@ -37,6 +39,6 @@ class SliceStorage(val maxStorageSize: Int = MicroscenerySettings.get("Network.D
 
     fun getSlice(id: Int): ByteBuffer? = storage[id]
 
-    fun newSlice(size: Int): ByteBuffer = ByteBuffer.allocateDirect(size)
+    fun newSlice(size: Int): ByteBuffer = MemoryUtil.memAlloc(size)
 
 }
