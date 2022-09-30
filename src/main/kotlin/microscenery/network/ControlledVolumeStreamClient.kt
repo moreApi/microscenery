@@ -5,35 +5,94 @@ import graphics.scenery.Scene
 import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.LazyLogger
 import microscenery.MicroscenerySettings
-import microscenery.StreamedVolume
+import microscenery.MicroscopeHardware
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.zeromq.ZContext
+import java.nio.ByteBuffer
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 /**
- * Adds and manages the streamed volume.
  *
- * call [init] in SceneryBase.init
  */
 class ControlledVolumeStreamClient(
     val scene: Scene,
     val hub: Hub,
+    val storage: SliceStorage,
     basePort: Int = MicroscenerySettings.get("Network.basePort"),
-    val host: String = MicroscenerySettings.get("Network.host"),
+    host: String = MicroscenerySettings.get("Network.host"),
     val zContext: ZContext = microscenery.zContext
-) {
+) : MicroscopeHardware {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+
     private val controlConnection = ControlSignalsClient(zContext, basePort, host)
+    private val dataConnection = BiggishDataClient(zContext,basePort +1, host)
 
-
-    var mmVol: StreamedVolume? = null
-    var connection: VolumeReceiver? = null
-
-    var latestServerStatus: ServerSignal.ServerStatus? = null
+    override var latestServerStatus: ServerSignal.ServerStatus? = null
     var lastAcquisitionSignal = 0L
+    override val newSlice: BlockingQueue<Pair<ServerSignal.Slice, ByteBuffer>> = ArrayBlockingQueue(10)
+
+    var running = true
+    val thread: Thread
+
+    private val requestedSlices = ConcurrentHashMap<Int,ServerSignal.Slice>()
+
+    init {
+        controlConnection.addListener (this::processServerSignal)
+        thread = thread {
+            while (running && Thread.interrupted()){
+                val sliceParts = dataConnection.outputQueue.poll(200, TimeUnit.MILLISECONDS) ?: continue
+                val meta = requestedSlices[sliceParts.id]
+
+                if (meta == null){
+                    logger.warn("Got data for slice ${sliceParts.id} but it was not requested.")
+                    continue
+                }
+                if (sliceParts.size != meta.size) {
+                    logger.error("Size mismatch for slice ${sliceParts.id} ${sliceParts.size} vs ${meta.size}")
+                }
+
+                val buffer = storage.newSlice(sliceParts.size)
+                sliceParts.chunks.forEach{
+                    buffer.put(it.value)
+                }
+                buffer.flip()
+                newSlice.put(meta to buffer)
+            }
+        }
+    }
+
+
+    override fun moveStage(target: Vector3f) {
+        controlConnection.sendSignal(ClientSignal.MoveStage(target))
+    }
+
+    override fun snapSlice() {
+        controlConnection.sendSignal(ClientSignal.SnapImage)
+    }
+
+    /**
+     * Executed by the network thread of [ControlSignalsClient]
+     */
+    private fun processServerSignal(signal: ServerSignal){
+        when (signal){
+            is ServerSignal.ServerStatus -> latestServerStatus = signal
+            is ServerSignal.Slice -> {
+                if (dataConnection.requestSlice(signal.Id,signal.size)){
+                    // save signal for eventual data receiving
+                    requestedSlices[signal.Id] = signal
+                }
+            }
+            is ServerSignal.Stack -> TODO()
+        }
+    }
 
     @Suppress("unused")
     fun start() {
-
         logger.info("Got Start Command")
         //if (latestServerStatus?.state == ServerState.Paused) controlConnection.sendSignal(ClientSignal.StartImaging)
     }
@@ -54,88 +113,6 @@ class ControlledVolumeStreamClient(
     fun shutdown() {
         logger.info("Got Stop Command")
         controlConnection.sendSignal(ClientSignal.Shutdown)
-    }
-
-    /**
-     * Adds a dummy Volume to the scene to avoid a bug later and adds and manages the streamed volume.
-     */
-    fun init() {
-/*
-        controlConnection.addListener { signal ->
-            when (signal) {
-                is ServerSignal.Status -> {
-                    latestServerStatus = signal
-                    when (signal.state) {
-                        ServerState.Imaging -> {
-                            if (!refresh(signal)) return@addListener
-                            mmVol?.paused = false
-                        }
-                        ServerState.Paused -> {
-                            mmVol?.paused = true
-                        }
-                        ServerState.ShuttingDown -> {
-                            mmVol?.running = false
-                            connection?.close()?.forEach { it.join() }
-                            logger.warn("Server shutdown")
-                        }
-                        ServerState.Snapping -> {}
-                    }
-                }
-                is ServerSignal.StackAcquired -> {
-                    lastAcquisitionSignal = System.currentTimeMillis()
-                    latestServerStatus?.let {
-                        if (it.state == ServerState.Imaging) return@addListener // the live imaging will take care of this stack
-                        if (!refresh(it)) return@addListener
-                        mmVol?.once = true
-                    } ?: let {
-                        logger.warn("Got stack signal but do not know the server status.")
-                    }
-                }
-            }
-        }
-        controlConnection.sendSignal(ClientSignal.ClientSignOn)*/
-    }
-
-    private fun refresh(signal: ServerSignal.ServerStatus): Boolean {
-        if (signal.dataPorts.isEmpty()) {
-            logger.warn("Got imaging status but empty port list.")
-            return false
-        }
-
-        if (mmVol?.paused == false && mmVol?.running == true) {
-            logger.info("Found active streaming vol. Changing nothing")
-            return false
-        }
-
-        // build new stuff
-        val width = 7//signal.imageSize.x
-        val height = 7//signal.imageSize.y
-        val slices = 7//signal.imageSize.z
-
-        if (width == mmVol?.width && height == mmVol?.height && slices == mmVol?.depth)
-            return true // no need the create new volume
-
-        // close old connections of there are any
-        connection?.close()?.forEach { it.join() }
-
-        val oldVolume = mmVol
-        mmVol?.running = false
-
-        connection = VolumeReceiver(reuseBuffers = false,
-            zContext = zContext,
-            width * height * slices * Short.SIZE_BYTES,
-            connections = signal.dataPorts.map { host to it })
-
-        mmVol = StreamedVolume(hub, width, height, slices, getData = {
-            connection?.getVolume(2000, it)
-        }, paused = true)
-        oldVolume?.let {
-            it.running = false
-            scene.removeChild(it.volume)
-        }
-        scene.addChild(mmVol!!.volume)
-
-        return true
     }
 
 

@@ -12,7 +12,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import kotlin.concurrent.thread
 import kotlin.properties.Delegates
 
-// TODO MAYBE: Put hardware commands worker in own class
+// TODO: Put hardware commands worker in own class
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class ControlledVolumeStreamServer @JvmOverloads constructor(
     core: CMMCore? = null,
@@ -72,6 +72,9 @@ class ControlledVolumeStreamServer @JvmOverloads constructor(
         )
     }
 
+    /**
+     * Executed by the network thread of [ControlSignalsServer]
+     */
     private fun processClientSignal(it: ClientSignal) {
         when (it) {
             is ClientSignal.AcquireStack -> hardwareCommandsQueue.put(HardwareCommand.GenerateStackCommands(it))
