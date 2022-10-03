@@ -1,0 +1,62 @@
+package microscenery.network
+
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlin.concurrent.thread
+
+
+/**
+ * Agent class to handle its thread and shutting down.
+ *
+ * !! ATTENTION!! Call [startAgent] eg. in the Init method of your class
+ */
+abstract class Agent{
+
+    var running = false
+        private set
+    private lateinit var thread: Thread
+
+    protected fun startAgent(){
+
+        runBlocking {
+            // this is to make sure that the thread is started and running after initialisation. Makes testing easier.
+            val lock = Semaphore(1, 1)
+
+            thread = thread {
+                running = true
+                lock.release()
+                try {
+                    while (running && !Thread.currentThread().isInterrupted) {
+                        onLoop()
+                    }
+                } catch (_: InterruptedException){
+                    Thread.currentThread().interrupt()
+                }
+                onClose()
+            }
+
+            lock.acquire()
+        }
+    }
+
+    /**
+     * Called in a while loop once started. Add [Thread.sleep] if needed. Otherwise, the agent will busy wait.
+     */
+    protected abstract fun onLoop()
+
+    /**
+     * Called after the last loop or an interrupt.
+     */
+    protected open fun onClose() {}
+
+    /**
+     * Interrupts the thread and stops additional loops.
+     *
+     * @return a thread object to join on
+     */
+    fun close(): Thread {
+        running = false
+        thread.interrupt()
+        return thread
+    }
+}

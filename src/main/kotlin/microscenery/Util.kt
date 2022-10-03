@@ -55,9 +55,19 @@ fun freeze(): Kryo {
 /**
  * sleep but continue once a value is there. Should speed up tests
  */
-fun lightSleepOn(mills: Int = 1000, target: () -> Any?) {
+fun lightSleepOnNull(mills: Int = 10000, target: () -> Any?) {
     for (t in 1..10) {
         if (target() == null)
+            Thread.sleep(mills / 10L)
+    }
+}
+
+/**
+ * sleep but continue once a condition is met. Should speed up tests
+ */
+fun lightSleepOnCondition(mills: Int = 10000, target: () -> Boolean) {
+    for (t in 1..10) {
+        if (!target())
             Thread.sleep(mills / 10L)
     }
 }

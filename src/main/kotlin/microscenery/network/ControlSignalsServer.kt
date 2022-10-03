@@ -11,7 +11,6 @@ import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.concurrent.ArrayBlockingQueue
-import kotlin.concurrent.thread
 
 /**
  * A server to receive [ClientSignal]s and send [ServerSignal]s from.
@@ -20,11 +19,11 @@ import kotlin.concurrent.thread
  */
 class ControlSignalsServer(
     val zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
-    listeners: List<(ClientSignal) -> Unit> = emptyList()
-) {
+    listeners: List<(microscenery.network.ClientSignal) -> Unit> = emptyList()
+) :Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    val thread: Thread
+    private val socket: ZMQ.Socket
 
     private val signalsOut = ArrayBlockingQueue<ServerSignal>(100)
     private val signalsIn = event<ClientSignal>()
@@ -34,8 +33,13 @@ class ControlSignalsServer(
         get() = clients.size
 
     init {
-        listeners.forEach { signalsIn += it }
-        thread = networkThread(this)
+        listeners.forEach { addListener(it) }
+
+        socket = zContext.createSocket(SocketType.ROUTER)
+        socket.bind("tcp://*:${port}")
+        logger.info("${ControlSignalsServer::class.simpleName} bound to tcp://*:${port}")
+
+        startAgent()
     }
 
     /**
@@ -57,54 +61,49 @@ class ControlSignalsServer(
         }
     }
 
-    private fun networkThread(parent: ControlSignalsServer) = thread {
-        val socket: ZMQ.Socket = zContext.createSocket(SocketType.ROUTER)
-        socket.bind("tcp://*:${parent.port}")
-        parent.logger.info("${ControlSignalsServer::class.simpleName} bound to tcp://*:${parent.port}")
+    override fun onLoop() {
+        // process incoming messages first.
+        // First frame in each message is the sender identity
+        var identity = socket.recv(ZMQ.DONTWAIT)
+        while (identity != null) {
+            clients += identity
+            val event = ClientSignal.parseFrom(socket.recv())
 
-        var running = true
-
-        while (!Thread.currentThread().isInterrupted && running) {
-            Thread.sleep(200)
-
-            // process incoming messages first.
-            // First frame in each message is the sender identity
-            var identity = socket.recv(ZMQ.DONTWAIT)
-            while (identity != null) {
-                parent.clients += identity
-                val event = ClientSignal.parseFrom(socket.recv())
-
-                synchronized(parent.signalsIn) {
-                    parent.signalsIn(event)
-                }
-
-                identity = socket.recv(ZMQ.DONTWAIT)
+            synchronized(signalsIn) {
+                signalsIn(event)
             }
 
-            // process outgoing messages
-            var outSignal = parent.signalsOut.poll()
-            while (outSignal != null) {
-                val payload = outSignal.toByteArray()
+            identity = socket.recv(ZMQ.DONTWAIT)
+        }
 
-                // publish to all clients
-                parent.clients.forEach { ident ->
-                    socket.sendMore(ident)
-                    socket.send(payload)
-                    Thread.sleep(1)
-                }
+        // process outgoing messages
+        var outSignal = signalsOut.poll()
+        while (outSignal != null) {
+            val payload = outSignal.toByteArray()
 
-                if (outSignal.hasServerStatus()
-                    && outSignal.serverStatus.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
-                ) {
-                    running = false
-                    outSignal = null
-                } else {
-                    outSignal = parent.signalsOut.poll()
-                }
+            // publish to all clients
+            clients.forEach { ident ->
+                socket.sendMore(ident)
+                socket.send(payload)
+                Thread.sleep(1)
+            }
+
+            if (outSignal.hasServerStatus()
+                && outSignal.serverStatus.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
+            ) {
+                outSignal = null
+                this.close()
+            } else {
+                outSignal = signalsOut.poll()
             }
         }
+        Thread.sleep(200)
+    }
+
+    override fun onClose() {
         socket.linger = 0
         socket.close()
-
     }
+
+
 }

@@ -10,7 +10,6 @@ import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.concurrent.ArrayBlockingQueue
-import kotlin.concurrent.thread
 
 /**
  * A Client to send control [ClientSignal]s to [ControlSignalsServer] and receive [ServerSignal]s.
@@ -18,18 +17,34 @@ import kotlin.concurrent.thread
  * Client shuts down when a signal with shutdown status has been received.
  */
 class ControlSignalsClient(
-    val zContext: ZContext, val port: Int, val host: String, listeners: List<(ServerSignal) -> Unit> = emptyList()
-) {
+    val zContext: ZContext, val port: Int, host: String, listeners: List<(microscenery.network.ServerSignal) -> Unit> = emptyList()
+) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    val thread: Thread
+    private val socket: ZMQ.Socket
 
     private val signalsOut = ArrayBlockingQueue<ClientSignal>(100)
     private val signalsIn = event<ServerSignal>()
 
     init {
-        listeners.forEach { signalsIn += it }
-        thread = networkThread(this)
+        listeners.forEach { addListener(it) }
+
+        val timeout = 200 //ms
+
+        socket = zContext.createSocket(SocketType.DEALER)
+        socket.receiveTimeOut = timeout
+        if (socket.connect("tcp://${host}:${port}")) {
+            logger.info("${ControlSignalsClient::class.simpleName} connected to tcp://${host}:${port}")
+        } else {
+            throw IllegalStateException("Could not connect to ${ControlSignalsClient::class.simpleName} connected to tcp://${host}:${port}")
+        }
+
+        signalsOut += ClientSignal.newBuilder().run {
+            clientSignOnBuilder.build()
+            build()
+        }
+
+        startAgent()
     }
 
     /**
@@ -37,7 +52,7 @@ class ControlSignalsClient(
      */
     fun addListener(listener: (microscenery.network.ServerSignal) -> Unit) {
         synchronized(signalsIn) {
-            signalsIn += {listener(it.toPoko())}
+            signalsIn += { listener(it.toPoko()) }
         }
     }
 
@@ -45,52 +60,36 @@ class ControlSignalsClient(
         signalsOut.add(signal.toProto())
     }
 
-    private fun networkThread(parent: ControlSignalsClient) = thread {
-        val timeout = 200 //ms
+    override fun onLoop() {
 
-        val socket: ZMQ.Socket = zContext.createSocket(SocketType.DEALER)
-        socket.receiveTimeOut = timeout
-        if (socket.connect("tcp://${parent.host}:${parent.port}")) {
-            parent.logger.info("${ControlSignalsClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
-        } else {
-            throw IllegalStateException("Could not connect to ${ControlSignalsClient::class.simpleName} connected to tcp://${parent.host}:${parent.port}")
-        }
+        // process incoming messages first.
+        // First frame in each message is the sender identity
+        var payloadIn = socket.recv(ZMQ.DONTWAIT)
+        while (payloadIn != null) {
+            val event = ServerSignal.parseFrom(payloadIn)
 
-        var running = true
-
-        parent.signalsOut += ClientSignal.newBuilder().run {
-            clientSignOnBuilder.build()
-            build()
-        }
-
-        while (!Thread.currentThread().isInterrupted && running) {
-
-            // process incoming messages first.
-            // First frame in each message is the sender identity
-            var payloadIn = socket.recv(ZMQ.DONTWAIT)
-            while (payloadIn != null) {
-                val event = ServerSignal.parseFrom(payloadIn)
-
-                synchronized(parent.signalsIn) {
-                    parent.signalsIn(event)
-                }
-
-                if (event.hasServerStatus() && event.serverStatus.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN) {
-                    running = false
-                    payloadIn = null
-                } else {
-                    payloadIn = socket.recv(ZMQ.DONTWAIT)
-                }
+            synchronized(signalsIn) {
+                signalsIn(event)
             }
 
-            // process outgoing messages
-            var outSignal = parent.signalsOut.poll()
-            while (outSignal != null && running) {
-                socket.send(outSignal.toByteArray())
-                outSignal = parent.signalsOut.poll()
+            if (event.hasServerStatus() && event.serverStatus.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN) {
+                payloadIn = null
+                close()
+            } else {
+                payloadIn = socket.recv(ZMQ.DONTWAIT)
             }
-            Thread.sleep(200)
         }
+
+        // process outgoing messages
+        var outSignal = signalsOut.poll()
+        while (outSignal != null && running) {
+            socket.send(outSignal.toByteArray())
+            outSignal = signalsOut.poll()
+        }
+        Thread.sleep(200)
+    }
+
+    override fun onClose() {
         socket.linger = 0
         socket.close()
 
