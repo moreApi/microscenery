@@ -30,6 +30,10 @@ sealed class ServerSignal {
 
             return serverSignal.build()
         }
+
+        companion object {
+            val EMPTY = ServerStatus(ServerState.STARTUP, emptyList(), 0, HardwareDimensions.EMPTY)
+        }
     }
 
     data class Slice(
@@ -89,8 +93,6 @@ sealed class ServerSignal {
                     throw IllegalArgumentException("Signal is not set in Server signal message")
             }
     }
-
-
 }
 
 enum class ServerState {
@@ -147,6 +149,8 @@ data class HardwareDimensions(
                 this.vertexSize.toPoko(),
                 this.numericType.toPoko()
             )
+
+        val EMPTY = HardwareDimensions(Vector3f(), Vector3f(), Vector2i(), Vector3f(), NumericType.INT16)
     }
 }
 
