@@ -1,4 +1,4 @@
-package microscenery.network
+package microscenery
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
@@ -16,7 +16,10 @@ abstract class Agent{
         private set
     private lateinit var thread: Thread
 
-    protected fun startAgent(){
+    /**
+     * Starts this agent. Blocks until the thread is running.
+     */
+    fun startAgent(){
 
         runBlocking {
             // this is to make sure that the thread is started and running after initialisation. Makes testing easier.

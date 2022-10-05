@@ -1,7 +1,7 @@
 package microscenery.unit.network
 
 import microscenery.lightSleepOnCondition
-import microscenery.network.Agent
+import microscenery.Agent
 import org.junit.jupiter.api.Test
 
 
