@@ -1,8 +1,10 @@
 package microscenery.hardware
 
 import graphics.scenery.utils.LazyLogger
-import kotlin.math.log
 
+/**
+ * used by the imported hardware stuff from ?ClearControl? which is java
+ */
 class ReportingUtils {
 
     companion object {
