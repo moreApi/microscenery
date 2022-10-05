@@ -6,6 +6,7 @@ import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.network.HardwareDimensions.Companion.toPoko
 import org.joml.Vector2i
 import org.joml.Vector3f
+import java.nio.ByteBuffer
 
 
 sealed class ServerSignal {
@@ -41,7 +42,8 @@ sealed class ServerSignal {
         val created: Long,
         val stagePos: Vector3f,
         val size: Int,
-        val stackId: Int?
+        val stackId: Int?,
+        val data: ByteBuffer?
     ) : ServerSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ServerSignal {
             val serverSignal = me.jancasus.microscenery.network.v2.ServerSignal.newBuilder()
@@ -86,7 +88,8 @@ sealed class ServerSignal {
                         s.created.seconds * 1000 + s.created.nanos.div(1000),
                         s.stagePos.toPoko(),
                         s.size,
-                        if (s.stackId == -1) null else s.stackId
+                        if (s.stackId == -1) null else s.stackId,
+                        null
                     )
                 }
                 me.jancasus.microscenery.network.v2.ServerSignal.SignalCase.SIGNAL_NOT_SET ->
@@ -155,15 +158,18 @@ data class HardwareDimensions(
 }
 
 enum class NumericType(val bytes: Int) {
+    INT8(1),
     INT16(2)
 }
 
 fun NumericType.toProto() = when (this) {
+    NumericType.INT8 -> EnumNumericType.VALUE_NUMERIC_INT8
     NumericType.INT16 -> EnumNumericType.VALUE_NUMERIC_INT16
 }
 
 fun EnumNumericType.toPoko() = when (this) {
     EnumNumericType.VALUE_NUMERIC_UNKNOWN -> throw IllegalArgumentException("Cant convert to NumericType")
+    EnumNumericType.VALUE_NUMERIC_INT8 -> NumericType.INT8
     EnumNumericType.VALUE_NUMERIC_INT16 -> NumericType.INT16
     EnumNumericType.UNRECOGNIZED -> throw IllegalArgumentException("Cant convert to NumericType")
 }

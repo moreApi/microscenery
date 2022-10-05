@@ -45,7 +45,8 @@ message HardwareDimensions{
 
 enum EnumNumericType{
   VALUE_NUMERIC_UNKNOWN = 0;
-  VALUE_NUMERIC_INT16 = 1;
+  VALUE_NUMERIC_INT8 = 1;
+  VALUE_NUMERIC_INT16 = 2;
 }
 
 message Stack{
