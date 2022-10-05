@@ -5,6 +5,7 @@ import kotlinx.event.event
 import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
 import me.jancasus.microscenery.network.v2.ServerSignal
+import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.network.ClientSignal.Companion.toPoko
 import org.zeromq.SocketType
@@ -20,7 +21,7 @@ import java.util.concurrent.ArrayBlockingQueue
 class ControlSignalsServer(
     val zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
     listeners: List<(microscenery.network.ClientSignal) -> Unit> = emptyList()
-) :Agent() {
+) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket

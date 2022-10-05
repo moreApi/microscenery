@@ -5,6 +5,7 @@ import kotlinx.event.event
 import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
 import me.jancasus.microscenery.network.v2.ServerSignal
+import microscenery.Agent
 import microscenery.network.ServerSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
@@ -17,7 +18,7 @@ import java.util.concurrent.ArrayBlockingQueue
  * Client shuts down when a signal with shutdown status has been received.
  */
 class ControlSignalsClient(
-    val zContext: ZContext, val port: Int, host: String, listeners: List<(microscenery.network.ServerSignal) -> Unit> = emptyList()
+    zContext: ZContext, val port: Int, host: String, listeners: List<(microscenery.network.ServerSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
