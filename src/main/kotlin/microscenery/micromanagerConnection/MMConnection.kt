@@ -1,10 +1,14 @@
-package microscenery
+package microscenery.micromanagerConnection
 
 import graphics.scenery.Camera
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
+import microscenery.DefaultScene
+import microscenery.MicroscenerySettings
+import microscenery.StreamedVolume
 import microscenery.hardware.SPIMSetup
+import microscenery.let
 import mmcorej.CMMCore
 import org.joml.Vector3f
 import java.awt.Rectangle

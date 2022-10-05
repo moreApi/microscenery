@@ -3,7 +3,7 @@ package microscenery.example
 import graphics.scenery.volumes.Volume
 import io.scif.util.FormatTools
 import microscenery.DefaultScene
-import microscenery.MMConnection
+import microscenery.micromanagerConnection.MMConnection
 import microscenery.SliceRenderNode
 import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.*
@@ -112,7 +112,7 @@ class SliceRenderFromFileExample : DefaultScene() {
     }
 }
 
-class SliceNodeMMExample() : DefaultScene() {
+class SliceNodeMMExample : DefaultScene() {
 
     override fun init() {
         super.init()
@@ -124,7 +124,7 @@ class SliceNodeMMExample() : DefaultScene() {
             val buffer = MemoryUtil.memAlloc(mmConnection.height * mmConnection.width * 2)//shortType
             mmConnection.moveStage(Vector3f(0f, 0f, i.toFloat()), false)
             mmConnection.snapSlice(buffer.asShortBuffer())
-            SliceRenderNode(buffer, mmConnection.width, mmConnection.height, 0.005f, 2).let {
+            SliceRenderNode(buffer, mmConnection.width, mmConnection.height, 0.001f, 2).let {
                 scene.addChild(it)
                 it.spatial().position = Vector3f(i.toFloat())
             }
