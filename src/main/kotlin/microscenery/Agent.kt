@@ -25,7 +25,7 @@ abstract class Agent{
             // this is to make sure that the thread is started and running after initialisation. Makes testing easier.
             val lock = Semaphore(1, 1)
 
-            thread = thread {
+            thread = thread(isDaemon = true, name = "Agent: ${this@Agent::class.simpleName}") {
                 running = true
                 lock.release()
                 try {
