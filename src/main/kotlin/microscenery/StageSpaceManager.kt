@@ -15,29 +15,34 @@ import java.util.concurrent.TimeUnit
  */
 class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val scaleDownFactor: Float = 200f): Agent() {
 
-    val stageSpace = RichNode("Stage root")
+    val stageRoot = RichNode("Stage root")
 
     init {
-        scene.addChild(stageSpace)
+        scene.addChild(stageRoot)
 
         while (running && hardware.serverStatus().state != ServerState.STARTUP){
             Thread.sleep(200)
         }
         hardware.serverStatus().let {
-            stageSpace.spatial().scale = it.hwDimensions.vertexSize.times(1/scaleDownFactor)
+            stageRoot.spatial().scale = it.hwDimensions.vertexSize.times(1/scaleDownFactor)
         }
         startAgent()
     }
 
     override fun onLoop() {
         val signal = hardware.output.poll(200,TimeUnit.MILLISECONDS)
-                as? ServerSignal.Slice ?: return
-        if (signal.data == null ) return
-        val hwd = hardware.hardwareDimensions()
+        when(signal){
+            is ServerSignal.ServerStatus -> {}
+            is ServerSignal.Slice -> {
+                if (signal.data == null ) return
+                val hwd = hardware.hardwareDimensions()
 
-        val node = SliceRenderNode(signal.data,hwd.imageSize.x,hwd.imageSize.y,1f, hwd.numericType.bytes)
-        node.spatial().position = signal.stagePos
-        stageSpace.addChild(node)
+                val node = SliceRenderNode(signal.data,hwd.imageSize.x,hwd.imageSize.y,1f, hwd.numericType.bytes)
+                node.spatial().position = signal.stagePos
+                stageRoot.addChild(node)
+            }
+            is ServerSignal.Stack -> TODO()
+        }
 
     }
 

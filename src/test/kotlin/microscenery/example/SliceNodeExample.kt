@@ -126,7 +126,7 @@ class SliceNodeMMExample : DefaultScene() {
             mmConnection.snapSlice(buffer.asShortBuffer())
             SliceRenderNode(buffer, mmConnection.width, mmConnection.height, 0.001f, 2).let {
                 scene.addChild(it)
-                it.spatial().position = Vector3f(i.toFloat())
+                it.spatial().position = Vector3f(0f, 0f,i.toFloat())
             }
         }
     }

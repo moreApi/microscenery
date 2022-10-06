@@ -24,7 +24,7 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
 
     init {
 
-        val sizes = Vector3f(width * scale, height * scale, 0f)
+        val sizes = Vector3f(width * scale, height * scale, 1f)
 
         addGeometry()
         addRenderable()

@@ -53,7 +53,7 @@ class MicromanagerWrapper(
 
         hardwareDimensions = HardwareDimensions(stageMin,stageMax,
             Vector2i(mmConnection.width,mmConnection.height),
-        Vector3f(1f),// TODO get vertex size
+        Vector3f(0.225f,0.225f,1.524f),// TODO get vertex size
         NumericType.INT16
         )
 
