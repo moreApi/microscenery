@@ -1,11 +1,8 @@
 package microscenery.example.network
 
 import microscenery.DefaultScene
-import microscenery.DemoMicroscopyHardware
 import microscenery.StageSpaceManager
-import microscenery.lightSleepOnNull
 import microscenery.network.RemoteMicroscopeClient
-import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import org.joml.Vector3f
 import org.zeromq.ZContext

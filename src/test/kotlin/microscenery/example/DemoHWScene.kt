@@ -2,9 +2,7 @@ package microscenery.example
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
-import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.Volume
 import microscenery.*
 import org.joml.Vector3f
 import kotlin.concurrent.thread
@@ -13,7 +11,7 @@ class DemoHWScene: DefaultScene() {
 
     init {
 
-        val hw = DemoMicroscopyHardware()
+        val hw = DemoMicroscopeHardware()
         val stageSpaceManager = StageSpaceManager(hw,scene)
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f,1f,2f)
@@ -30,10 +28,12 @@ class DemoHWScene: DefaultScene() {
         scene.addChild(hullbox)
 
 
-        for (z in listOf(0,50,100,150,199)){
-            val target = Vector3f(0f,0f,z.toFloat())
-            stageSpaceManager.snapSlice(target)
-        }
+        for (z in listOf(0,50,100,150,199))
+            for (y in listOf(0,50,100,150))
+                for (x in listOf(0,50,100,150)){
+                    val target = Vector3f(x.toFloat(),y.toFloat(),z.toFloat())
+                    stageSpaceManager.snapSlice(target)
+                }
 
         /*
         for(x in 0..3) {

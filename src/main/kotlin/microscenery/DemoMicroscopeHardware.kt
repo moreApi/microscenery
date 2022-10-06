@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 
-class DemoMicroscopyHardware(
+class DemoMicroscopeHardware(
     stagePosition: Vector3f = Vector3f(),
 ): MicroscopeHardware {
      protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -42,7 +42,7 @@ class DemoMicroscopyHardware(
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
             stageMax = Vector3f(side.toFloat()),
-            imageSize = Vector2i(200),
+            imageSize = Vector2i(50,50),
             vertexSize = Vector3f(1f),
             numericType = NumericType.INT8
         )
@@ -69,29 +69,18 @@ class DemoMicroscopyHardware(
         val imgY = hardwareDimensions.imageSize.y
         val sliceBuffer = MemoryUtil.memAlloc(imgX * imgY)
 
+        //TODO survive out of bound queryies
         val fullSliceSize = side * side
         val zOffset = fullSliceSize * stagePosition.z.toInt()
-        stageContent.clear()
-        stageContent.position(zOffset)
-        stageContent.limit(zOffset+fullSliceSize)
-        sliceBuffer.put(stageContent)
-
-        /*
-
-        for ( y in 0 until imgY){
-            for (x in 0 until imgX){
-                val yOffset = (stagePosition.y.toInt() + y)*side
-                val xOffset = stagePosition.x.toInt() + x
-                val pos = zOffset+yOffset+xOffset
-                if (pos < 0 || stageContent.capacity() < pos){
-                    sliceBuffer.put(Byte.MAX_VALUE)
-                } else {
-                    stageContent.position(pos)
-                    sliceBuffer.put(stageContent.get())
-                }
-            }
+        for (y in 0 until imgY){
+            val yOffset = side * (stagePosition.y.toInt() + y)
+            val xOffset = stagePosition.x.toInt()
+            val offset = zOffset + yOffset + xOffset
+            stageContent.limit(offset+imgX)
+            stageContent.position(offset)
+            sliceBuffer.put(stageContent)
         }
-        */
+
         sliceBuffer.flip()
 
         val signal = ServerSignal.Slice(
