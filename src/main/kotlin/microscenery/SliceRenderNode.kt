@@ -35,7 +35,7 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
             this.scale = sizes
         }
 
-        val side = 2.0f
+        val side = 1.0f
         val side2 = side / 2.0f
 
         geometry {
