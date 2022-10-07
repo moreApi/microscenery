@@ -5,6 +5,8 @@ import kotlinx.event.event
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
+import microscenery.hardware.MicroscopeHardwareAgent
+import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
@@ -17,7 +19,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
     private val zContext: ZContext,
     val storage: SliceStorage
-): Agent() {
+): MicroscopeHardwareAgent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsServer(zContext, basePort)
@@ -25,28 +27,19 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
 
 
-    val statusChange = event<ServerSignal.ServerStatus>()
-    var status by Delegates.observable(
-        ServerSignal.ServerStatus(
-            ServerState.STARTUP, listOf(dataSender.port), controlConnection.connectedClients, microscope.hardwareDimensions()
-        )
-    ) { _, _, newStatus: ServerSignal.ServerStatus ->
-        statusChange(newStatus)
-    }
-        private set
 
     init {
         if (connections != 1) logger.warn("More than one data connection are currently not supported. Config asks for $connections")
 
-        statusChange += {
-            controlConnection.sendSignal(it)
-        }
+        //statusChange += {
+        //    controlConnection.sendSignal(it)
+        //}
 
         controlConnection.addListener(this::processClientSignal)
 
         status = status.copy(
             state = ServerState.MANUAL,
-            hwDimensions = microscope.hardwareDimensions()
+            //hwDimensions = microscope.hardwareDimensions()
         )
 
         startAgent()
@@ -58,16 +51,16 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     private fun processClientSignal(it: ClientSignal) {
         when (it) {
             is ClientSignal.AcquireStack -> TODO()
-            ClientSignal.ClientSignOn ->  controlConnection.sendSignal(status)
+            ClientSignal.ClientSignOn -> TODO()// controlConnection.sendSignal(status)
             ClientSignal.Live -> TODO()
             is ClientSignal.MoveStage -> {
-                microscope.stagePosition = it.target
+                //microscope.stagePosition = it.target
             }
             ClientSignal.Shutdown -> {
                 microscope.shutdown()
                 close()
             }
-            ClientSignal.SnapImage -> microscope.snapSlice()
+            ClientSignal.SnapImage -> microscope.snapSlice(Vector3f())
             ClientSignal.Stop -> TODO()
         }
     }
@@ -80,7 +73,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     }
 
     @Suppress("unused")
-    fun shutdown() {
+    override fun shutdown() {
         logger.info("Got Stop Command")
         controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown))
     }
@@ -102,5 +95,9 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
     override fun onClose() {
         dataSender.close().join()
+    }
+
+    override fun snapSlice(target: Vector3f) {
+        TODO("Not yet implemented")
     }
 }

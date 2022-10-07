@@ -4,25 +4,22 @@ import "google/protobuf/timestamp.proto";
 import "BaseNetworkTypes.proto";
 
 option java_package = "me.jancasus.microscenery.network.v2";
-option java_outer_classname = "ServerSignals";
+option java_outer_classname = "MicroscopeSignals";
 option java_multiple_files = true;
 
-
-message ServerSignal{
+message MicroscopeSignal{
   oneof signal{
-    ServerStatus serverStatus = 1;
+    MicroscopeStatus status = 1;
     Stack stack = 2;
     Slice slice = 3;
+    HardwareDimensions hardwareDimensions = 10;
   }
 }
 
-message ServerStatus{
-  EnumServerState state = 2;
-  repeated int32 dataPorts = 3;
-  int32 connectedClients = 4;
-  HardwareDimensions hwDimensions = 5;
+message MicroscopeStatus{
+  EnumServerState state = 1;
+  Vector3Float stagePosition = 2;
 }
-
 enum EnumServerState{
   SERVER_STATE_UNKNOWN = 0;
   // takes images from camera at defined intervals, stage controls are open
@@ -43,12 +40,6 @@ message HardwareDimensions{
   EnumNumericType numericType = 5;
 }
 
-enum EnumNumericType{
-  VALUE_NUMERIC_UNKNOWN = 0;
-  VALUE_NUMERIC_INT8 = 1;
-  VALUE_NUMERIC_INT16 = 2;
-}
-
 message Stack{
   int32 id = 1;
   bool live = 2;
@@ -65,3 +56,8 @@ message Slice{
   int32 stackId = 5;
 }
 
+enum EnumNumericType{
+  VALUE_NUMERIC_UNKNOWN = 0;
+  VALUE_NUMERIC_INT8 = 1;
+  VALUE_NUMERIC_INT16 = 2;
+}

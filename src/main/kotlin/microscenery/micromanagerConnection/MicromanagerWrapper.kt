@@ -1,51 +1,25 @@
 package microscenery.micromanagerConnection
 
 import graphics.scenery.utils.LazyLogger
-import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.hardware.MicroscopeHardware
+import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.network.*
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.BlockingQueue
-import kotlin.properties.Delegates
 
 
 class MicromanagerWrapper(
     private val mmConnection: MMConnection,
     var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
-): Agent(), MicroscopeHardware {
+): MicroscopeHardwareAgent() {
 
     private val hardwareCommandsQueue = ArrayBlockingQueue<HardwareCommand>(5000)
     private val stopLock = Any()
 
     private var idCounter = 0
     var lastSnap = 0L
-
-
-    override val output: BlockingQueue<ServerSignal> = ArrayBlockingQueue(10)
-
-
-    private var status: ServerSignal.ServerStatus by Delegates.observable(
-        ServerSignal.ServerStatus(
-            ServerState.STARTUP, listOf(), 0, HardwareDimensions.EMPTY
-        )
-    ) { _, _, newStatus: ServerSignal.ServerStatus ->
-        output.offer(newStatus)
-    }
-
-    override fun serverStatus(): ServerSignal.ServerStatus = status
-
-    override var stagePosition: Vector3f
-        get() = mmConnection.stagePosition
-        set(value) {
-            hardwareCommandsQueue.put(HardwareCommand.MoveStage(value, hardwareDimensions()))}
-
-
-    var hardwareDimensions: HardwareDimensions //TODO send update on change
-    override fun hardwareDimensions(): HardwareDimensions = hardwareDimensions
 
     init {
         val (stageMin,stageMax) = stageMinMax()
@@ -58,11 +32,12 @@ class MicromanagerWrapper(
         )
 
         startAgent()
-        status = status.copy(state = ServerState.MANUAL, hwDimensions = hardwareDimensions)
+        status = status.copy(state = ServerState.MANUAL)
     }
 
 
-    override fun snapSlice() {
+    override fun snapSlice(target: Vector3f) {
+        hardwareCommandsQueue.put(HardwareCommand.MoveStage(target,hardwareDimensions, true))
         hardwareCommandsQueue.put(HardwareCommand.SnapImage(false))
     }
 
@@ -105,10 +80,16 @@ class MicromanagerWrapper(
                 return
             }
             when (hwCommand) {
-                is HardwareCommand.GenerateStackCommands -> TODO()
-                is HardwareCommand.MoveStage -> mmConnection.moveStage(hwCommand.safeTarget, false)
+                is HardwareCommand.GenerateStackCommands -> {
+                    TODO()
+                }
+                is HardwareCommand.MoveStage ->
+                {
+                    mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
+                    status = status.copy(stagePosition = hwCommand.safeTarget)
+                }
                 is HardwareCommand.SnapImage -> {
-                    val buf = MemoryUtil.memAlloc(this.status.hwDimensions.byteSize)
+                    val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
                     buf.clear()
                     if (lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
                         Thread.sleep(
@@ -116,11 +97,11 @@ class MicromanagerWrapper(
                         )
                     }
                     mmConnection.snapSlice(buf.asShortBuffer())
-                    val sliceSignal = ServerSignal.Slice(
+                    val sliceSignal = Slice(
                         idCounter++,
                         System.currentTimeMillis(),
                         mmConnection.stagePosition,
-                        this.status.hwDimensions.byteSize,
+                        hardwareDimensions.byteSize,
                         hwCommand.stackId,
                         buf
                     )
@@ -158,7 +139,7 @@ class MicromanagerWrapper(
     private sealed class HardwareCommand {
         protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-        class MoveStage(target: Vector3f, hwd: HardwareDimensions) : HardwareCommand() {
+        class MoveStage(target: Vector3f, hwd: HardwareDimensions, val waitForCompletion: Boolean = false) : HardwareCommand() {
             val safeTarget = Vector3f()
 
             init {

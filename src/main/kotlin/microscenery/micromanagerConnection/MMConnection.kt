@@ -127,8 +127,7 @@ class MMConnection(
             }
         }
 
-        if (wait)
-            stages.forEach { core.waitForDevice(it.deviceName)}
+        // TODO if (wait) stages.forEach { core.waitForDevice(it.deviceName)}
 
     }
 

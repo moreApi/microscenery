@@ -24,15 +24,12 @@ class RemoteMicroscopeClient(
     private val controlConnection = ControlSignalsClient(zContext, basePort, host)
     private val dataConnection = BiggishDataClient(zContext,basePort +1, host)
 
-    override fun serverStatus(): ServerSignal.ServerStatus {
-        TODO("Not yet implemented")
-    }
 
-    override val output: BlockingQueue<ServerSignal>
+    override val output: BlockingQueue<MicroscopeSignal>
         get() = TODO("Not yet implemented")
 
 
-    private val requestedSlices = ConcurrentHashMap<Int,ServerSignal.Slice>()
+    private val requestedSlices = ConcurrentHashMap<Int,Slice>()
 
     init {
         controlConnection.addListener(this::processServerSignal)
@@ -60,7 +57,7 @@ class RemoteMicroscopeClient(
     }
 
 
-    override var stagePosition: Vector3f
+     var stagePosition: Vector3f
         get() = TODO("Not yet implemented")
         set(value) {controlConnection.sendSignal(ClientSignal.MoveStage(value))}
 
@@ -68,28 +65,39 @@ class RemoteMicroscopeClient(
         TODO("Not yet implemented")
     }
 
-    override fun snapSlice() {
+     fun snapSlice() {
         controlConnection.sendSignal(ClientSignal.SnapImage)
     }
 
     /**
      * Executed by the network thread of [ControlSignalsClient]
      */
-    private fun processServerSignal(signal: ServerSignal){
+    private fun processServerSignal(signal: RemoteMicroscopeSignal){
+
         when (signal){
-            is ServerSignal.ServerStatus -> {
-                // todo latestServerStatus = signal
-                if ( signal.state == ServerState.SHUTTING_DOWN)
-                    this.close()
-            }
-            is ServerSignal.Slice -> {
-                if (dataConnection.requestSlice(signal.Id,signal.size)){
-                    // save signal for eventual data receiving
-                    requestedSlices[signal.Id] = signal
+            is RemoteMicroscopeSignal.ActualMicroscopeSignal -> {
+                val microscopesignal = signal.signal
+                when (microscopesignal) {
+                    is HardwareDimensions -> output.put(microscopesignal)
+                    is MicroscopeStatus -> {
+                        if (microscopesignal.state == ServerState.SHUTTING_DOWN)
+                            this.close()
+                    }
+                    is Slice -> {
+                        if (dataConnection.requestSlice(microscopesignal.Id, microscopesignal.size)) {
+                            // save signal for eventual data receiving
+                            requestedSlices[microscopesignal.Id] = microscopesignal
+                        }
+                    }
+                    is Stack -> TODO()
                 }
             }
-            is ServerSignal.Stack -> TODO()
+            is RemoteMicroscopeSignal.RemoteMicroscopeStatus -> TODO()
         }
+    }
+
+    override fun snapSlice(target: Vector3f) {
+        TODO("Not yet implemented")
     }
 
     @Suppress("unused")
@@ -97,5 +105,9 @@ class RemoteMicroscopeClient(
         logger.info("Got Stop Command")
         controlConnection.sendSignal(ClientSignal.Shutdown)
         close()
+    }
+
+    override fun status(): MicroscopeStatus {
+        TODO("Not yet implemented")
     }
 }

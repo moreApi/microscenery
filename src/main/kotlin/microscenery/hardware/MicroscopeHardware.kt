@@ -1,20 +1,18 @@
 package microscenery.hardware
 
 import microscenery.network.HardwareDimensions
-import microscenery.network.ServerSignal
+import microscenery.network.MicroscopeSignal
+import microscenery.network.MicroscopeStatus
 import org.joml.Vector3f
 import java.util.concurrent.BlockingQueue
 
 interface MicroscopeHardware{
-
-    var stagePosition:Vector3f
-
-    fun serverStatus(): ServerSignal.ServerStatus
-    fun hardwareDimensions(): HardwareDimensions
-    fun snapSlice()
+    fun snapSlice(target: Vector3f)
     fun shutdown()
 
+    fun status(): MicroscopeStatus
+    fun hardwareDimensions(): HardwareDimensions
 
-    val output: BlockingQueue<ServerSignal>
+    val output: BlockingQueue<MicroscopeSignal>
 }
 

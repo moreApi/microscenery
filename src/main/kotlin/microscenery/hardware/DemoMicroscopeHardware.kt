@@ -2,10 +2,7 @@ package microscenery.hardware
 
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Volume
-import microscenery.network.HardwareDimensions
-import microscenery.network.NumericType
-import microscenery.network.ServerSignal
-import microscenery.network.ServerState
+import microscenery.network.*
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
@@ -18,10 +15,10 @@ import java.util.concurrent.BlockingQueue
  */
 class DemoMicroscopeHardware(
     stagePosition: Vector3f = Vector3f(),
-): MicroscopeHardware {
+): MicroscopeHardwareAgent() {
      protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    override var stagePosition = stagePosition
+    var stagePosition = stagePosition
         set(target) {
             val safeTarget = Vector3f()
             for (i in 0..2) safeTarget.setComponent(i, target[i].coerceIn(hardwareDimensions.stageMin[i], hardwareDimensions.stageMax[i]))
@@ -29,45 +26,31 @@ class DemoMicroscopeHardware(
                 logger.warn("Had to coerce stage parameters! From $target to ${safeTarget}")
             }
             field = safeTarget
+            status = status.copy(stagePosition = safeTarget)
         }
     var idCounter = 0
     val side = 200
     val stageContent: ByteBuffer
-    val hardwareDimensions: HardwareDimensions
-
-    var status: ServerSignal.ServerStatus
-    override val output: BlockingQueue<ServerSignal> = ArrayBlockingQueue(10)
-
-
+    override val output: BlockingQueue<MicroscopeSignal> = ArrayBlockingQueue(10)
     init {
         stageContent = Volume.generateProceduralVolume(size = side.toLong(), radius = 190f, use16bit = false)
 
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
             stageMax = Vector3f(side.toFloat()),
-            imageSize = Vector2i(50,50),
+            imageSize = Vector2i(50, 50),
             vertexSize = Vector3f(1f),
             numericType = NumericType.INT8
         )
-        status = ServerSignal.ServerStatus(
+        status = MicroscopeStatus(
             ServerState.MANUAL,
-            emptyList(),
-            0,
-            hardwareDimensions
+            stagePosition
         )
-        output.put(status)
 
     }
 
-    override fun serverStatus(): ServerSignal.ServerStatus {
-        return status
-    }
-
-    override fun hardwareDimensions(): HardwareDimensions {
-        return hardwareDimensions
-    }
-
-    override fun snapSlice() {
+    override fun snapSlice(target: Vector3f) {
+        stagePosition = target
         val imgX = hardwareDimensions.imageSize.x
         val imgY = hardwareDimensions.imageSize.y
         val sliceBuffer = MemoryUtil.memAlloc(imgX * imgY)
@@ -85,7 +68,7 @@ class DemoMicroscopeHardware(
 
         sliceBuffer.clear()
 
-        val signal = ServerSignal.Slice(
+        val signal = Slice(
             idCounter++,
             System.currentTimeMillis(),
             stagePosition,
@@ -95,6 +78,9 @@ class DemoMicroscopeHardware(
         )
         output.put(signal)
     }
-    override fun shutdown() {    }
 
+    override fun shutdown() {    }
+    override fun onLoop() {
+        throw NotImplementedError("demo hardware has no active agent")
+    }
 }

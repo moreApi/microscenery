@@ -32,7 +32,7 @@ class LocalMMScene: DefaultScene() {
         scene.addChild(hullbox)
 
 
-        lightSleepOnCondition { hardware.serverStatus().state == ServerState.MANUAL }
+        lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
 
         stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
         stageSpaceManager.snapSlice(Vector3f(0f,0f,10f))

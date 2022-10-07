@@ -4,28 +4,30 @@ import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
 import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
-import me.jancasus.microscenery.network.v2.ServerSignal
 import microscenery.Agent
-import microscenery.network.ServerSignal.Companion.toPoko
+import microscenery.network.RemoteMicroscopeSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.concurrent.ArrayBlockingQueue
 
 /**
- * A Client to send control [ClientSignal]s to [ControlSignalsServer] and receive [ServerSignal]s.
+ * A Client to send control [ClientSignal]s to [ControlSignalsServer] and receive [MicroscopeSignal]s.
  *
  * Client shuts down when a signal with shutdown status has been received.
  */
 class ControlSignalsClient(
-    zContext: ZContext, val port: Int, host: String, listeners: List<(microscenery.network.ServerSignal) -> Unit> = emptyList()
+    zContext: ZContext,
+    val port: Int,
+    host: String,
+    listeners: List<(RemoteMicroscopeSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket
 
     private val signalsOut = ArrayBlockingQueue<ClientSignal>(100)
-    private val signalsIn = event<ServerSignal>()
+    private val signalsIn = event<RemoteMicroscopeSignal>()
 
     init {
         listeners.forEach { addListener(it) }
@@ -51,9 +53,9 @@ class ControlSignalsClient(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (microscenery.network.ServerSignal) -> Unit) {
+    fun addListener(listener: (RemoteMicroscopeSignal) -> Unit) {
         synchronized(signalsIn) {
-            signalsIn += { listener(it.toPoko()) }
+            signalsIn += { listener(it) }
         }
     }
 
@@ -67,13 +69,16 @@ class ControlSignalsClient(
         // First frame in each message is the sender identity
         var payloadIn = socket.recv(ZMQ.DONTWAIT)
         while (payloadIn != null) {
-            val event = ServerSignal.parseFrom(payloadIn)
+            val event = me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.parseFrom(payloadIn)
 
             synchronized(signalsIn) {
-                signalsIn(event)
+                signalsIn(event.toPoko())
             }
 
-            if (event.hasServerStatus() && event.serverStatus.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN) {
+            if (event.hasMicroscopeSignal()
+                && event.microscopeSignal.hasStatus()
+                && event.microscopeSignal.status.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
+            ) {
                 payloadIn = null
                 close()
             } else {

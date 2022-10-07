@@ -4,7 +4,6 @@ import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
 import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
-import me.jancasus.microscenery.network.v2.ServerSignal
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.network.ClientSignal.Companion.toPoko
@@ -14,19 +13,19 @@ import org.zeromq.ZMQ
 import java.util.concurrent.ArrayBlockingQueue
 
 /**
- * A server to receive [ClientSignal]s and send [ServerSignal]s from.
+ * A server to receive [ClientSignal]s and send [MicroscopeSignal]s from.
  *
  * Server shuts down when a signal with shutdown status has been send.
  */
 class ControlSignalsServer(
-    val zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
+    zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
     listeners: List<(microscenery.network.ClientSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<ServerSignal>(100)
+    private val signalsOut = ArrayBlockingQueue<me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal>(100)
     private val signalsIn = event<ClientSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
@@ -52,7 +51,7 @@ class ControlSignalsServer(
         }
     }
 
-    fun sendSignal(signal: microscenery.network.ServerSignal) {
+    fun sendSignal(signal: RemoteMicroscopeSignal) {
         signalsOut.add(signal.toProto())
     }
 
@@ -89,8 +88,9 @@ class ControlSignalsServer(
                 Thread.sleep(1)
             }
 
-            if (outSignal.hasServerStatus()
-                && outSignal.serverStatus.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
+            if (outSignal.hasMicroscopeSignal()
+                && outSignal.microscopeSignal.hasStatus()
+                && outSignal.microscopeSignal.status.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
             ) {
                 outSignal = null
                 this.close()
