@@ -3,12 +3,14 @@ package microscenery.unit.network
 import microscenery.lightSleepOnCondition
 import microscenery.lightSleepOnNull
 import microscenery.network.*
-import org.joml.Vector2i
+import microscenery.signals.ClientSignal
+import microscenery.signals.MicroscopeStatus
+import microscenery.signals.RemoteMicroscopeSignal
+import microscenery.signals.ServerState
 import org.joml.Vector3f
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.zeromq.ZContext
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class ControlSignalTransmissionTest {
@@ -26,8 +28,10 @@ class ControlSignalTransmissionTest {
     fun shutdownServer() {
         val server = ControlSignalsServer(ctx)
 
-        server.sendSignal(RemoteMicroscopeSignal.ActualMicroscopeSignal(
-            MicroscopeStatus(ServerState.SHUTTING_DOWN,Vector3f())))
+        server.sendSignal(
+            RemoteMicroscopeSignal.ActualMicroscopeSignal(
+            MicroscopeStatus(ServerState.SHUTTING_DOWN,Vector3f())
+            ))
 
         lightSleepOnCondition { !server.running }
         assert(!server.running)

@@ -1,6 +1,6 @@
-package microscenery.network
+package microscenery.signals
 
-import microscenery.network.MicroscopeSignal.Companion.toPoko
+import microscenery.signals.MicroscopeSignal.Companion.toPoko
 
 
 sealed class RemoteMicroscopeSignal {

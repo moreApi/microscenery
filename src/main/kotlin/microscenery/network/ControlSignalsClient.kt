@@ -5,7 +5,8 @@ import kotlinx.event.event
 import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.Agent
-import microscenery.network.RemoteMicroscopeSignal.Companion.toPoko
+import microscenery.signals.RemoteMicroscopeSignal
+import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -59,7 +60,7 @@ class ControlSignalsClient(
         }
     }
 
-    fun sendSignal(signal: microscenery.network.ClientSignal) {
+    fun sendSignal(signal: microscenery.signals.ClientSignal) {
         signalsOut.add(signal.toProto())
     }
 

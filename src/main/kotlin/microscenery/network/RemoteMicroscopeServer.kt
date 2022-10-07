@@ -1,15 +1,14 @@
 package microscenery.network
 
 import graphics.scenery.utils.LazyLogger
-import kotlinx.event.event
-import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.MicroscopeHardwareAgent
+import microscenery.signals.ClientSignal
+import microscenery.signals.ServerState
 import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
-import kotlin.properties.Delegates
 
 // TODO: Put hardware commands worker in own class
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")

@@ -6,7 +6,8 @@ import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.network.ClientSignal.Companion.toPoko
+import microscenery.signals.ClientSignal.Companion.toPoko
+import microscenery.signals.RemoteMicroscopeSignal
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -19,7 +20,7 @@ import java.util.concurrent.ArrayBlockingQueue
  */
 class ControlSignalsServer(
     zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
-    listeners: List<(microscenery.network.ClientSignal) -> Unit> = emptyList()
+    listeners: List<(microscenery.signals.ClientSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -45,7 +46,7 @@ class ControlSignalsServer(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (microscenery.network.ClientSignal) -> Unit) {
+    fun addListener(listener: (microscenery.signals.ClientSignal) -> Unit) {
         synchronized(signalsIn) {
             signalsIn += { listener(it.toPoko()) }
         }
@@ -55,7 +56,7 @@ class ControlSignalsServer(
         signalsOut.add(signal.toProto())
     }
 
-    fun sendInternalSignals(signals: List<microscenery.network.ClientSignal>) {
+    fun sendInternalSignals(signals: List<microscenery.signals.ClientSignal>) {
         synchronized(signalsIn) {
             signals.forEach { signalsIn(it.toProto()) }
         }

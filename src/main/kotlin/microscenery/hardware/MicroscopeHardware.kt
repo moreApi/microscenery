@@ -1,8 +1,8 @@
 package microscenery.hardware
 
-import microscenery.network.HardwareDimensions
-import microscenery.network.MicroscopeSignal
-import microscenery.network.MicroscopeStatus
+import microscenery.signals.HardwareDimensions
+import microscenery.signals.MicroscopeSignal
+import microscenery.signals.MicroscopeStatus
 import org.joml.Vector3f
 import java.util.concurrent.BlockingQueue
 

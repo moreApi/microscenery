@@ -4,6 +4,7 @@ import graphics.scenery.utils.LazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
+import microscenery.signals.*
 import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.BlockingQueue
@@ -29,7 +30,7 @@ class RemoteMicroscopeClient(
         get() = TODO("Not yet implemented")
 
 
-    private val requestedSlices = ConcurrentHashMap<Int,Slice>()
+    private val requestedSlices = ConcurrentHashMap<Int, Slice>()
 
     init {
         controlConnection.addListener(this::processServerSignal)

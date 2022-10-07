@@ -2,7 +2,7 @@ package microscenery.hardware
 
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Volume
-import microscenery.network.*
+import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil

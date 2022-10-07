@@ -4,8 +4,8 @@ import graphics.scenery.RichNode
 import graphics.scenery.Scene
 import graphics.scenery.utils.extensions.times
 import microscenery.hardware.MicroscopeHardware
-import microscenery.network.HardwareDimensions
-import microscenery.network.Slice
+import microscenery.signals.HardwareDimensions
+import microscenery.signals.Slice
 import org.joml.Vector3f
 import java.util.concurrent.TimeUnit
 

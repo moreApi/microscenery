@@ -1,4 +1,4 @@
-package microscenery.network
+package microscenery.signals
 
 import org.joml.Vector2i
 import org.joml.Vector3f

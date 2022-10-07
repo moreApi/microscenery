@@ -3,7 +3,7 @@ package microscenery.hardware.micromanagerConnection
 import graphics.scenery.utils.LazyLogger
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardwareAgent
-import microscenery.network.*
+import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil

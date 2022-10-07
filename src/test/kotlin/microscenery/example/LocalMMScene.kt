@@ -7,7 +7,7 @@ import microscenery.*
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
-import microscenery.network.ServerState
+import microscenery.signals.ServerState
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 

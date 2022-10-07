@@ -1,10 +1,10 @@
-package microscenery.network
+package microscenery.signals
 
 import com.google.protobuf.util.Timestamps.fromMillis
 import me.jancasus.microscenery.network.v2.EnumNumericType
 import me.jancasus.microscenery.network.v2.EnumServerState
-import microscenery.network.HardwareDimensions.Companion.toPoko
-import microscenery.network.MicroscopeStatus.Companion.toPoko
+import microscenery.signals.HardwareDimensions.Companion.toPoko
+import microscenery.signals.MicroscopeStatus.Companion.toPoko
 import org.joml.Vector2i
 import org.joml.Vector3f
 import java.nio.ByteBuffer
@@ -101,7 +101,7 @@ data class HardwareDimensions(
     companion object {
         val EMPTY = HardwareDimensions(Vector3f(), Vector3f(), Vector2i(), Vector3f(), NumericType.INT16)
 
-        fun me.jancasus.microscenery.network.v2.HardwareDimensions.toPoko(): HardwareDimensions{
+        fun me.jancasus.microscenery.network.v2.HardwareDimensions.toPoko(): HardwareDimensions {
             val hwd = this
             return HardwareDimensions(
                 hwd.stageMin.toPoko(),

@@ -1,4 +1,4 @@
-package microscenery.network
+package microscenery.signals
 
 import me.jancasus.microscenery.network.v2.Vector2Int
 import me.jancasus.microscenery.network.v2.Vector3Float
