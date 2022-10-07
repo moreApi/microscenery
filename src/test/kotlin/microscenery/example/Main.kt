@@ -5,7 +5,7 @@ import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
-import microscenery.micromanagerConnection.MMConnection
+import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.StreamedVolume
 import microscenery.VRUI.VRUIManager
 import org.joml.Vector3f

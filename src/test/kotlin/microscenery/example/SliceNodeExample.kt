@@ -3,7 +3,7 @@ package microscenery.example
 import graphics.scenery.volumes.Volume
 import io.scif.util.FormatTools
 import microscenery.DefaultScene
-import microscenery.micromanagerConnection.MMConnection
+import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.SliceRenderNode
 import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.*

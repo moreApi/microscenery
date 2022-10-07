@@ -1,4 +1,4 @@
-package microscenery.micromanagerConnection
+package microscenery.hardware.micromanagerConnection
 
 import graphics.scenery.Camera
 import graphics.scenery.utils.LazyLogger

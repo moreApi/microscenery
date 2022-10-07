@@ -1,4 +1,4 @@
-package microscenery.micromanagerConnection
+package microscenery.hardware.micromanagerConnection
 
 import graphics.scenery.utils.LazyLogger
 import microscenery.MicroscenerySettings
@@ -37,7 +37,7 @@ class MicromanagerWrapper(
 
 
     override fun snapSlice(target: Vector3f) {
-        hardwareCommandsQueue.put(HardwareCommand.MoveStage(target,hardwareDimensions, true))
+        hardwareCommandsQueue.put(HardwareCommand.MoveStage(target, hardwareDimensions, true))
         hardwareCommandsQueue.put(HardwareCommand.SnapImage(false))
     }
 
