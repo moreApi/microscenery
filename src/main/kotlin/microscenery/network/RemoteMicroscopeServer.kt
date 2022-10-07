@@ -4,7 +4,7 @@ import graphics.scenery.utils.LazyLogger
 import kotlinx.event.event
 import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.MicroscopeHardware
+import microscenery.hardware.MicroscopeHardware
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates

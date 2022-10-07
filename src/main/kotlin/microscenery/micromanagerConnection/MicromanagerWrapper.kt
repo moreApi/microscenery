@@ -3,7 +3,7 @@ package microscenery.micromanagerConnection
 import graphics.scenery.utils.LazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.MicroscopeHardware
+import microscenery.hardware.MicroscopeHardware
 import microscenery.network.*
 import org.joml.Vector2i
 import org.joml.Vector3f
@@ -16,7 +16,7 @@ import kotlin.properties.Delegates
 class MicromanagerWrapper(
     private val mmConnection: MMConnection,
     var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
-): Agent(), MicroscopeHardware{
+): Agent(), MicroscopeHardware {
 
     private val hardwareCommandsQueue = ArrayBlockingQueue<HardwareCommand>(5000)
     private val stopLock = Any()

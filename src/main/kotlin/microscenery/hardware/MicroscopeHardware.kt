@@ -1,4 +1,4 @@
-package microscenery
+package microscenery.hardware
 
 import microscenery.network.HardwareDimensions
 import microscenery.network.ServerSignal

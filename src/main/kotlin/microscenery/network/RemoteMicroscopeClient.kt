@@ -3,7 +3,7 @@ package microscenery.network
 import graphics.scenery.utils.LazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.MicroscopeHardware
+import microscenery.hardware.MicroscopeHardware
 import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.BlockingQueue

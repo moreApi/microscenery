@@ -3,6 +3,7 @@ package microscenery
 import graphics.scenery.RichNode
 import graphics.scenery.Scene
 import graphics.scenery.utils.extensions.times
+import microscenery.hardware.MicroscopeHardware
 import microscenery.network.ServerSignal
 import microscenery.network.ServerState
 import org.joml.Vector3f

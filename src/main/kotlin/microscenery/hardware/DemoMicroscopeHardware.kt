@@ -1,4 +1,4 @@
-package microscenery
+package microscenery.hardware
 
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Volume

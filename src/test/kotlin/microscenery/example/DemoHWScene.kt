@@ -5,6 +5,7 @@ import graphics.scenery.attribute.material.Material
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
 import microscenery.*
+import microscenery.hardware.DemoMicroscopeHardware
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 

@@ -4,6 +4,7 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
 import microscenery.*
+import microscenery.hardware.MicroscopeHardware
 import microscenery.micromanagerConnection.MMConnection
 import microscenery.micromanagerConnection.MicromanagerWrapper
 import microscenery.network.ServerState
