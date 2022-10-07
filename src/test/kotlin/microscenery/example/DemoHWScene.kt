@@ -2,6 +2,7 @@ package microscenery.example
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
 import microscenery.*
 import org.joml.Vector3f
@@ -28,39 +29,21 @@ class DemoHWScene: DefaultScene() {
         scene.addChild(hullbox)
 
 
-        for (z in listOf(0,50,100,150,199))
-            for (y in listOf(0,50,100,150))
-                for (x in listOf(0,50,100,150)){
-                    val target = Vector3f(x.toFloat(),y.toFloat(),z.toFloat())
-                    stageSpaceManager.snapSlice(target)
-                }
-
-        /*
-        for(x in 0..3) {
-            for(y in 0..3) {
-                for (z in 0..3) {
-                    //val target = Random.random3DVectorFromRange(0f, hw.side.toFloat())
-                    //target.z = z * 20f
-                    val target = Vector3f(x*50f,y*50f,z*50f)
-                    stageSpaceManager.snapSlice(target)
-                    val box = Box()
-                    box.position = target
-                    stageSpaceManager.stageRoot.addChild(box)
-                }
+        val randomSlices = true
+        if (randomSlices){
+            for (i in 0 .. 200) {
+                val target = Random.random3DVectorFromRange(0f, hw.side.toFloat())
+                stageSpaceManager.snapSlice(target)
             }
+        } else {
+            for (z in listOf(0, 50, 100, 150, 199))
+                for (y in listOf(0, 50, 100, 150))
+                    for (x in listOf(0, 50, 100, 150)) {
+                        val target = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
+                        stageSpaceManager.snapSlice(target)
+                    }
         }
 
-         */
-
-
-
-/*
-        var target = Vector3f(0f,0f,50f)
-        stageSpaceManager.snapSlice(target)
-        target = Vector3f(0f,0f,51f)
-        stageSpaceManager.snapSlice(target)
-        stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f,1f,4f)
- */
 
         thread {
             while (true){
