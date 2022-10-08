@@ -76,7 +76,7 @@ class RemoteMicroscopeClient(
     private fun processServerSignal(signal: RemoteMicroscopeSignal){
 
         when (signal){
-            is RemoteMicroscopeSignal.ActualMicroscopeSignal -> {
+            is ActualMicroscopeSignal -> {
                 val microscopesignal = signal.signal
                 when (microscopesignal) {
                     is HardwareDimensions -> output.put(microscopesignal)
@@ -93,7 +93,7 @@ class RemoteMicroscopeClient(
                     is Stack -> TODO()
                 }
             }
-            is RemoteMicroscopeSignal.RemoteMicroscopeStatus -> TODO()
+            is RemoteMicroscopeStatus -> TODO()
         }
     }
 
