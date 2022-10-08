@@ -6,6 +6,7 @@ import microscenery.network.SliceStorage
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
@@ -71,9 +72,9 @@ class BiggishDataTransmissionTest {
 
     @Test
     fun storageOverflow() {
-        storage.addSlice(1, ByteBuffer.wrap(ByteArray(26 * 1024 * 1024) { it.toByte() }))
-        storage.addSlice(2, ByteBuffer.wrap(ByteArray(26 * 1024 * 1024) { it.toByte() }))
-        storage.addSlice(3, ByteBuffer.wrap(ByteArray(26 * 1024 * 1024) { it.toByte() }))
+        storage.addSlice(1, MemoryUtil.memAlloc(26 * 1024 * 1024))
+        storage.addSlice(2, MemoryUtil.memAlloc(26 * 1024 * 1024))
+        storage.addSlice(3, MemoryUtil.memAlloc(26 * 1024 * 1024))
 
         assertNull(storage.getSlice(1))
     }

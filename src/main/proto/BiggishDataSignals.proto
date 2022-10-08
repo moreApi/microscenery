@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_package = "me.jancasus.microscenery.network.v2";
-option java_outer_classname = "BigishDataSignals";
+option java_outer_classname = "BiggishDataSignals";
 option java_multiple_files = true;
 
 
