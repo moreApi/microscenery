@@ -1,13 +1,11 @@
 package microscenery.network
 
 import graphics.scenery.utils.LazyLogger
-import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.hardware.MicroscopeHardware
+import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
 import org.joml.Vector3f
 import org.zeromq.ZContext
-import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -19,16 +17,11 @@ class RemoteMicroscopeClient(
     basePort: Int = MicroscenerySettings.get("Network.basePort"),
     host: String = MicroscenerySettings.get("Network.host"),
     val zContext: ZContext
-) : Agent(), MicroscopeHardware {
+) : MicroscopeHardwareAgent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsClient(zContext, basePort, host)
     private val dataConnection = BiggishDataClient(zContext,basePort +1, host)
-
-
-    override val output: BlockingQueue<MicroscopeSignal>
-        get() = TODO("Not yet implemented")
-
 
     private val requestedSlices = ConcurrentHashMap<Int, Slice>()
 
@@ -57,16 +50,8 @@ class RemoteMicroscopeClient(
         //todo newSlice.put(meta to buffer)
     }
 
-
-     var stagePosition: Vector3f
-        get() = TODO("Not yet implemented")
-        set(value) {controlConnection.sendSignal(ClientSignal.MoveStage(value))}
-
-    override fun hardwareDimensions(): HardwareDimensions {
-        TODO("Not yet implemented")
-    }
-
-     fun snapSlice() {
+    override fun snapSlice(target: Vector3f) {
+        controlConnection.sendSignal(ClientSignal.MoveStage(target))
         controlConnection.sendSignal(ClientSignal.SnapImage)
     }
 
@@ -77,17 +62,16 @@ class RemoteMicroscopeClient(
 
         when (signal){
             is ActualMicroscopeSignal -> {
-                val microscopesignal = signal.signal
-                when (microscopesignal) {
-                    is HardwareDimensions -> output.put(microscopesignal)
+                when (val microscopeSignal = signal.signal) {
+                    is HardwareDimensions -> output.put(microscopeSignal)
                     is MicroscopeStatus -> {
-                        if (microscopesignal.state == ServerState.SHUTTING_DOWN)
+                        if (microscopeSignal.state == ServerState.SHUTTING_DOWN)
                             this.close()
                     }
                     is Slice -> {
-                        if (dataConnection.requestSlice(microscopesignal.Id, microscopesignal.size)) {
+                        if (dataConnection.requestSlice(microscopeSignal.Id, microscopeSignal.size)) {
                             // save signal for eventual data receiving
-                            requestedSlices[microscopesignal.Id] = microscopesignal
+                            requestedSlices[microscopeSignal.Id] = microscopeSignal
                         }
                     }
                     is Stack -> TODO()
@@ -97,18 +81,13 @@ class RemoteMicroscopeClient(
         }
     }
 
-    override fun snapSlice(target: Vector3f) {
-        TODO("Not yet implemented")
-    }
-
     @Suppress("unused")
     override fun shutdown() {
         logger.info("Got Stop Command")
-        controlConnection.sendSignal(ClientSignal.Shutdown)
         close()
     }
 
-    override fun status(): MicroscopeStatus {
-        TODO("Not yet implemented")
+    override fun onClose() {
+        controlConnection.sendSignal(ClientSignal.Shutdown)
     }
 }
