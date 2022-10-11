@@ -13,20 +13,19 @@ import java.util.concurrent.TimeUnit
  *
  */
 class RemoteMicroscopeClient(
-    val storage: SliceStorage,
+    val storage: SliceStorage = SliceStorage(),
     basePort: Int = MicroscenerySettings.get("Network.basePort"),
     host: String = MicroscenerySettings.get("Network.host"),
     val zContext: ZContext
 ) : MicroscopeHardwareAgent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val controlConnection = ControlSignalsClient(zContext, basePort, host)
+    private val controlConnection = ControlSignalsClient(zContext, basePort, host, listOf(this::processServerSignal))
     private val dataConnection = BiggishDataClient(zContext,basePort +1, host)
 
     private val requestedSlices = ConcurrentHashMap<Int, Slice>()
 
     init {
-        controlConnection.addListener(this::processServerSignal)
         startAgent()
     }
 
@@ -47,7 +46,7 @@ class RemoteMicroscopeClient(
             buffer.put(it.value)
         }
         buffer.flip()
-        //todo newSlice.put(meta to buffer)
+        output.put(meta.copy(data = buffer))
     }
 
     override fun snapSlice(target: Vector3f) {
@@ -63,10 +62,15 @@ class RemoteMicroscopeClient(
         when (signal){
             is ActualMicroscopeSignal -> {
                 when (val microscopeSignal = signal.signal) {
-                    is HardwareDimensions -> output.put(microscopeSignal)
+                    is HardwareDimensions -> {
+                        hardwareDimensions = microscopeSignal
+                        output.put(microscopeSignal)
+                    }
                     is MicroscopeStatus -> {
                         if (microscopeSignal.state == ServerState.SHUTTING_DOWN)
                             this.close()
+                        status = microscopeSignal
+                        output.put(microscopeSignal)
                     }
                     is Slice -> {
                         if (dataConnection.requestSlice(microscopeSignal.Id, microscopeSignal.size)) {
@@ -77,7 +81,7 @@ class RemoteMicroscopeClient(
                     is Stack -> TODO()
                 }
             }
-            is RemoteMicroscopeStatus -> TODO()
+            is RemoteMicroscopeStatus -> {}
         }
     }
 

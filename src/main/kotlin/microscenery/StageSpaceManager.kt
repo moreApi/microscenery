@@ -21,15 +21,7 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
 
     init {
         scene.addChild(stageRoot)
-
-        var signal = hardware.output.poll() as? HardwareDimensions
-        while (running && signal == null) {
-            signal = hardware.output.poll() as? HardwareDimensions
-        }
-        signal?.let {
-            stageRoot.spatial().scale = signal.vertexSize.times(1 / scaleDownFactor)
-            startAgent()
-        }
+        startAgent()
     }
 
     override fun onLoop() {
@@ -42,6 +34,9 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
                 val node = SliceRenderNode(signal.data, hwd.imageSize.x, hwd.imageSize.y, 1f, hwd.numericType.bytes)
                 node.spatial().position = signal.stagePos
                 stageRoot.addChild(node)
+            }
+            is HardwareDimensions -> {
+                stageRoot.spatial().scale = signal.vertexSize.times(1 / scaleDownFactor)
             }
             else -> {}
         }

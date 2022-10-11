@@ -12,7 +12,7 @@ import org.zeromq.ZMQ
 /**
  * Dumb server that answers requests for parts of slices from the storage.
  */
-class BiggishDataServer( port: Int, private val storage: SliceStorage, zContext: ZContext) : Agent() {
+class BiggishDataServer(val port: Int, private val storage: SliceStorage, zContext: ZContext) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val payload = ByteArray(CHUNK_SIZE)

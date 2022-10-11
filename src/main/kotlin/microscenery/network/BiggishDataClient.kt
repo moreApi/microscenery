@@ -45,13 +45,14 @@ class BiggishDataClient(zContext: ZContext, port: Int, host: String = "localhost
         startAgent()
     }
 
-    fun requestSlice(id: Int, size: Int, waitOnFull: Boolean = false): Boolean {
+    fun requestSlice(id: Int, size: Int): Boolean {
         val element = SliceChunkCollector(id, size)
-        return if (waitOnFull) {
-            requestQueue.offer(element, 5000, TimeUnit.MILLISECONDS)
-        } else {
-            requestQueue.offer(element)
+
+        if (!requestQueue.offer(element,5000,TimeUnit.MILLISECONDS)){
+            logger.warn("Dropped ${SliceChunkCollector::class.simpleName} because of full queue.")
+            return false
         }
+        return true
     }
 
     // taken from https://zguide.zeromq.org/docs/chapter7/#Transferring-Files

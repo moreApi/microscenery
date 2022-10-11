@@ -12,9 +12,10 @@ import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
 
 /**
- * A server to receive [ClientSignal]s and send [MicroscopeSignal]s from.
+ * A server to receive [ClientSignal]s and send [RemoteMicroscopeSignal]s from.
  *
  * Server shuts down when a signal with shutdown status has been send.
  */
@@ -26,10 +27,11 @@ class ControlSignalsServer(
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal>(100)
+    private val signalsOut = ArrayBlockingQueue<me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal>(1000)
     private val signalsIn = event<ClientSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
+    @Suppress("unused")
     val connectedClients
         get() = clients.size
 
@@ -52,8 +54,12 @@ class ControlSignalsServer(
         }
     }
 
-    fun sendSignal(signal: RemoteMicroscopeSignal) {
-        signalsOut.add(signal.toProto())
+    fun sendSignal(signal: RemoteMicroscopeSignal): Boolean {
+        if (!signalsOut.offer(signal.toProto(),5000,TimeUnit.MILLISECONDS)){
+            logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
+            return false
+        }
+        return true
     }
 
     fun sendInternalSignals(signals: List<microscenery.signals.ClientSignal>) {
@@ -63,29 +69,28 @@ class ControlSignalsServer(
     }
 
     override fun onLoop() {
+        val identity = socket.recv(ZMQ.DONTWAIT)
+        val outSignal = signalsOut.poll()
+
         // process incoming messages first.
         // First frame in each message is the sender identity
-        var identity = socket.recv(ZMQ.DONTWAIT)
-        while (identity != null) {
+        if (identity != null) {
             clients += identity
             val event = ClientSignal.parseFrom(socket.recv())
 
             synchronized(signalsIn) {
                 signalsIn(event)
             }
-
-            identity = socket.recv(ZMQ.DONTWAIT)
         }
 
         // process outgoing messages
-        var outSignal = signalsOut.poll()
-        while (outSignal != null) {
+        if (outSignal != null) {
             val payload = outSignal.toByteArray()
 
             // publish to all clients
             clients.forEach { ident ->
-                socket.sendMore(ident)
-                socket.send(payload)
+                val isQueued = socket.sendMore(ident) && socket.send(payload)
+                if (!isQueued) logger.error("ZMQ dropped messages :(")
                 Thread.sleep(1)
             }
 
@@ -93,13 +98,12 @@ class ControlSignalsServer(
                 && outSignal.microscopeSignal.hasStatus()
                 && outSignal.microscopeSignal.status.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
             ) {
-                outSignal = null
                 this.close()
-            } else {
-                outSignal = signalsOut.poll()
             }
         }
-        Thread.sleep(200)
+
+        if ( identity == null && outSignal == null )
+            Thread.sleep(200)
     }
 
     override fun onClose() {

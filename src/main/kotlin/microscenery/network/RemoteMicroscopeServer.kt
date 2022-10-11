@@ -1,47 +1,57 @@
 package microscenery.network
 
 import graphics.scenery.utils.LazyLogger
+import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
-import microscenery.hardware.MicroscopeHardwareAgent
-import microscenery.signals.ClientSignal
-import microscenery.signals.ServerState
+import microscenery.signals.*
 import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
+import kotlin.properties.Delegates
 
-// TODO: Put hardware commands worker in own class
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class RemoteMicroscopeServer @JvmOverloads constructor(
     val microscope: MicroscopeHardware,
+    private val zContext: ZContext,
+    val storage: SliceStorage = SliceStorage(),
     val basePort: Int = MicroscenerySettings.get("Network.basePort"),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
-    private val zContext: ZContext,
-    val storage: SliceStorage
-): MicroscopeHardwareAgent() {
+): Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val controlConnection = ControlSignalsServer(zContext, basePort)
+    private val controlConnection = ControlSignalsServer(zContext, basePort, listOf(this::processClientSignal))
     val dataSender = BiggishDataServer(basePort + 1, storage, zContext)
 
-
-
+    var status: RemoteMicroscopeStatus by Delegates.observable(
+        RemoteMicroscopeStatus(emptyList(),0)
+    ) { _, _, newStatus: RemoteMicroscopeStatus ->
+        controlConnection.sendSignal(newStatus)
+    }
+    // workaround because I dont want to change protocol
+    private var supposedStagePos = Vector3f()
 
     init {
         if (connections != 1) logger.warn("More than one data connection are currently not supported. Config asks for $connections")
 
-        //statusChange += {
-        //    controlConnection.sendSignal(it)
-        //}
-
-        controlConnection.addListener(this::processClientSignal)
-
-        status = status.copy(
-            state = ServerState.MANUAL,
-            //hwDimensions = microscope.hardwareDimensions()
-        )
-
+        status = RemoteMicroscopeStatus(listOf(dataSender.port),0)
         startAgent()
+    }
+
+    override fun onLoop() {
+        val signal = microscope.output.poll(200,TimeUnit.MILLISECONDS) ?: return
+
+        when(signal){
+            is HardwareDimensions -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
+            is MicroscopeStatus -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
+            is Slice -> {
+                signal.data?.let {
+                    storage.addSlice(signal.Id, signal.data)
+                    controlConnection.sendSignal(ActualMicroscopeSignal(signal.copy(data = null)))
+                }
+            }
+            is Stack -> TODO()
+        }
     }
 
     /**
@@ -50,20 +60,17 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     private fun processClientSignal(it: ClientSignal) {
         when (it) {
             is ClientSignal.AcquireStack -> TODO()
-            ClientSignal.ClientSignOn -> TODO()// controlConnection.sendSignal(status)
+            ClientSignal.ClientSignOn -> status = status.copy(connectedClients = status.connectedClients+1)
             ClientSignal.Live -> TODO()
-            is ClientSignal.MoveStage -> {
-                //microscope.stagePosition = it.target
-            }
+            is ClientSignal.MoveStage -> supposedStagePos=it.target
             ClientSignal.Shutdown -> {
                 microscope.shutdown()
                 close()
             }
-            ClientSignal.SnapImage -> microscope.snapSlice(Vector3f())
+            ClientSignal.SnapImage -> microscope.snapSlice(supposedStagePos)
             ClientSignal.Stop -> TODO()
         }
     }
-
 
     @Suppress("unused")
     fun stop() {
@@ -72,7 +79,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     }
 
     @Suppress("unused")
-    override fun shutdown() {
+    fun shutdown() {
         logger.info("Got Stop Command")
         controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown))
     }
@@ -83,20 +90,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     @Suppress("unused")
     fun getSettings() = MicroscenerySettings
 
-
-
-    override fun onLoop() {
-        val signal = microscope.output.poll(200,TimeUnit.MILLISECONDS) ?: return
-
-        //TODO send
-
-    }
-
     override fun onClose() {
         dataSender.close().join()
-    }
-
-    override fun snapSlice(target: Vector3f) {
-        TODO("Not yet implemented")
     }
 }

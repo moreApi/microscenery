@@ -9,6 +9,7 @@ import org.joml.Vector3f
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.zeromq.ZContext
+import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -112,5 +113,34 @@ class ControlSignalTransmissionTest {
         client.sendSignal(ClientSignal.SnapImage)
         lightSleepOnNull { lastSignalClient }
         assertNotNull(lastSignalClient as ClientSignal.SnapImage)
+    }
+
+    @Test
+    fun manySignals(){
+
+        lightSleepOnNull { lastSignalClient }
+        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        assert(lastSignalServer == null)
+
+        var countServer = 0
+        server.addListener {
+            countServer++
+            // just to have an answer signal
+            thread {
+                Thread.sleep(200)
+                server.sendSignal(RemoteMicroscopeStatus(emptyList(),0))
+            }
+        }
+
+        var countClient = 0
+        client.addListener { countClient++ }
+
+        for (x in 1..2000){
+            assert(client.sendSignal(ClientSignal.MoveStage(Vector3f(x.toFloat()))))
+        }
+        Thread.sleep(5000)
+
+        assertEquals(2000, countServer)
+        assertEquals(2000, countClient)
     }
 }

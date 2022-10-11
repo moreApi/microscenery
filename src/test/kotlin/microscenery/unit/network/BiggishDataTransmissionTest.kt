@@ -81,7 +81,7 @@ class BiggishDataTransmissionTest {
 
     @Test
     fun sliceNotAvailable(){
-        client.requestSlice(55,100,true)
+        client.requestSlice(55,100)
         // can't really check if it handles it correctly because the interesting properties are private.
         // But if this works.
         simple()

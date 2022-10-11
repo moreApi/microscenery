@@ -11,9 +11,10 @@ import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
 
 /**
- * A Client to send control [ClientSignal]s to [ControlSignalsServer] and receive [MicroscopeSignal]s.
+ * A Client to send control [ClientSignal]s to [ControlSignalsServer] and receive [RemoteMicroscopeSignal]s.
  *
  * Client shuts down when a signal with shutdown status has been received.
  */
@@ -27,7 +28,7 @@ class ControlSignalsClient(
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<ClientSignal>(100)
+    private val signalsOut = ArrayBlockingQueue<ClientSignal>(1000)
     private val signalsIn = event<RemoteMicroscopeSignal>()
 
     init {
@@ -60,16 +61,22 @@ class ControlSignalsClient(
         }
     }
 
-    fun sendSignal(signal: microscenery.signals.ClientSignal) {
-        signalsOut.add(signal.toProto())
+    fun sendSignal(signal: microscenery.signals.ClientSignal): Boolean {
+        if (!signalsOut.offer(signal.toProto(),5000,TimeUnit.MILLISECONDS)){
+            logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
+            return false
+        }
+        return true
     }
 
     override fun onLoop() {
 
+        val payloadIn = socket.recv(ZMQ.DONTWAIT)
+        val outSignal = signalsOut.poll()
+
         // process incoming messages first.
         // First frame in each message is the sender identity
-        var payloadIn = socket.recv(ZMQ.DONTWAIT)
-        while (payloadIn != null) {
+        if (payloadIn != null) {
             val event = me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.parseFrom(payloadIn)
 
             synchronized(signalsIn) {
@@ -80,20 +87,19 @@ class ControlSignalsClient(
                 && event.microscopeSignal.hasStatus()
                 && event.microscopeSignal.status.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
             ) {
-                payloadIn = null
                 close()
-            } else {
-                payloadIn = socket.recv(ZMQ.DONTWAIT)
             }
         }
 
         // process outgoing messages
-        var outSignal = signalsOut.poll()
-        while (outSignal != null && running) {
-            socket.send(outSignal.toByteArray())
-            outSignal = signalsOut.poll()
+        if (outSignal != null) {
+            if (!socket.send(outSignal.toByteArray())){
+                logger.error("ZMQ is busy and dropped a message")
+            }
         }
-        Thread.sleep(200)
+
+        if ( payloadIn == null && outSignal == null )
+            Thread.sleep(200)
     }
 
     override fun onClose() {
