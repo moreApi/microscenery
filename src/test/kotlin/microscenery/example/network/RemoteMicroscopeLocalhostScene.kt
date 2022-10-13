@@ -22,7 +22,7 @@ class RemoteMicroscopeLocalhostScene: DefaultScene() {
         @Suppress("UNUSED_VARIABLE")
         val server = RemoteMicroscopeServer(microscope, storage = SliceStorage(500*1024*1024), zContext = zContext)
 
-        val client = RemoteMicroscopeClient(storage = SliceStorage(500*1024*1024),zContext = zContext)
+        val client = RemoteMicroscopeClient(zContext = zContext)
         val stageSpaceManager = StageSpaceManager(client,scene)
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f,1f,2f)

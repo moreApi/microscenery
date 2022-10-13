@@ -60,7 +60,11 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     private fun processClientSignal(it: ClientSignal) {
         when (it) {
             is ClientSignal.AcquireStack -> TODO()
-            ClientSignal.ClientSignOn -> status = status.copy(connectedClients = status.connectedClients+1)
+            ClientSignal.ClientSignOn -> {
+                status = status.copy(connectedClients = status.connectedClients+1)
+                controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
+                controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
+            }
             ClientSignal.Live -> TODO()
             is ClientSignal.MoveStage -> supposedStagePos=it.target
             ClientSignal.Shutdown -> {

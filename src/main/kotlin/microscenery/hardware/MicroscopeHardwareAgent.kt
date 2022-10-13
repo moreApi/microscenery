@@ -17,18 +17,21 @@ import kotlin.properties.Delegates
  */
 abstract class MicroscopeHardwareAgent(): Agent(), MicroscopeHardware {
 
-    override val output: BlockingQueue<MicroscopeSignal> = ArrayBlockingQueue(10)
+    override val output: BlockingQueue<MicroscopeSignal> = ArrayBlockingQueue(50)
 
+
+    @Suppress("BlockingMethodInNonBlockingContext")
     protected var status: MicroscopeStatus by Delegates.observable(
         MicroscopeStatus(ServerState.STARTUP, Vector3f())
-    ) { _, _, newStatus: MicroscopeStatus ->
-        output.offer(newStatus)
+    ) { _, _, _ ->
+        output.put(status)
     }
 
+
     protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
-        HardwareDimensions.EMPTY
-    ) { _, _, value: HardwareDimensions ->
-        output.offer(value)
+        HardwareDimensions.EMPTY.copy(stageMin = Vector3f(-45f))
+    ) { _, _, _ ->
+        output.put(hardwareDimensions)
     }
 
     override fun status(): MicroscopeStatus = status

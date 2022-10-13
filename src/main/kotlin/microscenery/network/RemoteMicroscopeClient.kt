@@ -5,6 +5,7 @@ import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
 import org.joml.Vector3f
+import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -13,7 +14,6 @@ import java.util.concurrent.TimeUnit
  *
  */
 class RemoteMicroscopeClient(
-    val storage: SliceStorage = SliceStorage(),
     basePort: Int = MicroscenerySettings.get("Network.basePort"),
     host: String = MicroscenerySettings.get("Network.host"),
     val zContext: ZContext
@@ -41,7 +41,7 @@ class RemoteMicroscopeClient(
             logger.error("Size mismatch for slice ${sliceParts.id} ${sliceParts.size} vs ${meta.size}")
         }
 
-        val buffer = storage.newSlice(sliceParts.size)
+        val buffer = MemoryUtil.memAlloc(sliceParts.size)
         sliceParts.chunks.forEach{
             buffer.put(it.value)
         }
@@ -64,13 +64,11 @@ class RemoteMicroscopeClient(
                 when (val microscopeSignal = signal.signal) {
                     is HardwareDimensions -> {
                         hardwareDimensions = microscopeSignal
-                        output.put(microscopeSignal)
                     }
                     is MicroscopeStatus -> {
                         if (microscopeSignal.state == ServerState.SHUTTING_DOWN)
                             this.close()
                         status = microscopeSignal
-                        output.put(microscopeSignal)
                     }
                     is Slice -> {
                         if (dataConnection.requestSlice(microscopeSignal.Id, microscopeSignal.size)) {
