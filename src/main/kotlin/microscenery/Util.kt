@@ -15,6 +15,7 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.serialization.Vector3fSerializer
 import graphics.scenery.utils.LazyLogger
 import microscenery.VRUI.behaviors.AnalogInputWrapper
+import microscenery.signals.MicroscopeSignal
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -22,6 +23,8 @@ import org.joml.Vector4f
 import org.objenesis.strategy.StdInstantiatorStrategy
 import org.scijava.ui.behaviour.Behaviour
 import org.scijava.ui.behaviour.DragBehaviour
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.TimeUnit
 
 
 val MicroscenerySettings = Settings(prefix = "microscenery.", propertiesFile = "microscenery.properties")
@@ -70,6 +73,18 @@ fun lightSleepOnCondition(mills: Int = 10000, target: () -> Boolean) {
         if (!target())
             Thread.sleep(mills / 10L)
     }
+}
+
+inline fun <reified T: MicroscopeSignal> BlockingQueue<MicroscopeSignal>.pollForSignal(
+    timeout: Long= 5000,
+    condition: (T) -> Boolean = {true}): Boolean {
+    val start = System.currentTimeMillis()
+    while (start+timeout > System.currentTimeMillis() ){
+        val signal = this.poll(200,TimeUnit.MILLISECONDS) as? T ?: continue
+        if (condition(signal))
+            return true
+    }
+    return false
 }
 
 class Vector3iSerializer : Serializer<Vector3i>() {
