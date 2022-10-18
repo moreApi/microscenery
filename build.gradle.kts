@@ -30,7 +30,8 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 }
 
 dependencies {
-    implementation("graphics.scenery:scenery:8189e8")
+    // use first 6 letters of commit rev
+    implementation("graphics.scenery:scenery:986625")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
@@ -72,7 +73,7 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile>() {
+tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
 }
 

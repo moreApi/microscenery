@@ -39,7 +39,7 @@ class DemoMicroscopeHardware(
             stageMin = Vector3f(0f),
             stageMax = Vector3f(side.toFloat()),
             imageSize = Vector2i(50, 50),
-            vertexSize = Vector3f(1f),
+            vertexSize = Vector3f(1f,1f,2f),
             numericType = NumericType.INT8
         )
         status = MicroscopeStatus(
