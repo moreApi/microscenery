@@ -4,6 +4,7 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.network.RemoteMicroscopeClient
@@ -23,7 +24,7 @@ class RemoteMicroscopeLocalhostScene: DefaultScene() {
         val server = RemoteMicroscopeServer(microscope, storage = SliceStorage(500*1024*1024), zContext = zContext)
 
         val client = RemoteMicroscopeClient(zContext = zContext)
-        val stageSpaceManager = StageSpaceManager(client,scene)
+        val stageSpaceManager = StageSpaceManager(client, scene)
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f,1f,2f)
 

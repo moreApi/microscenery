@@ -3,6 +3,7 @@ package microscenery.example
 import graphics.scenery.Sphere
 import graphics.scenery.controls.behaviours.Grabable
 import graphics.scenery.controls.behaviours.Touchable
+import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.StageSpaceManager

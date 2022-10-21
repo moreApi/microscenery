@@ -4,6 +4,7 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.TransferFunction
 import microscenery.DefaultScene
 import microscenery.StageSpaceManager
 import microscenery.lightSleepOnCondition
