@@ -105,6 +105,8 @@ class Vector3iSerializer : Serializer<Vector3i>() {
     }
 }
 
+fun nowMillis(): Long = System.currentTimeMillis()
+
 fun wrapForAnalogInputIfNeeded(
     scene: Scene,
     button: OpenVRHMD.OpenVRButton,
