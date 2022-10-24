@@ -118,6 +118,10 @@ class MicromanagerWrapper(
         }
     }
 
+    override fun moveStage(target: Vector3f) {
+        TODO("Not yet implemented")
+    }
+
 
     private fun stageMinMax(): Pair<Vector3f, Vector3f> {
         val min = Vector3f(

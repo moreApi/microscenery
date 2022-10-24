@@ -83,4 +83,8 @@ class DemoMicroscopeHardware(
     override fun onLoop() {
         throw NotImplementedError("demo hardware has no active agent")
     }
+
+    override fun moveStage(target: Vector3f) {
+        TODO("Not yet implemented")
+    }
 }

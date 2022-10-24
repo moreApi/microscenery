@@ -7,6 +7,7 @@ import org.joml.Vector3f
 import java.util.concurrent.BlockingQueue
 
 interface MicroscopeHardware{
+    fun moveStage(target: Vector3f)
     fun snapSlice(target: Vector3f)
     fun shutdown()
 

@@ -92,4 +92,8 @@ class RemoteMicroscopeClient(
     override fun onClose() {
         controlConnection.sendSignal(ClientSignal.Shutdown)
     }
+
+    override fun moveStage(target: Vector3f) {
+        TODO("Not yet implemented")
+    }
 }
