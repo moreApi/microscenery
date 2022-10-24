@@ -124,6 +124,7 @@ class MMConnection(
 
             if (to < from-precision || from+precision < to){
                 stage.position = to.toDouble()
+                Thread.sleep(5)
             }
         }
 
@@ -146,6 +147,8 @@ class MMConnection(
             DefaultScene({ scene,hub ->
 
                 val mmConnection = MMConnection()
+                mmConnection.moveStage(Vector3f(10f),false)
+
                 val mmVol = StreamedVolume(
                     hub,
                     mmConnection.width,

@@ -3,7 +3,6 @@ package microscenery.example
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
@@ -36,8 +35,8 @@ class LocalMMScene: DefaultScene() {
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
 
         stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
-        stageSpaceManager.snapSlice(Vector3f(0f,0f,10f))
-        stageSpaceManager.snapSlice(Vector3f(0f,0f,20f))
+        stageSpaceManager.snapSlice(Vector3f(10f))
+        stageSpaceManager.snapSlice(Vector3f(20f))
         stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
 
         thread {
