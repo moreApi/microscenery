@@ -2,6 +2,7 @@ package microscenery.unit.network
 
 import microscenery.network.BiggishDataClient
 import microscenery.network.BiggishDataServer
+import microscenery.network.CHUNK_SIZE
 import microscenery.network.SliceStorage
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -22,11 +23,13 @@ class BiggishDataTransmissionTest {
     lateinit var server: BiggishDataServer
     lateinit var client: BiggishDataClient
 
+    private val storageSize = 50 * 1024 * 1024
+
     @BeforeEach
     fun init() {
         zContext = ZContext()
         zContext.linger = 0
-        storage = SliceStorage(50 * 1024 * 1024)
+        storage = SliceStorage(storageSize)
         server = BiggishDataServer(4400, storage, zContext)
         client = BiggishDataClient(zContext, 4400)
         Thread.sleep(500)
@@ -49,6 +52,38 @@ class BiggishDataTransmissionTest {
         assertNotNull(slice)
         slice.chunks.firstEntry().value.forEachIndexed { index, byte ->
             assertEquals(index.toByte(), byte)
+        }
+    }
+
+    @Test
+    fun tooLarge() {
+        storage.addSlice(1, ByteBuffer.wrap(ByteArray(storageSize+1) { it.toByte() }))
+        assertNull(storage.getSlice(1))
+    }
+
+    @Test
+    fun large() {
+        val dataSize = CHUNK_SIZE*2+5
+        //increase storage size
+        storage = SliceStorage(CHUNK_SIZE*3)
+        server.close().join()
+        server = BiggishDataServer(4400, storage, zContext)
+
+        storage.addSlice(1, ByteBuffer.wrap(ByteArray(dataSize) { (it+10).toByte() }))
+        assert(client.requestSlice(1, dataSize))
+        val slice = client.outputQueue.poll(10000, TimeUnit.MILLISECONDS)
+        assertNotNull(slice)
+
+        // check whole slice
+        val buffer = MemoryUtil.memAlloc(slice.size)
+        slice.chunks.forEach{
+            buffer.put(it.value)
+        }
+        buffer.flip()
+
+        for (i in 0 until dataSize){
+            val byte = buffer.get()
+            assertEquals((i+10).toByte(), byte, "at index $i")
         }
     }
 

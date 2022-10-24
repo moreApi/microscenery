@@ -15,7 +15,6 @@ import org.zeromq.ZMQ
 class BiggishDataServer(val port: Int, private val storage: SliceStorage, zContext: ZContext) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val payload = ByteArray(CHUNK_SIZE)
     private val router: ZMQ.Socket
 
     init {
@@ -57,14 +56,9 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
         data.position(data.position() + request.offset.coerceAtMost(data.remaining()))
         val size = request.chunkSize.coerceAtMost(data.remaining()).coerceAtMost(CHUNK_SIZE)
 
-        val chunk = if (size == CHUNK_SIZE) {
-            data.get(payload, 0, size)
-            ZFrame(payload)
-        } else {
-            val smallerPayload = ByteArray(size)
-            data.get(smallerPayload, 0, size)
-            ZFrame(smallerPayload)
-        }
+        val payload = ByteArray(size) //can't easily reuse memory since zmq needs to handle it
+        data.get(payload, 0, size)
+        val chunk =  ZFrame(payload)
 
         replyBuilder.chunkSize = size
         replyBuilder.offset = request.offset
