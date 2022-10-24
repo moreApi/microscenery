@@ -1,5 +1,6 @@
 package microscenery
 
+import graphics.scenery.Blending
 import graphics.scenery.BufferUtils
 import graphics.scenery.DefaultNode
 import graphics.scenery.ShaderMaterial
@@ -8,9 +9,17 @@ import graphics.scenery.attribute.material.HasCustomMaterial
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.attribute.renderable.HasRenderable
 import graphics.scenery.attribute.spatial.HasSpatial
+import graphics.scenery.backends.Shaders
 import graphics.scenery.textures.Texture
 import graphics.scenery.utils.Image
+import graphics.scenery.volumes.Colormap
+import graphics.scenery.volumes.TransferFunction
+import net.imglib2.type.numeric.NumericType
+import net.imglib2.type.numeric.integer.UnsignedByteType
+import net.imglib2.type.numeric.integer.UnsignedIntType
+import net.imglib2.type.numeric.real.FloatType
 import org.joml.Vector3f
+import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
@@ -18,7 +27,8 @@ import java.nio.ShortBuffer
 /**
  * Modified Plane to display ByteBuffers
  */
-class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, bytesPerValue: Int = 1) : DefaultNode("SliceRenderNode"),
+class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, bytesPerValue: Int = 1,
+                      val transferFunction : TransferFunction, val tfOffset : Float = 0.0f, val tfScale : Float = 1000.0f) : DefaultNode("SliceRenderNode"),
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {
 
@@ -103,17 +113,36 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
         dataExpaned.rewind()
 
         val final = Image(dataExpaned, width, height)
+        val colorMap = Colormap.get("hot")
+
         this.material {
             textures["diffuse"] = Texture.fromImage(final)
+            textures["specular"] = Texture(Vector3i(transferFunction.textureSize, transferFunction.textureHeight, 1), 1, FloatType(), transferFunction.serialise(),
+                Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, false, false,
+                Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
+                hashSetOf(Texture.UsageType.Texture))
+            textures["ambient"] = Texture(Vector3i(colorMap.width, colorMap.height, 1), 4, UnsignedByteType(), colorMap.buffer,
+                Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, true, false,
+                Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
+                hashSetOf(Texture.UsageType.Texture))
+            metallic = tfOffset
+            roughness = tfScale
+
+            blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
+            blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
+            blending.colorBlending = Blending.BlendOp.add
+            blending.sourceAlphaBlendFactor = Blending.BlendFactor.One
+            blending.destinationAlphaBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
+            blending.alphaBlending = Blending.BlendOp.add
         }
     }
 
     override fun createMaterial(): ShaderMaterial {
 
-        val newMaterial: ShaderMaterial = ShaderMaterial.fromFiles(
-            "DefaultForward.vert",
-            "DefaultForward.frag",
-        )
+        val shaders = Shaders.ShadersFromFiles(arrayOf("DefaultForward.vert",
+            "SliceRenderNode.frag"), SliceRenderNode::class.java )
+
+        val newMaterial = ShaderMaterial(shaders)
 
         setMaterial(newMaterial) {
             newMaterial.diffuse = diffuse

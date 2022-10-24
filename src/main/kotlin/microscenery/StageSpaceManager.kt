@@ -1,5 +1,6 @@
 package microscenery
 
+import bdv.tools.brightness.ConverterSetup
 import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.Scene
@@ -9,6 +10,7 @@ import graphics.scenery.controls.behaviours.*
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.TransferFunction
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.HardwareDimensions
 import microscenery.signals.MicroscopeStatus
@@ -25,12 +27,17 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
     Agent() {
 
     val stageRoot = RichNode("stage root")
-
     var focusFrame: HasSpatial? = null
+
+    private val tf = TransferFunction.ramp()
+    private val tfRangeMin : Float = 0.0f
+    private val tfRangeMax : Float = 100.0f
+    var tfOffset = 0.0f
+    var tfScale = 0.0f
 
     init {
         scene.addChild(stageRoot)
-
+        calculateOffsetAndScale()
         buildFocusFrame()
 
         if (addFocusFrame)
@@ -39,6 +46,16 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
             }
 
         startAgent()
+    }
+
+    private fun calculateOffsetAndScale()
+    {
+        //Rangescale is either 255 or 65535
+        val rangeScale = 255.0f
+        val fmin = tfRangeMin / rangeScale
+        val fmax = tfRangeMax / rangeScale
+        tfScale = 1.0f / ( fmax - fmin )
+        tfOffset = -fmin * tfScale;
     }
 
     // TODO: restrict to valid stage space
@@ -86,7 +103,7 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
                 if (signal.data == null) return
                 val hwd = hardware.hardwareDimensions()
 
-                val node = SliceRenderNode(signal.data, hwd.imageSize.x, hwd.imageSize.y, 1f, hwd.numericType.bytes)
+                val node = SliceRenderNode(signal.data, hwd.imageSize.x, hwd.imageSize.y, 1f, hwd.numericType.bytes, tf, tfOffset, tfScale)
                 node.spatial().position = signal.stagePos
                 stageRoot.addChild(node)
             }

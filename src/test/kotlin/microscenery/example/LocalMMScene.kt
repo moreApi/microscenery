@@ -3,6 +3,7 @@ package microscenery.example
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
@@ -16,7 +17,7 @@ class LocalMMScene: DefaultScene() {
     init {
 
         val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
-        val stageSpaceManager = StageSpaceManager(hardware,scene)
+        val stageSpaceManager = StageSpaceManager(hardware, scene)
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f,1f,2f)
 
