@@ -4,7 +4,6 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.TransferFunction
 import microscenery.DefaultScene
 import microscenery.StageSpaceManager
 import microscenery.lightSleepOnCondition
@@ -15,7 +14,7 @@ import org.zeromq.ZContext
 import kotlin.concurrent.thread
 
 
-class RemoteMicroscopeScene : DefaultScene() {
+class RemoteMicroscopeClientScene : DefaultScene() {
     init {
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
@@ -49,7 +48,7 @@ class RemoteMicroscopeScene : DefaultScene() {
         var shouldBeHere = 0
         val randomSlices = true
         if (randomSlices) {
-            for (i in 0..200) {
+            for (i in 0..20) {
                 //println("Requesting slice #$i")
                 val target = Random.random3DVectorFromRange(0f, client.hardwareDimensions().stageMax.x)
                 //Thread.sleep(50)
@@ -87,7 +86,7 @@ class RemoteMicroscopeScene : DefaultScene() {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            RemoteMicroscopeScene().main()
+            RemoteMicroscopeClientScene().main()
         }
     }
 
