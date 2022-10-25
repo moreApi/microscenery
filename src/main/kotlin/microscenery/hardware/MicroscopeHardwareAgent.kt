@@ -15,7 +15,7 @@ import kotlin.properties.Delegates
  *
  * !! ATTENTION!! Call [startAgent] eg. in the Init method of your class
  */
-abstract class MicroscopeHardwareAgent(): Agent(), MicroscopeHardware {
+abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
 
     override val output: BlockingQueue<MicroscopeSignal> = ArrayBlockingQueue(50)
 
@@ -27,6 +27,11 @@ abstract class MicroscopeHardwareAgent(): Agent(), MicroscopeHardware {
         output.put(status)
     }
 
+    override var stagePosition: Vector3f
+        get() = status.stagePosition
+        set(value) {
+            moveStage(value)
+        }
 
     protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
         HardwareDimensions.EMPTY.copy(stageMin = Vector3f(-45f))
@@ -36,4 +41,9 @@ abstract class MicroscopeHardwareAgent(): Agent(), MicroscopeHardware {
 
     override fun status(): MicroscopeStatus = status
     override fun hardwareDimensions(): HardwareDimensions = hardwareDimensions
+
+    /**
+     * New stage position has to be announced in status in implementing method.
+     */
+    protected abstract fun moveStage(target: Vector3f)
 }

@@ -6,14 +6,11 @@ import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.TransferFunction
 import microscenery.DefaultScene
 import microscenery.StageSpaceManager
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.nowMillis
 import org.joml.Vector3f
-import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.thread
 
 private enum class Mode {
@@ -58,7 +55,7 @@ class DemoHWScene : DefaultScene() {
                         }
             }
             Mode.RandomLive -> {
-                stageSpaceManager.live(true)
+                //stageSpaceManager.live(true)
                 stageSpaceManager.focusFrame?.let { focus ->
                     var start = Vector3f()
                     var target = Vector3f()
@@ -87,7 +84,8 @@ class DemoHWScene : DefaultScene() {
         sortedSlices.sortBy { it.z() }
         for(target in sortedSlices)
         {
-            stageSpaceManager.snapSlice(target)
+            stageSpaceManager.stagePosition =  target
+            stageSpaceManager.snapSlice()
         }
 
 

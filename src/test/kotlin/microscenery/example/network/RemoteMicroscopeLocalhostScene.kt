@@ -4,7 +4,6 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.network.RemoteMicroscopeClient
@@ -47,7 +46,8 @@ class RemoteMicroscopeLocalhostScene: DefaultScene() {
                 //println("Requesting slice #$i")
                 val target = Random.random3DVectorFromRange(0f, microscope.side.toFloat())
                 //Thread.sleep(50)
-                stageSpaceManager.snapSlice(target)
+                stageSpaceManager.stagePosition = target
+                stageSpaceManager.snapSlice()
                 shouldBeHere++
 
             }
@@ -56,7 +56,8 @@ class RemoteMicroscopeLocalhostScene: DefaultScene() {
                 for (y in listOf(0, 50, 100, 150))
                     for (x in listOf(0, 50, 100, 150)) {
                         val target = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
-                        stageSpaceManager.snapSlice(target)
+                        stageSpaceManager.stagePosition = target
+                        stageSpaceManager.snapSlice()
                         shouldBeHere++
                         //Thread.sleep(10)
                     }

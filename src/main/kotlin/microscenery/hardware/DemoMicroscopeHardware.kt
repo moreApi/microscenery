@@ -18,7 +18,7 @@ class DemoMicroscopeHardware(
 ): MicroscopeHardwareAgent() {
      protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    var stagePosition = stagePosition
+    override var stagePosition = stagePosition
         set(target) {
             val safeTarget = Vector3f()
             for (i in 0..2) safeTarget.setComponent(i, target[i].coerceIn(hardwareDimensions.stageMin[i], hardwareDimensions.stageMax[i]))
@@ -50,8 +50,7 @@ class DemoMicroscopeHardware(
         //no need to start the agent
     }
 
-    override fun snapSlice(target: Vector3f) {
-        stagePosition = target
+    override fun snapSlice() {
         val imgX = hardwareDimensions.imageSize.x
         val imgY = hardwareDimensions.imageSize.y
         val sliceBuffer = MemoryUtil.memAlloc(imgX * imgY)
@@ -86,6 +85,6 @@ class DemoMicroscopeHardware(
     }
 
     override fun moveStage(target: Vector3f) {
-        TODO("Not yet implemented")
+        throw NotImplementedError("demo does not use MicroscopeAgents stage handling")
     }
 }

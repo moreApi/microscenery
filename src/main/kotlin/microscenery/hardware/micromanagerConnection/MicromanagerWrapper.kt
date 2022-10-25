@@ -36,9 +36,13 @@ class MicromanagerWrapper(
     }
 
 
-    override fun snapSlice(target: Vector3f) {
-        hardwareCommandsQueue.put(HardwareCommand.MoveStage(target, hardwareDimensions, true))
+
+    override fun snapSlice() {
         hardwareCommandsQueue.put(HardwareCommand.SnapImage(false))
+    }
+
+    override fun moveStage(target: Vector3f) {
+        hardwareCommandsQueue.put(HardwareCommand.MoveStage(target, hardwareDimensions, true))
     }
 
     var live: Boolean
@@ -116,10 +120,6 @@ class MicromanagerWrapper(
                     this.close()
                 }
         }
-    }
-
-    override fun moveStage(target: Vector3f) {
-        TODO("Not yet implemented")
     }
 
 

@@ -2,10 +2,12 @@ package microscenery.example
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.StageSpaceManager
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
+import microscenery.lightSleepOnCondition
 import microscenery.signals.ServerState
 import org.joml.Vector3f
 import kotlin.concurrent.thread
@@ -33,7 +35,8 @@ class LocalMMScene: DefaultScene() {
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
         //stageSpaceManager.snapSlice(Vector3f(10f))
         //stageSpaceManager.snapSlice(Vector3f(20f))
-        stageSpaceManager.snapSlice(Vector3f(50f))
+        stageSpaceManager.stagePosition = Vector3f(50f)
+        stageSpaceManager.snapSlice()
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
 
         thread {

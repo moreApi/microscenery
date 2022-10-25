@@ -49,9 +49,12 @@ class RemoteMicroscopeClient(
         output.put(meta.copy(data = buffer))
     }
 
-    override fun snapSlice(target: Vector3f) {
-        controlConnection.sendSignal(ClientSignal.MoveStage(target))
+    override fun snapSlice() {
         controlConnection.sendSignal(ClientSignal.SnapImage)
+    }
+
+    override fun moveStage(target: Vector3f) {
+        controlConnection.sendSignal(ClientSignal.MoveStage(target))
     }
 
     /**
@@ -91,9 +94,5 @@ class RemoteMicroscopeClient(
 
     override fun onClose() {
         controlConnection.sendSignal(ClientSignal.Shutdown)
-    }
-
-    override fun moveStage(target: Vector3f) {
-        TODO("Not yet implemented")
     }
 }

@@ -5,7 +5,6 @@ import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
-import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
@@ -28,8 +27,6 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     ) { _, _, newStatus: RemoteMicroscopeStatus ->
         controlConnection.sendSignal(newStatus)
     }
-    // workaround because I dont want to change protocol
-    private var supposedStagePos = Vector3f()
 
     init {
         if (connections != 1) logger.warn("More than one data connection are currently not supported. Config asks for $connections")
@@ -66,13 +63,13 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
             }
             ClientSignal.Live -> TODO()
-            is ClientSignal.MoveStage -> supposedStagePos=it.target
+            is ClientSignal.MoveStage -> microscope.stagePosition = it.target
             ClientSignal.Shutdown -> {
                 logger.info("Shutting down server.")
                 microscope.shutdown()
                 close()
             }
-            ClientSignal.SnapImage -> microscope.snapSlice(supposedStagePos)
+            ClientSignal.SnapImage -> microscope.snapSlice()
             ClientSignal.Stop -> TODO()
         }
     }

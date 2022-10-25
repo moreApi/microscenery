@@ -4,7 +4,7 @@ import microscenery.MicroscenerySettings
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.pollForSignal
-import microscenery.signals.Slice
+import microscenery.signals.MicroscopeStatus
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -30,14 +30,15 @@ internal class MicromanagerWrapperTest{
 
 
         val wrapper = MicromanagerWrapper(mmConnection)
+        wrapper.output.pollForSignal<MicroscopeStatus>()
 
         //start testing
-        wrapper.snapSlice(Vector3f(-400f))
-        wrapper.output.pollForSignal<Slice>()
+        wrapper.stagePosition = (Vector3f(-400f))
+        wrapper.output.pollForSignal<MicroscopeStatus>()
         verify(mmConnection).moveStage(Vector3f(-100f),true)
 
-        wrapper.snapSlice(Vector3f(400f))
-        wrapper.output.pollForSignal<Slice>()
+        wrapper.stagePosition = (Vector3f(400f))
+        wrapper.output.pollForSignal<MicroscopeStatus>()
         verify(mmConnection).moveStage(Vector3f(100f),true)
 
     }

@@ -33,7 +33,8 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }
 
-        stageSpaceManager.snapSlice(Vector3f(50f))
+        stageSpaceManager.stagePosition = Vector3f(50f)
+        stageSpaceManager.snapSlice()
 /*
         while (stageSpaceManager.hardware.status().state != ServerState.MANUAL){
             Thread.sleep(500)
