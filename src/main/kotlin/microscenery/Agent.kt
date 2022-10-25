@@ -10,7 +10,7 @@ import kotlin.concurrent.thread
  *
  * !! ATTENTION!! Call [startAgent] eg. in the Init method of your class
  */
-abstract class Agent{
+abstract class Agent(val isDaemon: Boolean = true){
 
     var running = false
         private set
@@ -25,7 +25,7 @@ abstract class Agent{
             // this is to make sure that the thread is started and running after initialisation. Makes testing easier.
             val lock = Semaphore(1, 1)
 
-            thread = thread(isDaemon = true, name = "Agent: ${this@Agent::class.simpleName}") {
+            thread = thread(isDaemon = isDaemon, name = "Agent: ${this@Agent::class.simpleName}") {
                 running = true
                 lock.release()
                 try {

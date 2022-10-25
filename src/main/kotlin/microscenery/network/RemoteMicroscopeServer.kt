@@ -17,7 +17,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val storage: SliceStorage = SliceStorage(),
     val basePort: Int = MicroscenerySettings.get("Network.basePort"),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
-): Agent() {
+): Agent(false) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsServer(zContext, basePort, listOf(this::processClientSignal))
@@ -68,6 +68,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
             ClientSignal.Live -> TODO()
             is ClientSignal.MoveStage -> supposedStagePos=it.target
             ClientSignal.Shutdown -> {
+                logger.info("Shutting down server.")
                 microscope.shutdown()
                 close()
             }
