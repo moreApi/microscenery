@@ -2,7 +2,6 @@ package microscenery.example
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
-import graphics.scenery.utils.extensions.times
 import microscenery.*
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
@@ -16,10 +15,7 @@ class LocalMMScene: DefaultScene() {
     init {
 
         val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
-        val stageSpaceManager = StageSpaceManager(hardware, scene)
-
-        stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f,1f,2f)
-
+        val stageSpaceManager = StageSpaceManager(hardware, scene, addFocusFrame = true)
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"
@@ -34,10 +30,11 @@ class LocalMMScene: DefaultScene() {
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
 
-        stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
-        stageSpaceManager.snapSlice(Vector3f(10f))
-        stageSpaceManager.snapSlice(Vector3f(20f))
-        stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
+        //stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
+        //stageSpaceManager.snapSlice(Vector3f(10f))
+        //stageSpaceManager.snapSlice(Vector3f(20f))
+        stageSpaceManager.snapSlice(Vector3f(50f))
+        //stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
 
         thread {
             while (true){

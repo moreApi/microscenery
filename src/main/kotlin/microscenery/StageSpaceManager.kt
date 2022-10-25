@@ -1,6 +1,5 @@
 package microscenery
 
-import bdv.tools.brightness.ConverterSetup
 import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.Scene
@@ -28,12 +27,23 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
 
     val stageRoot = RichNode("stage root")
     var focusFrame: HasSpatial? = null
+    var currentHardwareDimensions = HardwareDimensions.EMPTY
+        set(value) {
+            field = value
+            stageRoot.spatial().scale = value.vertexSize.times(1 / scaleDownFactor)
+            focusFrame?.children?.first()?.spatialOrNull()
+                ?.scale = Vector3f(value.imageSize.x * 1f, value.imageSize.y * 1f, 1f)
+        }
 
     private val tf = TransferFunction.ramp()
     private val tfRangeMin : Float = 0.0f
     private val tfRangeMax : Float = 100.0f
     var tfOffset = 0.0f
     var tfScale = 0.0f
+
+    val stagePosition: Vector3f
+        get() = hardware.status().stagePosition
+
 
     init {
         scene.addChild(stageRoot)
@@ -55,14 +65,26 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
         val fmin = tfRangeMin / rangeScale
         val fmax = tfRangeMax / rangeScale
         tfScale = 1.0f / ( fmax - fmin )
-        tfOffset = -fmin * tfScale;
+        tfOffset = -fmin * tfScale
     }
 
-    // TODO: restrict to valid stage space
     // build frame for focus
     private fun buildFocusFrame(): RichNode {
 
-        val focusFrame = RichNode("focus")
+        val focusFrame = RichNode("focus").apply {
+            this.update += {
+                val min = currentHardwareDimensions.stageMin
+                val max = currentHardwareDimensions.stageMax
+
+                spatial {
+                    val coerced = Vector3f()
+                    position.min(max,coerced)
+                    coerced.max(min)
+
+                    if (position != coerced) position = coerced
+                }
+            }
+        }
 
         // this is needed so VRGrab applies the correct scaling to the translation
         val pivot = RichNode("scalePivot").apply {
@@ -107,11 +129,7 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
                 node.spatial().position = signal.stagePos
                 stageRoot.addChild(node)
             }
-            is HardwareDimensions -> {
-                stageRoot.spatial().scale = signal.vertexSize.times(1 / scaleDownFactor)
-                focusFrame?.children?.first()?.spatialOrNull()
-                    ?.scale = Vector3f(signal.imageSize.x * 1f, signal.imageSize.y * 1f, 1f)
-            }
+            is HardwareDimensions -> { currentHardwareDimensions = signal}
             is MicroscopeStatus -> {
                 //scalePivot?.spatial()?.position = signal.stagePosition
             }
@@ -123,6 +141,10 @@ class StageSpaceManager(val hardware: MicroscopeHardware, val scene: Scene, val 
 
     fun snapSlice(target: Vector3f) {
         hardware.snapSlice(target)
+    }
+
+    fun live(b: Boolean) {
+
     }
 }
 
