@@ -47,6 +47,7 @@ class DemoMicroscopeHardware(
             stagePosition
         )
 
+        //no need to start the agent
     }
 
     override fun snapSlice(target: Vector3f) {
