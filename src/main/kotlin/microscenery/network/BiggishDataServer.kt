@@ -56,6 +56,7 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
         data.position(data.position() + request.offset.coerceAtMost(data.remaining()))
         val size = request.chunkSize.coerceAtMost(data.remaining()).coerceAtMost(CHUNK_SIZE)
 
+        //OPTIMIZATION POTENTIAL: introduce ring buffer or something to avoid creating new buffers constantly. Check out what ZFrame.destroy does.
         val payload = ByteArray(size) //can't easily reuse memory since zmq needs to handle it
         data.get(payload, 0, size)
         val chunk =  ZFrame(payload)

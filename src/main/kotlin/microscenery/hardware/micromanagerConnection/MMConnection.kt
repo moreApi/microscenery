@@ -27,7 +27,8 @@ import kotlin.concurrent.thread
  * MMConnection.slices
  */
 class MMConnection(
-    core_: CMMCore? = null
+    core_: CMMCore? = null,
+    var timeBetweenStageAxisCommands: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStageAxisCommands", 20),
 )
 {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -124,7 +125,7 @@ class MMConnection(
 
             if (to < from-precision || from+precision < to){
                 stage.position = to.toDouble()
-                Thread.sleep(5)
+                Thread.sleep(timeBetweenStageAxisCommands.toLong())
             }
         }
 
