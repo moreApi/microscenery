@@ -117,7 +117,8 @@ data class HardwareDimensions(
 
 data class MicroscopeStatus(
     val state: ServerState,
-    val stagePosition: Vector3f
+    val stagePosition: Vector3f,
+    val live: Boolean
 ) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
         val microscopeSignal = me.jancasus.microscenery.network.v2.MicroscopeSignal.newBuilder()
@@ -125,6 +126,7 @@ data class MicroscopeStatus(
         val status = microscopeSignal.statusBuilder
         status.state = this.state.toProto()
         status.stagePosition = this.stagePosition.toProto()
+        status.live = this.live
         status.build()
 
         return microscopeSignal.build()
@@ -135,7 +137,8 @@ data class MicroscopeStatus(
             val ss = this
             return MicroscopeStatus(
                 ss.state.toPoko(),
-                ss.stagePosition.toPoko()
+                ss.stagePosition.toPoko(),
+                ss.live
             )
         }
     }

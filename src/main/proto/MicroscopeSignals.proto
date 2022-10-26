@@ -19,6 +19,7 @@ message MicroscopeSignal{
 message MicroscopeStatus{
   EnumServerState state = 1;
   Vector3Float stagePosition = 2;
+  bool live = 3;
 }
 enum EnumServerState{
   SERVER_STATE_UNKNOWN = 0;

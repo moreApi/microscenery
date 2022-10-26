@@ -88,6 +88,13 @@ class StageSpaceManager(
                     tfScale
                 )
                 node.spatial().position = signal.stagePos
+
+                val minDistance = hardware.hardwareDimensions().vertexSize.length() * 1
+                stageRoot.children.filter { it is SliceRenderNode && it.spatialOrNull()?.position?.equals(signal.stagePos,minDistance) ?: false }
+                    .toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+                    .forEach {
+                        stageRoot.removeChild(it)
+                    }
                 stageRoot.addChild(node)
             }
             is HardwareDimensions -> {
@@ -104,6 +111,10 @@ class StageSpaceManager(
 
     fun snapSlice() {
         hardware.snapSlice()
+    }
+
+    fun live(b: Boolean) {
+        hardware.live = b
     }
 
     class FocusFrame(val stageSpaceManager: StageSpaceManager, hwd: HardwareDimensions) : RichNode("focus") {

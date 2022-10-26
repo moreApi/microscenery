@@ -56,12 +56,13 @@ class DemoHWScene : DefaultScene() {
                         }
             }
             Mode.RandomLive -> {
-                //stageSpaceManager.live(true)
+                stageSpaceManager.live(true)
                 stageSpaceManager.focusFrame?.let { focus ->
                     var start = Vector3f()
                     var target = Vector3f()
                     var startTime = 0L
                     val travelTime = 3000
+                    var count = 0
                     focus.update += {
                         focus.spatial {
 
@@ -75,8 +76,8 @@ class DemoHWScene : DefaultScene() {
                             val dir = target - start
                             val relPos = (nowMillis() - startTime) / travelTime.toFloat()
                             position = start + (dir * relPos)
-                            //stageSpaceManager.stagePosition = position
-                            //stageSpaceManager.snapSlice(position)
+                            stageSpaceManager.stagePosition = position
+                            if (count++ % 10 == 0) stageSpaceManager.snapSlice()
                         }
                     }
                 }

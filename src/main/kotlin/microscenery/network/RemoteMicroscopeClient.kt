@@ -57,6 +57,10 @@ class RemoteMicroscopeClient(
         controlConnection.sendSignal(ClientSignal.MoveStage(target))
     }
 
+    override fun live(isLive: Boolean) {
+        TODO("Not yet implemented")
+    }
+
     /**
      * Executed by the network thread of [ControlSignalsClient]
      */

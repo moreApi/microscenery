@@ -40,7 +40,7 @@ class ControlSignalTransmissionTest {
     fun shutdownServer() {
         server.sendSignal(
             ActualMicroscopeSignal(
-                MicroscopeStatus(ServerState.SHUTTING_DOWN, Vector3f())
+                MicroscopeStatus(ServerState.SHUTTING_DOWN, Vector3f(),false)
             )
         )
 
@@ -92,7 +92,7 @@ class ControlSignalTransmissionTest {
         assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
-        val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f())
+        val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f(),false)
         server.sendSignal(ActualMicroscopeSignal(s1))
         lightSleepOnNull { lastSignalServer }
 

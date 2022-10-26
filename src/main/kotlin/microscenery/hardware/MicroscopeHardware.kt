@@ -8,6 +8,7 @@ import java.util.concurrent.BlockingQueue
 
 interface MicroscopeHardware{
     var stagePosition: Vector3f
+    var live: Boolean
     fun snapSlice()
     fun shutdown()
 
