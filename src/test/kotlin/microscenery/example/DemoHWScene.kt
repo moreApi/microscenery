@@ -22,6 +22,7 @@ private enum class Mode {
 class DemoHWScene : DefaultScene() {
 
     init {
+        logger.info("Starting demo hw scene")
 
         val hw = DemoMicroscopeHardware()
         val stageSpaceManager = StageSpaceManager(hw, scene, addFocusFrame = true)
@@ -39,7 +40,7 @@ class DemoHWScene : DefaultScene() {
         scene.addChild(hullbox)
 
         val sortedSlices = ArrayList<Vector3f>()
-        when (Mode.RandomStatic) {
+        when (Mode.RandomLive) {
             Mode.RandomStatic -> {
                 for (i in 0..200) {
                     val target = Random.random3DVectorFromRange(0f, hw.side.toFloat())

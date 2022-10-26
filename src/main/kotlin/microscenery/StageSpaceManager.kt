@@ -5,6 +5,7 @@ import graphics.scenery.RichNode
 import graphics.scenery.Scene
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
+import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
@@ -14,6 +15,7 @@ import microscenery.signals.HardwareDimensions
 import microscenery.signals.MicroscopeStatus
 import microscenery.signals.Slice
 import org.joml.Vector3f
+import org.joml.Vector4f
 import java.util.concurrent.TimeUnit
 
 //TODO show stage limits
@@ -27,8 +29,7 @@ class StageSpaceManager(
     val scene: Scene,
     val scaleDownFactor: Float = 200f,
     addFocusFrame: Boolean = false
-) :
-    Agent() {
+) : Agent() {
 
     val stageRoot = RichNode("stage root")
     var focusFrame: FocusFrame? = null
@@ -112,7 +113,48 @@ class StageSpaceManager(
         private val pivot: RichNode
 
         init {
-            val focusFrame = this
+            // this is needed so VRGrab applies the correct scaling to the translation
+            pivot = RichNode("scalePivot")
+            this.addChild(pivot)
+
+            val beamBase = Vector3f(.1f, .1f, 1f)
+            val distanceFromCenter = Vector3f(0.55f)
+            // beams
+            listOf(
+                Vector3f(0f, 1f, 0f),
+                Vector3f(0f, -1f, 0f),
+                Vector3f(-1f, 0f, 0f),
+                Vector3f(1f, 0f, 0f)
+            ).map { posNorm ->
+                // position
+                val pos = distanceFromCenter * posNorm
+                val beamDir = Vector3f(1.1f, 1.1f, 0f) - posNorm.absolute(Vector3f()) * 1.1f
+                val beam = Box(beamBase + beamDir)
+                beam.spatial().position = pos
+                pivot.addChild(beam)
+
+                // ui interaction
+                beam.addAttribute(Grabable::class.java, Grabable(target = this, lockRotation = true))
+                beam.addAttribute(Touchable::class.java, Touchable())
+                beam.addAttribute(
+                    Pressable::class.java,
+                    PerButtonPressable(mapOf(OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onRelease = {
+                        stageSpaceManager.snapSlice()
+                    })))
+                )
+            }
+
+            val positionLabel = TextBoard()
+            positionLabel.text = "0,0,0"
+            positionLabel.name = "FramePositionLabel"
+            positionLabel.transparent = 0
+            positionLabel.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+            positionLabel.backgroundColor = Vector4f(100f, 100f, 100f, 1.0f)
+            positionLabel.spatial {
+                position = Vector3f(-distanceFromCenter.x, distanceFromCenter.y+beamBase.y, 0f)
+                scale = Vector3f(0.15f, 0.15f, 0.15f)
+            }
+            pivot.addChild(positionLabel)
 
             this.update += {
 
@@ -124,41 +166,10 @@ class StageSpaceManager(
                     if (position != coerced) position = coerced
 
                     if (position != stageSpaceManager.stagePosition) stageSpaceManager.stagePosition = position
+
+                    positionLabel.text = position.toReadableString()
                 }
             }
-
-
-            // this is needed so VRGrab applies the correct scaling to the translation
-            pivot = RichNode("scalePivot").apply {
-                focusFrame.addChild(this)
-            }
-
-            val beamBase = Vector3f(.1f, .1f, 1f)
-            // beams
-            listOf(
-                Vector3f(0f, 1f, 0f),
-                Vector3f(0f, -1f, 0f),
-                Vector3f(-1f, 0f, 0f),
-                Vector3f(1f, 0f, 0f)
-            ).map { posNorm ->
-                // position
-                val pos = Vector3f(0.55f) * posNorm
-                val beamDir = Vector3f(1.1f, 1.1f, 0f) - posNorm.absolute(Vector3f()) * 1.1f
-                val beam = Box(beamBase + beamDir)
-                beam.spatial().position = pos
-                pivot.addChild(beam)
-
-                // ui interaction
-                beam.addAttribute(Grabable::class.java, Grabable(target = focusFrame, lockRotation = true))
-                beam.addAttribute(Touchable::class.java, Touchable())
-                beam.addAttribute(
-                    Pressable::class.java,
-                    PerButtonPressable(mapOf(OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onRelease = {
-                        stageSpaceManager.snapSlice()
-                    })))
-                )
-            }
-
             applyHardwareDimensions(hwd)
         }
 
