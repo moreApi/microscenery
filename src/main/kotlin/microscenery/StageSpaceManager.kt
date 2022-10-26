@@ -1,20 +1,25 @@
 package microscenery
 
-import graphics.scenery.Box
-import graphics.scenery.RichNode
-import graphics.scenery.Scene
+import graphics.scenery.*
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
+import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.HardwareDimensions
 import microscenery.signals.MicroscopeStatus
 import microscenery.signals.Slice
 import org.joml.Vector3f
+import java.awt.image.BufferedImage
+import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
+import javax.imageio.ImageIO
 
 //TODO show stage limits
 /**
@@ -27,24 +32,55 @@ class StageSpaceManager(
     val scene: Scene,
     val scaleDownFactor: Float = 200f,
     addFocusFrame: Boolean = false
-) :
-    Agent() {
+) : Agent(), HasTransferFunction {
+
+    private val logger by LazyLogger()
 
     val stageRoot = RichNode("stage root")
     var focusFrame: FocusFrame? = null
 
-    private val tf = TransferFunction.ramp()
-    private val tfRangeMin: Float = 0.0f
-    private val tfRangeMax: Float = 100.0f
-    var tfOffset = 0.0f
-    var tfScale = 0.0f
+    var sortedSlices = ArrayList<SliceRenderNode>()
+
+    private var tfOffset = 0.0f
+    private var tfScale = 0.0f
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
         set(value) {
             hardware.stagePosition = value
+            updateSlices()
         }
 
+    override var maxDisplayRange: Float = 1000.0f
+        set(value)
+        {
+            field = value
+            calculateOffsetAndScale()
+            updateSlices()
+        }
+    override var minDisplayRange: Float = 0.0f
+        set(value)
+        {
+            field = value
+            calculateOffsetAndScale()
+            updateSlices()
+        }
+    override var transferFunction : TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.1f)
+        set(value) {
+            field = value
+            updateSlices()
+
+            /*val tfBuffer = transferFunction.serialise().asFloatBuffer()
+            val byteArray = ByteArray(tfBuffer.limit())
+            for(i in 0 until tfBuffer.limit())
+            {
+                byteArray[i] = (tfBuffer[i] * 255).toInt().toByte()
+            }
+            val tfImage = BufferedImage(transferFunction.textureSize, transferFunction.textureHeight, BufferedImage.TYPE_BYTE_GRAY)
+            tfImage.raster.setDataElements(0, 0, transferFunction.textureSize, transferFunction.textureHeight, byteArray)
+
+            ImageIO.write(tfImage, "jpg", File("C:/Users/Kodels Bier/Desktop/test.jpg"))*/
+        }
 
     init {
         scene.addChild(stageRoot)
@@ -58,15 +94,40 @@ class StageSpaceManager(
         startAgent()
     }
 
+    /**
+     * Iterates over all slices and updates their transferFunction, offset and scale values according to the currently set values of this manager
+     */
+    private fun updateSlices()
+    {
+        sortedSlices.forEach {
+            it.transferFunction = transferFunction
+            it.material().metallic = tfOffset
+            it.material().roughness = tfScale
+        }
+    }
+
+    /**
+     * This normally happens inside the converter of a volume. Converts the minDisplayRange and maxDisplayRange values into an offset and scale used inside the shader
+     */
     private fun calculateOffsetAndScale() {
         //Rangescale is either 255 or 65535
         val rangeScale = 255.0f
-        val fmin = tfRangeMin / rangeScale
-        val fmax = tfRangeMax / rangeScale
+        val fmin = minDisplayRange / rangeScale
+        val fmax = maxDisplayRange / rangeScale
         tfScale = 1.0f / (fmax - fmin)
         tfOffset = -fmin * tfScale
     }
 
+    /**
+     * Inserts a slice into the local sliceContainer and sorts it using its z coordinate -> TODO: Make this use the camera and sort by view-vector
+     */
+    private fun insertSlice(slice : SliceRenderNode) : Int
+    {
+        sortedSlices.add(slice)
+        sortedSlices.sortBy { it.spatial().position.z() }
+        val index = sortedSlices.indexOf(slice)
+        return index
+    }
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
@@ -81,12 +142,17 @@ class StageSpaceManager(
                     hwd.imageSize.y,
                     1f,
                     hwd.numericType.bytes,
-                    tf,
-                    tfOffset,
-                    tfScale
+                    transferFunction
                 )
+                node.material().metallic = tfOffset
+                node.material().roughness = tfScale
                 node.spatial().position = signal.stagePos
                 stageRoot.addChild(node)
+
+                //now follows insurance, that slides get ordered correctly
+                val index = insertSlice(node)
+                stageRoot.children.remove(node)
+                stageRoot.children.add(index, node)
             }
             is HardwareDimensions -> {
                 stageRoot.spatial().scale = signal.vertexSize.times(1 / scaleDownFactor)

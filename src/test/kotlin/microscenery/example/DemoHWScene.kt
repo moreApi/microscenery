@@ -1,16 +1,22 @@
 package microscenery.example
 
+import graphics.scenery.BoundingGrid
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.numerics.Random
+import graphics.scenery.ui.SwingBridgeFrame
+import graphics.scenery.ui.SwingUiNode
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
 import microscenery.StageSpaceManager
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.nowMillis
 import org.joml.Vector3f
+import org.scijava.ui.behaviour.ClickBehaviour
+import org.scijava.ui.behaviour.DragBehaviour
 import kotlin.concurrent.thread
 
 private enum class Mode {
@@ -38,12 +44,24 @@ class DemoHWScene : DefaultScene() {
         }
         scene.addChild(hullbox)
 
-        val sortedSlices = ArrayList<Vector3f>()
+
+        val bridge = SwingBridgeFrame("1DTransferFunctionSliceEditor")
+        val tfUI = TransferFunctionEditor(650, 550, stageSpaceManager, bridge)
+        tfUI.name = "Slices"
+        val swingUiNode = tfUI.mainFrame.uiNode
+        swingUiNode.spatial() {
+            position = Vector3f(2f,0f,0f)
+        }
+        scene.addChild(swingUiNode)
+
+
         when (Mode.RandomStatic) {
             Mode.RandomStatic -> {
                 for (i in 0..200) {
                     val target = Random.random3DVectorFromRange(0f, hw.side.toFloat())
-                    sortedSlices.add(target)
+                    //sortedSlices.add(target)
+                    stageSpaceManager.stagePosition = target
+                    stageSpaceManager.snapSlice()
                 }
             }
             Mode.Fixed -> {
@@ -51,7 +69,9 @@ class DemoHWScene : DefaultScene() {
                     for (y in listOf(0, 50, 100, 150))
                         for (x in listOf(0, 50, 100, 150)) {
                             val target = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
-                            sortedSlices.add(target)
+                            //sortedSlices.add(target)
+                            stageSpaceManager.stagePosition = target
+                            stageSpaceManager.snapSlice()
                         }
             }
             Mode.RandomLive -> {
@@ -75,19 +95,12 @@ class DemoHWScene : DefaultScene() {
                             val relPos = (nowMillis() - startTime) / travelTime.toFloat()
                             position = start + (dir * relPos)
                             //stageSpaceManager.stagePosition = position
-                            //stageSpaceManager.snapSlice(position)
+                            //stageSpaceManager.snapSlice()
                         }
                     }
                 }
             }
         }
-        sortedSlices.sortBy { it.z() }
-        for(target in sortedSlices)
-        {
-            stageSpaceManager.stagePosition =  target
-            stageSpaceManager.snapSlice()
-        }
-
 
         thread {
             while (true) {
@@ -95,6 +108,58 @@ class DemoHWScene : DefaultScene() {
                 scene to stageSpaceManager
             }
         }
+    }
+
+    override fun inputSetup() {
+        super.inputSetup()
+
+        val debugRaycast = false
+        inputHandler?.addBehaviour(
+            "ctrlClickObject", object : ClickBehaviour {
+                override fun click(x: Int, y: Int) {
+                    val ray = cam.getNodesForScreenSpacePosition(x,y, listOf<Class<*>>(BoundingGrid::class.java), debugRaycast)
+
+                    ray.matches.firstOrNull()?.let { hit ->
+                        val node = hit.node as? SwingUiNode ?: return
+                        val hitPos = ray.initialPosition + ray.initialDirection * hit.distance
+                        node.ctrlClick(hitPos)
+                    }
+                }
+            }
+        )
+        inputHandler?.addBehaviour(
+            "dragObject", object : DragBehaviour {
+                override fun init(x:Int, y: Int) {
+                    val ray = cam.getNodesForScreenSpacePosition(x,y, listOf<Class<*>>(BoundingGrid::class.java), debugRaycast)
+
+                    ray.matches.firstOrNull()?.let { hit ->
+                        val node = hit.node as? SwingUiNode ?: return
+                        val hitPos = ray.initialPosition + ray.initialDirection * hit.distance
+                        node.pressed(hitPos)
+                    }
+                }
+                override fun drag(x: Int, y: Int) {
+                    val ray = cam.getNodesForScreenSpacePosition(x,y, listOf<Class<*>>(BoundingGrid::class.java), debugRaycast)
+
+                    ray.matches.firstOrNull()?.let { hit ->
+                        val node = hit.node as? SwingUiNode ?: return
+                        val hitPos = ray.initialPosition + ray.initialDirection * hit.distance
+                        node.drag(hitPos)
+                    }
+                }
+                override fun end(x: Int, y: Int) {
+                    val ray = cam.getNodesForScreenSpacePosition(x,y, listOf<Class<*>>(BoundingGrid::class.java), debugRaycast)
+
+                    ray.matches.firstOrNull()?.let { hit ->
+                        val node = hit.node as? SwingUiNode ?: return
+                        val hitPos = ray.initialPosition + ray.initialDirection * hit.distance
+                        node.released(hitPos)
+                    }
+                }
+            }
+        )
+        inputHandler?.addKeyBinding("dragObject", "1")
+        inputHandler?.addKeyBinding("ctrlClickObject", "2")
     }
 
     companion object {

@@ -21,19 +21,30 @@ import net.imglib2.type.numeric.real.FloatType
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
+import java.awt.image.BufferedImage
+import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
+import javax.imageio.ImageIO
 
 /**
  * Modified Plane to display ByteBuffers
  */
 class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, bytesPerValue: Int = 1,
-                      val transferFunction : TransferFunction, val tfOffset : Float = 0.0f, val tfScale : Float = 1000.0f) : DefaultNode("SliceRenderNode"),
+    tf : TransferFunction) : DefaultNode("SliceRenderNode"),
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {
 
-    init {
+    var transferFunction : TransferFunction = tf
+        set(value)
+        {
+            field = value
+            tfTexture = generateTFTexture()
+            material().textures["specular"] = tfTexture
+        }
 
+    private var tfTexture : Texture
+    init {
         val sizes = Vector3f(width * scale, height * scale, 1f)
 
         addGeometry()
@@ -44,6 +55,8 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
         spatial {
             this.scale = sizes
         }
+
+        tfTexture = generateTFTexture()
 
         val side = 1.0f
         val side2 = side / 2.0f
@@ -117,16 +130,11 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
 
         this.material {
             textures["diffuse"] = Texture.fromImage(final)
-            textures["specular"] = Texture(Vector3i(transferFunction.textureSize, transferFunction.textureHeight, 1), 1, FloatType(), transferFunction.serialise(),
-                Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, false, false,
-                Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
-                hashSetOf(Texture.UsageType.Texture))
+            textures["specular"] = tfTexture
             textures["ambient"] = Texture(Vector3i(colorMap.width, colorMap.height, 1), 4, UnsignedByteType(), colorMap.buffer,
                 Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, true, false,
                 Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
                 hashSetOf(Texture.UsageType.Texture))
-            metallic = tfOffset
-            roughness = tfScale
 
             blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
             blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
@@ -135,6 +143,16 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
             blending.destinationAlphaBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
             blending.alphaBlending = Blending.BlendOp.add
         }
+    }
+
+
+
+    private fun generateTFTexture() : Texture {
+        val tfSerialized = transferFunction.serialise()
+        return Texture(Vector3i(transferFunction.textureSize, transferFunction.textureHeight, 1), 1, FloatType(), tfSerialized,
+            Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, true, false,
+            Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
+            hashSetOf(Texture.UsageType.Texture))
     }
 
     override fun createMaterial(): ShaderMaterial {
