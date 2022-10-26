@@ -53,6 +53,7 @@ class StageSpaceManager(
 
         if (addFocusFrame)
             focusFrame = FocusFrame(this, hardware.hardwareDimensions()).apply {
+                spatial().position = hardware.stagePosition
                 stageRoot.addChild(this)
             }
 
