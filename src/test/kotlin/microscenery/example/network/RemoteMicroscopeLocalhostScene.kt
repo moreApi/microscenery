@@ -2,9 +2,10 @@ package microscenery.example.network
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
-import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
 import microscenery.*
+import microscenery.example.DemoBehaviorMode
+import microscenery.example.DemoHWScene
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.network.RemoteMicroscopeServer
@@ -23,7 +24,7 @@ class RemoteMicroscopeLocalhostScene: DefaultScene() {
         val server = RemoteMicroscopeServer(microscope, storage = SliceStorage(500*1024*1024), zContext = zContext)
 
         val client = RemoteMicroscopeClient(zContext = zContext)
-        val stageSpaceManager = StageSpaceManager(client, scene)
+        val stageSpaceManager = StageSpaceManager(client, scene, addFocusFrame = true)
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f,1f,2f)
 
@@ -39,36 +40,13 @@ class RemoteMicroscopeLocalhostScene: DefaultScene() {
         scene.addChild(hullbox)
 
 
-        var shouldBeHere = 0
-        val randomSlices = true
-        if (randomSlices){
-            for (i in 0 .. 200) {
-                //println("Requesting slice #$i")
-                val target = Random.random3DVectorFromRange(0f, microscope.side.toFloat())
-                //Thread.sleep(50)
-                stageSpaceManager.stagePosition = target
-                stageSpaceManager.snapSlice()
-                shouldBeHere++
-
-            }
-        } else {
-            for (z in listOf(0, 50, 100, 150, 199))
-                for (y in listOf(0, 50, 100, 150))
-                    for (x in listOf(0, 50, 100, 150)) {
-                        val target = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
-                        stageSpaceManager.stagePosition = target
-                        stageSpaceManager.snapSlice()
-                        shouldBeHere++
-                        //Thread.sleep(10)
-                    }
-        }
+        DemoHWScene.demoBehavior(DemoBehaviorMode.RandomLive,microscope.side.toFloat(),stageSpaceManager)
 
 
         thread {
             while (true){
                 Thread.sleep(200)
                 scene
-                println("$shouldBeHere, ${stageSpaceManager.stageRoot.children.size}")
             }
         }
     }

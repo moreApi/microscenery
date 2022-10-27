@@ -62,7 +62,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
             }
-            ClientSignal.Live -> TODO()
+            ClientSignal.Live -> microscope.live = true
             is ClientSignal.MoveStage -> microscope.stagePosition = it.target
             ClientSignal.Shutdown -> {
                 logger.info("Shutting down server.")
@@ -70,7 +70,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                 close()
             }
             ClientSignal.SnapImage -> microscope.snapSlice()
-            ClientSignal.Stop -> TODO()
+            ClientSignal.Stop -> microscope.live = false
         }
     }
 

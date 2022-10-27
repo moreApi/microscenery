@@ -58,7 +58,11 @@ class RemoteMicroscopeClient(
     }
 
     override fun live(isLive: Boolean) {
-        TODO("Not yet implemented")
+        if (isLive){
+            controlConnection.sendSignal(ClientSignal.Live)
+        } else {
+            controlConnection.sendSignal(ClientSignal.Stop)
+        }
     }
 
     /**
