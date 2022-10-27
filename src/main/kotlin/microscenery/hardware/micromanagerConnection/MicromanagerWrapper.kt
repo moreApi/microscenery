@@ -92,6 +92,7 @@ class MicromanagerWrapper(
                 val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
                 buf.clear()
                 if (lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
+                    //TODO handle incomming stage move events, in case of live
                     Thread.sleep(
                         (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
                     )

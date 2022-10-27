@@ -76,7 +76,6 @@ class DemoHWScene : DefaultScene() {
                         var target = Vector3f()
                         var startTime = 0L
                         val travelTime = 3000
-                        var count = 0
                         focus.update += {
                             focus.spatial {
 
@@ -91,7 +90,6 @@ class DemoHWScene : DefaultScene() {
                                 val relPos = (nowMillis() - startTime) / travelTime.toFloat()
                                 position = start + (dir * relPos)
                                 stageSpaceManager.stagePosition = position
-                                if (count++ % 10 == 0) stageSpaceManager.snapSlice()
                             }
                         }
                     }

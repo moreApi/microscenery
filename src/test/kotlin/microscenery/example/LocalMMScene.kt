@@ -35,9 +35,11 @@ class LocalMMScene: DefaultScene() {
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
         //stageSpaceManager.snapSlice(Vector3f(10f))
         //stageSpaceManager.snapSlice(Vector3f(20f))
-        stageSpaceManager.stagePosition = Vector3f(50f)
-        stageSpaceManager.snapSlice()
+        //stageSpaceManager.stagePosition = Vector3f(50f)
+        //stageSpaceManager.snapSlice()
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
+
+        DemoHWScene.demoBehavior(DemoBehaviorMode.RandomLive,hardware.hardwareDimensions().stageMax.length(),stageSpaceManager)
 
         thread {
             while (true){
