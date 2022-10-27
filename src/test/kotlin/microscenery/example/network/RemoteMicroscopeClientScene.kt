@@ -4,6 +4,8 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import microscenery.DefaultScene
 import microscenery.StageSpaceManager
+import microscenery.example.DemoBehaviorMode
+import microscenery.example.DemoHWScene
 import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
@@ -33,41 +35,10 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }
 
-        stageSpaceManager.stagePosition = Vector3f(50f)
-        stageSpaceManager.snapSlice()
-/*
-        while (stageSpaceManager.hardware.status().state != ServerState.MANUAL){
-            Thread.sleep(500)
-            println(stageSpaceManager.hardware.status().state)
-        }
-        while (stageSpaceManager.hardware.hardwareDimensions().imageSize.x == 0){
-            Thread.sleep(500)
-            println(stageSpaceManager.hardware.hardwareDimensions().stageMin)
-        }
-        var shouldBeHere = 0
-        val randomSlices = false
-        if (randomSlices) {
-            for (i in 0..20) {
-                //println("Requesting slice #$i")
-                val target = Random.random3DVectorFromRange(0f, client.hardwareDimensions().stageMax.x)
-                //Thread.sleep(50)
-                stageSpaceManager.snapSlice(target)
-                shouldBeHere++
-
-            }
-        } else {
-            for (z in listOf(0,25, 50, 75, ))
-                for (y in listOf(0))
-                    for (x in listOf(0,)) {
-                val target = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
-                stageSpaceManager.snapSlice(target)
-                shouldBeHere++
-                //Thread.sleep(10)
-            }
-        }
+        DemoHWScene.demoBehavior(DemoBehaviorMode.RandomLive,50f,stageSpaceManager)
 
 
-
+        /*
         thread {
             while (true) {
                 Thread.sleep(200)

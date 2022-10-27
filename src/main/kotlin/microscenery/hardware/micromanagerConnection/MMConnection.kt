@@ -26,7 +26,7 @@ import kotlin.concurrent.thread
  * MMConnection.maxZ
  * MMConnection.slices
  */
-class MMConnection(
+class MMConnection @JvmOverloads constructor(
     core_: CMMCore? = null,
     var timeBetweenStageAxisCommands: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStageAxisCommands", 20),
 )
