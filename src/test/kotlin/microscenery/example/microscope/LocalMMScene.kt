@@ -1,4 +1,4 @@
-package microscenery.example
+package microscenery.example.microscope
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
@@ -12,7 +12,7 @@ import microscenery.signals.ServerState
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
-class LocalMMScene: DefaultScene() {
+class LocalMMScene : DefaultScene() {
 
     init {
 
@@ -39,17 +39,17 @@ class LocalMMScene: DefaultScene() {
         //stageSpaceManager.snapSlice()
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
 
-        DemoHWScene.demoBehavior(DemoBehaviorMode.RandomLive,hardware.hardwareDimensions().stageMax.length(),stageSpaceManager)
+        DemoBehavior(hardware.hardwareDimensions().stageMax.length(), stageSpaceManager).randomLive()
 
         thread {
-            while (true){
+            while (true) {
                 Thread.sleep(200)
                 scene
             }
         }
     }
 
-    companion object{
+    companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             LocalMMScene().main()

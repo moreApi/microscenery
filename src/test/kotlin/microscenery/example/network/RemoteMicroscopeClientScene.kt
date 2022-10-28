@@ -4,8 +4,7 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import microscenery.DefaultScene
 import microscenery.StageSpaceManager
-import microscenery.example.DemoBehaviorMode
-import microscenery.example.DemoHWScene
+import microscenery.example.microscope.DemoBehavior
 import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
@@ -35,7 +34,7 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }
 
-        DemoHWScene.demoBehavior(DemoBehaviorMode.RandomLive,50f,stageSpaceManager)
+        DemoBehavior(50f, stageSpaceManager).randomLive()
 
 
         /*
