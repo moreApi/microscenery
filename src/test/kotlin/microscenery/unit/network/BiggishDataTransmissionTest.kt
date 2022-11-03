@@ -123,5 +123,33 @@ class BiggishDataTransmissionTest {
         // it seems not to hang
     }
 
+    @Test
+    fun short(){
+        val size = 2000
+        val bBuffer = MemoryUtil.memAlloc(size*2)
+        val sBuffer = bBuffer.asShortBuffer()
+
+        for (i in (0).toUShort() until size.toUShort()){
+            val s = (UShort.MAX_VALUE / size.toUShort()) * i
+            sBuffer.put(s.toShort())
+        }
+
+        storage.addSlice(1, bBuffer)
+        assert(client.requestSlice(1, size))
+        val slice = client.outputQueue.poll(10000, TimeUnit.MILLISECONDS)
+        assertNotNull(slice)
+
+
+        bBuffer.rewind()
+
+        val bBuffer2 = MemoryUtil.memAlloc(size*2)
+        slice.chunks.firstEntry().value.forEach { byte ->
+            assertEquals(bBuffer.get(), byte)
+            bBuffer2.put(byte)
+        }
+
+        MemoryUtil.memFree(bBuffer)
+    }
+
 
 }
