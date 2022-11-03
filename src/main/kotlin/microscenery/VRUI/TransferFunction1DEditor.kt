@@ -16,11 +16,13 @@ import tpietzsch.example2.VolumeViewerOptions
 /**
  * It goes stale
  */
-class RottingTransferFunction(): TransferFunction(){
-    fun setStale() { stale = true }
+class RottingTransferFunction : TransferFunction() {
+    fun setStale() {
+        stale = true
+    }
 }
 
-class TransferFunction1DEditor() : RichNode("Transfer function editor") {
+class TransferFunction1DEditor : RichNode("Transfer function editor") {
 
     val start = Sphere(0.1f)
     val low = Sphere(0.1f)
@@ -31,16 +33,17 @@ class TransferFunction1DEditor() : RichNode("Transfer function editor") {
     val cpStart = transferFunction.addControlPoint(0.0f, 0.0f)
     val cpLow = transferFunction.addControlPoint(0.25f, 0.0f)
     val cpHigh = transferFunction.addControlPoint(0.75f, 1f)
-    var cpEnd = transferFunction.addControlPoint(1f,1f)
+    var cpEnd = transferFunction.addControlPoint(1f, 1f)
 
     init {
         val background = Box(Vector3f(2f, 1f, 0.1f))
         background.spatial().position = background.sizes * 0.5f + Vector3f(0f, 0f, -0.2f)
         background.material().diffuse = Vector3f(0.3f, 0.3f, 1f)
 
-        start.addAttribute(Grabable::class.java,
+        start.addAttribute(
+            Grabable::class.java,
             Grabable(onDrag = {
-                start.spatial{
+                start.spatial {
                     position.x = 0f
                     position.y = position.y.coerceIn(0f, 1f)
                     position.z = 0f
@@ -51,7 +54,8 @@ class TransferFunction1DEditor() : RichNode("Transfer function editor") {
         )
 
         low.spatial().position = Vector3f(0.5f, 0f, 0f)
-        low.addAttribute(Grabable::class.java,
+        low.addAttribute(
+            Grabable::class.java,
             Grabable(onDrag = {
                 low.spatial {
                     position.x = position.x.coerceIn(0f, high.spatial().position.x)
@@ -65,7 +69,8 @@ class TransferFunction1DEditor() : RichNode("Transfer function editor") {
         this.addChild(LineBetweenNodes(start.spatial(), low.spatial(), simple = true))
 
         high.spatial().position = Vector3f(1.5f, 1f, 0f)
-        high.addAttribute(Grabable::class.java,
+        high.addAttribute(
+            Grabable::class.java,
             Grabable(onDrag = {
                 high.spatial {
                     position.x = position.x.coerceIn(low.spatial().position.x, 2f)
@@ -79,7 +84,8 @@ class TransferFunction1DEditor() : RichNode("Transfer function editor") {
         this.addChild(LineBetweenNodes(low.spatial(), high.spatial(), simple = true))
 
         end.spatial().position = Vector3f(2f, 1f, 0f)
-        end.addAttribute(Grabable::class.java,
+        end.addAttribute(
+            Grabable::class.java,
             Grabable(onDrag = {
                 end.spatial {
                     position.x = 2f
@@ -95,10 +101,13 @@ class TransferFunction1DEditor() : RichNode("Transfer function editor") {
         listOf(background, start, low, high, end).forEach {
             this.addChild(it)
             this.addAttribute(Touchable::class.java, Touchable())
-            this.addAttribute(Pressable::class.java, PerButtonPressable(mapOf(CLOSE_BUTTON to SimplePressable(onPress = {
-                this.visible = false
-                this.parent?.removeChild(this)
-            }))))
+            this.addAttribute(
+                Pressable::class.java,
+                PerButtonPressable(mapOf(CLOSE_BUTTON to SimplePressable(onPress = {
+                    this.visible = false
+                    this.parent?.removeChild(this)
+                })))
+            )
         }
 
     }
@@ -128,7 +137,7 @@ class TransferFunction1DEditor() : RichNode("Transfer function editor") {
             DefaultScene({ scene, hub ->
                 val tfe = TransferFunction1DEditor()
                 scene.addChild(tfe)
-                val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\drosophila.xml""",hub, VolumeViewerOptions())
+                val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\drosophila.xml""", hub, VolumeViewerOptions())
                 volume.transferFunction = tfe.transferFunction
                 scene.addChild(volume)
             }).main()

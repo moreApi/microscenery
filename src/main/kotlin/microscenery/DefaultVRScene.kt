@@ -62,11 +62,11 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
         }
 
         val lightPositions = listOf(
-            Vector3f(3f,3f,3f),
-            Vector3f(3f,3f,-3f),
-            Vector3f(-3f,3f,3f),
-            Vector3f(-3f,3f,-3f),
-            Vector3f(0f,-3f,0f),
+            Vector3f(3f, 3f, 3f),
+            Vector3f(3f, 3f, -3f),
+            Vector3f(-3f, 3f, 3f),
+            Vector3f(-3f, 3f, -3f),
+            Vector3f(0f, -3f, 0f),
         )
 
         lightPositions.map {

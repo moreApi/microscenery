@@ -10,7 +10,7 @@ sealed class RemoteMicroscopeSignal {
     companion object {
         fun me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.toPoko() =
             when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
-                me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.SignalCase.STATUS ->  {
+                me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.SignalCase.STATUS -> {
                     val ss = this.status
                     RemoteMicroscopeStatus(
                         ss.dataPortsList,
@@ -41,7 +41,7 @@ data class RemoteMicroscopeStatus(
     }
 }
 
-data class ActualMicroscopeSignal(val signal: MicroscopeSignal): RemoteMicroscopeSignal(){
+data class ActualMicroscopeSignal(val signal: MicroscopeSignal) : RemoteMicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal {
         val microscopeSignal = me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.newBuilder()
         microscopeSignal.microscopeSignal = signal.toProto()

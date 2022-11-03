@@ -43,7 +43,7 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
         val replyBuilder = ReplyHeaderSliceChunk.newBuilder()
         replyBuilder.sliceId = request.sliceId
 
-                val data = storage.getSlice(request.sliceId)?.duplicate()?.order(ByteOrder.LITTLE_ENDIAN)
+        val data = storage.getSlice(request.sliceId)?.duplicate()?.order(ByteOrder.LITTLE_ENDIAN)
         if (data == null) {
             logger.warn("Slice ${request.sliceId} was requested but was not found!")
             // requested slice can't be found
@@ -60,7 +60,7 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
         //OPTIMIZATION POTENTIAL: introduce ring buffer or something to avoid creating new buffers constantly. Check out what ZFrame.destroy does.
         val payload = ByteArray(size) //can't easily reuse memory since zmq needs to handle it
         data.get(payload, 0, size)
-        val chunk =  ZFrame(payload)
+        val chunk = ZFrame(payload)
 
         replyBuilder.chunkSize = size
         replyBuilder.offset = request.offset

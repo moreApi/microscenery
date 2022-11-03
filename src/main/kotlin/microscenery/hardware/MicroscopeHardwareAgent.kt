@@ -35,7 +35,9 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
 
     override var live: Boolean
         get() = status.live
-        set(value) {live(value)}
+        set(value) {
+            live(value)
+        }
 
     protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
         HardwareDimensions.EMPTY.copy(stageMin = Vector3f(-45f))

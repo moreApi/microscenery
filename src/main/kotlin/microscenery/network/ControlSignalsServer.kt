@@ -31,6 +31,7 @@ class ControlSignalsServer(
     private val signalsIn = event<ClientSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
+
     @Suppress("unused")
     val connectedClients
         get() = clients.size
@@ -55,7 +56,7 @@ class ControlSignalsServer(
     }
 
     fun sendSignal(signal: RemoteMicroscopeSignal): Boolean {
-        if (!signalsOut.offer(signal.toProto(),5000,TimeUnit.MILLISECONDS)){
+        if (!signalsOut.offer(signal.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
         }
@@ -102,7 +103,7 @@ class ControlSignalsServer(
             }
         }
 
-        if ( identity == null && outSignal == null )
+        if (identity == null && outSignal == null)
             Thread.sleep(200)
     }
 

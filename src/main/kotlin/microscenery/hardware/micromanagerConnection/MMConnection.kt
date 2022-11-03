@@ -29,8 +29,7 @@ import kotlin.concurrent.thread
 class MMConnection @JvmOverloads constructor(
     core_: CMMCore? = null,
     var timeBetweenStageAxisCommands: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStageAxisCommands", 20),
-)
-{
+) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val core: CMMCore
@@ -43,19 +42,23 @@ class MMConnection @JvmOverloads constructor(
     var copyTimes = listOf<Long>()
 
     @Suppress("unused")
-    val meanSnapTime get() = if(snapTimes.isNotEmpty()) snapTimes.sum()/snapTimes.size else 0
+    val meanSnapTime
+        get() = if (snapTimes.isNotEmpty()) snapTimes.sum() / snapTimes.size else 0
+
     @Suppress("unused")
-    val meanCopyTime get() = if(copyTimes.isNotEmpty())copyTimes.sum()/copyTimes.size else 0
+    val meanCopyTime
+        get() = if (copyTimes.isNotEmpty()) copyTimes.sum() / copyTimes.size else 0
 
     val stagePosition
         get() = Vector3f(
             setup.xStage.position.toFloat(),
             setup.yStage.position.toFloat(),
-            setup.zStage.position.toFloat())
+            setup.zStage.position.toFloat()
+        )
 
     init {
 
-        if (core_ != null){
+        if (core_ != null) {
             core = core_
         } else {
             //init core from properties
@@ -80,50 +83,50 @@ class MMConnection @JvmOverloads constructor(
         updateSize()
     }
 
-    fun updateSize(){
+    fun updateSize() {
         setup.snapImage() // do this so the following parameters are set
         width = core.imageWidth.toInt()
         height = core.imageHeight.toInt()
     }
 
-    fun setRoi(roi: Rectangle){
-        core.setROI(roi.x,roi.y,roi.width,roi.height)
+    fun setRoi(roi: Rectangle) {
+        core.setROI(roi.x, roi.y, roi.width, roi.height)
     }
 
-    fun snapSlice(intoBuffer: ShortBuffer){
+    fun snapSlice(intoBuffer: ShortBuffer) {
         var snapTime = 0L
         var copyTime = 0L
 
         val start = System.currentTimeMillis()
         val img = setup.snapImage()
-        snapTime += (System.currentTimeMillis()-start)
+        snapTime += (System.currentTimeMillis() - start)
 
         val start2 = System.currentTimeMillis()
         intoBuffer.put(img.pix as ShortArray)
         intoBuffer.flip()
-        copyTime += (System.currentTimeMillis()-start2)
-        recordTimes(snapTime,copyTime)
+        copyTime += (System.currentTimeMillis() - start2)
+        recordTimes(snapTime, copyTime)
     }
 
 
     /**
      *  @param wait if true wait until stage reached target.
      */
-    fun moveStage(target: Vector3f, wait: Boolean){
-        val stages = listOf(setup.xStage,setup.yStage,setup.zStage)
+    fun moveStage(target: Vector3f, wait: Boolean) {
+        val stages = listOf(setup.xStage, setup.yStage, setup.zStage)
         val precisions = listOf(
-            MicroscenerySettings.get("Stage.precisionXY",1.0f),
-            MicroscenerySettings.get("Stage.precisionXY",1.0f),
-            MicroscenerySettings.get("Stage.precisionZ",1.0f),
+            MicroscenerySettings.get("Stage.precisionXY", 1.0f),
+            MicroscenerySettings.get("Stage.precisionXY", 1.0f),
+            MicroscenerySettings.get("Stage.precisionZ", 1.0f),
         )
 
-        for (i in 0..2){
+        for (i in 0..2) {
             val stage = stages[i]
             val precision = precisions[i]
             val from = stage.position.toFloat()
             val to = target[i]
 
-            if (to < from-precision || from+precision < to){
+            if (to < from - precision || from + precision < to) {
                 stage.position = to.toDouble()
                 Thread.sleep(timeBetweenStageAxisCommands.toLong())
             }
@@ -133,22 +136,22 @@ class MMConnection @JvmOverloads constructor(
 
     }
 
-    private fun recordTimes(snap: Long, copy: Long){
+    private fun recordTimes(snap: Long, copy: Long) {
         snapTimes = snapTimes + (snap)
         while (snapTimes.size > 10)
-            snapTimes = snapTimes.subList(1,snapTimes.size)
+            snapTimes = snapTimes.subList(1, snapTimes.size)
         copyTimes = copyTimes + (copy)
         while (copyTimes.size > 10)
-            copyTimes = copyTimes.subList(1,copyTimes.size)
+            copyTimes = copyTimes.subList(1, copyTimes.size)
     }
 
-    companion object{
+    companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            DefaultScene({ scene,hub ->
+            DefaultScene({ scene, hub ->
 
                 val mmConnection = MMConnection()
-                mmConnection.moveStage(Vector3f(10f),false)
+                mmConnection.moveStage(Vector3f(10f), false)
 
                 val mmVol = StreamedVolume(
                     hub,
@@ -160,17 +163,17 @@ class MMConnection @JvmOverloads constructor(
                     it
                 }
                 scene.addChild(mmVol.volume)
-                mmVol.volume.spatial().scale= Vector3f(0.1f,0.1f,0.4f)
+                mmVol.volume.spatial().scale = Vector3f(0.1f, 0.1f, 0.4f)
                 mmVol.volume.colormap = Colormap.get("plasma")
                 mmVol.volume.transferFunction = TransferFunction.ramp()
                 mmVol.volume
                     .converterSetups.first()
-                    .setDisplayRange(17.0,3000.0)
+                    .setDisplayRange(17.0, 3000.0)
 
-                (scene.findByClassname("Camera").first() as Camera).spatial().position = Vector3f(2f,-5f,7f)
+                (scene.findByClassname("Camera").first() as Camera).spatial().position = Vector3f(2f, -5f, 7f)
 
                 thread {
-                    while (true){
+                    while (true) {
                         Thread.sleep(200)
                         @Suppress("UNUSED_EXPRESSION")
                         scene

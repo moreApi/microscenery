@@ -23,7 +23,7 @@ internal const val CHUNK_SIZE = 250000
  *
  * Uses a credit system to avoid overflowing the transmission medium.
  */
-class BiggishDataClient(zContext: ZContext, port: Int, host: String = "localhost") : Agent(){
+class BiggishDataClient(zContext: ZContext, port: Int, host: String = "localhost") : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val dealer: ZMQ.Socket = zContext.createSocket(SocketType.DEALER)
@@ -48,7 +48,7 @@ class BiggishDataClient(zContext: ZContext, port: Int, host: String = "localhost
     fun requestSlice(id: Int, size: Int): Boolean {
         val element = SliceChunkCollector(id, size)
 
-        if (!requestQueue.offer(element,5000,TimeUnit.MILLISECONDS)){
+        if (!requestQueue.offer(element, 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${SliceChunkCollector::class.simpleName} because of full queue.")
             return false
         }

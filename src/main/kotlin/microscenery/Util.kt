@@ -75,12 +75,13 @@ fun lightSleepOnCondition(mills: Int = 10000, target: () -> Boolean) {
     }
 }
 
-inline fun <reified T: MicroscopeSignal> BlockingQueue<MicroscopeSignal>.pollForSignal(
-    timeout: Long= 5000,
-    condition: (T) -> Boolean = {true}): Boolean {
+inline fun <reified T : MicroscopeSignal> BlockingQueue<MicroscopeSignal>.pollForSignal(
+    timeout: Long = 5000,
+    condition: (T) -> Boolean = { true }
+): Boolean {
     val start = System.currentTimeMillis()
-    while (start+timeout > System.currentTimeMillis() ){
-        val signal = this.poll(200,TimeUnit.MILLISECONDS) as? T ?: continue
+    while (start + timeout > System.currentTimeMillis()) {
+        val signal = this.poll(200, TimeUnit.MILLISECONDS) as? T ?: continue
         if (condition(signal))
             return true
     }
@@ -120,16 +121,16 @@ fun wrapForAnalogInputIfNeeded(
         OpenVRHMD.OpenVRButton.Right
     )
     return if (button in analogButtons)
-         AnalogInputWrapper(behavior, scene)
+        AnalogInputWrapper(behavior, scene)
     else
         behavior
 }
 
 fun Matrix4f.copy(): Matrix4f = Matrix4f(this)
 
-fun Vector3f.toVector4f(w: Float): Vector4f = Vector4f(this,w)
-fun Vector4f.toVector3f(): Vector3f = Vector3f(x,y,z)
+fun Vector3f.toVector4f(w: Float): Vector4f = Vector4f(this, w)
+fun Vector4f.toVector3f(): Vector3f = Vector3f(x, y, z)
 
-fun Vector3f.toReadableString() = String.format("(%.3f,%.3f,%.3f)", x,y,z)
-fun Vector4f.toReadableString() = String.format("(%.3f,%.3f,%.3f,%.3f)", x,y,z,w)
+fun Vector3f.toReadableString() = String.format("(%.3f,%.3f,%.3f)", x, y, z)
+fun Vector4f.toReadableString() = String.format("(%.3f,%.3f,%.3f,%.3f)", x, y, z, w)
 

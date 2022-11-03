@@ -6,7 +6,6 @@ import graphics.scenery.Sphere
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
-import graphics.scenery.controls.TrackerInput
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
@@ -14,9 +13,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import microscenery.wrapForAnalogInputIfNeeded
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
-import microscenery.wrapForAnalogInputIfNeeded
 import kotlin.math.pow
 
 /**
