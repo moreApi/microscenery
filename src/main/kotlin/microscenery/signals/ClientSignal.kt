@@ -8,7 +8,7 @@ sealed class ClientSignal {
 
     open fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
         val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
-        when(this){
+        when (this) {
             is AcquireStack -> throw NotImplementedError("This case should be overwritten.")
             ClientSignOn -> cs.clientSignOnBuilder.build()
             is Live -> cs.liveBuilder.build()
@@ -35,18 +35,18 @@ sealed class ClientSignal {
     object SnapImage : ClientSignal()
 
     data class AcquireStack(
-        val stageStartPosition: Vector3f,
-        val  endZPosition: Float,
-        val  stepSize: Float,
-        val  live: Boolean,
-        val  roiStart: Vector2i,
-        val  roiEnd : Vector2i
+        val startPosition: Vector3f,
+        val endPosition: Vector3f,
+        val stepSize: Float,
+        val live: Boolean = false,
+        val roiStart: Vector2i = Vector2i(),
+        val roiEnd: Vector2i = Vector2i()
     ) : ClientSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
             val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
             val asb = cs.acquireStackBuilder
-            asb.stageStartPosition = this.stageStartPosition.toProto()
-            asb.endZPosition = this.endZPosition
+            asb.startPosition = this.startPosition.toProto()
+            asb.endPosition = this.endPosition.toProto()
             asb.stepSize = this.stepSize
             asb.live = this.live
             asb.roiStart = this.roiStart.toProto()
@@ -56,7 +56,7 @@ sealed class ClientSignal {
         }
     }
 
-    object Stop: ClientSignal()
+    object Stop : ClientSignal()
 
     companion object {
         fun me.jancasus.microscenery.network.v2.ClientSignal.toPoko(): ClientSignal =
@@ -76,8 +76,8 @@ sealed class ClientSignal {
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.ACQUIRESTACK -> {
                     val ast = this.acquireStack
                     AcquireStack(
-                        ast.stageStartPosition.toPoko(),
-                        ast.endZPosition,
+                        ast.startPosition.toPoko(),
+                        ast.endPosition.toPoko(),
                         ast.stepSize,
                         ast.live,
                         ast.roiStart.toPoko(),

@@ -9,13 +9,13 @@ option java_multiple_files = true;
 
 message ClientSignal {
   oneof signal{
-      Live live = 1;
-      MoveStage moveStage = 2;
-      ClientSignOn clientSignOn = 3;
-      Shutdown shutdown = 4;
-      SnapImage snapImage = 5;
-      AcquireStack acquireStack = 6;
-      Stop stop = 7;
+    Live live = 1;
+    MoveStage moveStage = 2;
+    ClientSignOn clientSignOn = 3;
+    Shutdown shutdown = 4;
+    SnapImage snapImage = 5;
+    AcquireStack acquireStack = 6;
+    Stop stop = 7;
   }
 }
 message Live {}
@@ -26,8 +26,8 @@ message ClientSignOn {}
 message Shutdown {}
 message SnapImage {}
 message AcquireStack{
-  Vector3Float stageStartPosition = 1;
-  float endZPosition = 2;
+  Vector3Float startPosition = 1;
+  Vector3Float endPosition = 2;
   float stepSize = 3;
   bool live = 4;
   Vector2Int roiStart = 5;
