@@ -30,7 +30,13 @@ class DemoHWScene : DefaultScene() {
 
         thread {
             //Thread.sleep(5000)
-            DemoBehavior(hw.side.toFloat(), stageSpaceManager).fixedStack()
+            val db = DemoBehavior(
+                hw.side.toFloat(),
+                stageSpaceManager
+            )
+            db.fixedStack()
+            Thread.sleep(2500)
+            db.fixed()
         }
         thread {
             while (true) {

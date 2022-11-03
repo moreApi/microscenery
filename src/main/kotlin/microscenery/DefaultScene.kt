@@ -7,7 +7,7 @@ import org.joml.Vector3f
 
 open class DefaultScene(
     val initHook: ((scene: Scene, hub: Hub) -> Unit)? = null, name: String = "Microscenery",
-    width: Int = 400, height: Int = 400
+    width: Int = 600, height: Int = 600
 ) : SceneryBase(name, wantREPL = false, windowWidth = width, windowHeight = height) {
     val cam: Camera = DetachedHeadCamera()
 

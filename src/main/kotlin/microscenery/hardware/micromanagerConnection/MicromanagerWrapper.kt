@@ -1,19 +1,26 @@
 package microscenery.hardware.micromanagerConnection
 
 import graphics.scenery.utils.LazyLogger
+import graphics.scenery.utils.extensions.minus
+import graphics.scenery.utils.extensions.plus
+import graphics.scenery.utils.extensions.times
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardwareAgent
+import microscenery.nowMillis
 import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
+import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.math.roundToInt
 
 
 class MicromanagerWrapper(
     private val mmConnection: MMConnection,
     var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
 ) : MicroscopeHardwareAgent() {
+    protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val hardwareCommandsQueue = ArrayBlockingQueue<HardwareCommand>(5000)
 
@@ -47,7 +54,7 @@ class MicromanagerWrapper(
     }
 
     override fun acquireStack(meta: ClientSignal.AcquireStack) {
-        TODO("Not yet implemented")
+        hardwareCommandsQueue.put(HardwareCommand.GenerateStackCommands(meta))
     }
 
     override fun live(isLive: Boolean) {
@@ -87,7 +94,29 @@ class MicromanagerWrapper(
         }
         when (hwCommand) {
             is HardwareCommand.GenerateStackCommands -> {
-                TODO()
+                val meta = hwCommand.signal
+
+                val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
+                val end = hardwareDimensions.coercePosition(meta.endPosition,logger)
+                val dist = end - start
+                val steps = (dist.length() / meta.stepSize).roundToInt()
+                val step = dist * (1f / steps)
+
+                val currentStack = Stack(
+                    idCounter++,
+                    false,
+                    start,
+                    Vector3i(hardwareDimensions.imageSize, steps),
+                    nowMillis(),
+                    hardwareDimensions.vertexSize
+                )
+                output.put(currentStack)
+                status = status.copy(state = ServerState.STACK)
+
+                for (i in 0 until steps) {
+                    hardwareCommandsQueue.put(HardwareCommand.MoveStage(start + (step * i.toFloat()),hardwareDimensions,true))
+                    hardwareCommandsQueue.put(HardwareCommand.SnapImage(false,currentStack.Id))
+                }
             }
             is HardwareCommand.MoveStage -> {
                 mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
@@ -124,7 +153,6 @@ class MicromanagerWrapper(
         }
     }
 
-
     private fun stageMinMax(): Pair<Vector3f, Vector3f> {
         val min = Vector3f(
             MicroscenerySettings.get("Stage.minX"),
@@ -147,14 +175,7 @@ class MicromanagerWrapper(
 
         class MoveStage(target: Vector3f, hwd: HardwareDimensions, val waitForCompletion: Boolean = false) :
             HardwareCommand() {
-            val safeTarget = Vector3f()
-
-            init {
-                for (i in 0..2) this.safeTarget.setComponent(i, target[i].coerceIn(hwd.stageMin[i], hwd.stageMax[i]))
-                if (this.safeTarget != target) {
-                    logger.warn("Had to coerce stage move parameters! From $target to ${this.safeTarget}")
-                }
-            }
+            val safeTarget = hwd.coercePosition(target,logger)
         }
 
         data class SnapImage(val live: Boolean, val stackId: Int? = null) : HardwareCommand()

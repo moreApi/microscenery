@@ -39,7 +39,7 @@ class StageSpaceManager(
 
     private var stacks = emptyList<StackContainer>()
 
-    private val tf = TransferFunction.ramp()
+    val transferFunction = TransferFunction.ramp()
     private val tfRangeMin: Float = 0.0f
     private val tfRangeMax: Float = 100.0f
     var tfOffset = 0.0f
@@ -67,7 +67,10 @@ class StageSpaceManager(
 
     private fun calculateOffsetAndScale() {
         //Rangescale is either 255 or 65535
-        val rangeScale = 255.0f
+        val rangeScale = when(hardware.hardwareDimensions().numericType){
+            NumericType.INT8 -> 255
+            NumericType.INT16 -> 65535
+        }
         val fmin = tfRangeMin / rangeScale
         val fmax = tfRangeMax / rangeScale
         tfScale = 1.0f / (fmax - fmin)
@@ -84,7 +87,6 @@ class StageSpaceManager(
                 if (signal.stackId != null && stacks.any { it.meta.Id == signal.stackId }) {
                     // slice belongs to a stack
                     handleStackSlice(signal)
-
                     return
                 }
                 // slice does not belong to a stack and should be visualised on its own
@@ -93,7 +95,6 @@ class StageSpaceManager(
             is HardwareDimensions -> {
                 stageRoot.spatial().scale = signal.vertexSize.times(1 / scaleDownFactor)
                 focusFrame?.applyHardwareDimensions(signal)
-
             }
             is MicroscopeStatus -> {
                 focusFrame?.spatial()?.position = signal.stagePosition
@@ -101,7 +102,8 @@ class StageSpaceManager(
             is Stack -> {
                 val stack = signal
                 val buffer =
-                    MemoryUtil.memAlloc(stack.size.x * stack.size.y * stack.size.z * hardware.hardwareDimensions().numericType.bytes)
+                    MemoryUtil.memAlloc(stack.size.x * stack.size.y * stack.size.z
+                            * hardware.hardwareDimensions().numericType.bytes)
                 val volume = when (hardware.hardwareDimensions().numericType) {
                     NumericType.INT8 -> Volume.fromBuffer(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
@@ -116,18 +118,20 @@ class StageSpaceManager(
                         hub, hardware.hardwareDimensions().vertexSize.toFloatArray()
                     )
                 }
-                volume.goToNewTimepoint(buffer)
-                volume.transferFunction = TransferFunction.ramp(distance = 1f)
-                scene.addChild(volume)
-                volume.name = "fuuu"
-                volume.spatial().scale = Vector3f(10f)
+                volume.goToLastTimepoint()
+                volume.transferFunction = transferFunction
+                volume.name = "Stack ${signal.Id}"
+                //volume.spatial().scale = Vector3f(10f)
                 volume.origin = Origin.FrontBottomLeft
+                volume.spatial().position = stack.stageMin
+                volume.pixelToWorldRatio = 1f // conversion is done by stage root
+                volume.setTransferFunctionRange(17.0f, 3000.0f)
+
+                stageRoot.addChild(volume)
 
                 BoundingGrid().apply {
-
                     this.node = volume
-                    volume.metadata["BoundingGrid"] = this
-                    scene.addChild(this)
+                    //volume.metadata["BoundingGrid"] = this
                 }
                 stacks = stacks + StackContainer(stack, volume, buffer)
             }
@@ -161,7 +165,7 @@ class StageSpaceManager(
             hwd.imageSize.y,
             1f,
             hwd.numericType.bytes,
-            tf,
+            transferFunction,
             tfOffset,
             tfScale
         )
