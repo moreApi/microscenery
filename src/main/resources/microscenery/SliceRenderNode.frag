@@ -3,7 +3,6 @@
 
 layout(location = 0) out vec4 FragColor;
 
-
 layout(location = 0) in VertexData {
     vec4 Position;
     vec3 Normal;
@@ -11,39 +10,7 @@ layout(location = 0) in VertexData {
     vec3 FragPosition;
 } Vertex;
 
-layout(set = 0, binding = 0) uniform VRParameters {
-    mat4 projectionMatrices[2];
-    mat4 inverseProjectionMatrices[2];
-    mat4 headShift;
-    float IPD;
-    int stereoEnabled;
-} vrParameters;
-
-const int MAX_NUM_LIGHTS = 1024;
-
-layout(set = 1, binding = 0) uniform LightParameters {
-    mat4 ViewMatrices[2];
-    mat4 InverseViewMatrices[2];
-    mat4 ProjectionMatrix;
-    mat4 InverseProjectionMatrix;
-    vec3 CamPosition;
-};
-
-layout(push_constant) uniform currentEye_t {
-    int eye;
-} currentEye;
-
-
 const int NUM_OBJECT_TEXTURES = 6;
-
-struct Light {
-    float Linear;
-    float Quadratic;
-    float Intensity;
-    vec4 Position;
-    vec4 Color;
-};
-
 
 struct MaterialInfo {
 vec3 Ka;
@@ -67,7 +34,9 @@ layout(set = 4, binding = 0) uniform sampler2D ObjectTextures[NUM_OBJECT_TEXTURE
 
 float convert( float v )
 {
-    return Material.Metallic + Material.Roughness * v;
+    float tfOffset = Material.Metallic;
+    float tfScale = Material.Roughness;
+    return tfOffset + tfScale * v;
 }
 
 vec4 sampleVolume( vec2 texCoord )
@@ -76,7 +45,6 @@ vec4 sampleVolume( vec2 texCoord )
     float tf = texture(ObjectTextures[2], vec2(rawsample + 0.001f, 0.5f)).r;
     vec3 cmapplied = texture(ObjectTextures[0], vec2(rawsample + 0.001f, 0.5f)).rgb;
 
-    //int intransparent = int( slicing && isInSlice) ;
     int intransparent = 0;
     return vec4(cmapplied*tf, 1) * intransparent + vec4(cmapplied, tf) * (1-intransparent);
 }
