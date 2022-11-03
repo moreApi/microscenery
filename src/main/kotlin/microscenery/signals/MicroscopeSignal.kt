@@ -5,6 +5,7 @@ import me.jancasus.microscenery.network.v2.EnumNumericType
 import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.signals.HardwareDimensions.Companion.toPoko
 import microscenery.signals.MicroscopeStatus.Companion.toPoko
+import microscenery.toReadableString
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -140,6 +141,18 @@ data class HardwareDimensions(
                 hwd.numericType.toPoko()
             )
         }
+    }
+
+    fun coercePosition(target: Vector3f, logger: org.slf4j.Logger?): Vector3f {
+        val safeTarget = Vector3f()
+        for (i in 0..2) safeTarget.setComponent(
+            i,
+            target[i].coerceIn(stageMin[i], stageMax[i])
+        )
+        if (safeTarget != target) {
+            logger?.warn("Had to coerce stage parameters! From ${target.toReadableString()} to ${safeTarget.toReadableString()}")
+        }
+        return safeTarget
     }
 }
 

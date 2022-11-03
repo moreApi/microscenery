@@ -57,7 +57,7 @@ class DemoMicroscopeHardware(
 
     override var stagePosition = stagePosition
         set(target) {
-            val safeTarget = coercePositionTarget(target)
+            val safeTarget = hardwareDimensions.coercePosition(target,logger)
             field = safeTarget
             status = status.copy(stagePosition = safeTarget)
         }
@@ -121,8 +121,8 @@ class DemoMicroscopeHardware(
         status = status.copy(state = ServerState.STACK)
         thread {
 
-            val start = coercePositionTarget(meta.startPosition)
-            val end = coercePositionTarget(meta.endPosition)
+            val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
+            val end = hardwareDimensions.coercePosition(meta.endPosition,logger)
             val dist = end - start
             val steps = (dist.length() / meta.stepSize).roundToInt()
             val step = dist * (1f / steps)
@@ -155,15 +155,5 @@ class DemoMicroscopeHardware(
         throw NotImplementedError("demo does not use MicroscopeAgents stage handling")
     }
 
-    private fun coercePositionTarget(target: Vector3f): Vector3f {
-        val safeTarget = Vector3f()
-        for (i in 0..2) safeTarget.setComponent(
-            i,
-            target[i].coerceIn(hardwareDimensions.stageMin[i], hardwareDimensions.stageMax[i])
-        )
-        if (safeTarget != target) {
-            logger.warn("Had to coerce stage parameters! From $target to ${safeTarget}")
-        }
-        return safeTarget
-    }
+
 }
