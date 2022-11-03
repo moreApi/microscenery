@@ -127,7 +127,7 @@ class DemoMicroscopeHardware(
             val steps = (dist.length() / meta.stepSize).roundToInt()
             val step = dist * (1f / steps)
 
-            currentStack = Stack(idCounter++, false, start, Vector3i(hardwareDimensions.imageSize, steps), nowMillis())
+            currentStack = Stack(idCounter++, false, start, Vector3i(hardwareDimensions.imageSize, steps), nowMillis(),hardwareDimensions.vertexSize)
             output.put(currentStack!!)
 
             for (i in 0 until steps) {

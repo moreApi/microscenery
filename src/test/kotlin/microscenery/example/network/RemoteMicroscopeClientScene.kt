@@ -16,7 +16,7 @@ class RemoteMicroscopeClientScene : DefaultScene() {
     init {
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
-        val stageSpaceManager = StageSpaceManager(client, scene, addFocusFrame = true)
+        val stageSpaceManager = StageSpaceManager(client, scene,hub, addFocusFrame = true)
 
         //stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)
 

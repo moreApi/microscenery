@@ -16,6 +16,7 @@ class MicromanagerWrapper(
 ) : MicroscopeHardwareAgent() {
 
     private val hardwareCommandsQueue = ArrayBlockingQueue<HardwareCommand>(5000)
+
     // this lock is only relevant for self replicating commands e.g. snapSlice(live=true)
     private val stopLock = Any()
 
@@ -43,6 +44,10 @@ class MicromanagerWrapper(
 
     override fun moveStage(target: Vector3f) {
         hardwareCommandsQueue.put(HardwareCommand.MoveStage(target, hardwareDimensions, true))
+    }
+
+    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+        TODO("Not yet implemented")
     }
 
     override fun live(isLive: Boolean) {

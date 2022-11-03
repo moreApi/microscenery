@@ -1,16 +1,18 @@
 package microscenery.hardware
 
+import microscenery.signals.ClientSignal
 import microscenery.signals.HardwareDimensions
 import microscenery.signals.MicroscopeSignal
 import microscenery.signals.MicroscopeStatus
 import org.joml.Vector3f
 import java.util.concurrent.BlockingQueue
 
-interface MicroscopeHardware{
+interface MicroscopeHardware {
     var stagePosition: Vector3f
     var live: Boolean
     fun snapSlice()
     fun shutdown()
+    fun acquireStack(meta: ClientSignal.AcquireStack)
 
     fun status(): MicroscopeStatus
     fun hardwareDimensions(): HardwareDimensions

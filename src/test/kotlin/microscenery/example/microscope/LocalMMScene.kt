@@ -17,7 +17,7 @@ class LocalMMScene : DefaultScene() {
     init {
 
         val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
-        val stageSpaceManager = StageSpaceManager(hardware, scene, addFocusFrame = true)
+        val stageSpaceManager = StageSpaceManager(hardware, scene,hub, addFocusFrame = true)
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"
@@ -39,7 +39,7 @@ class LocalMMScene : DefaultScene() {
         //stageSpaceManager.snapSlice()
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
 
-        DemoBehavior(hardware.hardwareDimensions().stageMax.length(), stageSpaceManager).randomLive()
+        DemoBehavior(hardware.hardwareDimensions().stageMax.length(), stageSpaceManager).fixedStack()
 
         thread {
             while (true) {

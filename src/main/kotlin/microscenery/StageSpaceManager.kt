@@ -1,22 +1,23 @@
 package microscenery
 
-import graphics.scenery.Box
-import graphics.scenery.RichNode
-import graphics.scenery.Scene
-import graphics.scenery.controls.OpenVRHMD
-import graphics.scenery.controls.behaviours.*
-import graphics.scenery.primitives.TextBoard
+import graphics.scenery.*
+import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
-import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.utils.extensions.toFloatArray
+import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.TransferFunction
+import graphics.scenery.volumes.Volume
+import microscenery.VRUI.FocusFrame
 import microscenery.hardware.MicroscopeHardware
-import microscenery.signals.HardwareDimensions
-import microscenery.signals.MicroscopeStatus
-import microscenery.signals.Slice
+import microscenery.signals.*
+import net.imglib2.type.numeric.integer.UnsignedByteType
+import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
-import org.joml.Vector4f
+import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.withLock
 
 //TODO show stage limits
 /**
@@ -27,12 +28,16 @@ import java.util.concurrent.TimeUnit
 class StageSpaceManager(
     val hardware: MicroscopeHardware,
     val scene: Scene,
-    val scaleDownFactor: Float = 200f,
-    addFocusFrame: Boolean = false
+    val hub: Hub,
+    addFocusFrame: Boolean = true,
+    val scaleDownFactor: Float = 200f
 ) : Agent() {
+    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val stageRoot = RichNode("stage root")
     var focusFrame: FocusFrame? = null
+
+    private var stacks = emptyList<StackContainer>()
 
     private val tf = TransferFunction.ramp()
     private val tfRangeMin: Float = 0.0f
@@ -75,27 +80,15 @@ class StageSpaceManager(
         when (signal) {
             is Slice -> {
                 if (signal.data == null) return
-                val hwd = hardware.hardwareDimensions()
 
-                val node = SliceRenderNode(
-                    signal.data,
-                    hwd.imageSize.x,
-                    hwd.imageSize.y,
-                    1f,
-                    hwd.numericType.bytes,
-                    tf,
-                    tfOffset,
-                    tfScale
-                )
-                node.spatial().position = signal.stagePos
+                if (signal.stackId != null && stacks.any { it.meta.Id == signal.stackId }) {
+                    // slice belongs to a stack
+                    handleStackSlice(signal)
 
-                val minDistance = hardware.hardwareDimensions().vertexSize.length() * 1
-                stageRoot.children.filter { it is SliceRenderNode && it.spatialOrNull()?.position?.equals(signal.stagePos,minDistance) ?: false }
-                    .toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
-                    .forEach {
-                        stageRoot.removeChild(it)
-                    }
-                stageRoot.addChild(node)
+                    return
+                }
+                // slice does not belong to a stack and should be visualised on its own
+                handleSingleSlice(signal)
             }
             is HardwareDimensions -> {
                 stageRoot.spatial().scale = signal.vertexSize.times(1 / scaleDownFactor)
@@ -105,8 +98,95 @@ class StageSpaceManager(
             is MicroscopeStatus -> {
                 focusFrame?.spatial()?.position = signal.stagePosition
             }
-            else -> {}
+            is Stack -> {
+                val stack = signal
+                val buffer =
+                    MemoryUtil.memAlloc(stack.size.x * stack.size.y * stack.size.z * hardware.hardwareDimensions().numericType.bytes)
+                val volume = when (hardware.hardwareDimensions().numericType) {
+                    NumericType.INT8 -> Volume.fromBuffer(
+                        listOf(BufferedVolume.Timepoint("0", buffer)),
+                        stack.size.x, stack.size.y, stack.size.z,
+                        UnsignedByteType(),
+                        hub, hardware.hardwareDimensions().vertexSize.toFloatArray()
+                    )
+                    NumericType.INT16 -> Volume.fromBuffer(
+                        listOf(BufferedVolume.Timepoint("0", buffer)),
+                        stack.size.x, stack.size.y, stack.size.z,
+                        UnsignedShortType(),
+                        hub, hardware.hardwareDimensions().vertexSize.toFloatArray()
+                    )
+                }
+                volume.goToNewTimepoint(buffer)
+                volume.transferFunction = TransferFunction.ramp(distance = 1f)
+                scene.addChild(volume)
+                volume.name = "fuuu"
+                volume.spatial().scale = Vector3f(10f)
+                volume.origin = Origin.FrontBottomLeft
+
+                BoundingGrid().apply {
+
+                    this.node = volume
+                    volume.metadata["BoundingGrid"] = this
+                    scene.addChild(this)
+                }
+                stacks = stacks + StackContainer(stack, volume, buffer)
+            }
         }
+    }
+
+    private fun handleStackSlice(slice: Slice) {
+        if (slice.data == null) return
+
+        val stack = stacks.find { it.meta.Id == slice.stackId }
+        if (stack == null) {
+            logger.error("Did not find stack id: ${slice.stackId}")
+            return
+        }
+
+        val sliceIndex = ((slice.stagePos - stack.meta.stageMin).z / stack.meta.voxelSize.z).toInt()
+
+        stack.buffer.position(slice.size * sliceIndex)
+        stack.buffer.put(slice.data)
+        stack.buffer.rewind()
+        stack.volume.goToNewTimepoint(stack.buffer)
+    }
+
+    private fun handleSingleSlice(signal: Slice) {
+        if (signal.data == null) return
+        val hwd = hardware.hardwareDimensions()
+
+        val node = SliceRenderNode(
+            signal.data,
+            hwd.imageSize.x,
+            hwd.imageSize.y,
+            1f,
+            hwd.numericType.bytes,
+            tf,
+            tfOffset,
+            tfScale
+        )
+        node.spatial().position = signal.stagePos
+
+        val minDistance = hardware.hardwareDimensions().vertexSize.length() * 1
+        stageRoot.children.filter {
+            it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
+                signal.stagePos,
+                minDistance
+            ) ?: false
+        }
+            .toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+            .forEach {
+                stageRoot.removeChild(it)
+            }
+        stageRoot.addChild(node)
+    }
+
+    fun stack(from: Vector3f, to: Vector3f) {
+        hardware.acquireStack(
+            ClientSignal.AcquireStack(
+                from, to, hardware.hardwareDimensions().vertexSize.z
+            )
+        )
     }
 
     fun snapSlice() {
@@ -117,78 +197,17 @@ class StageSpaceManager(
         hardware.live = b
     }
 
-    class FocusFrame(val stageSpaceManager: StageSpaceManager, hwd: HardwareDimensions) : RichNode("focus") {
+    private class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
 
-        private var stageMin: Vector3f = Vector3f()
-        private var stageMax: Vector3f = Vector3f(1f)
-
-        private val pivot: RichNode
-
-        init {
-            // this is needed so VRGrab applies the correct scaling to the translation
-            pivot = RichNode("scalePivot")
-            this.addChild(pivot)
-
-            val beamBase = Vector3f(.1f, .1f, 1f)
-            val distanceFromCenter = Vector3f(0.55f)
-            // beams
-            listOf(
-                Vector3f(0f, 1f, 0f),
-                Vector3f(0f, -1f, 0f),
-                Vector3f(-1f, 0f, 0f),
-                Vector3f(1f, 0f, 0f)
-            ).map { posNorm ->
-                // position
-                val pos = distanceFromCenter * posNorm
-                val beamDir = Vector3f(1.1f, 1.1f, 0f) - posNorm.absolute(Vector3f()) * 1.1f
-                val beam = Box(beamBase + beamDir)
-                beam.spatial().position = pos
-                pivot.addChild(beam)
-
-                // ui interaction
-                beam.addAttribute(Grabable::class.java, Grabable(target = this, lockRotation = true))
-                beam.addAttribute(Touchable::class.java, Touchable())
-                beam.addAttribute(
-                    Pressable::class.java,
-                    PerButtonPressable(mapOf(OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onRelease = {
-                        stageSpaceManager.snapSlice()
-                    })))
-                )
+    companion object {
+        private fun BufferedVolume.goToNewTimepoint(buffer: ByteBuffer) {
+            val volume = this
+            volume.lock.withLock {
+                val count = volume.timepoints?.lastOrNull()?.name?.toIntOrNull() ?: 0
+                volume.addTimepoint("${count + 1}", buffer)
+                logger.info("going to Timepoint ${volume.goToLastTimepoint()}")
+                volume.purgeFirst(3, 3)
             }
-
-            val positionLabel = TextBoard()
-            positionLabel.text = "0,0,0"
-            positionLabel.name = "FramePositionLabel"
-            positionLabel.transparent = 0
-            positionLabel.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
-            positionLabel.backgroundColor = Vector4f(100f, 100f, 100f, 1.0f)
-            positionLabel.spatial {
-                position = Vector3f(-distanceFromCenter.x, distanceFromCenter.y+beamBase.y, 0f)
-                scale = Vector3f(0.15f, 0.15f, 0.15f)
-            }
-            pivot.addChild(positionLabel)
-
-            this.update += {
-
-                spatial {
-                    val coerced = Vector3f()
-                    position.min(stageMax, coerced)
-                    coerced.max(stageMin)
-
-                    if (position != coerced) position = coerced
-
-                    if (position != stageSpaceManager.stagePosition) stageSpaceManager.stagePosition = position
-
-                    positionLabel.text = position.toReadableString()
-                }
-            }
-            applyHardwareDimensions(hwd)
-        }
-
-        fun applyHardwareDimensions(hwd: HardwareDimensions) {
-            pivot.spatialOrNull()?.scale = Vector3f(hwd.imageSize.x.toFloat(), hwd.imageSize.y.toFloat(), 1f)
-            stageMin = hwd.stageMin
-            stageMax = hwd.stageMax
         }
     }
 }
