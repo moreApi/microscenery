@@ -57,33 +57,33 @@ class BiggishDataTransmissionTest {
 
     @Test
     fun tooLarge() {
-        storage.addSlice(1, ByteBuffer.wrap(ByteArray(storageSize+1) { it.toByte() }))
+        storage.addSlice(1, ByteBuffer.wrap(ByteArray(storageSize + 1) { it.toByte() }))
         assertNull(storage.getSlice(1))
     }
 
     @Test
     fun large() {
-        val dataSize = CHUNK_SIZE*2+5
+        val dataSize = CHUNK_SIZE * 2 + 5
         //increase storage size
-        storage = SliceStorage(CHUNK_SIZE*3)
+        storage = SliceStorage(CHUNK_SIZE * 3)
         server.close().join()
         server = BiggishDataServer(4400, storage, zContext)
 
-        storage.addSlice(1, ByteBuffer.wrap(ByteArray(dataSize) { (it+10).toByte() }))
+        storage.addSlice(1, ByteBuffer.wrap(ByteArray(dataSize) { (it + 10).toByte() }))
         assert(client.requestSlice(1, dataSize))
         val slice = client.outputQueue.poll(10000, TimeUnit.MILLISECONDS)
         assertNotNull(slice)
 
         // check whole slice
         val buffer = MemoryUtil.memAlloc(slice.size)
-        slice.chunks.forEach{
+        slice.chunks.forEach {
             buffer.put(it.value)
         }
         buffer.flip()
 
-        for (i in 0 until dataSize){
+        for (i in 0 until dataSize) {
             val byte = buffer.get()
-            assertEquals((i+10).toByte(), byte, "at index $i")
+            assertEquals((i + 10).toByte(), byte, "at index $i")
         }
     }
 
@@ -115,8 +115,8 @@ class BiggishDataTransmissionTest {
     }
 
     @Test
-    fun sliceNotAvailable(){
-        client.requestSlice(55,100)
+    fun sliceNotAvailable() {
+        client.requestSlice(55, 100)
         // can't really check if it handles it correctly because the interesting properties are private.
         // But if this works.
         simple()
@@ -124,12 +124,12 @@ class BiggishDataTransmissionTest {
     }
 
     @Test
-    fun short(){
+    fun short() {
         val size = 2000
-        val bBuffer = MemoryUtil.memAlloc(size*2)
+        val bBuffer = MemoryUtil.memAlloc(size * 2)
         val sBuffer = bBuffer.asShortBuffer()
 
-        for (i in (0).toUShort() until size.toUShort()){
+        for (i in (0).toUShort() until size.toUShort()) {
             val s = (UShort.MAX_VALUE / size.toUShort()) * i
             sBuffer.put(s.toShort())
         }
@@ -142,7 +142,7 @@ class BiggishDataTransmissionTest {
 
         bBuffer.rewind()
 
-        val bBuffer2 = MemoryUtil.memAlloc(size*2)
+        val bBuffer2 = MemoryUtil.memAlloc(size * 2)
         slice.chunks.firstEntry().value.forEach { byte ->
             assertEquals(bBuffer.get(), byte)
             bBuffer2.put(byte)

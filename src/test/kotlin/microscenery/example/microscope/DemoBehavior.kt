@@ -65,7 +65,7 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
         }
     }
 
-    fun fixedStack(){
-        stageSpaceManager.stack(Vector3f(extend/4),Vector3f((extend/4)*3))
+    fun fixedStack() {
+        stageSpaceManager.stack(Vector3f(extend / 4), Vector3f((extend / 4) * 3))
     }
 }

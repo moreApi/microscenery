@@ -11,16 +11,16 @@ import org.mockito.Mockito
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class MicromanagerWrapperTest{
+internal class MicromanagerWrapperTest {
     @Test
-    fun outOfBoundsRequest(){
+    fun outOfBoundsRequest() {
 
-        MicroscenerySettings.set("Stage.minX",-100f)
-        MicroscenerySettings.set("Stage.minY",-100f)
-        MicroscenerySettings.set("Stage.minZ",-100f)
-        MicroscenerySettings.set("Stage.maxX",100f)
-        MicroscenerySettings.set("Stage.maxY",100f)
-        MicroscenerySettings.set("Stage.maxZ",100f)
+        MicroscenerySettings.set("Stage.minX", -100f)
+        MicroscenerySettings.set("Stage.minY", -100f)
+        MicroscenerySettings.set("Stage.minZ", -100f)
+        MicroscenerySettings.set("Stage.maxX", 100f)
+        MicroscenerySettings.set("Stage.maxY", 100f)
+        MicroscenerySettings.set("Stage.maxZ", 100f)
 
         val mmConnection = Mockito.mock(MMConnection::class.java)
 
@@ -35,11 +35,11 @@ internal class MicromanagerWrapperTest{
         //start testing
         wrapper.stagePosition = (Vector3f(-400f))
         wrapper.output.pollForSignal<MicroscopeStatus>()
-        verify(mmConnection).moveStage(Vector3f(-100f),true)
+        verify(mmConnection).moveStage(Vector3f(-100f), true)
 
         wrapper.stagePosition = (Vector3f(400f))
         wrapper.output.pollForSignal<MicroscopeStatus>()
-        verify(mmConnection).moveStage(Vector3f(100f),true)
+        verify(mmConnection).moveStage(Vector3f(100f), true)
 
     }
 }

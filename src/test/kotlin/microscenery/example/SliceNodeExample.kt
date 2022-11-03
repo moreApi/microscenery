@@ -4,8 +4,8 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import io.scif.util.FormatTools
 import microscenery.DefaultScene
-import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.SliceRenderNode
+import microscenery.hardware.micromanagerConnection.MMConnection
 import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.*
 import net.imglib2.type.numeric.real.FloatType
@@ -29,8 +29,8 @@ class SliceRenderFromFileExample : DefaultScene() {
         val rangeScale = 65535.0f
         val fmin = 0.0f / rangeScale
         val fmax = 1000.0f / rangeScale
-        val tfScale = 1.0f / ( fmax - fmin )
-        val tfOffset = -fmin * tfScale;
+        val tfScale = 1.0f / (fmax - fmin)
+        val tfOffset = -fmin * tfScale
 
         SliceRenderNode(
             data,
@@ -128,8 +128,8 @@ class SliceNodeMMExample : DefaultScene() {
         val rangeScale = 65535.0f
         val fmin = 0.0f / rangeScale
         val fmax = 1000.0f / rangeScale
-        val tfScale = 1.0f / ( fmax - fmin )
-        val tfOffset = -fmin * tfScale;
+        val tfScale = 1.0f / (fmax - fmin)
+        val tfOffset = -fmin * tfScale
 
         val tf = TransferFunction.ramp()
 
@@ -141,7 +141,7 @@ class SliceNodeMMExample : DefaultScene() {
             mmConnection.snapSlice(buffer.asShortBuffer())
             SliceRenderNode(buffer, mmConnection.width, mmConnection.height, 0.001f, 2, tf, tfOffset, tfScale).let {
                 scene.addChild(it)
-                it.spatial().position = Vector3f(0f, 0f,i.toFloat())
+                it.spatial().position = Vector3f(0f, 0f, i.toFloat())
             }
         }
     }

@@ -17,7 +17,7 @@ class LocalMMScene : DefaultScene() {
     init {
 
         val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
-        val stageSpaceManager = StageSpaceManager(hardware, scene,hub, addFocusFrame = true)
+        val stageSpaceManager = StageSpaceManager(hardware, scene, hub, addFocusFrame = true)
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"

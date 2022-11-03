@@ -7,15 +7,17 @@ import org.zeromq.ZContext
 
 
 class RemoteMicroscopeServerDemoExample {
-    companion object{
+    companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             // settings like port can be set in [microscenery.properties]
             val zContext = ZContext()
 
             val microscope = DemoMicroscopeHardware()
+
             @Suppress("UNUSED_VARIABLE")
-            val server = RemoteMicroscopeServer(microscope, storage = SliceStorage(500*1024*1024), zContext = zContext)
+            val server =
+                RemoteMicroscopeServer(microscope, storage = SliceStorage(500 * 1024 * 1024), zContext = zContext)
         }
     }
 }
