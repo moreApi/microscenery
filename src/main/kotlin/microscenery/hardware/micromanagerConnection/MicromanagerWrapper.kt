@@ -31,6 +31,19 @@ class MicromanagerWrapper(
     var lastSnap = 0L
 
     init {
+        updateHardwareDimensions()
+
+        startAgent()
+        status = status.copy(state = ServerState.MANUAL)
+    }
+
+    /**
+     * Reads settings and image size to update hardware dimensions.
+     *
+     * Takes one image with the microscope to make sure, image meta information are correctly set.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun updateHardwareDimensions() {
         val (stageMin, stageMax) = stageMinMax()
         mmConnection.updateSize()
 
@@ -40,9 +53,6 @@ class MicromanagerWrapper(
             Vector3f(0.225f, 0.225f, 1.524f),// TODO get vertex size
             NumericType.INT16
         )
-
-        startAgent()
-        status = status.copy(state = ServerState.MANUAL)
     }
 
     override fun snapSlice() {
@@ -89,6 +99,10 @@ class MicromanagerWrapper(
     override fun onLoop() {
         val hwCommand = hardwareCommandsQueue.poll()
         if (hwCommand == null) {
+            // if not busy update stage position. It might have been moved via external inputs.
+            if (stagePosition != mmConnection.stagePosition){
+                stagePosition = mmConnection.stagePosition
+            }
             Thread.sleep(200)
             return
         }
