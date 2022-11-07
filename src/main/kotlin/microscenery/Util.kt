@@ -15,8 +15,7 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.serialization.Vector3fSerializer
 import graphics.scenery.utils.LazyLogger
 import microscenery.VRUI.behaviors.AnalogInputWrapper
-import microscenery.network.ClientSignal
-import microscenery.network.ServerSignal
+import microscenery.signals.MicroscopeSignal
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -24,6 +23,8 @@ import org.joml.Vector4f
 import org.objenesis.strategy.StdInstantiatorStrategy
 import org.scijava.ui.behaviour.Behaviour
 import org.scijava.ui.behaviour.DragBehaviour
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.TimeUnit
 
 
 val MicroscenerySettings = Settings(prefix = "microscenery.", propertiesFile = "microscenery.properties")
@@ -44,8 +45,6 @@ val ky = object : ThreadLocal<Kryo>() {
         kryo.isRegistrationRequired = false
         kryo.references = true
         kryo.setCopyReferences(true)
-        kryo.register(ServerSignal::class.java)
-        kryo.register(ClientSignal::class.java)
         kryo.register(Vector3f::class.java, Vector3fSerializer())
         kryo.register(Vector3i::class.java, Vector3iSerializer())
         return kryo
@@ -59,11 +58,34 @@ fun freeze(): Kryo {
 /**
  * sleep but continue once a value is there. Should speed up tests
  */
-fun lightSleepOn(mills: Int = 1000, target: () -> Any?) {
+fun lightSleepOnNull(mills: Int = 10000, target: () -> Any?) {
     for (t in 1..10) {
         if (target() == null)
             Thread.sleep(mills / 10L)
     }
+}
+
+/**
+ * sleep but continue once a condition is met. Should speed up tests
+ */
+fun lightSleepOnCondition(mills: Int = 10000, target: () -> Boolean) {
+    for (t in 1..10) {
+        if (!target())
+            Thread.sleep(mills / 10L)
+    }
+}
+
+inline fun <reified T : MicroscopeSignal> BlockingQueue<MicroscopeSignal>.pollForSignal(
+    timeout: Long = 5000,
+    condition: (T) -> Boolean = { true }
+): Boolean {
+    val start = System.currentTimeMillis()
+    while (start + timeout > System.currentTimeMillis()) {
+        val signal = this.poll(200, TimeUnit.MILLISECONDS) as? T ?: continue
+        if (condition(signal))
+            return true
+    }
+    return false
 }
 
 class Vector3iSerializer : Serializer<Vector3i>() {
@@ -84,6 +106,8 @@ class Vector3iSerializer : Serializer<Vector3i>() {
     }
 }
 
+fun nowMillis(): Long = System.currentTimeMillis()
+
 fun wrapForAnalogInputIfNeeded(
     scene: Scene,
     button: OpenVRHMD.OpenVRButton,
@@ -97,16 +121,16 @@ fun wrapForAnalogInputIfNeeded(
         OpenVRHMD.OpenVRButton.Right
     )
     return if (button in analogButtons)
-         AnalogInputWrapper(behavior, scene)
+        AnalogInputWrapper(behavior, scene)
     else
         behavior
 }
 
 fun Matrix4f.copy(): Matrix4f = Matrix4f(this)
 
-fun Vector3f.toVector4f(w: Float): Vector4f = Vector4f(this,w)
-fun Vector4f.toVector3f(): Vector3f = Vector3f(x,y,z)
+fun Vector3f.toVector4f(w: Float): Vector4f = Vector4f(this, w)
+fun Vector4f.toVector3f(): Vector3f = Vector3f(x, y, z)
 
-fun Vector3f.toReadableString() = String.format("(%.3f,%.3f,%.3f)", x,y,z)
-fun Vector4f.toReadableString() = String.format("(%.3f,%.3f,%.3f,%.3f)", x,y,z,w)
+fun Vector3f.toReadableString() = String.format("(%.3f,%.3f,%.3f)", x, y, z)
+fun Vector4f.toReadableString() = String.format("(%.3f,%.3f,%.3f,%.3f)", x, y, z, w)
 

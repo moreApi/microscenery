@@ -9,7 +9,7 @@ import org.joml.Vector3f
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
-class TAC1Example : DefaultVRScene("microscenery"){
+class TAC1Example : DefaultVRScene("microscenery") {
 //class Playground : DefaultScene(){
 
     override fun init() {
@@ -56,7 +56,7 @@ class TAC1Example : DefaultVRScene("microscenery"){
         scene.addChild(cell)
 
         thread {
-            while (true){
+            while (true) {
                 sleep(500)
                 scene
             }

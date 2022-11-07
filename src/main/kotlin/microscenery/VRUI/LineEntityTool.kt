@@ -13,18 +13,19 @@ import microscenery.UP
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
-class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var drawFrequency: Long = 500L) : Box(Vector3f(0.05f, 0.13f, 0.05f)) {
+class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var drawFrequency: Long = 500L) :
+    Box(Vector3f(0.05f, 0.13f, 0.05f)) {
 
     private var lastPoint: Sphere? = null
     private var lastInkTimepoint = 0L
 
     init {
         val tipLength = 0.025f
-        val tip = Box(Vector3f(0.015f,tipLength, 0.015f))
-        tip.spatial().position = Vector3f(0f, this.sizes.y/2 + tipLength/2, 0f)
+        val tip = Box(Vector3f(0.015f, tipLength, 0.015f))
+        tip.spatial().position = Vector3f(0f, this.sizes.y / 2 + tipLength / 2, 0f)
         addChild(tip)
         val inkOutput = RichNode()
-        inkOutput.spatial().position.y = tipLength/2
+        inkOutput.spatial().position.y = tipLength / 2
         tip.addChild(inkOutput)
 
         this.addAttribute(Touchable::class.java, Touchable())
@@ -38,7 +39,7 @@ class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var d
                             lastInkTimepoint = System.currentTimeMillis()
                         },
                         onHold = {
-                            if (System.currentTimeMillis() > lastInkTimepoint + drawFrequency){
+                            if (System.currentTimeMillis() > lastInkTimepoint + drawFrequency) {
                                 placePoint(inkOutput)
                                 lastInkTimepoint = System.currentTimeMillis()
                             }
@@ -68,8 +69,8 @@ class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var d
         drawLine(ink)
     }
 
-    private fun drawLine(newPoint: Sphere){
-        if (lastPoint == null){
+    private fun drawLine(newPoint: Sphere) {
+        if (lastPoint == null) {
             lastPoint = newPoint
             return
         }
@@ -83,7 +84,7 @@ class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var d
         line.spatial {
             scale.y = diff.length()
             position = lastPoint!!.spatial().worldPosition()
-            rotation = Quaternionf().rotationTo(UP,diff)
+            rotation = Quaternionf().rotationTo(UP, diff)
         }
         this.getScene()?.addChild(line)
 
@@ -95,12 +96,12 @@ class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var d
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val base = DefaultScene( { scene, _ ->
+            val base = DefaultScene({ scene, _ ->
                 val b1 = Sphere(0.03f)
-                b1.spatial().position = Vector3f(1f,01f,01f)
+                b1.spatial().position = Vector3f(1f, 01f, 01f)
                 scene.addChild(b1)
                 val b2 = Sphere(0.03f)
-                b2.spatial().position = Vector3f(-1f,-01f,-01f)
+                b2.spatial().position = Vector3f(-1f, -01f, -01f)
                 scene.addChild(b2)
 
                 val tool = LineEntityTool()

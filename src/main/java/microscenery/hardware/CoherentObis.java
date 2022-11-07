@@ -10,10 +10,14 @@ public class CoherentObis extends Laser {
     }
 
     @Override
-    public void setPower(double power) { setProperty("PowerSetpoint", power * 1000); }
+    public void setPower(double power) {
+        setProperty("PowerSetpoint", power * 1000);
+    }
 
     @Override
-    public double getPower() { return getPropertyDouble("PowerSetpoint") / 1000.0; }
+    public double getPower() {
+        return getPropertyDouble("PowerSetpoint") / 1000.0;
+    }
 
     @Override
     public double getMinPower() {
