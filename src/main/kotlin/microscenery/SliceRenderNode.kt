@@ -25,7 +25,7 @@ import java.nio.ByteBuffer
  */
 class SliceRenderNode(
     slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, bytesPerValue: Int = 1,
-    tf: TransferFunction, tfOffset: Float = 0.0f, tfScale: Float = 4.8f
+    tf: TransferFunction, tfOffset: Float = 0.0f, tfScale: Float = 65.5f
 ) : DefaultNode("SliceRenderNode"),
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {

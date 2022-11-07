@@ -49,7 +49,6 @@ class StageSpaceManager(
         get() = hardware.status().stagePosition
         set(value) {
             hardware.stagePosition = value
-            updateSlices()
         }
 
     override var maxDisplayRange: Float = 1000.0f
@@ -132,6 +131,7 @@ class StageSpaceManager(
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
         when (signal) {
             is Slice -> {
+                if (signal.data == null) return
 
                 if (signal.stackId != null && stacks.any { it.meta.Id == signal.stackId }) {
                     // slice belongs to a stack

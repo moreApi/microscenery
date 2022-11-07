@@ -1,4 +1,4 @@
-package graphics.scenery.tests.examples.volumes
+package microscenery.example
 
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
@@ -9,6 +9,7 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
+import microscenery.DefaultScene
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import org.scijava.ui.behaviour.DragBehaviour
@@ -25,42 +26,15 @@ import tpietzsch.example2.VolumeViewerOptions
  * Usage: To enable the UI on the plane click once (Key '1') while hovering over the plane. Key '1' used as normal Mouse-interactions (Clicking and dragging).
  * Control Points can be dragged, added and removed. A remove happens via Ctrl-Clicking (In this example managed by using Key '2'.
  */
-class TransferFunctionEditorExample : SceneryBase("TransferFunctionEditor Example", 1280, 720, false) {
+class TransferFunctionEditorExample : DefaultScene() {
     var maxCacheSize = 512
-    val cam: Camera = DetachedHeadCamera()
 
     /**
      * Sets up the example, containing 2 light sources (PointLight), a perspective camera and a volume.
      * Also adds a SwingUINode containing a SwingBridgeFrame contained by a TransferFunctionUI to manipulate the Volume
      */
     override fun init() {
-
-        renderer = hub.add(
-            SceneryElement.Renderer,
-            Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
-        )
-
-        val light = PointLight(radius = 15.0f)
-        light.spatial().position = Vector3f(2.0f, 0.0f, 2.0f)*2f
-        light.intensity = 15.0f
-        light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
-        scene.addChild(light)
-
-        val light2 = PointLight(radius = 15.0f)
-        light2.spatial().position = Vector3f(-2.0f, 0.0f, -2.0f)*2f
-        light2.intensity = 15.0f
-        light2.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
-        scene.addChild(light2)
-
-        with(cam) {
-            spatial {
-                position = Vector3f(0.0f, 0.0f, 2.0f)
-            }
-            nearPlaneDistance = 0.01f
-            perspectiveCamera(50.0f, windowWidth, windowHeight)
-
-            scene.addChild(this)
-        }
+        super.init()
 
         val options = VolumeViewerOptions().maxCacheSizeInMB(maxCacheSize)
         //Currently only .xml volume formats are usable
