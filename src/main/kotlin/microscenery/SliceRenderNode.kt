@@ -145,12 +145,22 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
         }
     }
 
-
-
     private fun generateTFTexture() : Texture {
+        val tfBuffer = transferFunction.serialise().asFloatBuffer()
+        val byteArray = ByteArray(tfBuffer.limit())
+        for(i in 0 until tfBuffer.limit())
+        {
+            logger.info("Buffer should be in Range 0.0-1.0: ${tfBuffer[i]}")
+            byteArray[i] = (tfBuffer[i] * 255).toInt().toByte()
+            //logger.info("Array should be in range 0-255: ${byteArray[i].toUInt()}")
+        }
+        logger.info("Buffersize : ${tfBuffer.limit()}")
+        logger.info("Buffersize : ${byteArray.size}")
+
         val tfSerialized = transferFunction.serialise()
+
         return Texture(Vector3i(transferFunction.textureSize, transferFunction.textureHeight, 1), 1, FloatType(), tfSerialized,
-            Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, true, false,
+            Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, false, false,
             Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
             hashSetOf(Texture.UsageType.Texture))
     }

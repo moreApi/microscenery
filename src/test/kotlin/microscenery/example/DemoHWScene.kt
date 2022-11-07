@@ -57,9 +57,8 @@ class DemoHWScene : DefaultScene() {
 
         when (Mode.RandomStatic) {
             Mode.RandomStatic -> {
-                for (i in 0..200) {
+                for (i in 0..1) {
                     val target = Random.random3DVectorFromRange(0f, hw.side.toFloat())
-                    //sortedSlices.add(target)
                     stageSpaceManager.stagePosition = target
                     stageSpaceManager.snapSlice()
                 }
@@ -69,7 +68,6 @@ class DemoHWScene : DefaultScene() {
                     for (y in listOf(0, 50, 100, 150))
                         for (x in listOf(0, 50, 100, 150)) {
                             val target = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
-                            //sortedSlices.add(target)
                             stageSpaceManager.stagePosition = target
                             stageSpaceManager.snapSlice()
                         }

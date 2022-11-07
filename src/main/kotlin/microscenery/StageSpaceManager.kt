@@ -65,21 +65,20 @@ class StageSpaceManager(
             calculateOffsetAndScale()
             updateSlices()
         }
-    override var transferFunction : TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.1f)
+    override var transferFunction : TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
         set(value) {
             field = value
-            updateSlices()
 
-            /*val tfBuffer = transferFunction.serialise().asFloatBuffer()
+            val tfBuffer = field.serialise().asFloatBuffer()
             val byteArray = ByteArray(tfBuffer.limit())
             for(i in 0 until tfBuffer.limit())
             {
-                byteArray[i] = (tfBuffer[i] * 255).toInt().toByte()
+                byteArray[i] = (tfBuffer[i] * 255).toUInt().toByte()
             }
-            val tfImage = BufferedImage(transferFunction.textureSize, transferFunction.textureHeight, BufferedImage.TYPE_BYTE_GRAY)
-            tfImage.raster.setDataElements(0, 0, transferFunction.textureSize, transferFunction.textureHeight, byteArray)
+            val tfImage = BufferedImage(field.textureSize, field.textureHeight, BufferedImage.TYPE_BYTE_GRAY)
+            tfImage.raster.setDataElements(0, 0, field.textureSize, field.textureHeight, byteArray)
 
-            ImageIO.write(tfImage, "jpg", File("C:/Users/Kodels Bier/Desktop/test.jpg"))*/
+            updateSlices()
         }
 
     init {
