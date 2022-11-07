@@ -4,7 +4,7 @@ import graphics.scenery.Scene
 import org.scijava.ui.behaviour.ClickBehaviour
 import org.scijava.ui.behaviour.DragBehaviour
 
-class AnalogInputWrapper(val wrapped: DragBehaviour, scene: Scene, val threshold: Int = 5):ClickBehaviour {
+class AnalogInputWrapper(val wrapped: DragBehaviour, scene: Scene, val threshold: Int = 5) : ClickBehaviour {
     var frameCounter = 0
 
     var lastAction = -1
@@ -12,9 +12,9 @@ class AnalogInputWrapper(val wrapped: DragBehaviour, scene: Scene, val threshold
 
     init {
         scene.update += {
-            frameCounter = (frameCounter +1) % 100
-            if (lastAction > 0 && frameCounter - lastAction > threshold){
-                wrapped.end(0,0)
+            frameCounter = (frameCounter + 1) % 100
+            if (lastAction > 0 && frameCounter - lastAction > threshold) {
+                wrapped.end(0, 0)
                 lastAction = -1
             }
         }
@@ -22,11 +22,11 @@ class AnalogInputWrapper(val wrapped: DragBehaviour, scene: Scene, val threshold
 
     override fun click(x: Int, y: Int) {
         when {
-            lastAction < 0  -> {
-                wrapped.init(x,y)
+            lastAction < 0 -> {
+                wrapped.init(x, y)
             }
             frameCounter - lastAction < threshold -> {
-                wrapped.drag(x,y)
+                wrapped.drag(x, y)
             }
 
         }

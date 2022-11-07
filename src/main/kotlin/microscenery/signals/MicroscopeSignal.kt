@@ -5,8 +5,10 @@ import me.jancasus.microscenery.network.v2.EnumNumericType
 import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.signals.HardwareDimensions.Companion.toPoko
 import microscenery.signals.MicroscopeStatus.Companion.toPoko
+import microscenery.toReadableString
 import org.joml.Vector2i
 import org.joml.Vector3f
+import org.joml.Vector3i
 import java.nio.ByteBuffer
 
 
@@ -21,7 +23,15 @@ sealed class MicroscopeSignal {
                     this.status.toPoko()
                 }
                 me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.STACK -> {
-                    TODO("stack")
+                    val s = this.stack
+                    Stack(
+                        s.id,
+                        s.live,
+                        s.stageMin.toPoko(),
+                        s.size.toPoko(),
+                        s.created.seconds * 1000 + s.created.nanos.div(1000),
+                        s.voxelSize.toPoko()
+                    )
                 }
                 me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.SLICE -> {
                     val s = this.slice
@@ -36,15 +46,16 @@ sealed class MicroscopeSignal {
                 }
                 me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.SIGNAL_NOT_SET ->
                     throw IllegalArgumentException("Signal is not set in Server signal message")
-                me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.HARDWAREDIMENSIONS ->{
+                me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.HARDWAREDIMENSIONS -> {
                     this.hardwareDimensions.toPoko()
                 }
             }
     }
-
 }
 
-
+/**
+ * @param size size of the slice in bytes
+ */
 data class Slice(
     val Id: Int,
     val created: Long,
@@ -52,6 +63,7 @@ data class Slice(
     val size: Int,
     val stackId: Int?,
     val data: ByteBuffer?
+
 ) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
         val microscopeSignal = me.jancasus.microscenery.network.v2.MicroscopeSignal.newBuilder()
@@ -68,9 +80,27 @@ data class Slice(
     }
 }
 
-data class Stack(val Id: Int) : MicroscopeSignal() {
+data class Stack(
+    val Id: Int,
+    val live: Boolean,
+    val stageMin: Vector3f,
+    val size: Vector3i,
+    val created: Long,
+    val voxelSize: Vector3f
+) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
-        TODO("Stack Not yet implemented")
+        val microscopeSignal = me.jancasus.microscenery.network.v2.MicroscopeSignal.newBuilder()
+
+        val s = microscopeSignal.stackBuilder
+        s.id = this.Id
+        s.live = this.live
+        s.created = fromMillis(this.created)
+        s.stageMin = this.stageMin.toProto()
+        s.size = this.size.toProto()
+        s.voxelSize = this.voxelSize.toProto()
+        s.build()
+
+        return microscopeSignal.build()
     }
 }
 
@@ -112,12 +142,25 @@ data class HardwareDimensions(
             )
         }
     }
+
+    fun coercePosition(target: Vector3f, logger: org.slf4j.Logger?): Vector3f {
+        val safeTarget = Vector3f()
+        for (i in 0..2) safeTarget.setComponent(
+            i,
+            target[i].coerceIn(stageMin[i], stageMax[i])
+        )
+        if (safeTarget != target) {
+            logger?.warn("Had to coerce stage parameters! From ${target.toReadableString()} to ${safeTarget.toReadableString()}")
+        }
+        return safeTarget
+    }
 }
 
 
 data class MicroscopeStatus(
     val state: ServerState,
-    val stagePosition: Vector3f
+    val stagePosition: Vector3f,
+    val live: Boolean
 ) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
         val microscopeSignal = me.jancasus.microscenery.network.v2.MicroscopeSignal.newBuilder()
@@ -125,6 +168,7 @@ data class MicroscopeStatus(
         val status = microscopeSignal.statusBuilder
         status.state = this.state.toProto()
         status.stagePosition = this.stagePosition.toProto()
+        status.live = this.live
         status.build()
 
         return microscopeSignal.build()
@@ -135,7 +179,8 @@ data class MicroscopeStatus(
             val ss = this
             return MicroscopeStatus(
                 ss.state.toPoko(),
-                ss.stagePosition.toPoko()
+                ss.stagePosition.toPoko(),
+                ss.live
             )
         }
     }

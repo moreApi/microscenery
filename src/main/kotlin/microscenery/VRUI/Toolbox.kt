@@ -64,12 +64,15 @@ class Toolbox(
             scene.addChild(m)
         })
 
-        VRSelectionWheel.createAndSet(scene, hmd, button, controllerSide,
-            customMenu?.let {defaultMenu + ("scene ops" to {
-                customMenu.spatial().position = it.worldPosition()
-                scene.addChild(customMenu)
-            } )}?: defaultMenu
-            )
+        VRSelectionWheel.createAndSet(
+            scene, hmd, button, controllerSide,
+            customMenu?.let {
+                defaultMenu + ("scene ops" to {
+                    customMenu.spatial().position = it.worldPosition()
+                    scene.addChild(customMenu)
+                })
+            } ?: defaultMenu
+        )
 
         //VRScaleNode(volume)
     }

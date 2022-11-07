@@ -15,22 +15,24 @@ import org.joml.Vector3f
 import java.util.concurrent.CompletableFuture
 
 
-class VR2HandSpatialManipulation  (name: String,
-                                   controller: Spatial,
-                                   offhand: VRTwoHandDragOffhand,
-                                   val scene:Scene,
-                                   var scaleLocked: Boolean = false
-) : VRTwoHandDragBehavior(name, controller, offhand)  {
+class VR2HandSpatialManipulation(
+    name: String,
+    controller: Spatial,
+    offhand: VRTwoHandDragOffhand,
+    val scene: Scene,
+    var scaleLocked: Boolean = false
+) : VRTwoHandDragBehavior(name, controller, offhand) {
 
     override fun dragDelta(
-                       currentPositionMain: Vector3f,
-                       currentPositionOff: Vector3f,
-                       lastPositionMain: Vector3f,
-                       lastPositionOff: Vector3f
-    ){
-        val volume = scene.findByClassname(Volume::class.java.simpleName).firstOrNull()?: return
+        currentPositionMain: Vector3f,
+        currentPositionOff: Vector3f,
+        lastPositionMain: Vector3f,
+        lastPositionOff: Vector3f
+    ) {
+        val volume = scene.findByClassname(Volume::class.java.simpleName).firstOrNull() ?: return
 
-        val scaleDelta = VRScale.getScaleDelta(currentPositionMain, currentPositionOff, lastPositionMain, lastPositionOff)
+        val scaleDelta =
+            VRScale.getScaleDelta(currentPositionMain, currentPositionOff, lastPositionMain, lastPositionOff)
 
         val newRein = (currentPositionMain - currentPositionOff).normalize()
         newRein.y = 0f

@@ -17,8 +17,6 @@ class Main : DefaultVRScene(Main::class.java.simpleName) {
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
 
-
-
     }
 
     override fun inputSetup() {

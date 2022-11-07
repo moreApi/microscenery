@@ -9,7 +9,7 @@ import org.zeromq.ZContext
 
 
 class RemoteMicroscopeServerMMExample {
-    companion object{
+    companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             // settings like port can be set in [microscenery.properties]
@@ -17,8 +17,13 @@ class RemoteMicroscopeServerMMExample {
 
             val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
             val imgSize = hardware.hardwareDimensions().imageSize
+
             @Suppress("UNUSED_VARIABLE")
-            val server = RemoteMicroscopeServer(hardware, storage = SliceStorage(500*imgSize.x*imgSize.y), zContext = zContext)
+            val server = RemoteMicroscopeServer(
+                hardware,
+                storage = SliceStorage(500 * imgSize.x * imgSize.y),
+                zContext = zContext
+            )
         }
     }
 }

@@ -11,37 +11,41 @@ import graphics.scenery.attribute.renderable.HasRenderable
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.backends.Shaders
 import graphics.scenery.textures.Texture
-import graphics.scenery.utils.Image
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
-import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.UnsignedByteType
-import net.imglib2.type.numeric.integer.UnsignedIntType
+import net.imglib2.type.numeric.integer.UnsignedShortType
 import net.imglib2.type.numeric.real.FloatType
 import org.joml.Vector3f
 import org.joml.Vector3i
-import org.lwjgl.system.MemoryUtil
-import java.awt.image.BufferedImage
-import java.io.File
 import java.nio.ByteBuffer
-import java.nio.ShortBuffer
-import javax.imageio.ImageIO
 
 /**
  * Modified Plane to display ByteBuffers
  */
-class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, bytesPerValue: Int = 1,
-    tf : TransferFunction) : DefaultNode("SliceRenderNode"),
+class SliceRenderNode(
+    slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, bytesPerValue: Int = 1,
+    tf: TransferFunction, tfOffset: Float = 0.0f, tfScale: Float = 4.8f
+) : DefaultNode("SliceRenderNode"),
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {
 
     var transferFunction : TransferFunction = tf
-        set(value)
-        {
+        set(value) {
             field = value
-            tfTexture = generateTFTexture()
-            material().textures["specular"] = tfTexture
+            material().textures["specular"] = generateTFTexture()
         }
+    var tfOffset : Float = tfOffset
+        set(value) {
+            field = value
+            material().metallic = field
+        }
+    var tfScale : Float = tfScale
+        set(value) {
+            field = value
+            material().roughness = field
+        }
+
 
     private var tfTexture : Texture
     init {
@@ -102,39 +106,45 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
 
         this.material().cullingMode = Material.CullingMode.None
 
-        val bufferSize = width * height
-        val dataExpaned = MemoryUtil.memAlloc((bufferSize * 4))
-        val data = when(bytesPerValue){
-            1 -> slice
-            2 -> slice.asShortBuffer()
-            else -> throw IllegalArgumentException("bytesPerValue: $bytesPerValue not valid")
-        }
-
-        for ( i in 1..bufferSize){
-            val v = when(data) {
-                is ByteBuffer -> data.get()
-                is ShortBuffer -> data.get().toByte()
-                else -> throw IllegalStateException()
-            }
-
-            dataExpaned.put(v)
-            dataExpaned.put(v)
-            dataExpaned.put(v)
-            dataExpaned.put(Byte.MAX_VALUE)
-
-        }
-        dataExpaned.rewind()
-
-        val final = Image(dataExpaned, width, height)
         val colorMap = Colormap.get("hot")
 
         this.material {
-            textures["diffuse"] = Texture.fromImage(final)
-            textures["specular"] = tfTexture
-            textures["ambient"] = Texture(Vector3i(colorMap.width, colorMap.height, 1), 4, UnsignedByteType(), colorMap.buffer,
-                Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, true, false,
-                Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
-                hashSetOf(Texture.UsageType.Texture))
+            // data
+            textures["diffuse"] = Texture(
+                dimensions = Vector3i(width, height, 1),
+                channels = 1,
+                type = when (bytesPerValue) {
+                    1 -> UnsignedByteType()
+                    2 -> UnsignedShortType()
+                    else -> throw IllegalArgumentException("bytesPerValue: $bytesPerValue not valid")
+                },
+                contents = slice,
+                repeatUVW = Texture.RepeatMode.ClampToBorder.all(),
+                borderColor = Texture.BorderColor.TransparentBlack,
+                normalized = true,
+                mipmap = true,
+                minFilter = Texture.FilteringMode.NearestNeighbour,
+                maxFilter = Texture.FilteringMode.NearestNeighbour,
+                usageType = hashSetOf(Texture.UsageType.Texture)
+            )
+            // transfer function
+            textures["specular"] = generateTFTexture()
+            // color map
+            textures["ambient"] = Texture(
+                dimensions = Vector3i(colorMap.width, colorMap.height, 1),
+                channels = 4,
+                type = UnsignedByteType(),
+                contents = colorMap.buffer,
+                repeatUVW = Texture.RepeatMode.ClampToBorder.all(),
+                borderColor = Texture.BorderColor.TransparentBlack,
+                normalized = true,
+                mipmap = false,
+                minFilter = Texture.FilteringMode.NearestNeighbour,
+                maxFilter = Texture.FilteringMode.NearestNeighbour,
+                usageType = hashSetOf(Texture.UsageType.Texture)
+            )
+            metallic = tfOffset
+            roughness = tfScale
 
             blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
             blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
@@ -146,18 +156,29 @@ class SliceRenderNode(slice: ByteBuffer, width: Int, height: Int, scale: Float =
     }
 
     private fun generateTFTexture() : Texture {
-        val tfSerialized = transferFunction.serialise()
-
-        return Texture(Vector3i(transferFunction.textureSize, transferFunction.textureHeight, 1), 1, FloatType(), tfSerialized,
-            Texture.RepeatMode.ClampToBorder.all(), Texture.BorderColor.TransparentBlack, false, false,
-            Texture.FilteringMode.NearestNeighbour, Texture.FilteringMode.NearestNeighbour,
-            hashSetOf(Texture.UsageType.Texture))
+        return Texture(
+            dimensions = Vector3i(transferFunction.textureSize, transferFunction.textureHeight, 1),
+            channels = 1,
+            type = FloatType(),
+            contents = transferFunction.serialise(),
+            repeatUVW = Texture.RepeatMode.ClampToBorder.all(),
+            borderColor = Texture.BorderColor.TransparentBlack,
+            normalized = false,
+            mipmap = false,
+            minFilter = Texture.FilteringMode.NearestNeighbour,
+            maxFilter = Texture.FilteringMode.NearestNeighbour,
+            usageType = hashSetOf(Texture.UsageType.Texture)
+        )
     }
 
     override fun createMaterial(): ShaderMaterial {
 
-        val shaders = Shaders.ShadersFromFiles(arrayOf("DefaultForward.vert",
-            "SliceRenderNode.frag"), SliceRenderNode::class.java )
+        val shaders = Shaders.ShadersFromFiles(
+            arrayOf(
+                "DefaultForward.vert",
+                "SliceRenderNode.frag"
+            ), SliceRenderNode::class.java
+        )
 
         val newMaterial = ShaderMaterial(shaders)
 

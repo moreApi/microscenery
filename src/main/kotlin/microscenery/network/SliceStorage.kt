@@ -27,9 +27,11 @@ class SliceStorage(val maxStorageSize: Int = MicroscenerySettings.get("Network.D
      * Slice storage works on only on whole buffers. Position and limit are ignored!
      */
     fun addSlice(id: Int, data: ByteBuffer) {
-        if (maxStorageSize < data.capacity()){
-            logger.error("slice with id $id is could not be put in server storage since it exceeds the max storage " +
-                    "capacity $maxStorageSize < ${data.capacity()}")
+        if (maxStorageSize < data.capacity()) {
+            logger.error(
+                "slice with id $id is could not be put in server storage since it exceeds the max storage " +
+                        "capacity $maxStorageSize < ${data.capacity()}"
+            )
             return
         }
 

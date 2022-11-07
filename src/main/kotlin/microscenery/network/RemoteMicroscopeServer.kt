@@ -16,14 +16,14 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val storage: SliceStorage = SliceStorage(),
     val basePort: Int = MicroscenerySettings.get("Network.basePort"),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
-): Agent(false) {
+) : Agent(false) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsServer(zContext, basePort, listOf(this::processClientSignal))
     val dataSender = BiggishDataServer(basePort + 1, storage, zContext)
 
     var status: RemoteMicroscopeStatus by Delegates.observable(
-        RemoteMicroscopeStatus(emptyList(),0)
+        RemoteMicroscopeStatus(emptyList(), 0)
     ) { _, _, newStatus: RemoteMicroscopeStatus ->
         controlConnection.sendSignal(newStatus)
     }
@@ -31,14 +31,14 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     init {
         if (connections != 1) logger.warn("More than one data connection are currently not supported. Config asks for $connections")
 
-        status = RemoteMicroscopeStatus(listOf(dataSender.port),0)
+        status = RemoteMicroscopeStatus(listOf(dataSender.port), 0)
         startAgent()
     }
 
     override fun onLoop() {
-        val signal = microscope.output.poll(200,TimeUnit.MILLISECONDS) ?: return
+        val signal = microscope.output.poll(200, TimeUnit.MILLISECONDS) ?: return
 
-        when(signal){
+        when (signal) {
             is HardwareDimensions -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
             is MicroscopeStatus -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
             is Slice -> {
@@ -58,11 +58,11 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         when (it) {
             is ClientSignal.AcquireStack -> TODO()
             ClientSignal.ClientSignOn -> {
-                status = status.copy(connectedClients = status.connectedClients+1)
+                status = status.copy(connectedClients = status.connectedClients + 1)
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
             }
-            ClientSignal.Live -> TODO()
+            ClientSignal.Live -> microscope.live = true
             is ClientSignal.MoveStage -> microscope.stagePosition = it.target
             ClientSignal.Shutdown -> {
                 logger.info("Shutting down server.")
@@ -70,7 +70,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                 close()
             }
             ClientSignal.SnapImage -> microscope.snapSlice()
-            ClientSignal.Stop -> TODO()
+            ClientSignal.Stop -> microscope.live = false
         }
     }
 

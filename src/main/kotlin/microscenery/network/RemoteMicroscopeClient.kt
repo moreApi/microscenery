@@ -21,7 +21,7 @@ class RemoteMicroscopeClient(
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsClient(zContext, basePort, host, listOf(this::processServerSignal))
-    private val dataConnection = BiggishDataClient(zContext,basePort +1, host)
+    private val dataConnection = BiggishDataClient(zContext, basePort + 1, host)
 
     private val requestedSlices = ConcurrentHashMap<Int, Slice>()
 
@@ -33,7 +33,7 @@ class RemoteMicroscopeClient(
         val sliceParts = dataConnection.outputQueue.poll(200, TimeUnit.MILLISECONDS) ?: return
         val meta = requestedSlices[sliceParts.id]
 
-        if (meta == null){
+        if (meta == null) {
             logger.warn("Got data for slice ${sliceParts.id} but it was not requested.")
             return
         }
@@ -42,7 +42,7 @@ class RemoteMicroscopeClient(
         }
 
         val buffer = MemoryUtil.memAlloc(sliceParts.size)
-        sliceParts.chunks.forEach{
+        sliceParts.chunks.forEach {
             buffer.put(it.value)
         }
         buffer.flip()
@@ -57,12 +57,24 @@ class RemoteMicroscopeClient(
         controlConnection.sendSignal(ClientSignal.MoveStage(target))
     }
 
+    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+        controlConnection.sendSignal(meta)
+    }
+
+    override fun live(isLive: Boolean) {
+        if (isLive) {
+            controlConnection.sendSignal(ClientSignal.Live)
+        } else {
+            controlConnection.sendSignal(ClientSignal.Stop)
+        }
+    }
+
     /**
      * Executed by the network thread of [ControlSignalsClient]
      */
-    private fun processServerSignal(signal: RemoteMicroscopeSignal){
+    private fun processServerSignal(signal: RemoteMicroscopeSignal) {
 
-        when (signal){
+        when (signal) {
             is ActualMicroscopeSignal -> {
                 when (val microscopeSignal = signal.signal) {
                     is HardwareDimensions -> {

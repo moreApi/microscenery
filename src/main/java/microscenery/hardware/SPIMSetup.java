@@ -2,6 +2,7 @@ package microscenery.hardware;
 
 // TODO fix imports
 //import ij.IJ;
+
 import mmcorej.CMMCore;
 import mmcorej.DeviceType;
 import mmcorej.StrVector;
@@ -9,41 +10,42 @@ import mmcorej.TaggedImage;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 public class SPIMSetup {
-	/** Logger for this application, will be instantiated upon first use. */
-	public static enum SPIMDevice {
-		STAGE_X("X Stage"),
-		STAGE_Y("Y Stage"),
-		STAGE_Z("Z Stage"),
-		STAGE_THETA("Angle"),
-		LASER1("Laser"),
-		LASER2("Laser (2)"),
-		CAMERA1("Camera"),
-		CAMERA2("Camera (2)"),
-		SYNCHRONIZER("Synchronizer");
+    /**
+     * Logger for this application, will be instantiated upon first use.
+     */
+    public enum SPIMDevice {
+        STAGE_X("X Stage"),
+        STAGE_Y("Y Stage"),
+        STAGE_Z("Z Stage"),
+        STAGE_THETA("Angle"),
+        LASER1("Laser"),
+        LASER2("Laser (2)"),
+        CAMERA1("Camera"),
+        CAMERA2("Camera (2)"),
+        SYNCHRONIZER("Synchronizer");
 
-		private String text;
+        private final String text;
 
-		private SPIMDevice(String text) {
-			this.text = text;
-		}
+        SPIMDevice(String text) {
+            this.text = text;
+        }
 
-		public String getText() {
-			return text;
-		}
-	}
+        public String getText() {
+            return text;
+        }
+    }
 
-	private Map<SPIMDevice, Device> deviceMap;
-	private CMMCore core;
+    private final Map<SPIMDevice, Device> deviceMap;
+    private final CMMCore core;
 
-	public SPIMSetup(CMMCore core) {
-		this.core = core;
+    public SPIMSetup(CMMCore core) {
+        this.core = core;
 
-		deviceMap = new EnumMap<SPIMDevice, Device>(SPIMDevice.class);
-	}
+        deviceMap = new EnumMap<SPIMDevice, Device>(SPIMDevice.class);
+    }
 // TODO fix imports
 //	public void debugLog() {
 //		IJ.log("SPIM Setup " + this.toString() + ":");
@@ -51,263 +53,263 @@ public class SPIMSetup {
 //			IJ.log(" " + entr.getKey() + " => " + (entr.getValue() != null ? "\"" + entr.getValue().getLabel() + "\" (" + entr.getValue().getDeviceName() + " / " + entr.getValue().toString() + ")" : "None"));
 //	}
 
-	/*
-	 * Some methods which analyze the setup.
-	 */
-	public boolean isConnected(SPIMDevice type) {
-		if (deviceMap.get(type) != null) {
-			try {
-				return strVecContains(core.getLoadedDevicesOfType(deviceMap.get(type).getMMType()), deviceMap.get(type).getLabel());
-			} catch (Throwable t) {
-				ReportingUtils.Companion.logError(t, "SPIMAcquisition checking connection");
-				return false;
-			}
-		} else {
-			return false;
-		}
-	}
+    /*
+     * Some methods which analyze the setup.
+     */
+    public boolean isConnected(SPIMDevice type) {
+        if (deviceMap.get(type) != null) {
+            try {
+                return strVecContains(core.getLoadedDevicesOfType(deviceMap.get(type).getMMType()), deviceMap.get(type).getLabel());
+            } catch (Throwable t) {
+                ReportingUtils.Companion.logError(t, "SPIMAcquisition checking connection");
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 
-	public boolean hasZStage() {
-		return isConnected(SPIMDevice.STAGE_Z);
-	}
+    public boolean hasZStage() {
+        return isConnected(SPIMDevice.STAGE_Z);
+    }
 
-	public boolean hasXYStage() {
-		return isConnected(SPIMDevice.STAGE_X) && isConnected(SPIMDevice.STAGE_Y);
-	}
+    public boolean hasXYStage() {
+        return isConnected(SPIMDevice.STAGE_X) && isConnected(SPIMDevice.STAGE_Y);
+    }
 
-	public boolean has3DStage() {
-		return hasZStage() && hasXYStage();
-	}
+    public boolean has3DStage() {
+        return hasZStage() && hasXYStage();
+    }
 
-	public boolean hasAngle() {
-		return isConnected(SPIMDevice.STAGE_THETA);
-	}
+    public boolean hasAngle() {
+        return isConnected(SPIMDevice.STAGE_THETA);
+    }
 
-	public boolean has4DStage() {
-		return has3DStage() && hasAngle();
-	}
+    public boolean has4DStage() {
+        return has3DStage() && hasAngle();
+    }
 
-	public boolean isMinimalMicroscope() {
-		return hasZStage() && isConnected(SPIMDevice.CAMERA1);
-	}
+    public boolean isMinimalMicroscope() {
+        return hasZStage() && isConnected(SPIMDevice.CAMERA1);
+    }
 
-	public boolean is3DMicroscope() {
-		return has3DStage() && isConnected(SPIMDevice.CAMERA1);
-	}
+    public boolean is3DMicroscope() {
+        return has3DStage() && isConnected(SPIMDevice.CAMERA1);
+    }
 
-	public boolean isMinimalSPIM() {
-		return is3DMicroscope() && hasAngle() && isConnected(SPIMDevice.LASER1);
-	}
+    public boolean isMinimalSPIM() {
+        return is3DMicroscope() && hasAngle() && isConnected(SPIMDevice.LASER1);
+    }
 
-	/*
-	 * Some generic getters. The class might not stay backed by an EnumMap, so
-	 * these may be more important in the future.
-	 */
-	public Device getDevice(SPIMDevice device) {
-		return deviceMap.get(device);
-	}
-	
-	public void setDevice(SPIMDevice type, String label) {
-		try {
-			if(label == null || label.length() <= 0)
-				deviceMap.put(type, null);
-			else
-				deviceMap.put(type, Device.createDevice(core, type, label));
-		} catch (Exception e) {
-			ReportingUtils.Companion.logError(e, "Trying to exchange " + (getDevice(type) != null ? getDevice(type).getLabel() : "(null)") + " with " + label);
-		}
-	}
+    /*
+     * Some generic getters. The class might not stay backed by an EnumMap, so
+     * these may be more important in the future.
+     */
+    public Device getDevice(SPIMDevice device) {
+        return deviceMap.get(device);
+    }
 
-	public Stage getXStage() {
-		return (Stage) deviceMap.get(SPIMDevice.STAGE_X);
-	}
+    public void setDevice(SPIMDevice type, String label) {
+        try {
+            if (label == null || label.length() <= 0)
+                deviceMap.put(type, null);
+            else
+                deviceMap.put(type, Device.createDevice(core, type, label));
+        } catch (Exception e) {
+            ReportingUtils.Companion.logError(e, "Trying to exchange " + (getDevice(type) != null ? getDevice(type).getLabel() : "(null)") + " with " + label);
+        }
+    }
 
-	public Stage getYStage() {
-		return (Stage) deviceMap.get(SPIMDevice.STAGE_Y);
-	}
+    public Stage getXStage() {
+        return (Stage) deviceMap.get(SPIMDevice.STAGE_X);
+    }
 
-	public Stage getZStage() {
-		return (Stage) deviceMap.get(SPIMDevice.STAGE_Z);
-	}
+    public Stage getYStage() {
+        return (Stage) deviceMap.get(SPIMDevice.STAGE_Y);
+    }
 
-	public Stage getThetaStage() {
-		return (Stage) deviceMap.get(SPIMDevice.STAGE_THETA);
-	}
+    public Stage getZStage() {
+        return (Stage) deviceMap.get(SPIMDevice.STAGE_Z);
+    }
 
-	public Laser getLaser() {
-		return (Laser) deviceMap.get(SPIMDevice.LASER1);
-	}
+    public Stage getThetaStage() {
+        return (Stage) deviceMap.get(SPIMDevice.STAGE_THETA);
+    }
 
-	public Camera getCamera() {
-		return (Camera) deviceMap.get(SPIMDevice.CAMERA1);
-	}
+    public Laser getLaser() {
+        return (Laser) deviceMap.get(SPIMDevice.LASER1);
+    }
 
-	public Device getSynchronizer() {
-		return deviceMap.get(SPIMDevice.SYNCHRONIZER);
-	}
+    public Camera getCamera() {
+        return (Camera) deviceMap.get(SPIMDevice.CAMERA1);
+    }
 
-	public TaggedImage snapImage() {
-		if(!core.getAutoShutter() && getLaser() != null)
-			getLaser().setPoweredOn(true);
+    public Device getSynchronizer() {
+        return deviceMap.get(SPIMDevice.SYNCHRONIZER);
+    }
 
-		TaggedImage ret = getCamera().snapImage();
+    public TaggedImage snapImage() {
+        if (!core.getAutoShutter() && getLaser() != null)
+            getLaser().setPoweredOn(true);
 
-		if(!core.getAutoShutter() && getLaser() != null)
-			getLaser().setPoweredOn(false);
+        TaggedImage ret = getCamera().snapImage();
 
-		return ret;
-	}
+        if (!core.getAutoShutter() && getLaser() != null)
+            getLaser().setPoweredOn(false);
 
-	/*
-	 * Some convenience methods for positioning the setup's 4D stage.
-	 */
+        return ret;
+    }
 
-	/**
-	 * Navigates the stage to the specified quadruplet. Null parameters mean no
-	 * change.
-	 * 
-	 * @param x New position of the X stage
-	 * @param y New position of the Y stage
-	 * @param z New position of the Z stage
-	 * @param t New position of the theta stage
-	 */
-	public void setPosition(Double x, Double y, Double z, Double t) {
-		if (!has3DStage())
-			return;
+    /*
+     * Some convenience methods for positioning the setup's 4D stage.
+     */
 
-		if (x != null)
-			getXStage().setPosition(x);
+    /**
+     * Navigates the stage to the specified quadruplet. Null parameters mean no
+     * change.
+     *
+     * @param x New position of the X stage
+     * @param y New position of the Y stage
+     * @param z New position of the Z stage
+     * @param t New position of the theta stage
+     */
+    public void setPosition(Double x, Double y, Double z, Double t) {
+        if (!has3DStage())
+            return;
 
-		if (y != null)
-			getYStage().setPosition(y);
+        if (x != null)
+            getXStage().setPosition(x);
 
-		if (z != null)
-			getZStage().setPosition(z);
+        if (y != null)
+            getYStage().setPosition(y);
 
-		if (t != null)
-			getThetaStage().setPosition(t);
-	}
+        if (z != null)
+            getZStage().setPosition(z);
 
-	/**
-	 * Reposition the stage to the specified coordinates and angle.
-	 * 
-	 * @param xyz New translational position of the stage
-	 * @param t New position of the theta stage
-	 */
-	public void setPosition(Vector3D xyz, Double t) {
-		setPosition(xyz.getX(), xyz.getY(), xyz.getZ(), t);
-	}
+        if (t != null)
+            getThetaStage().setPosition(t);
+    }
 
-	/**
-	 * Reposition the stage to the specified coordinates.
-	 * 
-	 * @param xyz New translational position of the stage
-	 */
-	public void setPosition(Vector3D xyz) {
-		setPosition(xyz, null);
-	}
+    /**
+     * Reposition the stage to the specified coordinates and angle.
+     *
+     * @param xyz New translational position of the stage
+     * @param t   New position of the theta stage
+     */
+    public void setPosition(Vector3D xyz, Double t) {
+        setPosition(xyz.getX(), xyz.getY(), xyz.getZ(), t);
+    }
 
-	/**
-	 * Gets the position of the stage as a vector.
-	 * 
-	 * @return Current stage position
-	 */
-	public Vector3D getPosition() {
-		if (!has3DStage())
-			return Vector3D.ZERO;
+    /**
+     * Reposition the stage to the specified coordinates.
+     *
+     * @param xyz New translational position of the stage
+     */
+    public void setPosition(Vector3D xyz) {
+        setPosition(xyz, null);
+    }
 
-		return new Vector3D(getXStage().getPosition(), getYStage().getPosition(), getZStage().getPosition());
-	}
+    /**
+     * Gets the position of the stage as a vector.
+     *
+     * @return Current stage position
+     */
+    public Vector3D getPosition() {
+        if (!has3DStage())
+            return Vector3D.ZERO;
 
-	public double getAngle() {
-		return getThetaStage().getPosition();
-	}
+        return new Vector3D(getXStage().getPosition(), getYStage().getPosition(), getZStage().getPosition());
+    }
 
-	public CMMCore getCore() {
-		return core;
-	}
+    public double getAngle() {
+        return getThetaStage().getPosition();
+    }
 
-	public static SPIMSetup createDefaultSetup(CMMCore core) {
-		InitFactories.init();
-		SPIMSetup setup = new SPIMSetup(core);
+    public CMMCore getCore() {
+        return core;
+    }
 
-		try {
-			for (SPIMDevice dev : SPIMDevice.values())
-				setup.deviceMap.put(dev, setup.constructIfValid(dev, setup.getDefaultDeviceLabel(dev)));
-		} catch (Exception e) {
-			ReportingUtils.Companion.logError(e, "Couldn't build default setup.");
-			return null;
-		}
+    public static SPIMSetup createDefaultSetup(CMMCore core) {
+        InitFactories.init();
+        SPIMSetup setup = new SPIMSetup(core);
 
-		return setup;
-	}
+        try {
+            for (SPIMDevice dev : SPIMDevice.values())
+                setup.deviceMap.put(dev, setup.constructIfValid(dev, setup.getDefaultDeviceLabel(dev)));
+        } catch (Exception e) {
+            ReportingUtils.Companion.logError(e, "Couldn't build default setup.");
+            return null;
+        }
 
-	public String getDefaultDeviceLabel(SPIMDevice dev) throws Exception {
-		switch (dev) {
-		case STAGE_X:
-		case STAGE_Y:
-			return core.getXYStageDevice();
+        return setup;
+    }
 
-		case STAGE_Z:
-			return core.getFocusDevice();
+    public String getDefaultDeviceLabel(SPIMDevice dev) throws Exception {
+        switch (dev) {
+            case STAGE_X:
+            case STAGE_Y:
+                return core.getXYStageDevice();
 
-		case STAGE_THETA:
-			// TODO: In my ideal stage setup (three unique linear stages) this
-			// wouldn't work.
-			// The X and Y stages would also be StageDevices. I haven't thought
-			// of a workaround yet. :(
-			return labelOfSecondary(DeviceType.StageDevice, core.getFocusDevice());
+            case STAGE_Z:
+                return core.getFocusDevice();
 
-		case LASER1:
-			return core.getShutterDevice();
+            case STAGE_THETA:
+                // TODO: In my ideal stage setup (three unique linear stages) this
+                // wouldn't work.
+                // The X and Y stages would also be StageDevices. I haven't thought
+                // of a workaround yet. :(
+                return labelOfSecondary(DeviceType.StageDevice, core.getFocusDevice());
 
-		case LASER2:
-			// TODO: This might not be exact -- Arduino might end up showing up
-			// as a shutter.
-			return labelOfSecondary(DeviceType.ShutterDevice, core.getShutterDevice());
+            case LASER1:
+                return core.getShutterDevice();
 
-		case CAMERA1:
-			return core.getCameraDevice();
+            case LASER2:
+                // TODO: This might not be exact -- Arduino might end up showing up
+                // as a shutter.
+                return labelOfSecondary(DeviceType.ShutterDevice, core.getShutterDevice());
 
-		case CAMERA2:
-			return labelOfSecondary(DeviceType.CameraDevice, core.getCameraDevice());
+            case CAMERA1:
+                return core.getCameraDevice();
 
-		case SYNCHRONIZER:
-			// wot
-			return null;
+            case CAMERA2:
+                return labelOfSecondary(DeviceType.CameraDevice, core.getCameraDevice());
 
-		default:
-			return null;
-		}
-	}
+            case SYNCHRONIZER:
+                // wot
+                return null;
 
-	private Device constructIfValid(SPIMDevice type, String label) throws Exception {
-		if (label != null && label.length() > 0)
-			return Device.createDevice(core, type, label);
-		else
-			return null;
-	}
+            default:
+                return null;
+        }
+    }
 
-	private String labelOfSecondary(DeviceType mmtype, String except) throws Exception {
-		String other = null;
+    private Device constructIfValid(SPIMDevice type, String label) throws Exception {
+        if (label != null && label.length() > 0)
+            return Device.createDevice(core, type, label);
+        else
+            return null;
+    }
 
-		for (String s : core.getLoadedDevicesOfType(mmtype)) {
-			if (!s.equals(except)) {
-				if (other == null)
-					other = s;
-				else
-					return null;
-			}
-		}
+    private String labelOfSecondary(DeviceType mmtype, String except) throws Exception {
+        String other = null;
 
-		return other;
-	}
+        for (String s : core.getLoadedDevicesOfType(mmtype)) {
+            if (!s.equals(except)) {
+                if (other == null)
+                    other = s;
+                else
+                    return null;
+            }
+        }
 
-	private static boolean strVecContains(StrVector vec, String check) {
-		for (String str : vec)
-			if (str.equals(check))
-				return true;
+        return other;
+    }
 
-		return false;
-	}
+    private static boolean strVecContains(StrVector vec, String check) {
+        for (String str : vec)
+            if (str.equals(check))
+                return true;
+
+        return false;
+    }
 }

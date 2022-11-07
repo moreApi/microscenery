@@ -1,33 +1,22 @@
-package microscenery.example.network
+package microscenery.example.microscope
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
-import microscenery.*
-import microscenery.example.microscope.DemoBehavior
+import microscenery.DefaultScene
+import microscenery.StageSpaceManager
 import microscenery.hardware.DemoMicroscopeHardware
-import microscenery.network.RemoteMicroscopeClient
-import microscenery.network.RemoteMicroscopeServer
-import microscenery.network.SliceStorage
 import org.joml.Vector3f
-import org.zeromq.ZContext
 import kotlin.concurrent.thread
 
-class RemoteMicroscopeLocalhostScene : DefaultScene() {
-
+class DemoHWScene : DefaultScene() {
     init {
-        val zContext = ZContext()
+        logger.info("Starting demo hw scene")
 
-        val microscope = DemoMicroscopeHardware()
-
-        @Suppress("UNUSED_VARIABLE")
-        val server = RemoteMicroscopeServer(microscope, storage = SliceStorage(500 * 1024 * 1024), zContext = zContext)
-
-        val client = RemoteMicroscopeClient(zContext = zContext)
-        val stageSpaceManager = StageSpaceManager(client, scene, hub, addFocusFrame = true)
+        val hw = DemoMicroscopeHardware()
+        val stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true)
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)
-
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"
@@ -39,13 +28,20 @@ class RemoteMicroscopeLocalhostScene : DefaultScene() {
         }
         scene.addChild(hullbox)
 
-
-        DemoBehavior(microscope.side.toFloat(), stageSpaceManager).randomLive()
-
+        thread {
+            //Thread.sleep(5000)
+            val db = DemoBehavior(
+                hw.side.toFloat(),
+                stageSpaceManager
+            )
+            db.fixedStack()
+            Thread.sleep(2500)
+            db.fixed()
+        }
         thread {
             while (true) {
                 Thread.sleep(200)
-                scene
+                scene to stageSpaceManager
             }
         }
     }
@@ -53,8 +49,8 @@ class RemoteMicroscopeLocalhostScene : DefaultScene() {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            RemoteMicroscopeLocalhostScene().main()
+            DemoHWScene().main()
         }
     }
-
 }
+

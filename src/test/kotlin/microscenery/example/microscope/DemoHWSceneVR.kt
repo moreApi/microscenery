@@ -1,9 +1,8 @@
-package microscenery.example
+package microscenery.example.microscope
 
 import graphics.scenery.Sphere
 import graphics.scenery.controls.behaviours.Grabable
 import graphics.scenery.controls.behaviours.Touchable
-import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.StageSpaceManager
@@ -19,7 +18,7 @@ class DemoHWSceneVR : DefaultVRScene() {
 
 
         val hw = DemoMicroscopeHardware()
-        val stageSpaceManager = StageSpaceManager(hw, scene, addFocusFrame = true, scaleDownFactor = 200f)
+        val stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true, scaleDownFactor = 200f)
 
         Sphere(0.5f).apply {
             spatial {

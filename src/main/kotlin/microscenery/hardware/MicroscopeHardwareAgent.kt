@@ -22,7 +22,7 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
 
     @Suppress("BlockingMethodInNonBlockingContext")
     protected var status: MicroscopeStatus by Delegates.observable(
-        MicroscopeStatus(ServerState.STARTUP, Vector3f())
+        MicroscopeStatus(ServerState.STARTUP, Vector3f(), false)
     ) { _, _, _ ->
         output.put(status)
     }
@@ -31,6 +31,12 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
         get() = status.stagePosition
         set(value) {
             moveStage(value)
+        }
+
+    override var live: Boolean
+        get() = status.live
+        set(value) {
+            live(value)
         }
 
     protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
@@ -46,4 +52,10 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
      * New stage position has to be announced in status in implementing method.
      */
     protected abstract fun moveStage(target: Vector3f)
+
+    /**
+     * New live status has to be announced in status in implementing method.
+     */
+    protected abstract fun live(isLive: Boolean)
+
 }

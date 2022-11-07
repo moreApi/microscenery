@@ -18,14 +18,14 @@ class T1Head : DefaultVRScene(T1Head::class.java.simpleName) {
     override fun init() {
         prepareVRScene()
 
-        cam.spatial().position = Vector3f(0f,-5f,5f)
+        cam.spatial().position = Vector3f(0f, -5f, 5f)
 
 
-        val volume = Volume.fromPath(Path("""C:\Users\JanCasus\volumes\t1-head.tif"""),hub)
+        val volume = Volume.fromPath(Path("""C:\Users\JanCasus\volumes\t1-head.tif"""), hub)
         scene.addChild(volume)
 //        volume.spatial().scale= Vector3f(0.1f,0.1f,0.4f)
         volume.colormap = Colormap.get("plasma")
-        volume.transferFunction = TransferFunction.ramp(0.0017f,1f,0.01f)
+        volume.transferFunction = TransferFunction.ramp(0.0017f, 1f, 0.01f)
 
     }
 

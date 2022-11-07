@@ -2,7 +2,8 @@ package microscenery.unit.network
 
 import microscenery.lightSleepOnCondition
 import microscenery.lightSleepOnNull
-import microscenery.network.*
+import microscenery.network.ControlSignalsClient
+import microscenery.network.ControlSignalsServer
 import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
@@ -40,7 +41,7 @@ class ControlSignalTransmissionTest {
     fun shutdownServer() {
         server.sendSignal(
             ActualMicroscopeSignal(
-                MicroscopeStatus(ServerState.SHUTTING_DOWN, Vector3f())
+                MicroscopeStatus(ServerState.SHUTTING_DOWN, Vector3f(), false)
             )
         )
 
@@ -92,7 +93,7 @@ class ControlSignalTransmissionTest {
         assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
-        val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f())
+        val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f(), false)
         server.sendSignal(ActualMicroscopeSignal(s1))
         lightSleepOnNull { lastSignalServer }
 
@@ -104,7 +105,7 @@ class ControlSignalTransmissionTest {
     }
 
     @Test
-    fun transmittingCommand(){
+    fun transmittingCommand() {
         lightSleepOnNull { lastSignalClient }
         assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
@@ -116,7 +117,7 @@ class ControlSignalTransmissionTest {
     }
 
     @Test
-    fun manySignals(){
+    fun manySignals() {
 
         lightSleepOnNull { lastSignalClient }
         assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
@@ -128,14 +129,14 @@ class ControlSignalTransmissionTest {
             // just to have an answer signal
             thread {
                 Thread.sleep(200)
-                server.sendSignal(RemoteMicroscopeStatus(emptyList(),0))
+                server.sendSignal(RemoteMicroscopeStatus(emptyList(), 0))
             }
         }
 
         var countClient = 0
         client.addListener { countClient++ }
 
-        for (x in 1..2000){
+        for (x in 1..2000) {
             assert(client.sendSignal(ClientSignal.MoveStage(Vector3f(x.toFloat()))))
         }
         Thread.sleep(5000)

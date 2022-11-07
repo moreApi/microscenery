@@ -4,8 +4,8 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import io.scif.util.FormatTools
 import microscenery.DefaultScene
-import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.SliceRenderNode
+import microscenery.hardware.micromanagerConnection.MMConnection
 import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.*
 import net.imglib2.type.numeric.real.FloatType
@@ -29,8 +29,8 @@ class SliceRenderFromFileExample : DefaultScene() {
         val rangeScale = 65535.0f
         val fmin = 0.0f / rangeScale
         val fmax = 1000.0f / rangeScale
-        val tfScale = 1.0f / ( fmax - fmin )
-        val tfOffset = -fmin * tfScale;
+        val tfScale = 1.0f / (fmax - fmin)
+        val tfOffset = -fmin * tfScale
 
         SliceRenderNode(
             data,
@@ -130,8 +130,8 @@ class SliceNodeMMExample : DefaultScene() {
         val rangeScale = 65535.0f
         val fmin = 0.0f / rangeScale
         val fmax = 1000.0f / rangeScale
-        val tfScale = 1.0f / ( fmax - fmin )
-        val tfOffset = -fmin * tfScale;
+        val tfScale = 1.0f / (fmax - fmin)
+        val tfOffset = -fmin * tfScale
 
         val tf = TransferFunction.ramp()
 
@@ -145,7 +145,7 @@ class SliceNodeMMExample : DefaultScene() {
                 it.material().metallic = tfOffset
                 it.material().roughness = tfScale
                 scene.addChild(it)
-                it.spatial().position = Vector3f(0f, 0f,i.toFloat())
+                it.spatial().position = Vector3f(0f, 0f, i.toFloat())
             }
         }
     }

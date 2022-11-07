@@ -10,7 +10,7 @@ import kotlin.concurrent.thread
  *
  * !! ATTENTION!! Call [startAgent] eg. in the Init method of your class
  */
-abstract class Agent(val isDaemon: Boolean = true){
+abstract class Agent(val isDaemon: Boolean = true) {
 
     var running = false
         private set
@@ -19,7 +19,7 @@ abstract class Agent(val isDaemon: Boolean = true){
     /**
      * Starts this agent. Blocks until the thread is running.
      */
-    fun startAgent(){
+    fun startAgent() {
 
         runBlocking {
             // this is to make sure that the thread is started and running after initialisation. Makes testing easier.
@@ -32,7 +32,7 @@ abstract class Agent(val isDaemon: Boolean = true){
                     while (running && !Thread.currentThread().isInterrupted) {
                         onLoop()
                     }
-                } catch (_: InterruptedException){
+                } catch (_: InterruptedException) {
                     Thread.currentThread().interrupt()
                 }
                 onClose()

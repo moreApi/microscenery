@@ -1,4 +1,4 @@
-package microscenery.example
+package microscenery.example.microscope
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
@@ -12,12 +12,12 @@ import microscenery.signals.ServerState
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
-class LocalMMScene: DefaultScene() {
+class LocalMMScene : DefaultScene() {
 
     init {
 
         val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
-        val stageSpaceManager = StageSpaceManager(hardware, scene, addFocusFrame = true)
+        val stageSpaceManager = StageSpaceManager(hardware, scene, hub, addFocusFrame = true)
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"
@@ -35,19 +35,21 @@ class LocalMMScene: DefaultScene() {
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
         //stageSpaceManager.snapSlice(Vector3f(10f))
         //stageSpaceManager.snapSlice(Vector3f(20f))
-        stageSpaceManager.stagePosition = Vector3f(50f)
-        stageSpaceManager.snapSlice()
+        //stageSpaceManager.stagePosition = Vector3f(50f)
+        //stageSpaceManager.snapSlice()
         //stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
 
+        DemoBehavior(hardware.hardwareDimensions().stageMax.length(), stageSpaceManager).fixedStack()
+
         thread {
-            while (true){
+            while (true) {
                 Thread.sleep(200)
                 scene
             }
         }
     }
 
-    companion object{
+    companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             LocalMMScene().main()

@@ -30,7 +30,7 @@ class DemoHWScene : DefaultScene() {
     init {
 
         val hw = DemoMicroscopeHardware()
-        val stageSpaceManager = StageSpaceManager(hw, scene, addFocusFrame = true)
+        val stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true)
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)
 

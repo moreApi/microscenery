@@ -62,7 +62,7 @@ class ControlSignalsClient(
     }
 
     fun sendSignal(signal: microscenery.signals.ClientSignal): Boolean {
-        if (!signalsOut.offer(signal.toProto(),5000,TimeUnit.MILLISECONDS)){
+        if (!signalsOut.offer(signal.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
         }
@@ -93,12 +93,12 @@ class ControlSignalsClient(
 
         // process outgoing messages
         if (outSignal != null) {
-            if (!socket.send(outSignal.toByteArray())){
+            if (!socket.send(outSignal.toByteArray())) {
                 logger.error("ZMQ is busy and dropped a message")
             }
         }
 
-        if ( payloadIn == null && outSignal == null )
+        if (payloadIn == null && outSignal == null)
             Thread.sleep(200)
     }
 
