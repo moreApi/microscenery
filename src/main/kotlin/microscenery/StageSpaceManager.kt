@@ -68,16 +68,6 @@ class StageSpaceManager(
     override var transferFunction : TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
         set(value) {
             field = value
-
-            val tfBuffer = field.serialise().asFloatBuffer()
-            val byteArray = ByteArray(tfBuffer.limit())
-            for(i in 0 until tfBuffer.limit())
-            {
-                byteArray[i] = (tfBuffer[i] * 255).toUInt().toByte()
-            }
-            val tfImage = BufferedImage(field.textureSize, field.textureHeight, BufferedImage.TYPE_BYTE_GRAY)
-            tfImage.raster.setDataElements(0, 0, field.textureSize, field.textureHeight, byteArray)
-
             updateSlices()
         }
 
