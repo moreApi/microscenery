@@ -4,6 +4,7 @@ import graphics.scenery.*
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.utils.extensions.toFloatArray
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.TransferFunction
@@ -14,9 +15,9 @@ import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
+import java.util.concurrent.TimeUnit
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.withLock
 
 //TODO show stage limits
@@ -31,19 +32,18 @@ class StageSpaceManager(
     val hub: Hub,
     addFocusFrame: Boolean = true,
     val scaleDownFactor: Float = 200f
-) : Agent() {
+) : Agent(), HasTransferFunction {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+
 
     val stageRoot = RichNode("stage root")
     var focusFrame: FocusFrame? = null
 
+    private var sortedSlices = ArrayList<SliceRenderNode>()
     private var stacks = emptyList<StackContainer>()
 
-    val transferFunction = TransferFunction.ramp()
-    private val tfRangeMin: Float = 0.0f
-    private val tfRangeMax: Float = 100.0f
-    var tfOffset = 0.0f
-    var tfScale = 0.0f
+    private var transferFunctionOffset = 0.0f
+    private var transferFunctionScale = 0.0f
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
@@ -51,6 +51,25 @@ class StageSpaceManager(
             hardware.stagePosition = value
         }
 
+    override var minDisplayRange: Float = 0.0f
+        set(value)
+        {
+            field = value
+            calculateOffsetAndScale()
+            updateSlices()
+        }
+    override var maxDisplayRange: Float = 1000.0f
+        set(value)
+        {
+            field = value
+            calculateOffsetAndScale()
+            updateSlices()
+        }
+    override var transferFunction : TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
+        set(value) {
+            field = value
+            updateSlices()
+        }
 
     init {
         scene.addChild(stageRoot)
@@ -65,18 +84,46 @@ class StageSpaceManager(
         startAgent()
     }
 
+    /**
+     * Iterates over all slices and updates their transferFunction, offset and scale values according to the currently set values of this manager
+     */
+    private fun updateSlices()
+    {
+        sortedSlices.forEach {
+            it.transferFunction = transferFunction
+            it.transferFunctionOffset = transferFunctionOffset
+            it.transferFunctionScale = transferFunctionScale
+        }
+        stacks.forEach {
+            it.volume.transferFunction = transferFunction
+            it.volume.minDisplayRange = minDisplayRange
+            it.volume.maxDisplayRange = maxDisplayRange
+        }
+    }
+
+    /**
+     * This normally happens inside the converter of a volume. Converts the minDisplayRange and maxDisplayRange values into an offset and scale used inside the shader
+     */
     private fun calculateOffsetAndScale() {
-        //Rangescale is either 255 or 65535
+        // Rangescale is either 255 or 65535
         val rangeScale = when(hardware.hardwareDimensions().numericType){
             NumericType.INT8 -> 255
             NumericType.INT16 -> 65535
         }
-        val fmin = tfRangeMin / rangeScale
-        val fmax = tfRangeMax / rangeScale
-        tfScale = 1.0f / (fmax - fmin)
-        tfOffset = -fmin * tfScale
+        val fmin = minDisplayRange / rangeScale
+        val fmax = maxDisplayRange / rangeScale
+        transferFunctionScale = 1.0f / (fmax - fmin)
+        transferFunctionOffset = -fmin * transferFunctionScale
     }
 
+    /**
+     * Inserts a slice into the local sliceContainer and sorts it using its z coordinate -> TODO: Make this use the camera and sort by view-vector
+     */
+    private fun insertSlice(slice: SliceRenderNode): Int {
+        sortedSlices.add(slice)
+        sortedSlices.sortBy { it.spatial().position.z() }
+        return sortedSlices.indexOf(slice)
+    }
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
@@ -166,8 +213,8 @@ class StageSpaceManager(
             1f,
             hwd.numericType.bytes,
             transferFunction,
-            tfOffset,
-            tfScale
+            transferFunctionOffset,
+            transferFunctionScale
         )
         node.spatial().position = signal.stagePos
 
@@ -181,8 +228,14 @@ class StageSpaceManager(
             .toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
             .forEach {
                 stageRoot.removeChild(it)
+                sortedSlices.remove(it)
             }
         stageRoot.addChild(node)
+
+        val index = insertSlice(node)
+        //now follows insurance, that slides get ordered correctly
+        stageRoot.children.remove(node)
+        stageRoot.children.add(index, node)
     }
 
     fun stack(from: Vector3f, to: Vector3f) {
