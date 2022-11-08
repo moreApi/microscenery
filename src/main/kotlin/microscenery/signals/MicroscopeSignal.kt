@@ -143,13 +143,30 @@ data class HardwareDimensions(
         }
     }
 
-    fun coercePosition(target: Vector3f, logger: org.slf4j.Logger?): Vector3f {
+    /**
+     * Limits a position within the stage limits.
+     *
+     * @param safetyCutoff If the distance in micrometer to the next legal position is larger than this value, a error is thrown to abort the operation as a safety measure.
+     */
+    fun coercePosition(
+        target: Vector3f,
+        logger: org.slf4j.Logger?,
+        safetyCutoff: Vector3f = Vector3f(1000f)
+    ): Vector3f {
         val safeTarget = Vector3f()
-        for (i in 0..2) safeTarget.setComponent(
-            i,
-            target[i].coerceIn(stageMin[i], stageMax[i])
-        )
+        for (i in 0..2) {
+            safeTarget.setComponent(i, target[i].coerceIn(stageMin[i], stageMax[i]))
+            if (safeTarget[i] - target[i] > safetyCutoff[i]) {
+                val message = "stage position fail safe triggered. Target  ${target.toReadableString()} is " +
+                        "more than the safety distance of ${safetyCutoff.toReadableString()} away from the allowed area " +
+                        "between ${stageMin.toReadableString()} and ${stageMax.toReadableString()}."
+                logger?.error(message)
+                throw IllegalStateException(message)
+            }
+        }
         if (safeTarget != target) {
+
+
             logger?.warn("Had to coerce stage parameters! From ${target.toReadableString()} to ${safeTarget.toReadableString()}")
         }
         return safeTarget

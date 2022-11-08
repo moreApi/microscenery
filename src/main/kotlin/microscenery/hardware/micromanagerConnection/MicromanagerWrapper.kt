@@ -15,10 +15,16 @@ import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.math.roundToInt
 
-
+/**
+ * Wrapper of a [MMConnection] to fit the MicroscopeHardware interface.
+ * Queues incoming commands
+ *
+ * @param disableStagePosUpdates if true the position of the stage is only updated on move commands. Makes status updates more deterministic for tests.
+ */
 class MicromanagerWrapper(
     private val mmConnection: MMConnection,
     var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
+    val disableStagePosUpdates: Boolean = false
 ) : MicroscopeHardwareAgent() {
     protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -33,8 +39,14 @@ class MicromanagerWrapper(
     init {
         updateHardwareDimensions()
 
+        try {
+            hardwareDimensions.coercePosition(mmConnection.stagePosition, null)
+        } catch (_: IllegalStateException) {
+            logger.warn("Stage position and allowed stage area differ greatly!")
+        }
+
         startAgent()
-        status = status.copy(state = ServerState.MANUAL)
+        status = status.copy(stagePosition = mmConnection.stagePosition, state = ServerState.MANUAL)
     }
 
     /**
@@ -100,8 +112,10 @@ class MicromanagerWrapper(
         val hwCommand = hardwareCommandsQueue.poll()
         if (hwCommand == null) {
             // if not busy update stage position. It might have been moved via external inputs.
-            if (stagePosition != mmConnection.stagePosition){
-                stagePosition = mmConnection.stagePosition
+            mmConnection.stagePosition.let {
+                if (stagePosition != it && status.state != ServerState.STARTUP && !disableStagePosUpdates) {
+                    status = status.copy(stagePosition = it)
+                }
             }
             Thread.sleep(200)
             return
@@ -111,7 +125,7 @@ class MicromanagerWrapper(
                 val meta = hwCommand.signal
 
                 val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
-                val end = hardwareDimensions.coercePosition(meta.endPosition,logger)
+                val end = hardwareDimensions.coercePosition(meta.endPosition, logger)
                 val dist = end - start
                 val steps = (dist.length() / meta.stepSize).roundToInt()
                 val step = dist * (1f / steps)
@@ -128,8 +142,14 @@ class MicromanagerWrapper(
                 status = status.copy(state = ServerState.STACK)
 
                 for (i in 0 until steps) {
-                    hardwareCommandsQueue.put(HardwareCommand.MoveStage(start + (step * i.toFloat()),hardwareDimensions,true))
-                    hardwareCommandsQueue.put(HardwareCommand.SnapImage(false,currentStack.Id))
+                    hardwareCommandsQueue.put(
+                        HardwareCommand.MoveStage(
+                            start + (step * i.toFloat()),
+                            hardwareDimensions,
+                            true
+                        )
+                    )
+                    hardwareCommandsQueue.put(HardwareCommand.SnapImage(false, currentStack.Id))
                 }
             }
             is HardwareCommand.MoveStage -> {
@@ -169,14 +189,14 @@ class MicromanagerWrapper(
 
     private fun stageMinMax(): Pair<Vector3f, Vector3f> {
         val min = Vector3f(
-            MicroscenerySettings.get("Stage.minX"),
-            MicroscenerySettings.get("Stage.minY"),
-            MicroscenerySettings.get("Stage.minZ")
+            MicroscenerySettings.get("Stage.minX", stagePosition.x),
+            MicroscenerySettings.get("Stage.minY", stagePosition.y),
+            MicroscenerySettings.get("Stage.minZ", stagePosition.z)
         )
         val max = Vector3f(
-            MicroscenerySettings.get("Stage.maxX"),
-            MicroscenerySettings.get("Stage.maxY"),
-            MicroscenerySettings.get("Stage.maxZ")
+            MicroscenerySettings.get("Stage.maxX", stagePosition.x),
+            MicroscenerySettings.get("Stage.maxY", stagePosition.y),
+            MicroscenerySettings.get("Stage.maxZ", stagePosition.z)
         )
         if (min.x > max.x || min.y > max.y || min.z > max.z) {
             throw IllegalArgumentException("Min allowed stage area parameters need to be smaller than max values")
@@ -189,7 +209,7 @@ class MicromanagerWrapper(
 
         class MoveStage(target: Vector3f, hwd: HardwareDimensions, val waitForCompletion: Boolean = false) :
             HardwareCommand() {
-            val safeTarget = hwd.coercePosition(target,logger)
+            val safeTarget = hwd.coercePosition(target, logger)
         }
 
         data class SnapImage(val live: Boolean, val stackId: Int? = null) : HardwareCommand()

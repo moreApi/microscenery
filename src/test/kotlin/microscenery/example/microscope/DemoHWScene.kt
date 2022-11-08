@@ -34,8 +34,8 @@ class DemoHWScene : DefaultScene() {
                 hw.side.toFloat(),
                 stageSpaceManager
             )
-            db.fixedStack()
-            Thread.sleep(2500)
+            //db.fixedStack()
+            //Thread.sleep(2500)
             db.fixed()
         }
         thread {

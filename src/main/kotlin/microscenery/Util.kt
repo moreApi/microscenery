@@ -77,6 +77,7 @@ fun lightSleepOnCondition(mills: Int = 10000, target: () -> Boolean) {
 
 inline fun <reified T : MicroscopeSignal> BlockingQueue<MicroscopeSignal>.pollForSignal(
     timeout: Long = 5000,
+    ignoreNotFitting: Boolean = true,
     condition: (T) -> Boolean = { true }
 ): Boolean {
     val start = System.currentTimeMillis()
@@ -84,6 +85,8 @@ inline fun <reified T : MicroscopeSignal> BlockingQueue<MicroscopeSignal>.pollFo
         val signal = this.poll(200, TimeUnit.MILLISECONDS) as? T ?: continue
         if (condition(signal))
             return true
+        else if (!ignoreNotFitting)
+            return false
     }
     return false
 }
