@@ -51,14 +51,14 @@ class StageSpaceManager(
             hardware.stagePosition = value
         }
 
-    override var maxDisplayRange: Float = 1000.0f
+    override var minDisplayRange: Float = 0.0f
         set(value)
         {
             field = value
             calculateOffsetAndScale()
             updateSlices()
         }
-    override var minDisplayRange: Float = 0.0f
+    override var maxDisplayRange: Float = 1000.0f
         set(value)
         {
             field = value
@@ -91,8 +91,8 @@ class StageSpaceManager(
     {
         sortedSlices.forEach {
             it.transferFunction = transferFunction
-            it.tfOffset = tfOffset
-            it.tfScale = tfScale
+            it.transferFunctionOffset = tfOffset
+            it.transferFunctionScale = tfScale
         }
         stacks.forEach {
             it.volume.transferFunction = transferFunction
@@ -119,12 +119,10 @@ class StageSpaceManager(
     /**
      * Inserts a slice into the local sliceContainer and sorts it using its z coordinate -> TODO: Make this use the camera and sort by view-vector
      */
-    private fun insertSlice(slice : SliceRenderNode) : Int
-    {
+    private fun insertSlice(slice: SliceRenderNode): Int {
         sortedSlices.add(slice)
         sortedSlices.sortBy { it.spatial().position.z() }
-        val index = sortedSlices.indexOf(slice)
-        return index
+        return sortedSlices.indexOf(slice)
     }
 
     override fun onLoop() {
@@ -230,12 +228,14 @@ class StageSpaceManager(
             .toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
             .forEach {
                 stageRoot.removeChild(it)
+                sortedSlices.remove(it)
             }
-        //now follows insurance, that slides get ordered correctly
+        stageRoot.addChild(node)
+
         val index = insertSlice(node)
+        //now follows insurance, that slides get ordered correctly
         stageRoot.children.remove(node)
         stageRoot.children.add(index, node)
-        stageRoot.addChild(node)
     }
 
     fun stack(from: Vector3f, to: Vector3f) {

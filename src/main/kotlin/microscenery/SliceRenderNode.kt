@@ -24,42 +24,47 @@ import java.nio.ByteBuffer
  * Modified Plane to display ByteBuffers
  */
 class SliceRenderNode(
-    slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, bytesPerValue: Int = 1,
-    tf: TransferFunction, tfOffset: Float = 0.0f, tfScale: Float = 65.5f
+    slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, var bytesPerValue: Int = 1,
+    transferFunction: TransferFunction, tfOffset: Float = 0.0f, tfScale: Float? = null
 ) : DefaultNode("SliceRenderNode"),
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {
 
-    var transferFunction : TransferFunction = tf
+    private var tfTexture : Texture
+    var transferFunction : TransferFunction = transferFunction
         set(value) {
             field = value
-            material().textures["specular"] = generateTFTexture()
+            tfTexture = generateTFTexture()
+            material().textures["specular"] = tfTexture
         }
-    var tfOffset : Float = tfOffset
+    var transferFunctionOffset : Float = tfOffset
         set(value) {
             field = value
             material().metallic = field
         }
-    var tfScale : Float = tfScale
+    var transferFunctionScale : Float = 0.0f
         set(value) {
             field = value
             material().roughness = field
         }
 
-
-    private var tfTexture : Texture
     init {
         val sizes = Vector3f(width * scale, height * scale, 1f)
 
+        addSpatial()
+        addMaterial()
         addGeometry()
         addRenderable()
-        addMaterial()
-        addSpatial()
 
         spatial {
             this.scale = sizes
         }
-
+        transferFunctionScale = tfScale
+            ?: when (bytesPerValue) {
+                1 -> 0.255f
+                2 -> 65.5f
+                else -> 0.0f
+            }
         tfTexture = generateTFTexture()
 
         val side = 1.0f
@@ -128,7 +133,7 @@ class SliceRenderNode(
                 usageType = hashSetOf(Texture.UsageType.Texture)
             )
             // transfer function
-            textures["specular"] = generateTFTexture()
+            textures["specular"] = tfTexture
             // color map
             textures["ambient"] = Texture(
                 dimensions = Vector3i(colorMap.width, colorMap.height, 1),
@@ -143,8 +148,8 @@ class SliceRenderNode(
                 maxFilter = Texture.FilteringMode.NearestNeighbour,
                 usageType = hashSetOf(Texture.UsageType.Texture)
             )
-            metallic = tfOffset
-            roughness = tfScale
+            metallic = transferFunctionOffset
+            roughness = transferFunctionScale
 
             blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
             blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
