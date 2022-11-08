@@ -38,11 +38,13 @@ class SliceRenderFromFileExample : DefaultScene() {
             dims[1],
             0.005f,
             1,
-            TransferFunction.ramp(),
-            tfOffset,
-            tfScale
+            TransferFunction.ramp()
         )
-            .apply { scene.addChild(this) }
+            .apply {
+                this.material().metallic = tfOffset
+                this.material().roughness = tfScale
+                scene.addChild(this)
+            }
 
 
     }
@@ -139,7 +141,9 @@ class SliceNodeMMExample : DefaultScene() {
             val buffer = MemoryUtil.memAlloc(mmConnection.height * mmConnection.width * 2)//shortType
             mmConnection.moveStage(Vector3f(0f, 0f, i.toFloat()), false)
             mmConnection.snapSlice(buffer.asShortBuffer())
-            SliceRenderNode(buffer, mmConnection.width, mmConnection.height, 0.001f, 2, tf, tfOffset, tfScale).let {
+            SliceRenderNode(buffer, mmConnection.width, mmConnection.height, 0.001f, 2, tf).let {
+                it.material().metallic = tfOffset
+                it.material().roughness = tfScale
                 scene.addChild(it)
                 it.spatial().position = Vector3f(0f, 0f, i.toFloat())
             }
