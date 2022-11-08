@@ -30,12 +30,12 @@ class SliceRenderNode(
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {
 
-    private var tfTexture : Texture
+    private var transferFunctionTexture : Texture
     var transferFunction : TransferFunction = transferFunction
         set(value) {
             field = value
-            tfTexture = generateTFTexture()
-            material().textures["specular"] = tfTexture
+            transferFunctionTexture = generateTFTexture()
+            material().textures["specular"] = transferFunctionTexture
         }
     var transferFunctionOffset : Float = tfOffset
         set(value) {
@@ -63,9 +63,9 @@ class SliceRenderNode(
             ?: when (bytesPerValue) {
                 1 -> 0.255f
                 2 -> 65.5f
-                else -> 0.0f
+                else -> throw IllegalArgumentException("bytesPerValue: $bytesPerValue not valid")
             }
-        tfTexture = generateTFTexture()
+        transferFunctionTexture = generateTFTexture()
 
         val side = 1.0f
         val side2 = side / 2.0f
@@ -133,7 +133,7 @@ class SliceRenderNode(
                 usageType = hashSetOf(Texture.UsageType.Texture)
             )
             // transfer function
-            textures["specular"] = tfTexture
+            textures["specular"] = transferFunctionTexture
             // color map
             textures["ambient"] = Texture(
                 dimensions = Vector3i(colorMap.width, colorMap.height, 1),

@@ -42,8 +42,8 @@ class StageSpaceManager(
     private var sortedSlices = ArrayList<SliceRenderNode>()
     private var stacks = emptyList<StackContainer>()
 
-    private var tfOffset = 0.0f
-    private var tfScale = 0.0f
+    private var transferFunctionOffset = 0.0f
+    private var transferFunctionScale = 0.0f
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
@@ -91,8 +91,8 @@ class StageSpaceManager(
     {
         sortedSlices.forEach {
             it.transferFunction = transferFunction
-            it.transferFunctionOffset = tfOffset
-            it.transferFunctionScale = tfScale
+            it.transferFunctionOffset = transferFunctionOffset
+            it.transferFunctionScale = transferFunctionScale
         }
         stacks.forEach {
             it.volume.transferFunction = transferFunction
@@ -112,8 +112,8 @@ class StageSpaceManager(
         }
         val fmin = minDisplayRange / rangeScale
         val fmax = maxDisplayRange / rangeScale
-        tfScale = 1.0f / (fmax - fmin)
-        tfOffset = -fmin * tfScale
+        transferFunctionScale = 1.0f / (fmax - fmin)
+        transferFunctionOffset = -fmin * transferFunctionScale
     }
 
     /**
@@ -213,8 +213,8 @@ class StageSpaceManager(
             1f,
             hwd.numericType.bytes,
             transferFunction,
-            tfOffset,
-            tfScale
+            transferFunctionOffset,
+            transferFunctionScale
         )
         node.spatial().position = signal.stagePos
 
