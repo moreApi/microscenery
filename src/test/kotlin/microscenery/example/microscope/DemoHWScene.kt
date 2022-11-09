@@ -1,7 +1,5 @@
 package microscenery.example.microscope
 
-import graphics.scenery.Box
-import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
@@ -15,6 +13,13 @@ class DemoHWScene : DefaultScene() {
     init {
         logger.info("Starting demo hw scene")
 
+//        MicroscenerySettings.set("Stage.minX", 40000f)
+//        MicroscenerySettings.set("Stage.minY", 22000f)
+//        MicroscenerySettings.set("Stage.minZ", -50f)
+//        MicroscenerySettings.set("Stage.maxX", 44000f)
+//        MicroscenerySettings.set("Stage.maxY", 26000f)
+//        MicroscenerySettings.set("Stage.maxZ", 100f)
+
         val hw = DemoMicroscopeHardware()
         val stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true)
 
@@ -22,16 +27,6 @@ class DemoHWScene : DefaultScene() {
 
         val tfUI = TransferFunctionEditor(650, 550, stageSpaceManager)
         tfUI.name = "Slices"
-
-        val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
-        hullbox.name = "hullbox"
-        hullbox.material {
-            ambient = Vector3f(0.6f, 0.6f, 0.6f)
-            diffuse = Vector3f(0.4f, 0.4f, 0.4f)
-            specular = Vector3f(0.0f, 0.0f, 0.0f)
-            cullingMode = Material.CullingMode.Front
-        }
-        scene.addChild(hullbox)
 
 
         thread {
@@ -42,7 +37,7 @@ class DemoHWScene : DefaultScene() {
             )
             //db.fixedStack()
             //Thread.sleep(2500)
-            db.fixed()
+            db.randomStatic()
         }
         thread {
             while (true) {

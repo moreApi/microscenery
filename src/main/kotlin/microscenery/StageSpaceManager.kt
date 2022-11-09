@@ -1,12 +1,14 @@
 package microscenery
 
 import graphics.scenery.*
+import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
+import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.utils.extensions.toFloatArray
 import graphics.scenery.volumes.BufferedVolume
+import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.VRUI.FocusFrame
@@ -15,9 +17,9 @@ import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
-import java.util.concurrent.TimeUnit
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.withLock
 
 //TODO show stage limits
@@ -38,6 +40,8 @@ class StageSpaceManager(
 
     val stageRoot = RichNode("stage root")
     var focusFrame: FocusFrame? = null
+    private val stageAreaBorders: Box
+    private var stageAreaCenter = Vector3f()
 
     private var sortedSlices = ArrayList<SliceRenderNode>()
     private var stacks = emptyList<StackContainer>()
@@ -52,20 +56,18 @@ class StageSpaceManager(
         }
 
     override var minDisplayRange: Float = 0.0f
-        set(value)
-        {
+        set(value) {
             field = value
             calculateOffsetAndScale()
             updateSlices()
         }
     override var maxDisplayRange: Float = 1000.0f
-        set(value)
-        {
+        set(value) {
             field = value
             calculateOffsetAndScale()
             updateSlices()
         }
-    override var transferFunction : TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
+    override var transferFunction: TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
         set(value) {
             field = value
             updateSlices()
@@ -81,14 +83,23 @@ class StageSpaceManager(
                 stageRoot.addChild(this)
             }
 
+        stageAreaBorders = Box(Vector3f(1f), insideNormals = true)
+        stageAreaBorders.name = "hullbox"
+        stageAreaBorders.material {
+            ambient = Vector3f(0.6f, 0.6f, 0.6f)
+            diffuse = Vector3f(0.4f, 0.4f, 0.4f)
+            specular = Vector3f(0.0f, 0.0f, 0.0f)
+            cullingMode = Material.CullingMode.Front
+        }
+        stageRoot.addChild(stageAreaBorders)
+
         startAgent()
     }
 
     /**
      * Iterates over all slices and updates their transferFunction, offset and scale values according to the currently set values of this manager
      */
-    private fun updateSlices()
-    {
+    private fun updateSlices() {
         sortedSlices.forEach {
             it.transferFunction = transferFunction
             it.transferFunctionOffset = transferFunctionOffset
@@ -106,7 +117,7 @@ class StageSpaceManager(
      */
     private fun calculateOffsetAndScale() {
         // Rangescale is either 255 or 65535
-        val rangeScale = when(hardware.hardwareDimensions().numericType){
+        val rangeScale = when (hardware.hardwareDimensions().numericType) {
             NumericType.INT8 -> 255
             NumericType.INT16 -> 65535
         }
@@ -140,8 +151,22 @@ class StageSpaceManager(
                 handleSingleSlice(signal)
             }
             is HardwareDimensions -> {
-                stageRoot.spatial().scale = signal.vertexSize.times(1 / scaleDownFactor)
+                stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
+                stageRoot.spatial {
+                    scale = signal.vertexSize.times(1f / scaleDownFactor)
+                    position = stageAreaCenter.times(scale.times(-1f))
+                }
+                stageAreaBorders.spatial {
+                    position = stageAreaCenter
+                    scale = (signal.stageMax - signal.stageMin).apply {
+                        this.x += signal.imageSize.x
+                        this.y += signal.imageSize.y
+                        this.mul(1.05f)
+                    }
+                }
+
                 focusFrame?.applyHardwareDimensions(signal)
+
             }
             is MicroscopeStatus -> {
                 focusFrame?.spatial()?.position = signal.stagePosition
@@ -149,8 +174,10 @@ class StageSpaceManager(
             is Stack -> {
                 val stack = signal
                 val buffer =
-                    MemoryUtil.memAlloc(stack.size.x * stack.size.y * stack.size.z
-                            * hardware.hardwareDimensions().numericType.bytes)
+                    MemoryUtil.memAlloc(
+                        stack.size.x * stack.size.y * stack.size.z
+                                * hardware.hardwareDimensions().numericType.bytes
+                    )
                 val volume = when (hardware.hardwareDimensions().numericType) {
                     NumericType.INT8 -> Volume.fromBuffer(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
