@@ -14,7 +14,7 @@ import microscenery.toReadableString
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class FocusFrame(val stageSpaceManager: StageSpaceManager, hwd: HardwareDimensions) : RichNode("focus") {
+class FocusFrame(val stageSpaceManager: StageSpaceManager, hwd: HardwareDimensions, var stageSteeringActive: Boolean= false) : RichNode("focus") {
 
     private var stageMin: Vector3f = Vector3f()
     private var stageMax: Vector3f = Vector3f(1f)
@@ -74,7 +74,8 @@ class FocusFrame(val stageSpaceManager: StageSpaceManager, hwd: HardwareDimensio
 
                 if (position != coerced) position = coerced
 
-                if (position != stageSpaceManager.stagePosition) stageSpaceManager.stagePosition = position
+                if (stageSteeringActive && position != stageSpaceManager.stagePosition)
+                    stageSpaceManager.stagePosition = position
 
                 positionLabel.text = position.toReadableString()
             }
