@@ -2,6 +2,7 @@ package microscenery.hardware.micromanagerConnection
 
 import graphics.scenery.Camera
 import graphics.scenery.utils.LazyLogger
+import graphics.scenery.utils.extensions.xy
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import microscenery.DefaultScene
@@ -27,8 +28,7 @@ import kotlin.concurrent.thread
  * MMConnection.slices
  */
 class MMConnection @JvmOverloads constructor(
-    core_: CMMCore? = null,
-    var timeBetweenStageAxisCommands: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStageAxisCommands", 20),
+    core_: CMMCore? = null
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -113,25 +113,18 @@ class MMConnection @JvmOverloads constructor(
      *  @param wait if true wait until stage reached target.
      */
     fun moveStage(target: Vector3f, wait: Boolean) {
-        val stages = listOf(setup.xStage, setup.yStage, setup.zStage)
-        val precisions = listOf(
-            MicroscenerySettings.get("Stage.precisionXY", 1.0f),
-            MicroscenerySettings.get("Stage.precisionXY", 1.0f),
-            MicroscenerySettings.get("Stage.precisionZ", 1.0f),
-        )
+        if (!stagePosition.xy().equals(target.xy(), MicroscenerySettings.get("Stage.precisionXY", 1.0f)))
+            core.setXYPosition(target.x.toDouble(), target.y.toDouble())
 
-        for (i in 0..2) {
-            val stage = stages[i]
-            val precision = precisions[i]
-            val from = stage.position.toFloat()
-            val to = target[i]
+        val precision = MicroscenerySettings.get("Stage.precisionZ", 1.0f)
+        val from = stagePosition.z
+        val to = target.z
 
-            if (to < from - precision || from + precision < to) {
-                stage.position = to.toDouble()
-                Thread.sleep(timeBetweenStageAxisCommands.toLong())
-            }
+        if (to < from - precision || from + precision < to) {
+            setup.zStage.position = to.toDouble()
         }
 
+        // device name xyStage = "XY" ??
         // TODO if (wait) stages.forEach { core.waitForDevice(it.deviceName)}
 
     }
