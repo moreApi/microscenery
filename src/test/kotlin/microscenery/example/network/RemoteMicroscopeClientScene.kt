@@ -9,32 +9,24 @@ import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
 import org.joml.Vector3f
+import org.scijava.ui.behaviour.ClickBehaviour
 import org.zeromq.ZContext
 
 
 class RemoteMicroscopeClientScene : DefaultScene() {
+    val stageSpaceManager: StageSpaceManager
+
     init {
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
-        val stageSpaceManager = StageSpaceManager(client, scene, hub, addFocusFrame = true)
+        stageSpaceManager = StageSpaceManager(client, scene, hub, addFocusFrame = true)
 
         //stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)
-
-
-        val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
-        hullbox.name = "hullbox"
-        hullbox.material {
-            ambient = Vector3f(0.6f, 0.6f, 0.6f)
-            diffuse = Vector3f(0.4f, 0.4f, 0.4f)
-            specular = Vector3f(0.0f, 0.0f, 0.0f)
-            cullingMode = Material.CullingMode.Front
-        }
-        scene.addChild(hullbox)
 
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }
 
-        DemoBehavior(50f, stageSpaceManager).randomLive()
+        //DemoBehavior(50f, stageSpaceManager).randomLive()
 
 
         /*
@@ -50,6 +42,25 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         }
            */
 
+    }
+
+    override fun inputSetup() {
+        super.inputSetup()
+
+        inputHandler?.let {
+            stageSpaceManager.userInteraction(it, cam)
+        }
+
+
+        inputHandler?.addBehaviour("steering", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                stageSpaceManager.focusFrame?.let {
+                    it.stageSteeringActive = !it.stageSteeringActive
+                    logger.info("Steering is now ${it.stageSteeringActive}")
+                }
+            }
+        })
+        inputHandler?.addKeyBinding("steering", "R")
     }
 
     companion object {
