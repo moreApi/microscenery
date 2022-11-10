@@ -14,7 +14,11 @@ import microscenery.toReadableString
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class FocusFrame(val stageSpaceManager: StageSpaceManager, hwd: HardwareDimensions, var stageSteeringActive: Boolean= false) : RichNode("focus") {
+class FocusFrame(
+    val stageSpaceManager: StageSpaceManager,
+    hwd: HardwareDimensions,
+    var stageSteeringActive: Boolean = false
+) : RichNode("focus") {
 
     private var stageMin: Vector3f = Vector3f()
     private var stageMax: Vector3f = Vector3f(1f)

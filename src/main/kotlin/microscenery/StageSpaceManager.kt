@@ -2,6 +2,7 @@ package microscenery
 
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.controls.InputHandler
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
@@ -11,6 +12,7 @@ import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
+import microscenery.UI.MovementCommand
 import microscenery.VRUI.FocusFrame
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
@@ -18,6 +20,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
+import org.scijava.ui.behaviour.ClickBehaviour
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.withLock
@@ -41,7 +44,8 @@ class StageSpaceManager(
     val stageRoot = RichNode("stage root")
     var focusFrame: FocusFrame? = null
     private val stageAreaBorders: Box
-    private var stageAreaCenter = Vector3f()
+    var stageAreaCenter = Vector3f()
+        private set
 
     private var sortedSlices = ArrayList<SliceRenderNode>()
     private var stacks = emptyList<StackContainer>()
@@ -138,6 +142,7 @@ class StageSpaceManager(
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
+        signal?.let { logger.info("got a ${signal::class.simpleName} signal") }
         when (signal) {
             is Slice -> {
                 if (signal.data == null) return
@@ -154,7 +159,7 @@ class StageSpaceManager(
                 stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
                 stageRoot.spatial {
                     scale = signal.vertexSize.times(1f / scaleDownFactor)
-                    position = stageAreaCenter.times(scale.times(-1f))
+                    position = Vector3f(-1f) * stageAreaCenter * scale
                 }
                 stageAreaBorders.spatial {
                     position = stageAreaCenter
@@ -282,6 +287,27 @@ class StageSpaceManager(
     }
 
     private class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
+
+
+    fun userInteraction(inputHandler: InputHandler, cam: Camera) {
+        listOf(
+            "forward" to "G",
+            "back" to "B",
+            "left" to "V",
+            "right" to "N",
+            "up" to "C",
+            "down" to "M"
+        ).forEach { (name, key) ->
+            inputHandler.addBehaviour(name, MovementCommand(name, { focusFrame }, cam, speed = 1f))
+            inputHandler.addKeyBinding(name, key)
+        }
+        inputHandler.addBehaviour("snap", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                snapSlice()
+            }
+        })
+        inputHandler.addKeyBinding("snap", "T")
+    }
 
     companion object {
         private fun BufferedVolume.goToNewTimepoint(buffer: ByteBuffer) {

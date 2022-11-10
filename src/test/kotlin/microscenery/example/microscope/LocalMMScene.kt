@@ -3,6 +3,7 @@ package microscenery.example.microscope
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import microscenery.DefaultScene
+import microscenery.MicroscenerySettings
 import microscenery.StageSpaceManager
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
@@ -13,11 +14,20 @@ import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 class LocalMMScene : DefaultScene() {
+    val stageSpaceManager: StageSpaceManager
 
     init {
 
-        val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
-        val stageSpaceManager = StageSpaceManager(hardware, scene, hub, addFocusFrame = true)
+        MicroscenerySettings.set("Stage.minX", 40000f)
+        MicroscenerySettings.set("Stage.minY", 22000f)
+        MicroscenerySettings.set("Stage.minZ", -50f)
+        MicroscenerySettings.set("Stage.maxX", 44000f)
+        MicroscenerySettings.set("Stage.maxY", 26000f)
+        MicroscenerySettings.set("Stage.maxZ", 100f)
+
+        val hardware: MicroscopeHardware =
+            MicromanagerWrapper(MMConnection().apply { moveStage(Vector3f(41000f, 23000f, 0f), false) })
+        stageSpaceManager = StageSpaceManager(hardware, scene, hub, addFocusFrame = true)
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"
@@ -32,20 +42,24 @@ class LocalMMScene : DefaultScene() {
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
 
-        //stageSpaceManager.snapSlice(Vector3f(0f,0f,0f))
-        //stageSpaceManager.snapSlice(Vector3f(10f))
-        //stageSpaceManager.snapSlice(Vector3f(20f))
-        //stageSpaceManager.stagePosition = Vector3f(50f)
-        //stageSpaceManager.snapSlice()
-        //stageSpaceManager.snapSlice(Vector3f(0f,0f,30f))
+        stageSpaceManager.stageRoot.spatial().position = stageSpaceManager.stageAreaCenter
 
-        DemoBehavior(hardware.hardwareDimensions().stageMax.length(), stageSpaceManager).fixedStack()
+        //DemoBehavior(hardware.hardwareDimensions().stageMax.length(), stageSpaceManager).fixedStack()
 
         thread {
             while (true) {
                 Thread.sleep(200)
                 scene
+                stageSpaceManager
             }
+        }
+    }
+
+    override fun inputSetup() {
+        super.inputSetup()
+
+        inputHandler?.let {
+            stageSpaceManager.userInteraction(it, cam)
         }
     }
 
