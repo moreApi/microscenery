@@ -1,4 +1,4 @@
-package microscenery.VRUI
+package microscenery.UI
 
 import graphics.scenery.Box
 import graphics.scenery.RichNode
@@ -8,7 +8,9 @@ import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import microscenery.MicroscenerySettings
 import microscenery.StageSpaceManager
+import microscenery.nowMillis
 import microscenery.signals.HardwareDimensions
 import microscenery.toReadableString
 import org.joml.Vector3f
@@ -69,6 +71,7 @@ class FocusFrame(
         }
         pivot.addChild(positionLabel)
 
+        var lastUpdate = 0L
         this.update += {
 
             spatial {
@@ -78,14 +81,21 @@ class FocusFrame(
 
                 if (position != coerced) position = coerced
 
-                if (stageSteeringActive && position != stageSpaceManager.stagePosition)
+                if (stageSteeringActive
+                    && position != stageSpaceManager.stagePosition
+                    && lastUpdate + MicroscenerySettings.get("Stage.PositionUpdateRate",500) < nowMillis()
+                ) {
                     stageSpaceManager.stagePosition = position
+                    lastUpdate = nowMillis()
+                }
 
                 positionLabel.text = position.toReadableString()
             }
         }
         applyHardwareDimensions(hwd)
     }
+
+
 
     fun applyHardwareDimensions(hwd: HardwareDimensions) {
         pivot.spatialOrNull()?.scale = Vector3f(hwd.imageSize.x.toFloat(), hwd.imageSize.y.toFloat(), 1f)

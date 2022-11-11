@@ -13,7 +13,7 @@ import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.UI.MovementCommand
-import microscenery.VRUI.FocusFrame
+import microscenery.UI.FocusFrame
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
