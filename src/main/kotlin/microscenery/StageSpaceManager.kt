@@ -12,12 +12,13 @@ import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
-import microscenery.UI.MovementCommand
 import microscenery.UI.FocusFrame
+import microscenery.UI.MovementCommand
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -25,7 +26,6 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.withLock
 
-//TODO show stage limits
 /**
  * Handles in and output events concerning the microscope.
  *
@@ -36,7 +36,8 @@ class StageSpaceManager(
     val scene: Scene,
     val hub: Hub,
     addFocusFrame: Boolean = true,
-    val scaleDownFactor: Float = 200f
+    val scaleDownFactor: Float = 200f,
+    val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent(), HasTransferFunction {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -88,7 +89,7 @@ class StageSpaceManager(
             }
 
         stageAreaBorders = Box(Vector3f(1f), insideNormals = true)
-        stageAreaBorders.name = "hullbox"
+        stageAreaBorders.name = "stageAreaBorders"
         stageAreaBorders.material {
             ambient = Vector3f(0.6f, 0.6f, 0.6f)
             diffuse = Vector3f(0.4f, 0.4f, 0.4f)
@@ -96,6 +97,22 @@ class StageSpaceManager(
             cullingMode = Material.CullingMode.Front
         }
         stageRoot.addChild(stageAreaBorders)
+        BoundingGrid().node = stageAreaBorders
+
+        //now it's Default(Axis.Z)
+        when (layout) {
+            is MicroscopeLayout.Default -> {
+                if (layout.sheet != MicroscopeLayout.Axis.Z) {
+                    // Z is default
+                    focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.rotation()
+                }
+            }
+            is MicroscopeLayout.Scape -> {
+                // turn focus frame && slices to correct axis and degree
+                focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.rotation()
+                //todo degree rotation
+            }
+        }
 
         startAgent()
     }
@@ -142,7 +159,7 @@ class StageSpaceManager(
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
-        signal?.let { logger.info("got a ${signal::class.simpleName} signal") }
+        //signal?.let { logger.info("got a ${signal::class.simpleName} signal") }
         when (signal) {
             is Slice -> {
                 if (signal.data == null) return
@@ -158,14 +175,12 @@ class StageSpaceManager(
             is HardwareDimensions -> {
                 stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
                 stageRoot.spatial {
-                    scale = signal.vertexSize.times(1f / scaleDownFactor)
+                    scale = Vector3f(signal.vertexDiameter / scaleDownFactor)
                     position = Vector3f(-1f) * stageAreaCenter * scale
                 }
                 stageAreaBorders.spatial {
                     position = stageAreaCenter
                     scale = (signal.stageMax - signal.stageMin).apply {
-                        this.x += signal.imageSize.x
-                        this.y += signal.imageSize.y
                         this.mul(1.05f)
                     }
                 }
@@ -188,13 +203,13 @@ class StageSpaceManager(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
                         stack.size.x, stack.size.y, stack.size.z,
                         UnsignedByteType(),
-                        hub, hardware.hardwareDimensions().vertexSize.toFloatArray()
+                        hub, Vector3f(hardware.hardwareDimensions().vertexDiameter).toFloatArray()
                     )
                     NumericType.INT16 -> Volume.fromBuffer(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
                         stack.size.x, stack.size.y, stack.size.z,
                         UnsignedShortType(),
-                        hub, hardware.hardwareDimensions().vertexSize.toFloatArray()
+                        hub, Vector3f(hardware.hardwareDimensions().vertexDiameter).toFloatArray()
                     )
                 }
                 volume.goToLastTimepoint()
@@ -242,15 +257,18 @@ class StageSpaceManager(
             signal.data,
             hwd.imageSize.x,
             hwd.imageSize.y,
-            1f,
+            hwd.vertexDiameter,
             hwd.numericType.bytes,
             transferFunction,
             transferFunctionOffset,
             transferFunctionScale
         )
-        node.spatial().position = signal.stagePos
+        node.spatial {
+            position = signal.stagePos
+            rotation = layout.rotation()
+        }
 
-        val minDistance = hardware.hardwareDimensions().vertexSize.length() * 1
+        val minDistance = hardware.hardwareDimensions().vertexDiameter
         stageRoot.children.filter {
             it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
                 signal.stagePos,
@@ -273,7 +291,7 @@ class StageSpaceManager(
     fun stack(from: Vector3f, to: Vector3f) {
         hardware.acquireStack(
             ClientSignal.AcquireStack(
-                from, to, hardware.hardwareDimensions().vertexSize.z
+                from, to, hardware.hardwareDimensions().vertexDiameter
             )
         )
     }
@@ -319,6 +337,30 @@ class StageSpaceManager(
                 volume.purgeFirst(3, 3)
             }
         }
+    }
+}
+
+sealed class MicroscopeLayout {
+    abstract fun rotation(): Quaternionf
+
+    class Default(val sheet: Axis = Axis.Z) : MicroscopeLayout() {
+        override fun rotation(): Quaternionf {
+            return Quaternionf().rotateTo(Axis.Z.vector, sheet.vector)
+        }
+    }
+
+    /**
+     * @param degree leaning towards the positive side of the axis in angular
+     */
+    class Scape(val sheet: Axis, val degree: Float) : MicroscopeLayout() {
+        override fun rotation(): Quaternionf {
+            return Quaternionf().rotateTo(Axis.Z.vector, sheet.vector)
+        }
+    }
+
+    @Suppress("unused")
+    enum class Axis(val vector: Vector3f) {
+        X(Vector3f(1f, 0f, 0f)), Y(Vector3f(0f, 1f, 0f)), Z(Vector3f(0f, 0f, 1f))
     }
 }
 

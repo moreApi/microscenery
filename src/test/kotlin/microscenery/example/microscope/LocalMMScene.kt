@@ -2,13 +2,10 @@ package microscenery.example.microscope
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
-import microscenery.DefaultScene
-import microscenery.MicroscenerySettings
-import microscenery.StageSpaceManager
+import microscenery.*
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
-import microscenery.lightSleepOnCondition
 import microscenery.signals.ServerState
 import org.joml.Vector3f
 import kotlin.concurrent.thread
@@ -18,16 +15,28 @@ class LocalMMScene : DefaultScene() {
 
     init {
 
-        MicroscenerySettings.set("Stage.minX", 40000f)
-        MicroscenerySettings.set("Stage.minY", 22000f)
-        MicroscenerySettings.set("Stage.minZ", -50f)
-        MicroscenerySettings.set("Stage.maxX", 44000f)
-        MicroscenerySettings.set("Stage.maxY", 26000f)
+//        MicroscenerySettings.set("Stage.minX", 40000f)
+//        MicroscenerySettings.set("Stage.minY", 22000f)
+//        MicroscenerySettings.set("Stage.minZ", -50f)
+//        MicroscenerySettings.set("Stage.maxX", 44000f)
+//        MicroscenerySettings.set("Stage.maxY", 26000f)
+//        MicroscenerySettings.set("Stage.maxZ", 100f)
+//        val stageStart =Vector3f(41000f, 23000f, 0f)
+
+        MicroscenerySettings.set("Stage.minX", 0f)
+        MicroscenerySettings.set("Stage.minY", 0f)
+        MicroscenerySettings.set("Stage.minZ", 0f)
+        MicroscenerySettings.set("Stage.maxX", 100f)
+        MicroscenerySettings.set("Stage.maxY", 100f)
         MicroscenerySettings.set("Stage.maxZ", 100f)
+        val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
-            MicromanagerWrapper(MMConnection().apply { moveStage(Vector3f(41000f, 23000f, 0f), false) })
-        stageSpaceManager = StageSpaceManager(hardware, scene, hub, addFocusFrame = true)
+            MicromanagerWrapper(MMConnection().apply { moveStage(stageStart, false) })
+        stageSpaceManager = StageSpaceManager(
+            hardware, scene, hub, addFocusFrame = true, scaleDownFactor = 50f,
+            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, 33f)
+        )
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"
@@ -42,9 +51,13 @@ class LocalMMScene : DefaultScene() {
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
 
-        stageSpaceManager.stageRoot.spatial().position = stageSpaceManager.stageAreaCenter
+//        stageSpaceManager.stageRoot.spatial().position = stageSpaceManager.stageAreaCenter
 
-        //DemoBehavior(hardware.hardwareDimensions().stageMax.length(), stageSpaceManager).fixedStack()
+        stageSpaceManager.focusFrame?.stageSteeringActive = true
+        val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x, stageSpaceManager)
+        Thread.sleep(2000)
+        db.randomLive()
+        //db.fixedStack()
 
         thread {
             while (true) {
