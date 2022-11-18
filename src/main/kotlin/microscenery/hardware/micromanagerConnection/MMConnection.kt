@@ -7,7 +7,6 @@ import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
-import microscenery.StreamedVolume
 import microscenery.hardware.SPIMSetup
 import microscenery.let
 import mmcorej.CMMCore
@@ -138,44 +137,5 @@ class MMConnection @JvmOverloads constructor(
         copyTimes = copyTimes + (copy)
         while (copyTimes.size > 10)
             copyTimes = copyTimes.subList(1, copyTimes.size)
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            DefaultScene({ scene, hub ->
-
-                val mmConnection = MMConnection()
-                mmConnection.moveStage(Vector3f(10f), false)
-
-                val mmVol = StreamedVolume(
-                    hub,
-                    mmConnection.width,
-                    mmConnection.height,
-                    10
-                ) {
-                    //mmConnection.captureStack(it.asShortBuffer())
-                    it
-                }
-                scene.addChild(mmVol.volume)
-                mmVol.volume.spatial().scale = Vector3f(0.1f, 0.1f, 0.4f)
-                mmVol.volume.colormap = Colormap.get("plasma")
-                mmVol.volume.transferFunction = TransferFunction.ramp()
-                mmVol.volume
-                    .converterSetups.first()
-                    .setDisplayRange(17.0, 3000.0)
-
-                (scene.findByClassname("Camera").first() as Camera).spatial().position = Vector3f(2f, -5f, 7f)
-
-                thread {
-                    while (true) {
-                        Thread.sleep(200)
-                        @Suppress("UNUSED_EXPRESSION")
-                        scene
-                    }
-                }
-
-            }).main()
-        }
     }
 }
