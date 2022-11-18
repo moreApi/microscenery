@@ -40,7 +40,7 @@ class RemoteMicroscopeLocalhostScene : DefaultScene() {
         scene.addChild(hullbox)
 
 
-        DemoBehavior(microscope.side.toFloat(), stageSpaceManager).randomLive()
+        DemoBehavior(microscope.dataSide.toFloat(), stageSpaceManager).randomLive()
 
         thread {
             while (true) {
