@@ -33,14 +33,15 @@ class StageSpaceManager(
     val scene: Scene,
     val hub: Hub,
     addFocusFrame: Boolean = true,
-    val scaleDownFactor: Float = 200f,
+    val scaleDownFactor: Float = 100f,
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent(), HasTransferFunction {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
     val stageRoot = RichNode("stage root")
-    var focusFrame: FocusFrame? = null
+    val focus: Frame
+    var focusTarget: FocusFrame? = null
     private val stageAreaBorders: Box
     var stageAreaCenter = Vector3f()
         private set
@@ -61,29 +62,23 @@ class StageSpaceManager(
         set(value) {
             field = value
             calculateOffsetAndScale()
-            updateSlices()
+            updateTransferFunction()
         }
     override var maxDisplayRange: Float = 1000.0f
         set(value) {
             field = value
             calculateOffsetAndScale()
-            updateSlices()
+            updateTransferFunction()
         }
     override var transferFunction: TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
         set(value) {
             field = value
-            updateSlices()
+            updateTransferFunction()
         }
 
     init {
         scene.addChild(stageRoot)
         calculateOffsetAndScale()
-
-        if (addFocusFrame)
-            focusFrame = FocusFrame(this, hardware.hardwareDimensions()).apply {
-                spatial().position = hardware.stagePosition
-                stageRoot.addChild(this)
-            }
 
         stageAreaBorders = Box(Vector3f(1f), insideNormals = true)
         stageAreaBorders.name = "stageAreaBorders"
@@ -96,26 +91,30 @@ class StageSpaceManager(
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
 
-        when (layout) {
-            is MicroscopeLayout.Default -> {
-                if (layout.sheet != MicroscopeLayout.Axis.Z) {
-                    // Z is default
-                    focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
-                }
-            }
-            is MicroscopeLayout.Scape -> {
-                // turn focus frame && slices to correct axis and degree
-                focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
-            }
+
+        focus = Frame(hardware.hardwareDimensions(),Vector3f(0.4f,0.4f,1f)).apply {
+            spatial().position = hardware.stagePosition
+            stageRoot.addChild(this)
         }
+
+        if (addFocusFrame)
+            focusTarget = FocusFrame(this, hardware.hardwareDimensions()).apply {
+                spatial().position = hardware.stagePosition
+                stageRoot.addChild(this)
+            }
+
+        focusTarget?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
+        focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
+
 
         startAgent()
     }
 
     /**
-     * Iterates over all slices and updates their transferFunction, offset and scale values according to the currently set values of this manager
+     * Iterates over all slices and stacks and updates their transferFunction, offset and scale values according
+     * to the currently set values of this manager
      */
-    private fun updateSlices() {
+    private fun updateTransferFunction() {
         sortedSlices.forEach {
             it.transferFunction = transferFunction
             it.transferFunctionOffset = transferFunctionOffset
@@ -129,7 +128,8 @@ class StageSpaceManager(
     }
 
     /**
-     * This normally happens inside the converter of a volume. Converts the minDisplayRange and maxDisplayRange values into an offset and scale used inside the shader
+     * This normally happens inside the converter of a volume.
+     * Converts the minDisplayRange and maxDisplayRange values into an offset and scale used inside the shader
      */
     private fun calculateOffsetAndScale() {
         // Rangescale is either 255 or 65535
@@ -164,7 +164,7 @@ class StageSpaceManager(
                     handleStackSlice(signal)
                     return
                 }
-                // slice does not belong to a stack and should be visualised on its own
+                // this slice does not belong to a stack and should be visualised on its own
                 handleSingleSlice(signal)
             }
             is HardwareDimensions -> {
@@ -188,11 +188,12 @@ class StageSpaceManager(
                     }
                 }
 
-                focusFrame?.applyHardwareDimensions(signal)
+                focusTarget?.applyHardwareDimensions(signal)
+                focus.applyHardwareDimensions(signal)
 
             }
             is MicroscopeStatus -> {
-                focusFrame?.spatial()?.position = signal.stagePosition
+                focus.spatial().position = signal.stagePosition
             }
             is Stack -> {
                 val stack = signal
@@ -319,7 +320,7 @@ class StageSpaceManager(
             "up" to "C",
             "down" to "M"
         ).forEach { (name, key) ->
-            inputHandler.addBehaviour(name, MovementCommand(name, { focusFrame }, cam, speed = 1f))
+            inputHandler.addBehaviour(name, MovementCommand(name, { focusTarget }, cam, speed = 1f))
             inputHandler.addKeyBinding(name, key)
         }
         inputHandler.addBehaviour("snap", object : ClickBehaviour {

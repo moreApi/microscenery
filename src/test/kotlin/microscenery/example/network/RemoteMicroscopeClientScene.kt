@@ -50,7 +50,7 @@ class RemoteMicroscopeClientScene : DefaultScene() {
 
         inputHandler?.addBehaviour("steering", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
-                stageSpaceManager.focusFrame?.let {
+                stageSpaceManager.focusTarget?.let {
                     it.stageSteeringActive = !it.stageSteeringActive
                     logger.info("Steering is now ${it.stageSteeringActive}")
                 }

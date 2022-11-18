@@ -46,7 +46,7 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
 
     fun randomLive() {
         stageSpaceManager.live(true)
-        stageSpaceManager.focusFrame?.let { focus ->
+        stageSpaceManager.focusTarget?.let { focus ->
             var start = Vector3f()
             var target = Vector3f()
             var startTime = 0L

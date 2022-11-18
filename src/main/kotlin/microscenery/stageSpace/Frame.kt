@@ -11,8 +11,9 @@ import microscenery.toReadableString
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-abstract class Frame(
+open class Frame(
     hwd: HardwareDimensions,
+    color: Vector3f? = null
 ) : RichNode("focus") {
 
     protected var stageMin: Vector3f = Vector3f()
@@ -44,6 +45,7 @@ abstract class Frame(
             val beamDir = Vector3f(1.1f, 1.1f, 0f) - posNorm.absolute(Vector3f()) * 1.1f
             val beam = Box(beamBase + beamDir)
             beam.spatial().position = pos
+            color?.let { beam.material().diffuse = it }
             pivot.addChild(beam)
             beam
         }

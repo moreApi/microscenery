@@ -37,7 +37,7 @@ class LocalMMScene : DefaultScene() {
             MicromanagerWrapper(MMConnection().apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
             hardware, scene, hub, addFocusFrame = true, scaleDownFactor = 50f,
-            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 33f)
+            layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
@@ -55,8 +55,8 @@ class LocalMMScene : DefaultScene() {
 
 //        stageSpaceManager.stageRoot.spatial().position = stageSpaceManager.stageAreaCenter
 
-        stageSpaceManager.focusFrame?.stageSteeringActive = true
-        val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x, stageSpaceManager)
+        stageSpaceManager.focusTarget?.stageSteeringActive = true
+        val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x*2, stageSpaceManager)
         Thread.sleep(2000)
         db.randomLive()
         //db.fixedStack()

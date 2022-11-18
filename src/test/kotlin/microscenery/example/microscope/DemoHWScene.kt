@@ -36,7 +36,7 @@ class DemoHWScene : DefaultScene() {
         )
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
-        stageSpaceManager.focusFrame?.stageSteeringActive = true
+        stageSpaceManager.focusTarget?.stageSteeringActive = true
 
         //val tfUI = TransferFunctionEditor(650, 550, stageSpaceManager)
         //tfUI.name = "Slices"
