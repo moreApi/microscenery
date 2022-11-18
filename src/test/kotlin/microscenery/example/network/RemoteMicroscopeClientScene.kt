@@ -1,14 +1,10 @@
 package microscenery.example.network
 
-import graphics.scenery.Box
-import graphics.scenery.attribute.material.Material
 import microscenery.DefaultScene
-import microscenery.StageSpaceManager
-import microscenery.example.microscope.DemoBehavior
+import microscenery.stageSpace.StageSpaceManager
 import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
-import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import org.zeromq.ZContext
 

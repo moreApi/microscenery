@@ -9,6 +9,7 @@ import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
+import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.zeromq.ZContext
 import kotlin.concurrent.thread

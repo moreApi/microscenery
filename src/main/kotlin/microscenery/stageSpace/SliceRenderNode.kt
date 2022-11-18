@@ -1,4 +1,4 @@
-package microscenery
+package microscenery.stageSpace
 
 import graphics.scenery.Blending
 import graphics.scenery.BufferUtils

@@ -1,4 +1,4 @@
-package microscenery.UI
+package microscenery.stageSpace
 
 import graphics.scenery.Box
 import graphics.scenery.RichNode
@@ -9,7 +9,6 @@ import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.MicroscenerySettings
-import microscenery.StageSpaceManager
 import microscenery.nowMillis
 import microscenery.signals.HardwareDimensions
 import microscenery.toReadableString

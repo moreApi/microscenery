@@ -1,4 +1,4 @@
-package microscenery
+package microscenery.stageSpace
 
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
@@ -12,7 +12,7 @@ import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
-import microscenery.UI.FocusFrame
+import microscenery.Agent
 import microscenery.UI.MovementCommand
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*

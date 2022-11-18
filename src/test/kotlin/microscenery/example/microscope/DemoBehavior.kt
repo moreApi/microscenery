@@ -4,7 +4,7 @@ import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
-import microscenery.StageSpaceManager
+import microscenery.stageSpace.StageSpaceManager
 import microscenery.nowMillis
 import org.joml.Vector3f
 

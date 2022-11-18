@@ -5,7 +5,7 @@ import graphics.scenery.controls.behaviours.Grabable
 import graphics.scenery.controls.behaviours.Touchable
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
-import microscenery.StageSpaceManager
+import microscenery.stageSpace.StageSpaceManager
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.DemoMicroscopeHardware
 import org.joml.Vector3f

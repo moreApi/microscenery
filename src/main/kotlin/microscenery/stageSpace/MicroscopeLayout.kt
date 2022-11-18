@@ -1,4 +1,4 @@
-package microscenery
+package microscenery.stageSpace
 
 import org.joml.Quaternionf
 import org.joml.Vector3f
