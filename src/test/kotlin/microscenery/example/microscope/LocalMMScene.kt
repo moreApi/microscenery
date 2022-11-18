@@ -7,6 +7,8 @@ import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.signals.ServerState
+import microscenery.MicroscopeLayout
+import microscenery.StageSpaceManager
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
@@ -35,7 +37,7 @@ class LocalMMScene : DefaultScene() {
             MicromanagerWrapper(MMConnection().apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
             hardware, scene, hub, addFocusFrame = true, scaleDownFactor = 50f,
-            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, 33f)
+            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 33f)
         )
 
         val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)

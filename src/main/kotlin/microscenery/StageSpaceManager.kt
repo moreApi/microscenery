@@ -18,7 +18,6 @@ import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
-import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -104,12 +103,12 @@ class StageSpaceManager(
             is MicroscopeLayout.Default -> {
                 if (layout.sheet != MicroscopeLayout.Axis.Z) {
                     // Z is default
-                    focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.rotation()
+                    focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
                 }
             }
             is MicroscopeLayout.Scape -> {
                 // turn focus frame && slices to correct axis and degree
-                focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.rotation()
+                focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
                 //todo degree rotation
             }
         }
@@ -265,7 +264,7 @@ class StageSpaceManager(
         )
         node.spatial {
             position = signal.stagePos
-            rotation = layout.rotation()
+            rotation = layout.sheetRotation()
         }
 
         val minDistance = hardware.hardwareDimensions().vertexDiameter
@@ -339,28 +338,3 @@ class StageSpaceManager(
         }
     }
 }
-
-sealed class MicroscopeLayout {
-    abstract fun rotation(): Quaternionf
-
-    class Default(val sheet: Axis = Axis.Z) : MicroscopeLayout() {
-        override fun rotation(): Quaternionf {
-            return Quaternionf().rotateTo(Axis.Z.vector, sheet.vector)
-        }
-    }
-
-    /**
-     * @param degree leaning towards the positive side of the axis in angular
-     */
-    class Scape(val sheet: Axis, val degree: Float) : MicroscopeLayout() {
-        override fun rotation(): Quaternionf {
-            return Quaternionf().rotateTo(Axis.Z.vector, sheet.vector)
-        }
-    }
-
-    @Suppress("unused")
-    enum class Axis(val vector: Vector3f) {
-        X(Vector3f(1f, 0f, 0f)), Y(Vector3f(0f, 1f, 0f)), Z(Vector3f(0f, 0f, 1f))
-    }
-}
-
