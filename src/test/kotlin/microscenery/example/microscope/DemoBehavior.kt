@@ -27,8 +27,13 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
 
     fun fixed() {
         val sortedSlices = ArrayList<Vector3f>()
-        for (z in 0 .. 3) for (y in  0 .. 3) for (x in  0 .. 3) {
-            val target = Vector3f((extend/4)*x, (extend/4)*y, (extend/4)*z)
+        for (z in 0 .. 4) for (y in  0 .. 4) for (x in  0 .. 4) {
+            val target = Vector3f(
+                ((extend/4)*x).coerceAtMost(extend-1f),
+                ((extend/4)*y).coerceAtMost(extend-1f),
+                ((extend/4)*z).coerceAtMost(extend-1f)
+            )
+
             sortedSlices.add(target)
         }
 

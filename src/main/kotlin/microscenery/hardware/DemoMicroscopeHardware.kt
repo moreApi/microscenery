@@ -40,7 +40,7 @@ class DemoMicroscopeHardware(
     var currentStack: Stack? = null
 
     init {
-        stageContent = Volume.generateProceduralVolume(size = dataSide.toLong(), radius = 190f, use16bit = false)
+        stageContent = Volume.generateProceduralVolume(size = dataSide.toLong(), radius = dataSide*0.95f, use16bit = false)
 
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
@@ -104,7 +104,7 @@ class DemoMicroscopeHardware(
         }
 
 
-        sliceBuffer.flip()
+        sliceBuffer.rewind()
 
         val signal = Slice(
             idCounter++,
