@@ -4,10 +4,7 @@ import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.utils.LazyLogger
-import graphics.scenery.utils.extensions.minus
-import graphics.scenery.utils.extensions.plus
-import graphics.scenery.utils.extensions.times
-import graphics.scenery.utils.extensions.toFloatArray
+import graphics.scenery.utils.extensions.*
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
@@ -18,6 +15,7 @@ import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
+import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -98,7 +96,6 @@ class StageSpaceManager(
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
 
-        //now it's Default(Axis.Z)
         when (layout) {
             is MicroscopeLayout.Default -> {
                 if (layout.sheet != MicroscopeLayout.Axis.Z) {
@@ -109,7 +106,6 @@ class StageSpaceManager(
             is MicroscopeLayout.Scape -> {
                 // turn focus frame && slices to correct axis and degree
                 focusFrame?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
-                //todo degree rotation
             }
         }
 
@@ -174,13 +170,21 @@ class StageSpaceManager(
             is HardwareDimensions -> {
                 stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
                 stageRoot.spatial {
-                    scale = Vector3f(signal.vertexDiameter / scaleDownFactor)
+                    scale = Vector3f(1 / scaleDownFactor)
                     position = Vector3f(-1f) * stageAreaCenter * scale
                 }
                 stageAreaBorders.spatial {
                     position = stageAreaCenter
                     scale = (signal.stageMax - signal.stageMin).apply {
-                        this.mul(1.05f)
+                        // extra space for images at the edge of stage space
+                        val imgPixSize = Vector2f(signal.imageSize)
+                        val imageSize = when(layout.sheet){
+                            MicroscopeLayout.Axis.X -> Vector3f(0f,imgPixSize.y,imgPixSize.x)
+                            MicroscopeLayout.Axis.Y -> Vector3f(imgPixSize.x,0f,imgPixSize.y)
+                            MicroscopeLayout.Axis.Z -> Vector3f(imgPixSize,0f)
+                        }.mul(signal.vertexDiameter)
+                        this.add(imageSize)
+                        this.mul(1.02f)
                     }
                 }
 
