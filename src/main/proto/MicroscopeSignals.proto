@@ -37,7 +37,7 @@ message HardwareDimensions{
   Vector3Float stageMin = 1;
   Vector3Float stageMax = 2;
   Vector2Int imageSize = 3;
-  Vector3Float vertexSize = 4;
+  float vertexDiameter = 4;
   EnumNumericType numericType = 5;
 }
 

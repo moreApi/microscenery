@@ -83,7 +83,7 @@ class FocusFrame(
 
                 if (stageSteeringActive
                     && position != stageSpaceManager.stagePosition
-                    && lastUpdate + MicroscenerySettings.get("Stage.PositionUpdateRate",500) < nowMillis()
+                    && lastUpdate + MicroscenerySettings.get("Stage.PositionUpdateRate", 500) < nowMillis()
                 ) {
                     stageSpaceManager.stagePosition = position
                     lastUpdate = nowMillis()
@@ -96,9 +96,9 @@ class FocusFrame(
     }
 
 
-
     fun applyHardwareDimensions(hwd: HardwareDimensions) {
-        pivot.spatialOrNull()?.scale = Vector3f(hwd.imageSize.x.toFloat(), hwd.imageSize.y.toFloat(), 1f)
+        pivot.spatialOrNull()?.scale =
+            Vector3f(hwd.imageSize.x.toFloat() * hwd.vertexDiameter, hwd.imageSize.y.toFloat() * hwd.vertexDiameter, 1f)
         stageMin = hwd.stageMin
         stageMax = hwd.stageMax
     }

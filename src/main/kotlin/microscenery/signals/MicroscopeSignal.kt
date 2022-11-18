@@ -108,7 +108,7 @@ data class HardwareDimensions(
     val stageMin: Vector3f,
     val stageMax: Vector3f,
     val imageSize: Vector2i,
-    val vertexSize: Vector3f,
+    val vertexDiameter: Float,
     val numericType: NumericType
 ) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
@@ -118,7 +118,7 @@ data class HardwareDimensions(
         hd.stageMin = this.stageMin.toProto()
         hd.stageMax = this.stageMax.toProto()
         hd.imageSize = this.imageSize.toProto()
-        hd.vertexSize = this.vertexSize.toProto()
+        hd.vertexDiameter = this.vertexDiameter
         hd.numericType = this.numericType.toProto()
         hd.build()
 
@@ -129,7 +129,7 @@ data class HardwareDimensions(
         get() = imageSize.x * imageSize.y * numericType.bytes
 
     companion object {
-        val EMPTY = HardwareDimensions(Vector3f(), Vector3f(), Vector2i(), Vector3f(), NumericType.INT16)
+        val EMPTY = HardwareDimensions(Vector3f(), Vector3f(), Vector2i(), 1f, NumericType.INT16)
 
         fun me.jancasus.microscenery.network.v2.HardwareDimensions.toPoko(): HardwareDimensions {
             val hwd = this
@@ -137,7 +137,7 @@ data class HardwareDimensions(
                 hwd.stageMin.toPoko(),
                 hwd.stageMax.toPoko(),
                 hwd.imageSize.toPoko(),
-                hwd.vertexSize.toPoko(),
+                hwd.vertexDiameter,
                 hwd.numericType.toPoko()
             )
         }

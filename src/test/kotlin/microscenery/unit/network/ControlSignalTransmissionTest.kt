@@ -71,7 +71,7 @@ class ControlSignalTransmissionTest {
         assert(lastSignalServer == null)
 
         val outHwd = HardwareDimensions(
-            Vector3f(1f, 2f, 3f), Vector3f(2f), Vector2i(20), Vector3f(0.4f), NumericType.INT16
+            Vector3f(1f, 2f, 3f), Vector3f(2f), Vector2i(20), 0.4f, NumericType.INT16
         )
         server.sendSignal(ActualMicroscopeSignal(outHwd))
 
