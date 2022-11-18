@@ -125,7 +125,9 @@ class MMConnection @JvmOverloads constructor(
         }
 
         // device name xyStage = "XY" ??
-        // TODO if (wait) stages.forEach { core.waitForDevice(it.deviceName)}
+        if (wait) {
+            core.waitForDevice("XY")
+        }
 
     }
 
