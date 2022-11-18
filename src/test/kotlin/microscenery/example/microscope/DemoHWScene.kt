@@ -31,8 +31,8 @@ class DemoHWScene : DefaultScene() {
             hub,
             addFocusFrame = true,
             scaleDownFactor = 100f,
-//            layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Y)
-            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
+            layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
+//            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
@@ -49,7 +49,7 @@ class DemoHWScene : DefaultScene() {
             )
             //db.fixedStack()
             //Thread.sleep(2500)
-            db.fixed()
+            db.randomStatic()
             //db.fixed()
         }
         thread {
