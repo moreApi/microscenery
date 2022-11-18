@@ -35,6 +35,11 @@ class MicromanagerWrapper(
 
     private var idCounter = 0
     var lastSnap = 0L
+    var vertexDiameter = 0.225f
+        set(value) {
+            field = value
+            updateHardwareDimensions()
+        }
 
     init {
         updateHardwareDimensions()
@@ -62,7 +67,7 @@ class MicromanagerWrapper(
         hardwareDimensions = HardwareDimensions(
             stageMin, stageMax,
             Vector2i(mmConnection.width, mmConnection.height),
-            Vector3f(0.225f, 0.225f, 1.524f),// TODO get vertex size
+            vertexDiameter,
             NumericType.INT16
         )
     }
@@ -136,7 +141,7 @@ class MicromanagerWrapper(
                     start,
                     Vector3i(hardwareDimensions.imageSize, steps),
                     nowMillis(),
-                    hardwareDimensions.vertexSize
+                    Vector3f(hardwareDimensions.vertexDiameter)
                 )
                 output.put(currentStack)
                 status = status.copy(state = ServerState.STACK)
