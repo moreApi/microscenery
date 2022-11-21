@@ -3,6 +3,7 @@ package microscenery.stageSpace
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.controls.InputHandler
+import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.*
 import graphics.scenery.volumes.BufferedVolume
@@ -329,6 +330,16 @@ class StageSpaceManager(
             }
         })
         inputHandler.addKeyBinding("snap", "T")
+        inputHandler.addBehaviour(
+            "sphereDragObject", MouseDragPlane(
+                "sphereDragObject",
+                { scene.findObserver() },
+                { focusTarget },
+                false,
+                mouseSpeed = {100f * 1/scaleDownFactor}
+            )
+        )
+        inputHandler.addKeyBinding("sphereDragObject", "1")
     }
 
     companion object {
