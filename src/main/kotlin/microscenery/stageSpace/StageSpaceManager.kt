@@ -219,9 +219,9 @@ class StageSpaceManager(
                 volume.goToLastTimepoint()
                 volume.transferFunction = transferFunction
                 volume.name = "Stack ${signal.Id}"
-                //volume.spatial().scale = Vector3f(10f)
-                volume.origin = Origin.FrontBottomLeft
-                volume.spatial().position = stack.stageMin
+                volume.origin = Origin.Center
+                volume.spatial().position = Vector3f(signal.stageMin).apply { z += signal.size.z/2 }
+                volume.spatial().scale = Vector3f(1f,-1f,1f)
                 volume.pixelToWorldRatio = 1f // conversion is done by stage root
                 volume.setTransferFunctionRange(17.0f, 3000.0f)
 
