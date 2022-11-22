@@ -56,9 +56,9 @@ class LocalMMScene : DefaultScene() {
 //        stageSpaceManager.stageRoot.spatial().position = stageSpaceManager.stageAreaCenter
 
         stageSpaceManager.focusTarget?.stageSteeringActive = true
-        @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x*2, stageSpaceManager)
-        Thread.sleep(2000)
-//        db.randomLive()
+        @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x, stageSpaceManager)
+        //Thread.sleep(2000)
+        //db.randomLive()
 //        db.fixedStack()
 
         thread {
