@@ -35,7 +35,7 @@ class MicromanagerWrapper(
 
     private var idCounter = 0
     var lastSnap = 0L
-    var vertexDiameter = 0.225f
+    var vertexDiameter = MicroscenerySettings.get("MMConnection.vertexDiameter", 0.225f)
         set(value) {
             field = value
             updateHardwareDimensions()
@@ -158,6 +158,9 @@ class MicromanagerWrapper(
                 }
             }
             is HardwareCommand.MoveStage -> {
+                // skip if next command is also move
+                if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
+
                 mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
                 status = status.copy(stagePosition = hwCommand.safeTarget)
             }
