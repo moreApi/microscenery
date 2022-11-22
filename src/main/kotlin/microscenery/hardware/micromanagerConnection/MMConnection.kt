@@ -1,11 +1,7 @@
 package microscenery.hardware.micromanagerConnection
 
-import graphics.scenery.Camera
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.xy
-import graphics.scenery.volumes.Colormap
-import graphics.scenery.volumes.TransferFunction
-import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
 import microscenery.hardware.SPIMSetup
 import microscenery.let
@@ -13,7 +9,6 @@ import mmcorej.CMMCore
 import org.joml.Vector3f
 import java.awt.Rectangle
 import java.nio.ShortBuffer
-import kotlin.concurrent.thread
 
 /**
  * Connection to MicroManger Core. Does the imaging.
@@ -88,6 +83,7 @@ class MMConnection @JvmOverloads constructor(
         height = core.imageHeight.toInt()
     }
 
+    @Suppress("unused")
     fun setRoi(roi: Rectangle) {
         core.setROI(roi.x, roi.y, roi.width, roi.height)
     }
@@ -125,7 +121,7 @@ class MMConnection @JvmOverloads constructor(
 
         // device name xyStage = "XY" ??
         if (wait) {
-            core.waitForDevice("XY")
+            core.waitForDevice(core.xyStageDevice)
         }
 
     }
