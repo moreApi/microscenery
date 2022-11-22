@@ -73,25 +73,25 @@ class MicromanagerWrapper(
     }
 
     override fun snapSlice() {
-        hardwareCommandsQueue.put(HardwareCommand.SnapImage(false))
+        hardwareCommandsQueue.add(HardwareCommand.SnapImage(false))
     }
 
     override fun moveStage(target: Vector3f) {
-        hardwareCommandsQueue.put(HardwareCommand.MoveStage(target, hardwareDimensions, true))
+        hardwareCommandsQueue.add(HardwareCommand.MoveStage(target, hardwareDimensions, true))
     }
 
     override fun acquireStack(meta: ClientSignal.AcquireStack) {
-        hardwareCommandsQueue.put(HardwareCommand.GenerateStackCommands(meta))
+        hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
     override fun live(isLive: Boolean) {
         status = if (isLive) {
-            hardwareCommandsQueue.put(HardwareCommand.SnapImage(true))
+            hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
             status.copy(state = ServerState.LIVE)
         } else {
             synchronized(stopLock) {
                 hardwareCommandsQueue.clear()
-                hardwareCommandsQueue.put(HardwareCommand.Stop)
+                hardwareCommandsQueue.add(HardwareCommand.Stop)
             }
             status.copy(state = ServerState.MANUAL)
         }
@@ -101,14 +101,14 @@ class MicromanagerWrapper(
         status = status.copy(state = ServerState.SHUTTING_DOWN)
         synchronized(stopLock) {
             hardwareCommandsQueue.clear()
-            hardwareCommandsQueue.put(HardwareCommand.Shutdown)
+            hardwareCommandsQueue.add(HardwareCommand.Shutdown)
         }
     }
 
     private fun addToCommandQueueIfNotStopped(vararg commands: HardwareCommand) {
         synchronized(stopLock) {
             if (hardwareCommandsQueue.peek() !is HardwareCommand.Stop) {
-                commands.forEach { hardwareCommandsQueue.put(it) }
+                commands.forEach { hardwareCommandsQueue.add(it) }
             }
         }
     }
@@ -147,14 +147,14 @@ class MicromanagerWrapper(
                 status = status.copy(state = ServerState.STACK)
 
                 for (i in 0 until steps) {
-                    hardwareCommandsQueue.put(
+                    hardwareCommandsQueue.add(
                         HardwareCommand.MoveStage(
                             start + (step * i.toFloat()),
                             hardwareDimensions,
                             true
                         )
                     )
-                    hardwareCommandsQueue.put(HardwareCommand.SnapImage(false, currentStack.Id))
+                    hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id))
                 }
             }
             is HardwareCommand.MoveStage -> {
@@ -165,14 +165,18 @@ class MicromanagerWrapper(
                 status = status.copy(stagePosition = hwCommand.safeTarget)
             }
             is HardwareCommand.SnapImage -> {
+                if (lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
+                    if (hardwareCommandsQueue.isEmpty()) {
+                        Thread.sleep(
+                            (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
+                        )
+                    } else {
+                        hardwareCommandsQueue.add(hwCommand)
+                        return
+                    }
+                }
                 val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
                 buf.clear()
-                if (lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
-                    //TODO handle incomming stage move events, in case of live
-                    Thread.sleep(
-                        (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
-                    )
-                }
                 mmConnection.snapSlice(buf.asShortBuffer())
                 val sliceSignal = Slice(
                     idCounter++,
