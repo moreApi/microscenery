@@ -161,12 +161,17 @@ class MicromanagerWrapper(
                 // skip if next command is also move
                 if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
 
-                mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
+                try {
+                    mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
+                } catch (t: Throwable){
+                    logger.warn("Failed move command to ${hwCommand.safeTarget}",t)
+                    return
+                }
                 status = status.copy(stagePosition = hwCommand.safeTarget)
             }
             is HardwareCommand.SnapImage -> {
                 if (lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
-                    if (hardwareCommandsQueue.isEmpty()) {
+                    if (hardwareCommandsQueue.isEmpty() || hwCommand.live) {
                         Thread.sleep(
                             (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
                         )
@@ -177,7 +182,12 @@ class MicromanagerWrapper(
                 }
                 val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
                 buf.clear()
-                mmConnection.snapSlice(buf.asShortBuffer())
+                try {
+                    mmConnection.snapSlice(buf.asShortBuffer())
+                } catch (t: Throwable){
+                    logger.warn("Failed snap command",t)
+                    return
+                }
                 val sliceSignal = Slice(
                     idCounter++,
                     System.currentTimeMillis(),
