@@ -2,6 +2,9 @@ package microscenery.stageSpace
 
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
+import graphics.scenery.utils.extensions.minus
+import graphics.scenery.utils.extensions.plus
+import graphics.scenery.utils.extensions.times
 import microscenery.MicroscenerySettings
 import microscenery.nowMillis
 import microscenery.signals.HardwareDimensions
@@ -10,8 +13,16 @@ import org.joml.Vector3f
 class FocusFrame(
     val stageSpaceManager: StageSpaceManager,
     hwd: HardwareDimensions,
-    var stageSteeringActive: Boolean = false
 ) : Frame(hwd) {
+
+    var mode = Mode.PASSIVE
+        set(value) {
+            field = value
+            modeChanged(value)
+        }
+
+    var stackStartPos = Vector3f()
+        private set
 
     init {
         // ui interaction
@@ -34,15 +45,36 @@ class FocusFrame(
 
                 if (position != coerced) position = coerced
 
-                if (stageSteeringActive
-                    && position != stageSpaceManager.stagePosition
-                    && lastUpdate + MicroscenerySettings.get("Stage.PositionUpdateRate", 500) < nowMillis()
-                ) {
-                    stageSpaceManager.stagePosition = position
-                    lastUpdate = nowMillis()
+                when(mode){
+                    Mode.PASSIVE -> {}
+                    Mode.STEERING ->
+                        if (position != stageSpaceManager.stagePosition
+                            && lastUpdate + MicroscenerySettings.get("Stage.PositionUpdateRate", 500) < nowMillis()
+                        ) {
+                            stageSpaceManager.stagePosition = position
+                            lastUpdate = nowMillis()
+                        }
+                    Mode.STACK_SELECTION -> {
+                        val scanAxis = stageSpaceManager.layout.sheet.vector
+                        val lockedAxis = stackStartPos * (Vector3f(1f) - scanAxis)
+                        position = position * scanAxis + lockedAxis
+                    }
                 }
-
             }
         }
+    }
+
+    private fun modeChanged(mode: Mode) {
+        when (mode){
+            Mode.PASSIVE -> {}
+            Mode.STEERING -> {}
+            Mode.STACK_SELECTION -> {
+                stackStartPos = this.spatial().position
+            }
+        }
+    }
+
+    enum class Mode{
+        PASSIVE, STEERING, STACK_SELECTION
     }
 }

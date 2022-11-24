@@ -36,21 +36,20 @@ class DemoHWScene : DefaultScene() {
         )
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
-        stageSpaceManager.focusTarget?.stageSteeringActive = true
 
         //val tfUI = TransferFunctionEditor(650, 550, stageSpaceManager)
         //tfUI.name = "Slices"
 
         thread {
             //Thread.sleep(5000)
-            val db = DemoBehavior(
+            @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(
                 hw.hardwareDimensions().stageMax.x,
                 stageSpaceManager
             )
-            db.fixedStack(Vector3f(100f,100f,000f), Vector3f(100f, 100f,200f))
-            Thread.sleep(2500)
+            //db.fixedStack(Vector3f(100f,100f,000f), Vector3f(100f, 100f,200f))
+            //Thread.sleep(2500)
 //            db.randomStatic()
-            db.fixed()
+            //db.fixed()
         }
         thread {
             while (true) {

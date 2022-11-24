@@ -7,6 +7,7 @@ import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.signals.ServerState
+import microscenery.stageSpace.FocusFrame
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
@@ -55,7 +56,7 @@ class LocalMMScene : DefaultScene() {
 
 //        stageSpaceManager.stageRoot.spatial().position = stageSpaceManager.stageAreaCenter
 
-        stageSpaceManager.focusTarget?.stageSteeringActive = true
+        stageSpaceManager.focusTarget?.mode = FocusFrame.Mode.STEERING
         @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x, stageSpaceManager)
         //Thread.sleep(2000)
         //db.randomLive()

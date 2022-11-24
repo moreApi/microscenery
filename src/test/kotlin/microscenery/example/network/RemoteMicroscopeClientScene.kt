@@ -6,7 +6,6 @@ import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout
-import org.scijava.ui.behaviour.ClickBehaviour
 import org.zeromq.ZContext
 
 
@@ -49,16 +48,6 @@ class RemoteMicroscopeClientScene : DefaultScene() {
             stageSpaceManager.userInteraction(it, cam)
         }
 
-
-        inputHandler?.addBehaviour("steering", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                stageSpaceManager.focusTarget?.let {
-                    it.stageSteeringActive = !it.stageSteeringActive
-                    logger.info("Steering is now ${it.stageSteeringActive}")
-                }
-            }
-        })
-        inputHandler?.addKeyBinding("steering", "R")
     }
 
     companion object {

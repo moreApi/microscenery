@@ -324,12 +324,7 @@ class StageSpaceManager(
             inputHandler.addBehaviour(name, MovementCommand(name, { focusTarget }, cam, speed = 1f))
             inputHandler.addKeyBinding(name, key)
         }
-        inputHandler.addBehaviour("snap", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                snapSlice()
-            }
-        })
-        inputHandler.addKeyBinding("snap", "T")
+
         inputHandler.addBehaviour(
             "sphereDragObject", MouseDragPlane(
                 "sphereDragObject",
@@ -340,6 +335,48 @@ class StageSpaceManager(
             )
         )
         inputHandler.addKeyBinding("sphereDragObject", "1")
+
+        inputHandler.addBehaviour("snap", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                snapSlice()
+            }
+        })
+        inputHandler.addKeyBinding("snap", "3")
+
+        inputHandler.addBehaviour("steering", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                focusTarget?.let {
+                    if (it.mode != FocusFrame.Mode.STEERING){
+                        it.mode = FocusFrame.Mode.STEERING
+                    } else {
+                        it.mode = FocusFrame.Mode.PASSIVE
+                    }
+                    logger.info("focusframe mode is now ${it.mode}")
+                }
+            }
+        })
+        inputHandler.addKeyBinding("steering", "4")
+
+
+        inputHandler.addBehaviour("stackAcq", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                focusTarget?.let {
+                    if (it.mode == FocusFrame.Mode.STACK_SELECTION){
+                        focusTarget?.let {
+                            if (it.stackStartPos.z < it.spatial().position.z)
+                                stack(it.stackStartPos,it.spatial().position)
+                            else
+                                stack(it.spatial().position,it.stackStartPos)
+                        }
+                        it.mode = FocusFrame.Mode.PASSIVE
+                    } else {
+                        it.mode = FocusFrame.Mode.STACK_SELECTION
+                    }
+                    logger.info("focusframe mode is now ${it.mode}")
+                }
+            }
+        })
+        inputHandler.addKeyBinding("stackAcq", "5")
     }
 
     companion object {
