@@ -4,8 +4,8 @@ import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
-import microscenery.stageSpace.StageSpaceManager
 import microscenery.nowMillis
+import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 
 @Suppress("unused")
@@ -27,11 +27,11 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
 
     fun fixed() {
         val sortedSlices = ArrayList<Vector3f>()
-        for (z in 0 .. 4) for (y in  0 .. 4) for (x in  0 .. 4) {
+        for (z in 0..4) for (y in 0..4) for (x in 0..4) {
             val target = Vector3f(
-                ((extend/4)*x).coerceAtMost(extend-1f),
-                ((extend/4)*y).coerceAtMost(extend-1f),
-                ((extend/4)*z).coerceAtMost(extend-1f)
+                ((extend / 4) * x).coerceAtMost(extend - 1f),
+                ((extend / 4) * y).coerceAtMost(extend - 1f),
+                ((extend / 4) * z).coerceAtMost(extend - 1f)
             )
 
             sortedSlices.add(target)
@@ -70,7 +70,17 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
         }
     }
 
-    fun fixedStack(from: Vector3f = Vector3f(extend / 4), to: Vector3f =  Vector3f((extend / 4) * 3)) {
-        stageSpaceManager.stack(from ,to)
+    fun fixedStack(
+        from: Vector3f = Vector3f(extend / 2, extend / 2, extend / 4),
+        to: Vector3f = Vector3f(extend / 2, extend / 2, (extend / 4) * 3)
+    ) {
+        stageSpaceManager.stack(from, to, false)
+    }
+
+    fun liveStack(
+        from: Vector3f = Vector3f(extend / 2, extend / 2, extend / 4),
+        to: Vector3f = Vector3f(extend / 2, extend / 2, (extend / 4) * 3)
+    ) {
+        stageSpaceManager.stack(from, to, true)
     }
 }

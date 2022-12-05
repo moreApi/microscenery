@@ -2,9 +2,9 @@ package microscenery.example.microscope
 
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
+import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
-import microscenery.hardware.DemoMicroscopeHardware
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
@@ -50,6 +50,7 @@ class DemoHWScene : DefaultScene() {
             //Thread.sleep(2500)
 //            db.randomStatic()
             //db.fixed()
+            db.fixedStack()
         }
         thread {
             while (true) {

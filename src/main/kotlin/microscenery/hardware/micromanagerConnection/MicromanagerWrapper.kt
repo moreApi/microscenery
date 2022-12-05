@@ -10,7 +10,6 @@ import microscenery.nowMillis
 import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
-import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.math.roundToInt
@@ -81,6 +80,7 @@ class MicromanagerWrapper(
     }
 
     override fun acquireStack(meta: ClientSignal.AcquireStack) {
+        live(false)
         hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
@@ -139,9 +139,9 @@ class MicromanagerWrapper(
                     idCounter++,
                     false,
                     start,
-                    Vector3i(hardwareDimensions.imageSize, steps),
-                    nowMillis(),
-                    Vector3f(hardwareDimensions.vertexDiameter)
+                    end,
+                    steps,
+                    nowMillis()
                 )
                 output.put(currentStack)
                 status = status.copy(state = ServerState.STACK)
@@ -154,7 +154,7 @@ class MicromanagerWrapper(
                             true
                         )
                     )
-                    hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id))
+                    hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id to i))
                 }
             }
             is HardwareCommand.MoveStage -> {
@@ -163,15 +163,15 @@ class MicromanagerWrapper(
 
                 try {
                     mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
-                } catch (t: Throwable){
-                    logger.warn("Failed move command to ${hwCommand.safeTarget}",t)
+                } catch (t: Throwable) {
+                    logger.warn("Failed move command to ${hwCommand.safeTarget}", t)
                     return
                 }
                 status = status.copy(stagePosition = hwCommand.safeTarget)
             }
             is HardwareCommand.SnapImage -> {
-                if (lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
-                    if (hardwareCommandsQueue.isEmpty() || hwCommand.live) {
+                if (hwCommand.live && lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
+                    if (hardwareCommandsQueue.isEmpty()) {
                         Thread.sleep(
                             (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
                         )
@@ -184,8 +184,8 @@ class MicromanagerWrapper(
                 buf.clear()
                 try {
                     mmConnection.snapSlice(buf.asShortBuffer())
-                } catch (t: Throwable){
-                    logger.warn("Failed snap command",t)
+                } catch (t: Throwable) {
+                    logger.warn("Failed snap command", t)
                     return
                 }
                 val sliceSignal = Slice(
@@ -193,7 +193,7 @@ class MicromanagerWrapper(
                     System.currentTimeMillis(),
                     mmConnection.stagePosition,
                     hardwareDimensions.byteSize,
-                    hwCommand.stackId,
+                    hwCommand.stackIdAndSliceIndex,
                     buf
                 )
                 output.put(sliceSignal)
@@ -234,7 +234,7 @@ class MicromanagerWrapper(
             val safeTarget = hwd.coercePosition(target, logger)
         }
 
-        data class SnapImage(val live: Boolean, val stackId: Int? = null) : HardwareCommand()
+        data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
         data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()

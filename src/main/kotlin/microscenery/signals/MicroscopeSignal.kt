@@ -8,7 +8,6 @@ import microscenery.signals.MicroscopeStatus.Companion.toPoko
 import microscenery.toReadableString
 import org.joml.Vector2i
 import org.joml.Vector3f
-import org.joml.Vector3i
 import java.nio.ByteBuffer
 
 
@@ -27,10 +26,10 @@ sealed class MicroscopeSignal {
                     Stack(
                         s.id,
                         s.live,
-                        s.stageMin.toPoko(),
-                        s.size.toPoko(),
-                        s.created.seconds * 1000 + s.created.nanos.div(1000),
-                        s.voxelSize.toPoko()
+                        s.from.toPoko(),
+                        s.to.toPoko(),
+                        s.slicesCount,
+                        s.created.seconds * 1000 + s.created.nanos.div(1000)
                     )
                 }
                 me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.SLICE -> {
@@ -40,7 +39,7 @@ sealed class MicroscopeSignal {
                         s.created.seconds * 1000 + s.created.nanos.div(1000),
                         s.stagePos.toPoko(),
                         s.size,
-                        if (s.stackId == -1) null else s.stackId,
+                        if (s.stackId == -1) null else s.stackId to s.stackSliceIndex,
                         null
                     )
                 }
@@ -61,9 +60,8 @@ data class Slice(
     val created: Long,
     val stagePos: Vector3f,
     val size: Int,
-    val stackId: Int?,
+    val stackIdAndSliceIndex: Pair<Int, Int>?,
     val data: ByteBuffer?
-
 ) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
         val microscopeSignal = me.jancasus.microscenery.network.v2.MicroscopeSignal.newBuilder()
@@ -73,7 +71,8 @@ data class Slice(
         s.created = fromMillis(this.created)
         s.stagePos = this.stagePos.toProto()
         s.size = this.size
-        s.stackId = this.stackId ?: -1
+        s.stackId = this.stackIdAndSliceIndex?.first ?: -1
+        s.stackSliceIndex = this.stackIdAndSliceIndex?.second ?: -1
         s.build()
 
         return microscopeSignal.build()
@@ -83,10 +82,10 @@ data class Slice(
 data class Stack(
     val Id: Int,
     val live: Boolean,
-    val stageMin: Vector3f,
-    val size: Vector3i,
-    val created: Long,
-    val voxelSize: Vector3f
+    val from: Vector3f,
+    val to: Vector3f,
+    val slicesCount: Int,
+    val created: Long
 ) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
         val microscopeSignal = me.jancasus.microscenery.network.v2.MicroscopeSignal.newBuilder()
@@ -95,9 +94,9 @@ data class Stack(
         s.id = this.Id
         s.live = this.live
         s.created = fromMillis(this.created)
-        s.stageMin = this.stageMin.toProto()
-        s.size = this.size.toProto()
-        s.voxelSize = this.voxelSize.toProto()
+        s.from = this.from.toProto()
+        s.to = this.to.toProto()
+        s.slicesCount = this.slicesCount
         s.build()
 
         return microscopeSignal.build()

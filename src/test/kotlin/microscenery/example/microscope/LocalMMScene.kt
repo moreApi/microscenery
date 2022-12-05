@@ -7,7 +7,6 @@ import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.signals.ServerState
-import microscenery.stageSpace.FocusFrame
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
@@ -29,8 +28,8 @@ class LocalMMScene : DefaultScene() {
         MicroscenerySettings.set("Stage.minX", 0f)
         MicroscenerySettings.set("Stage.minY", 0f)
         MicroscenerySettings.set("Stage.minZ", 0f)
-        MicroscenerySettings.set("Stage.maxX", 100f)
-        MicroscenerySettings.set("Stage.maxY", 100f)
+        MicroscenerySettings.set("Stage.maxX", 0f)
+        MicroscenerySettings.set("Stage.maxY", 0f)
         MicroscenerySettings.set("Stage.maxZ", 100f)
         val stageStart = Vector3f()
 
@@ -56,11 +55,12 @@ class LocalMMScene : DefaultScene() {
 
 //        stageSpaceManager.stageRoot.spatial().position = stageSpaceManager.stageAreaCenter
 
-        stageSpaceManager.focusTarget?.mode = FocusFrame.Mode.STEERING
-        @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x, stageSpaceManager)
+        //stageSpaceManager.focusTarget?.mode = FocusFrame.Mode.STEERING
+        @Suppress("UNUSED_VARIABLE")
+        val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x, stageSpaceManager)
         //Thread.sleep(2000)
         //db.randomLive()
-//        db.fixedStack()
+        db.fixedStack(Vector3f(0f, 0f, 10f), Vector3f(0f, 0f, 70f))
 
         thread {
             while (true) {

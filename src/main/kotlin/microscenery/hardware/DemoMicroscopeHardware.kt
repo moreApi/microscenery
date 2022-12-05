@@ -9,7 +9,6 @@ import microscenery.nowMillis
 import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
-import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
@@ -38,15 +37,17 @@ class DemoMicroscopeHardware(
     var idCounter = 0
     var liveThread: Thread? = null
     var currentStack: Stack? = null
+    var stackSliceCounter: Int = 0
 
     init {
-        stageContent = Volume.generateProceduralVolume(size = dataSide.toLong(), radius = dataSide*0.95f, use16bit = false)
+        stageContent =
+            Volume.generateProceduralVolume(size = dataSide.toLong(), radius = dataSide * 0.95f, use16bit = false)
 
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
             stageMax = Vector3f(dataSide.toFloat()),
             imageSize = Vector2i(50 / binning, 50 / binning),
-            vertexDiameter = 1f*binning,
+            vertexDiameter = 1f * binning,
             numericType = NumericType.INT8
         )
         status = MicroscopeStatus(
@@ -61,7 +62,7 @@ class DemoMicroscopeHardware(
 
     override var stagePosition = stagePosition
         set(target) {
-            val safeTarget = hardwareDimensions.coercePosition(target,logger)
+            val safeTarget = hardwareDimensions.coercePosition(target, logger)
             field = safeTarget
             status = status.copy(stagePosition = safeTarget)
         }
@@ -74,7 +75,7 @@ class DemoMicroscopeHardware(
         val fullSliceSize = dataSide * dataSide
         val zOffset = fullSliceSize * stagePosition.z.toInt()
 
-        when(binning){
+        when (binning) {
             1 -> {
                 for (y in 0 until imgY) {
                     val yOffset = dataSide * (stagePosition.y.toInt() + y)
@@ -111,7 +112,7 @@ class DemoMicroscopeHardware(
             System.currentTimeMillis(),
             stagePosition,
             sliceBuffer.capacity(),
-            currentStack?.Id,
+            currentStack?.let { it.Id to stackSliceCounter },
             sliceBuffer
         )
         output.put(signal)
@@ -148,7 +149,7 @@ class DemoMicroscopeHardware(
         thread {
 
             val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
-            val end = hardwareDimensions.coercePosition(meta.endPosition,logger)
+            val end = hardwareDimensions.coercePosition(meta.endPosition, logger)
             val dist = end - start
             val steps = (dist.length() / meta.stepSize).roundToInt()
             val step = dist * (1f / steps)
@@ -157,14 +158,15 @@ class DemoMicroscopeHardware(
                 idCounter++,
                 false,
                 start,
-                Vector3i(hardwareDimensions.imageSize, steps),
-                nowMillis(),
-                Vector3f(hardwareDimensions().vertexDiameter)
+                end,
+                steps,
+                nowMillis()
             )
             output.put(currentStack!!)
 
             for (i in 0 until steps) {
                 stagePosition = start + (step * i.toFloat())
+                stackSliceCounter = i
                 snapSlice()
             }
 
