@@ -35,7 +35,7 @@ class MicromanagerWrapper(
 
     private var idCounter = 0
     var lastSnap = 0L
-    var vertexDiameter = MicroscenerySettings.get("MMConnection.vertexDiameter", 0.225f)
+    var vertexDiameter = MicroscenerySettings.get("MMConnection.vertexDiameter", mmConnection.pixelSizeUm)
         set(value) {
             field = value
             updateHardwareDimensions()

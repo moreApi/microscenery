@@ -31,6 +31,7 @@ class MMConnection @JvmOverloads constructor(
 
     var width: Int = 0
     var height: Int = 0
+    var pixelSizeUm: Float = 0f
 
     var snapTimes = listOf<Long>()
     var copyTimes = listOf<Long>()
@@ -81,6 +82,7 @@ class MMConnection @JvmOverloads constructor(
         setup.snapImage() // do this so the following parameters are set
         width = core.imageWidth.toInt()
         height = core.imageHeight.toInt()
+        pixelSizeUm = core.pixelSizeUm.toFloat()
     }
 
     @Suppress("unused")
