@@ -16,6 +16,7 @@ class LocalMMScene : DefaultScene() {
     val stageSpaceManager: StageSpaceManager
 
     init {
+        cam.spatial().position = Vector3f(0f, 0f, 5f)
 
 //        MicroscenerySettings.set("Stage.minX", 40000f)
 //        MicroscenerySettings.set("Stage.minY", 22000f)
@@ -30,7 +31,7 @@ class LocalMMScene : DefaultScene() {
         MicroscenerySettings.set("Stage.minZ", 0f)
         MicroscenerySettings.set("Stage.maxX", 0f)
         MicroscenerySettings.set("Stage.maxY", 0f)
-        MicroscenerySettings.set("Stage.maxZ", 100f)
+        MicroscenerySettings.set("Stage.maxZ", 120f)
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
@@ -57,10 +58,11 @@ class LocalMMScene : DefaultScene() {
 
         //stageSpaceManager.focusTarget?.mode = FocusFrame.Mode.STEERING
         @Suppress("UNUSED_VARIABLE")
-        val db = DemoBehavior(hardware.hardwareDimensions().stageMax.x, stageSpaceManager)
+        val db = DemoBehavior(hardware.hardwareDimensions().stageMax.z, stageSpaceManager)
         //Thread.sleep(2000)
         //db.randomLive()
-        db.fixedStack(Vector3f(0f, 0f, 10f), Vector3f(0f, 0f, 70f))
+        db.fixedStack(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 120f))
+        db.fixed()
 
         thread {
             while (true) {

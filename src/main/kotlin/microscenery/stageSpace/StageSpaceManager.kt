@@ -175,7 +175,7 @@ class StageSpaceManager(
             is HardwareDimensions -> {
                 stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
                 stageRoot.spatial {
-                    scale = Vector3f(1 / scaleDownFactor)
+                    scale = Vector3f(1 / scaleDownFactor * signal.vertexDiameter)
                     position = Vector3f(-1f) * stageAreaCenter * scale
                 }
                 stageAreaBorders.spatial {
@@ -187,7 +187,7 @@ class StageSpaceManager(
                             MicroscopeLayout.Axis.X -> Vector3f(0f, imgPixSize.y, imgPixSize.x)
                             MicroscopeLayout.Axis.Y -> Vector3f(imgPixSize.x, 0f, imgPixSize.y)
                             MicroscopeLayout.Axis.Z -> Vector3f(imgPixSize, 0f)
-                        }.mul(signal.vertexDiameter)
+                        }
                         this.add(imageSize)
                         this.mul(1.02f)
                     }
@@ -232,7 +232,7 @@ class StageSpaceManager(
                 volume.spatial().position = (signal.from + signal.to).mul(0.5f)
                 volume.spatial().scale = Vector3f(1f, -1f, 1f)
                 volume.pixelToWorldRatio = 1f // conversion is done by stage root
-                volume.setTransferFunctionRange(17.0f, 3000.0f)
+                volume.setTransferFunctionRange(15.0f, 2500.0f)
 
                 stageRoot.addChild(volume)
 
@@ -271,7 +271,7 @@ class StageSpaceManager(
             signal.data,
             hwd.imageSize.x,
             hwd.imageSize.y,
-            hwd.vertexDiameter,
+            1f,
             hwd.numericType.bytes,
             transferFunction,
             transferFunctionOffset,
