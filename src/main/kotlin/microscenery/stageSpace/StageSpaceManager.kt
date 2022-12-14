@@ -205,6 +205,7 @@ class StageSpaceManager(
                 val x = hardware.hardwareDimensions().imageSize.x
                 val y = hardware.hardwareDimensions().imageSize.y
                 val z = stack.slicesCount
+                val sliceThickness = (stack.to.z - stack.from.z) / stack.slicesCount
                 val buffer =
                     MemoryUtil.memAlloc(
                         x * y * z * hardware.hardwareDimensions().numericType.bytes
@@ -215,14 +216,14 @@ class StageSpaceManager(
                         x, y, z,
                         UnsignedByteType(),
                         hub,
-                        Vector3f(1f).toFloatArray()// conversion is done by stage root
+                        Vector3f(1f,1f, sliceThickness).toFloatArray()// conversion is done by stage root
                     )
                     NumericType.INT16 -> Volume.fromBuffer(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
                         x, y, z,
                         UnsignedShortType(),
                         hub,
-                        Vector3f(1f).toFloatArray()// conversion is done by stage root
+                        Vector3f(1f,1f, sliceThickness).toFloatArray()// conversion is done by stage root
                     )
                 }
                 volume.goToLastTimepoint()
@@ -230,9 +231,9 @@ class StageSpaceManager(
                 volume.name = "Stack ${signal.Id}"
                 volume.origin = Origin.Center
                 volume.spatial().position = (signal.from + signal.to).mul(0.5f)
-                volume.spatial().scale = Vector3f(1f, -1f, 1f)
+                volume.spatial().scale = Vector3f(1f, -1f, sliceThickness)
                 volume.pixelToWorldRatio = 1f // conversion is done by stage root
-                volume.setTransferFunctionRange(15.0f, 2500.0f)
+                volume.setTransferFunctionRange(minDisplayRange,maxDisplayRange)
 
                 stageRoot.addChild(volume)
 
