@@ -26,6 +26,7 @@ import org.lwjgl.system.MemoryUtil
 import org.scijava.ui.behaviour.ClickBehaviour
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
 /**
@@ -339,22 +340,29 @@ class StageSpaceManager(
         }
 
         inputHandler.addBehaviour(
-            "sphereDragObject", MouseDragPlane(
-                "sphereDragObject",
+            "frameDragging", MouseDragPlane(
+                "frameDragging",
                 { scene.findObserver() },
                 { focusTarget },
                 false,
                 mouseSpeed = { 100f * 1 / scaleDownFactor }
             )
         )
-        inputHandler.addKeyBinding("sphereDragObject", "1")
+        inputHandler.addKeyBinding("frameDragging", "1")
 
         inputHandler.addBehaviour("snap", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
                 snapSlice()
             }
         })
-        inputHandler.addKeyBinding("snap", "3")
+        inputHandler.addKeyBinding("snap", "2")
+
+        inputHandler.addBehaviour("toggleLive", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                hardware.live = hardware.live
+            }
+        })
+        inputHandler.addKeyBinding("toggleLive", "3")
 
         inputHandler.addBehaviour("steering", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
@@ -369,7 +377,6 @@ class StageSpaceManager(
             }
         })
         inputHandler.addKeyBinding("steering", "4")
-
 
         inputHandler.addBehaviour("stackAcq", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
@@ -390,6 +397,23 @@ class StageSpaceManager(
             }
         })
         inputHandler.addKeyBinding("stackAcq", "5")
+
+
+        inputHandler.addBehaviour("help", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                thread {
+                    scene.findObserver()?.showMessage(
+                        "1:drag 2:snap 3:live 4:steer 5:stack"
+                    )
+                    Thread.sleep(2000)
+                    scene.findObserver()?.showMessage(
+                        "CM - X, VN - Y, GB - Z"
+                    )
+                }
+
+            }
+        })
+        inputHandler.addKeyBinding("help", "H")
     }
 
     companion object {
