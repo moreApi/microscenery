@@ -50,7 +50,7 @@ class DemoHWScene : DefaultScene() {
             //Thread.sleep(2500)
 //            db.randomStatic()
             //db.fixed()
-            db.fixedStack()
+            //db.fixedStack()
         }
         thread {
             while (true) {

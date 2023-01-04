@@ -1,5 +1,6 @@
 package microscenery.example.network
 
+import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.lightSleepOnCondition
@@ -16,7 +17,7 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
         stageSpaceManager = StageSpaceManager(client, scene, hub, addFocusFrame = true,
-            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y,33f))
+            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X,0f), scaleDownFactor = 100f)
 
         //stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)
 
@@ -24,6 +25,8 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }
         stageSpaceManager.focusTarget?.spatial()?.position = stageSpaceManager.focus.spatial().position
         //DemoBehavior(50f, stageSpaceManager).randomLive()
+
+        TransferFunctionEditor(tfContainer = stageSpaceManager)
 
 
         /*

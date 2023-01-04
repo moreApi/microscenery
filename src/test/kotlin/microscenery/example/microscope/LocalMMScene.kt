@@ -2,6 +2,7 @@ package microscenery.example.microscope
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
@@ -50,6 +51,9 @@ class LocalMMScene : DefaultScene() {
             cullingMode = Material.CullingMode.Front
         }
         scene.addChild(hullbox)
+
+        TransferFunctionEditor(tfContainer = stageSpaceManager)
+        stageSpaceManager.minDisplayRange = 50f
 
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
