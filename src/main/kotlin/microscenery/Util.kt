@@ -27,7 +27,7 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
 
 
-val MicroscenerySettings = Settings(prefix = "microscenery.", propertiesFile = "microscenery.properties")
+val MicroscenerySettings = Settings(prefix = "microscenery.", propertiesFilePath = "microscenery.properties")
 
 val UP = Vector3f(0f, 1f, 0f)
 

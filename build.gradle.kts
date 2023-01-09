@@ -31,7 +31,7 @@ fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
 
 dependencies {
     // use first 6 letters of commit rev
-    implementation("graphics.scenery:scenery:f7b210")
+    implementation("graphics.scenery:scenery:b62c8d")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
