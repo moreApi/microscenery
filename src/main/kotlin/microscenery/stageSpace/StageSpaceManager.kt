@@ -4,6 +4,7 @@ import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
+import graphics.scenery.controls.behaviours.ToggleCommand
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
@@ -328,16 +329,23 @@ class StageSpaceManager(
 
     fun userInteraction(inputHandler: InputHandler, cam: Camera) {
         listOf(
-            "forward" to "G",
-            "back" to "B",
-            "left" to "V",
-            "right" to "N",
-            "up" to "C",
-            "down" to "M"
+            "frame_forward" to "W",
+            "frame_back" to "S",
+            "frame_left" to "A",
+            "frame_right" to "D",
+            "frame_up" to "K",
+            "frame_down" to "J"
         ).forEach { (name, key) ->
-            inputHandler.addBehaviour(name, MovementCommand(name, { focusTarget }, cam, speed = 1f))
-            inputHandler.addKeyBinding(name, key)
+            inputHandler.addBehaviour(name, MovementCommand(name.removePrefix("frame_"), { focusTarget }, cam, speed = 1f))
+            if(MicroscenerySettings.getProperty<Boolean>("FrameControl"))
+            {
+                logger.info("added key $key to $name")
+                inputHandler.addKeyBinding(name, key)
+            }
         }
+
+        inputHandler.addBehaviour("switchControl", ToggleCommand(this, "switchControl"))
+        inputHandler.addKeyBinding("switchControl", "E")
 
         inputHandler.addBehaviour(
             "frameDragging", MouseDragPlane(
@@ -414,6 +422,57 @@ class StageSpaceManager(
             }
         })
         inputHandler.addKeyBinding("help", "H")
+    }
+
+    @Suppress("UNUSED")
+    fun switchControl()
+    {
+        val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
+        MicroscenerySettings.set("FrameControl", !frameControl)
+    }
+
+    fun remapControl(inputHandler : InputHandler, cam : Camera)
+    {
+        val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
+        val defaultBehaviours = listOf(
+            "move_forward" to "W",
+            "move_back" to "S",
+            "move_left" to "A",
+            "move_right" to "D",
+            "move_up" to "K",
+            "move_down" to "J"
+        )
+        val frameBehaviours = listOf(
+            "frame_forward" to "W",
+            "frame_back" to "S",
+            "frame_left" to "A",
+            "frame_right" to "D",
+            "frame_up" to "K",
+            "frame_down" to "J"
+        )
+        if(frameControl)
+        {
+            defaultBehaviours.forEach { (name, key) ->
+                inputHandler.removeKeyBinding(name)
+                logger.info("removed keys $name")
+            }
+            frameBehaviours.forEach { (name, key) ->
+                inputHandler.addKeyBinding(name, key)
+                logger.info("added key $key to $name")
+            }
+        }
+        else
+        {
+            frameBehaviours.forEach { (name, key) ->
+                inputHandler.removeKeyBinding(name)
+                logger.info("removed keys from $name")
+            }
+            defaultBehaviours.forEach { (name, key) ->
+                inputHandler.addKeyBinding(name, key)
+                logger.info("added key $key to $name")
+            }
+        }
+
     }
 
     companion object {

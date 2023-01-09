@@ -27,6 +27,8 @@ class DemoHWScene : DefaultScene() {
 //        MicroscenerySettings.set("Stage.maxY", 26000f)
 //        MicroscenerySettings.set("Stage.maxZ", 100f)
 
+
+
         val hw = DemoMicroscopeHardware(binning = 1)
         stageSpaceManager = StageSpaceManager(
             hw,
@@ -38,9 +40,17 @@ class DemoHWScene : DefaultScene() {
 //            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )
 
+        MicroscenerySettings.setIfUnset("FrameControl", false)
+        MicroscenerySettings.addUpdateRoutine("FrameControl"
+        ) {
+            inputHandler?.let {
+                logger.info("FrameControl = ${MicroscenerySettings.getProperty<Boolean>("FrameControl")}")
+                stageSpaceManager.remapControl(it, cam) }
+        }
+
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
 
-        val tfUI = TransferFunctionEditor(stageSpaceManager)
+        //val tfUI = TransferFunctionEditor(stageSpaceManager)
         val settingsEditor = SettingsEditor(MicroscenerySettings)
         //tfUI.name = "Slices"
 
