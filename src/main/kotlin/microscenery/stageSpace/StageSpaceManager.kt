@@ -104,11 +104,10 @@ class StageSpaceManager(
             stageRoot.addChild(this)
         }
 
-        if (addFocusFrame)
-            focusTarget = FocusFrame(this, hardware.hardwareDimensions()).apply {
-                spatial().position = hardware.stagePosition
-                stageRoot.addChild(this)
-            }
+        if (addFocusFrame) focusTarget = FocusFrame(this, hardware.hardwareDimensions()).apply {
+            spatial().position = hardware.stagePosition
+            stageRoot.addChild(this)
+        }
 
         focusTarget?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
         focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
@@ -208,24 +207,27 @@ class StageSpaceManager(
                 val y = hardware.hardwareDimensions().imageSize.y
                 val z = stack.slicesCount
                 val sliceThickness = (stack.to.z - stack.from.z) / stack.slicesCount
-                val buffer =
-                    MemoryUtil.memAlloc(
-                        x * y * z * hardware.hardwareDimensions().numericType.bytes
-                    )
+                val buffer = MemoryUtil.memAlloc(
+                    x * y * z * hardware.hardwareDimensions().numericType.bytes
+                )
                 val volume = when (hardware.hardwareDimensions().numericType) {
                     NumericType.INT8 -> Volume.fromBuffer(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
-                        x, y, z,
+                        x,
+                        y,
+                        z,
                         UnsignedByteType(),
                         hub,
-                        Vector3f(1f,1f, sliceThickness).toFloatArray()// conversion is done by stage root
+                        Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
                     )
                     NumericType.INT16 -> Volume.fromBuffer(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
-                        x, y, z,
+                        x,
+                        y,
+                        z,
                         UnsignedShortType(),
                         hub,
-                        Vector3f(1f,1f, sliceThickness).toFloatArray()// conversion is done by stage root
+                        Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
                     )
                 }
                 volume.goToLastTimepoint()
@@ -235,7 +237,7 @@ class StageSpaceManager(
                 volume.spatial().position = (signal.from + signal.to).mul(0.5f)
                 volume.spatial().scale = Vector3f(1f, -1f, sliceThickness)
                 volume.pixelToWorldRatio = 1f // conversion is done by stage root
-                volume.setTransferFunctionRange(minDisplayRange,maxDisplayRange)
+                volume.setTransferFunctionRange(minDisplayRange, maxDisplayRange)
 
                 stageRoot.addChild(volume)
 
@@ -288,11 +290,9 @@ class StageSpaceManager(
         val minDistance = hardware.hardwareDimensions().vertexDiameter
         stageRoot.children.filter {
             it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
-                signal.stagePos,
-                minDistance
+                signal.stagePos, minDistance
             ) ?: false
-        }
-            .toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+        }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
             .forEach {
                 stageRoot.removeChild(it)
                 sortedSlices.remove(it)
@@ -329,16 +329,17 @@ class StageSpaceManager(
 
     fun userInteraction(inputHandler: InputHandler, cam: Camera) {
         listOf(
-            "frame_forward" to "W",
-            "frame_back" to "S",
+            "frame_forward" to "J",
+            "frame_back" to "K",
             "frame_left" to "A",
             "frame_right" to "D",
-            "frame_up" to "K",
-            "frame_down" to "J"
+            "frame_up" to "W",
+            "frame_down" to "S"
         ).forEach { (name, key) ->
-            inputHandler.addBehaviour(name, MovementCommand(name.removePrefix("frame_"), { focusTarget }, cam, speed = 1f))
-            if(MicroscenerySettings.getProperty<Boolean>("FrameControl"))
-            {
+            inputHandler.addBehaviour(
+                name, MovementCommand(name.removePrefix("frame_"), { focusTarget }, cam, speed = 1f)
+            )
+            if (MicroscenerySettings.getProperty<Boolean>("FrameControl")) {
                 logger.info("added key $key to $name")
                 inputHandler.addKeyBinding(name, key)
             }
@@ -347,15 +348,11 @@ class StageSpaceManager(
         inputHandler.addBehaviour("switchControl", ToggleCommand(this, "switchControl"))
         inputHandler.addKeyBinding("switchControl", "E")
 
-        inputHandler.addBehaviour(
-            "frameDragging", MouseDragPlane(
-                "frameDragging",
-                { scene.findObserver() },
-                { focusTarget },
-                false,
-                mouseSpeed = { 100f * 1 / scaleDownFactor }
-            )
-        )
+        inputHandler.addBehaviour("frameDragging", MouseDragPlane("frameDragging",
+            { scene.findObserver() },
+            { focusTarget },
+            false,
+            mouseSpeed = { 100f * 1 / scaleDownFactor }))
         inputHandler.addKeyBinding("frameDragging", "1")
 
         inputHandler.addBehaviour("snap", object : ClickBehaviour {
@@ -391,10 +388,12 @@ class StageSpaceManager(
                 focusTarget?.let {
                     if (it.mode == FocusFrame.Mode.STACK_SELECTION) {
                         focusTarget?.let {
-                            if (it.stackStartPos.z < it.spatial().position.z)
-                                stack(it.stackStartPos, it.spatial().position, false)
-                            else
-                                stack(it.spatial().position, it.stackStartPos, false)
+                            if (it.stackStartPos.z < it.spatial().position.z) stack(
+                                it.stackStartPos,
+                                it.spatial().position,
+                                false
+                            )
+                            else stack(it.spatial().position, it.stackStartPos, false)
                         }
                         it.mode = FocusFrame.Mode.PASSIVE
                     } else {
@@ -411,12 +410,12 @@ class StageSpaceManager(
             override fun click(x: Int, y: Int) {
                 thread {
                     scene.findObserver()?.showMessage(
-                        "1:drag 2:snap 3:live 4:steer 5:stack"
+                        "1:drag 2:snap 3:live 4:steer 5:stack E:toggle control"
                     )
-                    Thread.sleep(2000)
-                    scene.findObserver()?.showMessage(
-                        "CM - X, VN - Y, GB - Z"
-                    )
+//                    Thread.sleep(2000)
+//                    scene.findObserver()?.showMessage(
+//                        "AD - X, WS - Y, JK - Z"
+//                    )
                 }
 
             }
@@ -425,14 +424,12 @@ class StageSpaceManager(
     }
 
     @Suppress("UNUSED")
-    fun switchControl()
-    {
+    fun switchControl() {
         val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
         MicroscenerySettings.set("FrameControl", !frameControl)
     }
 
-    fun remapControl(inputHandler : InputHandler, cam : Camera)
-    {
+    fun remapControl(inputHandler: InputHandler) {
         val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
         val defaultBehaviours = listOf(
             "move_forward" to "W",
@@ -443,16 +440,15 @@ class StageSpaceManager(
             "move_down" to "J"
         )
         val frameBehaviours = listOf(
-            "frame_forward" to "W",
-            "frame_back" to "S",
+            "frame_forward" to "J",
+            "frame_back" to "K",
             "frame_left" to "A",
             "frame_right" to "D",
-            "frame_up" to "K",
-            "frame_down" to "J"
+            "frame_up" to "W",
+            "frame_down" to "S"
         )
-        if(frameControl)
-        {
-            defaultBehaviours.forEach { (name, key) ->
+        if (frameControl) {
+            defaultBehaviours.forEach { (name, _) ->
                 inputHandler.removeKeyBinding(name)
                 logger.info("removed keys $name")
             }
@@ -460,10 +456,8 @@ class StageSpaceManager(
                 inputHandler.addKeyBinding(name, key)
                 logger.info("added key $key to $name")
             }
-        }
-        else
-        {
-            frameBehaviours.forEach { (name, key) ->
+        } else {
+            frameBehaviours.forEach { (name, _) ->
                 inputHandler.removeKeyBinding(name)
                 logger.info("removed keys from $name")
             }
