@@ -4,7 +4,6 @@ import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
-import graphics.scenery.controls.behaviours.ToggleCommand
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
@@ -331,23 +330,24 @@ class StageSpaceManager(
 
     fun userInteraction(inputHandler: InputHandler, cam: Camera) {
         listOf(
-            "frame_forward" to "J",
-            "frame_back" to "K",
-            "frame_left" to "A",
-            "frame_right" to "D",
-            "frame_up" to "W",
-            "frame_down" to "S"
-        ).forEach { (name, key) ->
+            "frame_forward", "frame_back", "frame_left", "frame_right" , "frame_up", "frame_down"
+        ).forEach { name,  ->
             inputHandler.addBehaviour(
                 name, MovementCommand(name.removePrefix("frame_"), { focusTarget }, cam, speed = 1f)
             )
-            if (MicroscenerySettings.getProperty<Boolean>("FrameControl")) {
-                logger.info("added key $key to $name")
-                inputHandler.addKeyBinding(name, key)
-            }
+        }
+        MicroscenerySettings.setIfUnset("FrameControl", false)
+        remapControl(inputHandler)
+        MicroscenerySettings.addUpdateRoutine("FrameControl"
+        ) {
+            logger.info("FrameControl = ${MicroscenerySettings.getProperty<Boolean>("FrameControl")}")
+            remapControl(inputHandler)
         }
 
-        inputHandler.addBehaviour("switchControl", ToggleCommand(this, "switchControl"))
+        inputHandler.addBehaviour("switchControl", ClickBehaviour { _, _ ->
+            val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
+            MicroscenerySettings.set("FrameControl", !frameControl)
+        })
         inputHandler.addKeyBinding("switchControl", "E")
 
         inputHandler.addBehaviour("frameDragging", MouseDragPlane("frameDragging",
@@ -425,13 +425,7 @@ class StageSpaceManager(
         inputHandler.addKeyBinding("help", "H")
     }
 
-    @Suppress("UNUSED")
-    fun switchControl() {
-        val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
-        MicroscenerySettings.set("FrameControl", !frameControl)
-    }
-
-    fun remapControl(inputHandler: InputHandler) {
+    private fun remapControl(inputHandler: InputHandler) {
         val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
         val defaultBehaviours = listOf(
             "move_forward" to "W",

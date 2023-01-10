@@ -2,7 +2,6 @@ package microscenery.example.microscope
 
 import graphics.scenery.SettingsEditor
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
 import microscenery.hardware.DemoMicroscopeHardware
@@ -39,14 +38,6 @@ class DemoHWScene : DefaultScene() {
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
 //            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )
-
-        MicroscenerySettings.setIfUnset("FrameControl", false)
-        MicroscenerySettings.addUpdateRoutine("FrameControl"
-        ) {
-            inputHandler?.let {
-                logger.info("FrameControl = ${MicroscenerySettings.getProperty<Boolean>("FrameControl")}")
-                stageSpaceManager.remapControl(it, cam) }
-        }
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
 
