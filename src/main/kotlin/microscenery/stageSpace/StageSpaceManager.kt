@@ -174,9 +174,10 @@ class StageSpaceManager(
                 handleSingleSlice(signal)
             }
             is HardwareDimensions -> {
+                logger.info("Got HWD:$signal")
                 stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
                 stageRoot.spatial {
-                    scale = Vector3f(1 / scaleDownFactor * signal.vertexDiameter)
+                    scale = Vector3f((1 / scaleDownFactor) * signal.vertexDiameter)
                     position = Vector3f(-1f) * stageAreaCenter * scale
                 }
                 stageAreaBorders.spatial {
@@ -217,14 +218,14 @@ class StageSpaceManager(
                         x, y, z,
                         UnsignedByteType(),
                         hub,
-                        Vector3f(1f,1f, sliceThickness).toFloatArray()// conversion is done by stage root
+                        Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
                     )
                     NumericType.INT16 -> Volume.fromBuffer(
                         listOf(BufferedVolume.Timepoint("0", buffer)),
                         x, y, z,
                         UnsignedShortType(),
                         hub,
-                        Vector3f(1f,1f, sliceThickness).toFloatArray()// conversion is done by stage root
+                        Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
                     )
                 }
                 volume.goToLastTimepoint()
@@ -234,7 +235,7 @@ class StageSpaceManager(
                 volume.spatial().position = (signal.from + signal.to).mul(0.5f)
                 volume.spatial().scale = Vector3f(1f, -1f, sliceThickness)
                 volume.pixelToWorldRatio = 1f // conversion is done by stage root
-                volume.setTransferFunctionRange(minDisplayRange,maxDisplayRange)
+                volume.setTransferFunctionRange(minDisplayRange, maxDisplayRange)
 
                 stageRoot.addChild(volume)
 
@@ -345,7 +346,7 @@ class StageSpaceManager(
                 { scene.findObserver() },
                 { focusTarget },
                 false,
-                mouseSpeed = { 100f * 1 / scaleDownFactor }
+                mouseSpeed = { 100f * 5 / scaleDownFactor }
             )
         )
         inputHandler.addKeyBinding("frameDragging", "1")
@@ -359,7 +360,7 @@ class StageSpaceManager(
 
         inputHandler.addBehaviour("toggleLive", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
-                hardware.live = hardware.live
+                hardware.live = !hardware.live
             }
         })
         inputHandler.addKeyBinding("toggleLive", "3")
