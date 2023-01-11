@@ -137,3 +137,10 @@ fun Vector4f.toVector3f(): Vector3f = Vector3f(x, y, z)
 fun Vector3f.toReadableString() = String.format("(%.3f,%.3f,%.3f)", x, y, z)
 fun Vector4f.toReadableString() = String.format("(%.3f,%.3f,%.3f,%.3f)", x, y, z, w)
 
+
+/**
+ * Returns true if this is less than to in every dimension.
+ */
+fun Vector3f.isFullyLessThan(to: Vector3f): Boolean {
+    return this.x < to.x && this.y < to.y && this.z < to.z
+}

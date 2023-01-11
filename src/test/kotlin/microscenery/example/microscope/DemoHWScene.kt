@@ -5,8 +5,6 @@ import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
 import microscenery.hardware.DemoMicroscopeHardware
-import microscenery.hardware.MicroscopeHardware
-import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
@@ -59,7 +57,7 @@ class DemoHWScene : DefaultScene() {
             //db.fixed()
             //db.fixedStack()
 
-            hw.sampleStageSpace(Vector3f(25f),Vector3f(175f),Vector3f(30f,30f,50f))
+            stageSpaceManager.sampleStageSpace(Vector3f(25f),Vector3f(175f),Vector3f(30f,30f,50f))
         }
         thread {
             while (true) {
@@ -69,35 +67,6 @@ class DemoHWScene : DefaultScene() {
         }
     }
 
-    private fun MicroscopeHardware.sampleStageSpace(from: Vector3f, to: Vector3f, resolution: Vector3f) {
-        if (!from.isFullyLessThan(to)){
-            throw IllegalArgumentException("from needs to be smaller than to.")
-        }
-        if (this.status().state != ServerState.MANUAL){
-            throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
-        }
-
-        val positions = mutableListOf<Vector3f>()
-        // I'm missing classic for loops, kotlin :,(
-        var x = from.x
-        while(x <= to.x) {
-            var y = from.y
-            while(y <= to.y) {
-                var z = from.z
-                while(z <= to.z) {
-                    positions += Vector3f(x,y,z)
-                    z += resolution.z
-                }
-                y += resolution.y
-            }
-            x += resolution.x
-        }
-
-        positions.forEach {
-            this.stagePosition = it
-            this.snapSlice()
-        }
-    }
 
     override fun inputSetup() {
         super.inputSetup()
@@ -115,10 +84,4 @@ class DemoHWScene : DefaultScene() {
     }
 }
 
-/**
- * Returns true if this is less than to in every dimension.
- */
-private fun Vector3f.isFullyLessThan(to: Vector3f): Boolean {
-    return this.x < to.x && this.y < to.y && this.z < to.z
-}
 

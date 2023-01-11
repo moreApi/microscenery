@@ -17,6 +17,7 @@ import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.UI.MovementCommand
 import microscenery.hardware.MicroscopeHardware
+import microscenery.isFullyLessThan
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
@@ -323,6 +324,36 @@ class StageSpaceManager(
 
     fun live(b: Boolean) {
         hardware.live = b
+    }
+
+    fun sampleStageSpace(from: Vector3f, to: Vector3f, resolution: Vector3f) {
+        if (!from.isFullyLessThan(to)){
+            throw IllegalArgumentException("from needs to be smaller than to.")
+        }
+        if (hardware.status().state != ServerState.MANUAL){
+            throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
+        }
+
+        val positions = mutableListOf<Vector3f>()
+        // I'm missing classic for loops, kotlin :,(
+        var x = from.x
+        while(x <= to.x) {
+            var y = from.y
+            while(y <= to.y) {
+                var z = from.z
+                while(z <= to.z) {
+                    positions += Vector3f(x,y,z)
+                    z += resolution.z
+                }
+                y += resolution.y
+            }
+            x += resolution.x
+        }
+
+        positions.forEach {
+            this.stagePosition = it
+            this.snapSlice()
+        }
     }
 
     private class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
