@@ -2,8 +2,6 @@ package microscenery.stageSpace
 
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
-import graphics.scenery.controls.InputHandler
-import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
@@ -15,7 +13,6 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.UI.MovementCommand
 import microscenery.hardware.MicroscopeHardware
 import microscenery.isFullyLessThan
 import microscenery.signals.*
@@ -24,10 +21,8 @@ import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
-import org.scijava.ui.behaviour.ClickBehaviour
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
 /**
@@ -43,7 +38,7 @@ class StageSpaceManager(
     val scaleDownFactor: Float = 100f,
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent(), HasTransferFunction {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    internal val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
     val stageRoot = RichNode("stage root")
@@ -327,22 +322,22 @@ class StageSpaceManager(
     }
 
     fun sampleStageSpace(from: Vector3f, to: Vector3f, resolution: Vector3f) {
-        if (!from.isFullyLessThan(to)){
+        if (!from.isFullyLessThan(to)) {
             throw IllegalArgumentException("from needs to be smaller than to.")
         }
-        if (hardware.status().state != ServerState.MANUAL){
+        if (hardware.status().state != ServerState.MANUAL) {
             throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
         }
 
         val positions = mutableListOf<Vector3f>()
         // I'm missing classic for loops, kotlin :,(
         var x = from.x
-        while(x <= to.x) {
+        while (x <= to.x) {
             var y = from.y
-            while(y <= to.y) {
+            while (y <= to.y) {
                 var z = from.z
-                while(z <= to.z) {
-                    positions += Vector3f(x,y,z)
+                while (z <= to.z) {
+                    positions += Vector3f(x, y, z)
                     z += resolution.z
                 }
                 y += resolution.y
@@ -358,143 +353,6 @@ class StageSpaceManager(
 
     private class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
 
-
-    fun userInteraction(inputHandler: InputHandler, cam: Camera) {
-        listOf(
-            "frame_forward", "frame_back", "frame_left", "frame_right" , "frame_up", "frame_down"
-        ).forEach { name,  ->
-            inputHandler.addBehaviour(
-                name, MovementCommand(name.removePrefix("frame_"), { focusTarget }, cam, speed = 1f)
-            )
-        }
-        MicroscenerySettings.setIfUnset("FrameControl", false)
-        remapControl(inputHandler)
-        MicroscenerySettings.addUpdateRoutine("FrameControl"
-        ) {
-            logger.info("FrameControl = ${MicroscenerySettings.getProperty<Boolean>("FrameControl")}")
-            remapControl(inputHandler)
-        }
-
-        inputHandler.addBehaviour("switchControl", ClickBehaviour { _, _ ->
-            val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
-            MicroscenerySettings.set("FrameControl", !frameControl)
-        })
-        inputHandler.addKeyBinding("switchControl", "E")
-
-        inputHandler.addBehaviour("frameDragging", MouseDragPlane("frameDragging",
-            { scene.findObserver() },
-            { focusTarget },
-            false,
-            mouseSpeed = { 100f * 5 / scaleDownFactor }))
-        inputHandler.addKeyBinding("frameDragging", "1")
-
-        inputHandler.addBehaviour("snap", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                snapSlice()
-            }
-        })
-        inputHandler.addKeyBinding("snap", "2")
-
-        inputHandler.addBehaviour("toggleLive", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                hardware.live = !hardware.live
-            }
-        })
-        inputHandler.addKeyBinding("toggleLive", "3")
-
-        inputHandler.addBehaviour("steering", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                focusTarget?.let {
-                    if (it.mode != FocusFrame.Mode.STEERING) {
-                        it.mode = FocusFrame.Mode.STEERING
-                    } else {
-                        it.mode = FocusFrame.Mode.PASSIVE
-                    }
-                    logger.info("focusframe mode is now ${it.mode}")
-                }
-            }
-        })
-        inputHandler.addKeyBinding("steering", "4")
-
-        inputHandler.addBehaviour("stackAcq", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                focusTarget?.let {
-                    if (it.mode == FocusFrame.Mode.STACK_SELECTION) {
-                        focusTarget?.let {
-                            if (it.stackStartPos.z < it.spatial().position.z) stack(
-                                it.stackStartPos,
-                                it.spatial().position,
-                                false
-                            )
-                            else stack(it.spatial().position, it.stackStartPos, false)
-                        }
-                        it.mode = FocusFrame.Mode.PASSIVE
-                    } else {
-                        it.mode = FocusFrame.Mode.STACK_SELECTION
-                    }
-                    logger.info("focusframe mode is now ${it.mode}")
-                }
-            }
-        })
-        inputHandler.addKeyBinding("stackAcq", "5")
-
-
-        inputHandler.addBehaviour("help", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                thread {
-                    scene.findObserver()?.showMessage(
-                        "1:drag 2:snap 3:live 4:steer 5:stack E:toggle control"
-                    )
-//                    Thread.sleep(2000)
-//                    scene.findObserver()?.showMessage(
-//                        "AD - X, WS - Y, JK - Z"
-//                    )
-                }
-
-            }
-        })
-        inputHandler.addKeyBinding("help", "H")
-    }
-
-    private fun remapControl(inputHandler: InputHandler) {
-        val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
-        val defaultBehaviours = listOf(
-            "move_forward" to "W",
-            "move_back" to "S",
-            "move_left" to "A",
-            "move_right" to "D",
-            "move_up" to "K",
-            "move_down" to "J"
-        )
-        val frameBehaviours = listOf(
-            "frame_forward" to "J",
-            "frame_back" to "K",
-            "frame_left" to "A",
-            "frame_right" to "D",
-            "frame_up" to "W",
-            "frame_down" to "S"
-        )
-        if (frameControl) {
-            defaultBehaviours.forEach { (name, _) ->
-                inputHandler.removeKeyBinding(name)
-                logger.info("removed keys $name")
-            }
-            frameBehaviours.forEach { (name, key) ->
-                inputHandler.addKeyBinding(name, key)
-                logger.info("added key $key to $name")
-            }
-        } else {
-            frameBehaviours.forEach { (name, _) ->
-                inputHandler.removeKeyBinding(name)
-                logger.info("removed keys from $name")
-            }
-            defaultBehaviours.forEach { (name, key) ->
-                inputHandler.addKeyBinding(name, key)
-                logger.info("added key $key to $name")
-            }
-        }
-
-    }
 
     companion object {
         private fun BufferedVolume.goToNewTimepoint(buffer: ByteBuffer) {

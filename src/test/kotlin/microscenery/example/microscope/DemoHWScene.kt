@@ -4,6 +4,7 @@ import graphics.scenery.SettingsEditor
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
+import microscenery.UI.StageSpaceUI.Companion.stageUserInteraction
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
@@ -25,7 +26,6 @@ class DemoHWScene : DefaultScene() {
 //        MicroscenerySettings.set("Stage.maxX", 44000f)
 //        MicroscenerySettings.set("Stage.maxY", 26000f)
 //        MicroscenerySettings.set("Stage.maxZ", 100f)
-
 
 
         val hw = DemoMicroscopeHardware(binning = 2)
@@ -57,7 +57,7 @@ class DemoHWScene : DefaultScene() {
             //db.fixed()
             //db.fixedStack()
 
-            stageSpaceManager.sampleStageSpace(Vector3f(25f),Vector3f(175f),Vector3f(30f,30f,50f))
+            stageSpaceManager.sampleStageSpace(Vector3f(25f), Vector3f(175f), Vector3f(30f, 30f, 50f))
         }
         thread {
             while (true) {
@@ -72,7 +72,7 @@ class DemoHWScene : DefaultScene() {
         super.inputSetup()
 
         inputHandler?.let {
-            stageSpaceManager.userInteraction(it, cam)
+            stageUserInteraction(stageSpaceManager, it, cam)
         }
     }
 
