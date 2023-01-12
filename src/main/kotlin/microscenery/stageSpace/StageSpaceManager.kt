@@ -14,7 +14,6 @@ import graphics.scenery.volumes.Volume
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
-import microscenery.isFullyLessThan
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
@@ -79,6 +78,10 @@ class StageSpaceManager(
         }
 
     init {
+        MicroscenerySettings.setIfUnset("Stage.ExploreResolutionX", 10f)
+        MicroscenerySettings.setIfUnset("Stage.ExploreResolutionY", 10f)
+        MicroscenerySettings.setIfUnset("Stage.ExploreResolutionZ", 10f)
+
         scene.addChild(stageRoot)
         calculateOffsetAndScale()
 
@@ -156,7 +159,7 @@ class StageSpaceManager(
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
-        //signal?.let { logger.info("got a ${signal::class.simpleName} signal") }
+        signal?.let { logger.info("got a ${signal::class.simpleName} signal:\n$signal") }
         when (signal) {
             is Slice -> {
                 if (signal.data == null) return
@@ -327,13 +330,25 @@ class StageSpaceManager(
         hardware.stop()
     }
 
-    fun sampleStageSpace(from: Vector3f, to: Vector3f, resolution: Vector3f) {
-        if (!from.isFullyLessThan(to)) {
-            throw IllegalArgumentException("from needs to be smaller than to.")
-        }
+    fun exploreCubeStageSpace(p1: Vector3f, p2: Vector3f, resolution: Vector3f = Vector3f(
+        MicroscenerySettings.get("Stage.ExploreResolutionX", 10f),
+        MicroscenerySettings.get("Stage.ExploreResolutionY", 10f),
+        MicroscenerySettings.get("Stage.ExploreResolutionZ", 10f)
+    )) {
         if (hardware.status().state != ServerState.MANUAL) {
             throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
         }
+
+        val from = Vector3f(
+            p1.x.coerceAtMost(p2.x),
+            p1.y.coerceAtMost(p2.y),
+            p1.z.coerceAtMost(p2.z),
+        )
+        val to = Vector3f(
+            p1.x.coerceAtLeast(p2.x),
+            p1.y.coerceAtLeast(p2.y),
+            p1.z.coerceAtLeast(p2.z),
+        )
 
         val positions = mutableListOf<Vector3f>()
         // I'm missing classic for loops, kotlin :,(

@@ -1,11 +1,13 @@
 package microscenery.UI
 
+import graphics.scenery.Box
 import graphics.scenery.Camera
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import microscenery.MicroscenerySettings
 import microscenery.stageSpace.FocusFrame
 import microscenery.stageSpace.StageSpaceManager
+import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
@@ -94,9 +96,37 @@ class StageSpaceUI {
             })
             inputHandler.addKeyBinding("stackAcq", "5")
 
+            var searchCubeStart: Box? = null
+            inputHandler.addBehaviour("searchCube", object : ClickBehaviour {
+                override fun click(x: Int, y: Int) {
+                    val frame = stageSpaceManager.focusTarget ?: return
+                    if (searchCubeStart == null){
+                        stageSpaceManager.stageRoot.addChild(Box().apply { 
+                            spatial{
+                                this.position = frame.spatial().position
+                                this.scale =frame.children.first().ifSpatial{}?.scale ?: Vector3f(1f)
+                            }
+
+                            searchCubeStart = this
+                        })
+                    } else {
+                        val p1 = searchCubeStart!!.spatial().position
+                        val p2 = frame.spatial().position
+
+                        stageSpaceManager.exploreCubeStageSpace(p1,p2)
+
+                        searchCubeStart?.let { it.parent?.removeChild(it) }
+                        searchCubeStart = null
+                    }
+                }
+            })
+            inputHandler.addKeyBinding("searchCube", "6")
+
 
             inputHandler.addBehaviour("stop", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
+                    searchCubeStart?.let { it.parent?.removeChild(it) }
+                    searchCubeStart = null
                     stageSpaceManager.stop()
                 }
             })
@@ -107,12 +137,12 @@ class StageSpaceUI {
                 override fun click(x: Int, y: Int) {
                     thread {
                         stageSpaceManager.scene.findObserver()?.showMessage(
-                            "1:drag 2:snap 3:live 4:steer 5:stack 0:STOP E:toggle control"
+                            "1:drag 2:snap 3:live 4:steer"
                         )
-//                    Thread.sleep(2000)
-//                    scene.findObserver()?.showMessage(
-//                        "AD - X, WS - Y, JK - Z"
-//                    )
+                        Thread.sleep(2000)
+                        stageSpaceManager.scene.findObserver()?.showMessage(
+                            "5:stack 6: explCube 0:STOP E:toggle control"
+                        )
                     }
 
                 }
