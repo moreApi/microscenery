@@ -2,6 +2,7 @@ package microscenery.example.network
 
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
+import microscenery.UI.StageSpaceUI
 import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
@@ -50,7 +51,7 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         super.inputSetup()
 
         inputHandler?.let {
-            stageSpaceManager.userInteraction(it, cam)
+            StageSpaceUI.stageUserInteraction(stageSpaceManager, it, cam)
         }
 
     }

@@ -317,8 +317,14 @@ class StageSpaceManager(
         hardware.snapSlice()
     }
 
-    fun live(b: Boolean) {
-        hardware.live = b
+    fun goLive() {
+        logger.info("going live")
+        hardware.goLive()
+    }
+
+    fun stop() {
+        logger.info("stopping")
+        hardware.stop()
     }
 
     fun sampleStageSpace(from: Vector3f, to: Vector3f, resolution: Vector3f) {

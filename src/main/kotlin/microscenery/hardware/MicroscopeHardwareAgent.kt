@@ -33,12 +33,6 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
             moveStage(value)
         }
 
-    override var live: Boolean
-        get() = status.live
-        set(value) {
-            live(value)
-        }
-
     protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
         HardwareDimensions.EMPTY.copy(stageMin = Vector3f(-45f))
     ) { _, _, _ ->
@@ -52,10 +46,4 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
      * New stage position has to be announced in status in implementing method.
      */
     protected abstract fun moveStage(target: Vector3f)
-
-    /**
-     * New live status has to be announced in status in implementing method.
-     */
-    protected abstract fun live(isLive: Boolean)
-
 }

@@ -51,12 +51,12 @@ class StageSpaceUI {
             })
             inputHandler.addKeyBinding("snap", "2")
 
-            inputHandler.addBehaviour("toggleLive", object : ClickBehaviour {
+            inputHandler.addBehaviour("goLive", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
-                    stageSpaceManager.hardware.live = !stageSpaceManager.hardware.live
+                    stageSpaceManager.goLive()
                 }
             })
-            inputHandler.addKeyBinding("toggleLive", "3")
+            inputHandler.addKeyBinding("goLive", "3")
 
             inputHandler.addBehaviour("steering", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
@@ -95,11 +95,19 @@ class StageSpaceUI {
             inputHandler.addKeyBinding("stackAcq", "5")
 
 
+            inputHandler.addBehaviour("stop", object : ClickBehaviour {
+                override fun click(x: Int, y: Int) {
+                    stageSpaceManager.stop()
+                }
+            })
+            inputHandler.addKeyBinding("stop", "0")
+
+
             inputHandler.addBehaviour("help", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
                     thread {
                         stageSpaceManager.scene.findObserver()?.showMessage(
-                            "1:drag 2:snap 3:live 4:steer 5:stack E:toggle control"
+                            "1:drag 2:snap 3:live 4:steer 5:stack 0:STOP E:toggle control"
                         )
 //                    Thread.sleep(2000)
 //                    scene.findObserver()?.showMessage(

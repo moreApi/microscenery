@@ -61,12 +61,12 @@ class RemoteMicroscopeClient(
         controlConnection.sendSignal(meta)
     }
 
-    override fun live(isLive: Boolean) {
-        if (isLive) {
-            controlConnection.sendSignal(ClientSignal.Live)
-        } else {
-            controlConnection.sendSignal(ClientSignal.Stop)
-        }
+    override fun goLive() {
+        controlConnection.sendSignal(ClientSignal.Live)
+    }
+
+    override fun stop() {
+        controlConnection.sendSignal(ClientSignal.Stop)
     }
 
     /**
@@ -81,8 +81,7 @@ class RemoteMicroscopeClient(
                         hardwareDimensions = microscopeSignal
                     }
                     is MicroscopeStatus -> {
-                        if (microscopeSignal.state == ServerState.SHUTTING_DOWN)
-                            this.close()
+                        if (microscopeSignal.state == ServerState.SHUTTING_DOWN) this.close()
                         status = microscopeSignal
                     }
                     is Slice -> {

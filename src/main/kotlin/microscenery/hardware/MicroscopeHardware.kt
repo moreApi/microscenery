@@ -9,7 +9,12 @@ import java.util.concurrent.BlockingQueue
 
 interface MicroscopeHardware {
     var stagePosition: Vector3f
-    var live: Boolean
+    fun goLive()
+
+    /**
+     * Stops all execution as fast as possible.
+     */
+    fun stop()
     fun snapSlice()
     fun shutdown()
     fun acquireStack(meta: ClientSignal.AcquireStack)

@@ -80,20 +80,18 @@ class MicromanagerWrapper(
     }
 
     override fun acquireStack(meta: ClientSignal.AcquireStack) {
-        live(false)
+        stop()
         hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
-    override fun live(isLive: Boolean) {
-        status = if (isLive) {
-            hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
-            status.copy(state = ServerState.LIVE)
-        } else {
-            synchronized(stopLock) {
-                hardwareCommandsQueue.clear()
-                hardwareCommandsQueue.add(HardwareCommand.Stop)
-            }
-            status.copy(state = ServerState.MANUAL)
+    override fun goLive() {
+        hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
+    }
+
+    override fun stop() {
+        synchronized(stopLock) {
+            hardwareCommandsQueue.clear()
+            hardwareCommandsQueue.add(HardwareCommand.Stop)
         }
     }
 
@@ -199,10 +197,20 @@ class MicromanagerWrapper(
                 output.put(sliceSignal)
                 lastSnap = System.currentTimeMillis()
                 if (hwCommand.live) {
+                    when (status.state) {
+                        ServerState.LIVE -> {}
+                        ServerState.MANUAL -> status = status.copy(state = ServerState.LIVE)
+                        else -> {
+                            stop()
+                            throw IllegalStateException("Want to go live but server is ${status.state}. Stopping.")
+                        }
+                    }
                     addToCommandQueueIfNotStopped(hwCommand)
                 }
             }
-            is HardwareCommand.Stop -> {} //it's just a marker
+            is HardwareCommand.Stop -> {
+                status = status.copy(state = ServerState.MANUAL)
+            }
             is HardwareCommand.Shutdown -> {
                 this.close()
             }

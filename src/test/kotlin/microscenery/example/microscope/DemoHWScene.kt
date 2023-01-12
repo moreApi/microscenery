@@ -28,7 +28,7 @@ class DemoHWScene : DefaultScene() {
 //        MicroscenerySettings.set("Stage.maxZ", 100f)
 
 
-        val hw = DemoMicroscopeHardware(binning = 2)
+        val hw = DemoMicroscopeHardware(binning = 1)
         stageSpaceManager = StageSpaceManager(
             hw,
             scene,
@@ -57,7 +57,7 @@ class DemoHWScene : DefaultScene() {
             //db.fixed()
             //db.fixedStack()
 
-            stageSpaceManager.sampleStageSpace(Vector3f(25f), Vector3f(175f), Vector3f(30f, 30f, 50f))
+            //stageSpaceManager.sampleStageSpace(Vector3f(25f), Vector3f(175f), Vector3f(30f, 30f, 50f))
         }
         thread {
             while (true) {

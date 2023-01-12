@@ -1,12 +1,13 @@
 package microscenery.example.microscope
 
-import graphics.scenery.controls.behaviours.*
+import graphics.scenery.controls.behaviours.Switch
+import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
-import microscenery.stageSpace.StageSpaceManager
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.stageSpace.FocusFrame
+import microscenery.stageSpace.StageSpaceManager
 import kotlin.concurrent.thread
 
 class DemoHWSceneVR : DefaultVRScene() {
@@ -32,20 +33,28 @@ class DemoHWSceneVR : DefaultVRScene() {
     override fun inputSetup() {
         super.inputSetup()
 
-        VRUIManager.initBehavior(scene, hmd, inputHandler,
-        customActions = WheelMenu(hmd, listOf(
-            Switch("Steering", false) { value ->
-                stageSpaceManager.focusTarget?.let {
-                    if (value && it.mode != FocusFrame.Mode.STEERING) {
-                        it.mode = FocusFrame.Mode.STEERING
-                    } else {
-                        it.mode = FocusFrame.Mode.PASSIVE
-                    }
-                    logger.info("focusframe mode is now ${it.mode}")
-                }
-            },
-            Switch("Live", false) { stageSpaceManager.hardware.live = it },
-        ))
+        VRUIManager.initBehavior(
+            scene, hmd, inputHandler,
+            customActions = WheelMenu(
+                hmd, listOf(
+                    Switch("Steering", false) { value ->
+                        stageSpaceManager.focusTarget?.let {
+                            if (value && it.mode != FocusFrame.Mode.STEERING) {
+                                it.mode = FocusFrame.Mode.STEERING
+                            } else {
+                                it.mode = FocusFrame.Mode.PASSIVE
+                            }
+                            logger.info("focusframe mode is now ${it.mode}")
+                        }
+                    },
+                    Switch("Live", false) {
+                        if (it)
+                            stageSpaceManager.goLive()
+                        else
+                            stageSpaceManager.stop()
+                    },
+                )
+            )
         ) {
             scene.findByClassname(Volume::class.simpleName!!).first() as Volume
         }

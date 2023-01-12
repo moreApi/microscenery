@@ -4,6 +4,7 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
+import microscenery.UI.StageSpaceUI.Companion.stageUserInteraction
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
@@ -65,8 +66,8 @@ class LocalMMScene : DefaultScene() {
         val db = DemoBehavior(hardware.hardwareDimensions().stageMax.z, stageSpaceManager)
         //Thread.sleep(2000)
         //db.randomLive()
-        db.fixedStack(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 120f))
-        db.fixed()
+        //db.fixedStack(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 120f))
+        //db.fixed()
 
         thread {
             while (true) {
@@ -81,7 +82,7 @@ class LocalMMScene : DefaultScene() {
         super.inputSetup()
 
         inputHandler?.let {
-            stageSpaceManager.userInteraction(it, cam)
+            stageUserInteraction(stageSpaceManager, it, cam)
         }
     }
 

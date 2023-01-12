@@ -118,26 +118,32 @@ class DemoMicroscopeHardware(
         output.put(signal)
     }
 
-    override fun live(isLive: Boolean) {
-        when {
-            isLive && status.state == ServerState.MANUAL && liveThread == null -> {
-                liveThread = thread(isDaemon = true) {
-                    while (!Thread.currentThread().isInterrupted) {
-                        snapSlice()
-                        Thread.sleep(timeBetweenUpdatesMilli.toLong())
-                    }
+    override fun goLive() {
+        if (
+            status.state == ServerState.MANUAL && liveThread == null) {
+            liveThread = thread(isDaemon = true) {
+                while (!Thread.currentThread().isInterrupted) {
+                    snapSlice()
+                    Thread.sleep(timeBetweenUpdatesMilli.toLong())
                 }
-                status = status.copy(state = ServerState.LIVE)
             }
-            !isLive -> {
-                liveThread?.interrupt()
-                status = status.copy(state = ServerState.MANUAL)
-            }
+            status = status.copy(state = ServerState.LIVE)
+        } else {
+            logger.warn("Microscope not Manual (is ${status.state}) -> not going live")
+        }
+    }
+
+    override fun stop() {
+
+        if (status.state == ServerState.LIVE) {
+            liveThread?.interrupt()
+            liveThread = null
+            status = status.copy(state = ServerState.MANUAL)
         }
     }
 
     override fun shutdown() {
-        live(false)
+        stop()
     }
 
     override fun acquireStack(meta: ClientSignal.AcquireStack) {
