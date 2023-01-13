@@ -90,7 +90,9 @@ class RemoteMicroscopeClient(
                             requestedSlices[microscopeSignal.Id] = microscopeSignal
                         }
                     }
-                    is Stack -> TODO()
+                    is Stack -> {
+                        logger.warn("Stacks are not implemented for remote at the moment.")
+                    }
                 }
             }
             is RemoteMicroscopeStatus -> {}
