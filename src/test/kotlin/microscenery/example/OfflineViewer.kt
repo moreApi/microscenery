@@ -8,7 +8,6 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultScene
 import microscenery.DefaultVRScene
-import microscenery.UI.DisplayRangeEditor
 import microscenery.VRUI.VRUIManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -167,7 +166,6 @@ class OfflineViewer2D : DefaultScene() {
 
         val vol = currentVolume(hub)
         scene.addChild(vol)
-        DisplayRangeEditor(vol.converterSetups.first())
         thread {
             while (true) {
                 Thread.sleep(500)
@@ -193,7 +191,6 @@ class OfflineViewerVR() : DefaultVRScene("Embo Scene") {
         val vol = currentVolume(hub)
         scene.addChild(vol)
 
-        DisplayRangeEditor(vol.converterSetups.first())
 
         thread {
             while (true) {
