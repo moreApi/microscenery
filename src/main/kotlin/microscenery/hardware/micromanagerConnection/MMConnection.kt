@@ -16,9 +16,6 @@ import java.nio.ShortBuffer
  * MMConnection.core.configuration
  * MMConnection.core.settingsGroupName
  * MMConnection.core.presetName
- * MMConnection.minZ
- * MMConnection.maxZ
- * MMConnection.slices
  */
 class MMConnection @JvmOverloads constructor(
     core_: CMMCore? = null
@@ -123,6 +120,7 @@ class MMConnection @JvmOverloads constructor(
         if (wait) {
             core.waitForDevice(core.xyStageDevice)
         }
+
     }
 
     private fun recordTimes(snap: Long, copy: Long) {

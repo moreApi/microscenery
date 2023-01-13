@@ -4,11 +4,13 @@ import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.utils.extensions.xy
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.nowMillis
 import microscenery.setVector3fIfUnset
 import microscenery.signals.*
+import microscenery.toReadableString
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
@@ -160,6 +162,24 @@ class MicromanagerWrapper(
             is HardwareCommand.MoveStage -> {
                 // skip if next command is also move
                 if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
+
+                val target = hwCommand.safeTarget
+
+                val overXYPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionXY")?.let {
+                    !stagePosition.xy().equals(target.xy(), it)
+                } ?: true
+
+                val overZPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionZ")?.let { precision ->
+                    val from = stagePosition.z
+                    val to = target.z
+                    to < from - precision || from + precision < to
+                } ?: true
+
+                if (!overXYPrecision && !overZPrecision){
+                    logger.info("Not moving stage to ${hwCommand.safeTarget.toReadableString()} because " +
+                            "to close to stage pos ${stagePosition.toReadableString()}")
+                    return
+                }
 
                 try {
                     mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)

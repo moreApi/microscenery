@@ -1,6 +1,7 @@
 package microscenery.example.microscope
 
 import graphics.scenery.Box
+import graphics.scenery.SettingsEditor
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
@@ -34,6 +35,9 @@ class LocalMMScene : DefaultScene() {
         MicroscenerySettings.set("Stage.maxX", 0f)
         MicroscenerySettings.set("Stage.maxY", 0f)
         MicroscenerySettings.set("Stage.maxZ", 120f)
+
+        MicroscenerySettings.set("MMConnection.core.configuration","C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake_picard.cfg")
+
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
@@ -54,6 +58,7 @@ class LocalMMScene : DefaultScene() {
         scene.addChild(hullbox)
 
         TransferFunctionEditor(tfContainer = stageSpaceManager)
+        SettingsEditor(MicroscenerySettings)
         stageSpaceManager.minDisplayRange = 50f
 
 
