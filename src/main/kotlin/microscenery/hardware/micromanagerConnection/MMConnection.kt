@@ -1,7 +1,6 @@
 package microscenery.hardware.micromanagerConnection
 
 import graphics.scenery.utils.LazyLogger
-import graphics.scenery.utils.extensions.xy
 import microscenery.MicroscenerySettings
 import microscenery.hardware.SPIMSetup
 import microscenery.let
@@ -117,22 +116,13 @@ class MMConnection @JvmOverloads constructor(
             return
         }
 
-        if (!stagePosition.xy().equals(target.xy(), MicroscenerySettings.get("Stage.precisionXY", 1.0f)))
-            core.setXYPosition(target.x.toDouble(), target.y.toDouble())
-
-        val precision = MicroscenerySettings.get("Stage.precisionZ", 1.0f)
-        val from = stagePosition.z
-        val to = target.z
-
-        if (to < from - precision || from + precision < to) {
-            setup.zStage.position = to.toDouble()
-        }
+        core.setXYPosition(target.x.toDouble(), target.y.toDouble())
+        setup.zStage.position = target.z.toDouble()
 
         // device name xyStage = "XY" ??
         if (wait) {
             core.waitForDevice(core.xyStageDevice)
         }
-
     }
 
     private fun recordTimes(snap: Long, copy: Long) {
