@@ -2,8 +2,10 @@ package microscenery.UI
 
 import graphics.scenery.Box
 import graphics.scenery.Camera
+import graphics.scenery.SettingsEditor
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
+import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.MicroscenerySettings
 import microscenery.stageSpace.FocusFrame
 import microscenery.stageSpace.StageSpaceManager
@@ -148,6 +150,15 @@ class StageSpaceUI {
                 }
             })
             inputHandler.addKeyBinding("help", "H")
+
+            inputHandler.addBehaviour("openEditors", object : ClickBehaviour {
+                override fun click(x: Int, y: Int) {
+                    TransferFunctionEditor(stageSpaceManager)
+                    SettingsEditor(MicroscenerySettings)
+                }
+            })
+            inputHandler.addKeyBinding("openEditors", "T")
+
         }
 
         private fun remapControl(stageSpaceManager: StageSpaceManager, inputHandler: InputHandler) {

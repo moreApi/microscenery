@@ -1,9 +1,7 @@
 package microscenery.example.microscope
 
-import graphics.scenery.SettingsEditor
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
-import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI.Companion.stageUserInteraction
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.stageSpace.MicroscopeLayout
@@ -41,8 +39,6 @@ class DemoHWScene : DefaultScene() {
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
 
-        //val tfUI = TransferFunctionEditor(stageSpaceManager)
-        val settingsEditor = SettingsEditor(MicroscenerySettings)
         //tfUI.name = "Slices"
 
         thread {
