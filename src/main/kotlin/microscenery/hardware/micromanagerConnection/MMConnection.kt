@@ -52,6 +52,7 @@ class MMConnection @JvmOverloads constructor(
         )
 
     init {
+        MicroscenerySettings.setIfUnset("MMConnection.OriginMoveProtection", true)
 
         if (core_ != null) {
             core = core_
@@ -110,6 +111,12 @@ class MMConnection @JvmOverloads constructor(
      *  @param wait if true wait until stage reached target.
      */
     fun moveStage(target: Vector3f, wait: Boolean) {
+        if (MicroscenerySettings.get("MMConnection.OriginMoveProtection", true)
+            && target == Vector3f(0f)){//( target.x == 0f || target.y == 0f || target.z == 0f)){
+            logger.warn("Ignoring stage move command because MMConnection.OriginMoveProtection is true")
+            return
+        }
+
         if (!stagePosition.xy().equals(target.xy(), MicroscenerySettings.get("Stage.precisionXY", 1.0f)))
             core.setXYPosition(target.x.toDouble(), target.y.toDouble())
 
