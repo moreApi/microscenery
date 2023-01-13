@@ -7,6 +7,7 @@ import graphics.scenery.utils.extensions.times
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.nowMillis
+import microscenery.setVector3fIfUnset
 import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
@@ -41,6 +42,7 @@ class MicromanagerWrapper(
         }
 
     init {
+        MicroscenerySettings.setVector3fIfUnset("Stage.moveSafetyCutoff",Vector3f(1000f))
         updateHardwareDimensions()
 
         try {
