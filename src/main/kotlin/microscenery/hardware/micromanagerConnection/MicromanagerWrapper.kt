@@ -5,12 +5,9 @@ import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.xy
-import microscenery.MicroscenerySettings
+import microscenery.*
 import microscenery.hardware.MicroscopeHardwareAgent
-import microscenery.nowMillis
-import microscenery.setVector3fIfUnset
 import microscenery.signals.*
-import microscenery.toReadableString
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
@@ -44,13 +41,17 @@ class MicromanagerWrapper(
         }
 
     init {
-        MicroscenerySettings.setVector3fIfUnset("Stage.moveSafetyCutoff",Vector3f(1000f))
+        MicroscenerySettings.setVector3fIfUnset("Stage.min",mmConnection.stagePosition)
+        MicroscenerySettings.setVector3fIfUnset("Stage.max",mmConnection.stagePosition)
+
         updateHardwareDimensions()
 
-        try {
-            hardwareDimensions.coercePosition(mmConnection.stagePosition, null)
-        } catch (_: IllegalStateException) {
-            logger.warn("Stage position and allowed stage area differ greatly!")
+        if (hardwareDimensions.coercePosition(mmConnection.stagePosition, null) != mmConnection.stagePosition){
+            val msg = "Stage ${mmConnection.stagePosition.toReadableString()} not in allowed area " +
+                    "from ${MicroscenerySettings.getVector3("Stage.min")?.toReadableString()}"
+                    "to ${MicroscenerySettings.getVector3("Stage.max")?.toReadableString()}. Aborting!"
+            logger.error(msg)
+            throw IllegalStateException(msg)
         }
 
         startAgent()
@@ -163,18 +164,16 @@ class MicromanagerWrapper(
                 // skip if next command is also move
                 if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
 
+                // precision check, if movement below stage precision, skip
                 val target = hwCommand.safeTarget
-
                 val overXYPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionXY")?.let {
                     !stagePosition.xy().equals(target.xy(), it)
                 } ?: true
-
                 val overZPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionZ")?.let { precision ->
                     val from = stagePosition.z
                     val to = target.z
                     to < from - precision || from + precision < to
                 } ?: true
-
                 if (!overXYPrecision && !overZPrecision){
                     logger.info("Not moving stage to ${hwCommand.safeTarget.toReadableString()} because " +
                             "to close to stage pos ${stagePosition.toReadableString()}")
