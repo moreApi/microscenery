@@ -14,6 +14,7 @@ import graphics.scenery.volumes.Volume
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
+import microscenery.setVector3fIfUnset
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
@@ -78,9 +79,7 @@ class StageSpaceManager(
         }
 
     init {
-        MicroscenerySettings.setIfUnset("Stage.ExploreResolutionX", 10f)
-        MicroscenerySettings.setIfUnset("Stage.ExploreResolutionY", 10f)
-        MicroscenerySettings.setIfUnset("Stage.ExploreResolutionZ", 10f)
+        MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolutionX", Vector3f(10f))
 
         scene.addChild(stageRoot)
         calculateOffsetAndScale()

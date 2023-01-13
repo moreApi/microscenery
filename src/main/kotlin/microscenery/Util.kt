@@ -144,3 +144,17 @@ fun Vector4f.toReadableString() = String.format("(%.3f,%.3f,%.3f,%.3f)", x, y, z
 fun Vector3f.isFullyLessThan(to: Vector3f): Boolean {
     return this.x < to.x && this.y < to.y && this.z < to.z
 }
+
+fun Settings.getVector3(baseName: String): Vector3f?{
+    return Vector3f(
+        getOrNull(baseName+"X") ?: return null,
+        getOrNull(baseName+"Y") ?: return null,
+        getOrNull(baseName+"Z") ?: return null
+    )
+}
+
+fun Settings.setVector3fIfUnset(baseName: String, v: Vector3f){
+    this.setIfUnset(baseName+"X", v.x)
+    this.setIfUnset(baseName+"Y", v.y)
+    this.setIfUnset(baseName+"Z", v.z)
+}
