@@ -16,6 +16,8 @@ message ClientSignal {
     SnapImage snapImage = 5;
     AcquireStack acquireStack = 6;
     Stop stop = 7;
+    AblationPoints ablationPoints = 8;
+    AblationShutter ablationShutter = 9;
   }
 }
 message Live {}
@@ -34,4 +36,18 @@ message AcquireStack{
   Vector2Int roiEnd = 6;
 }
 message Stop {};
+message AblationPoints{
+  repeated AblationPoint points = 2;
+}
+message AblationPoint{
+  Vector3Float position = 1;
+  float dwellTime = 2;
+  bool laserOn = 3;
+  bool laserOff = 4;
+  float laserPower = 5;
+}
+message AblationShutter{
+  bool open = 1;
+}
+
 

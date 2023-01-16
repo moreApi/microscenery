@@ -191,7 +191,7 @@ data class MicroscopeStatus(
 }
 
 enum class ServerState {
-    LIVE, MANUAL, SHUTTING_DOWN, STACK, STARTUP,
+    LIVE, MANUAL, SHUTTING_DOWN, STACK, STARTUP, ABLATION
 }
 
 fun ServerState.toProto() = when (this) {
@@ -200,6 +200,7 @@ fun ServerState.toProto() = when (this) {
     ServerState.SHUTTING_DOWN -> EnumServerState.SERVER_STATE_SHUTTING_DOWN
     ServerState.STACK -> EnumServerState.SERVER_STATE_STACK
     ServerState.STARTUP -> EnumServerState.SERVER_STATE_STARTUP
+    ServerState.ABLATION -> EnumServerState.SERVER_STATE_ABLATION
 }
 
 fun EnumServerState.toPoko() = when (this) {
@@ -209,6 +210,7 @@ fun EnumServerState.toPoko() = when (this) {
     EnumServerState.SERVER_STATE_SHUTTING_DOWN -> ServerState.SHUTTING_DOWN
     EnumServerState.SERVER_STATE_STACK -> ServerState.STACK
     EnumServerState.SERVER_STATE_STARTUP -> ServerState.STARTUP
+    EnumServerState.SERVER_STATE_ABLATION -> ServerState.ABLATION
     EnumServerState.UNRECOGNIZED -> throw IllegalArgumentException("Cant convert to ServerState")
 }
 

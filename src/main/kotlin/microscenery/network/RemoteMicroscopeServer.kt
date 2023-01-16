@@ -73,6 +73,8 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
             }
             ClientSignal.SnapImage -> microscope.snapSlice()
             ClientSignal.Stop -> microscope.stop()
+            is ClientSignal.AblationPoints -> TODO()
+            is ClientSignal.AblationShutter -> TODO()
         }
     }
 

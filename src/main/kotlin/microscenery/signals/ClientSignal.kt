@@ -16,11 +16,17 @@ sealed class ClientSignal {
             Shutdown -> cs.shutdownBuilder.build()
             SnapImage -> cs.snapImageBuilder.build()
             Stop -> cs.stopBuilder.build()
+            is AblationPoints -> throw NotImplementedError("This case should be overwritten.")
+            is AblationShutter -> throw NotImplementedError("This case should be overwritten.")
         }
         return cs.build()
     }
 
     object Live : ClientSignal()
+    object ClientSignOn : ClientSignal()
+    object Shutdown : ClientSignal()
+    object SnapImage : ClientSignal()
+    object Stop : ClientSignal()
 
     data class MoveStage(val target: Vector3f) : ClientSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
@@ -29,10 +35,6 @@ sealed class ClientSignal {
             return cs.build()
         }
     }
-
-    object ClientSignOn : ClientSignal()
-    object Shutdown : ClientSignal()
-    object SnapImage : ClientSignal()
 
     data class AcquireStack(
         val startPosition: Vector3f,
@@ -56,7 +58,43 @@ sealed class ClientSignal {
         }
     }
 
-    object Stop : ClientSignal()
+    data class AblationPoints(val points: List<AblationPoint>):ClientSignal(){
+        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
+            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+            val b = cs.ablationPointsBuilder
+            b.addAllPoints(points.map { it.toProto() })
+            b.build()
+            return cs.build()
+        }
+    }
+
+    data class AblationShutter(val open: Boolean):ClientSignal(){
+        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
+            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+            val b = cs.ablationShutterBuilder
+            b.open = open
+            b.build()
+            return cs.build()
+        }
+    }
+
+    data class AblationPoint(
+        val position: Vector3f,
+        val dwellTime: Float  ,
+        val laserOn: Boolean,
+        val laserOff: Boolean,
+        val laserPower: Float  ,
+    ){
+        fun toProto(): me.jancasus.microscenery.network.v2.AblationPoint{
+            val b = me.jancasus.microscenery.network.v2.AblationPoint.newBuilder()
+            b.position = position.toProto()
+            b.dwellTime = dwellTime
+            b.laserOn = laserOn
+            b.laserOff = laserOff
+            b.laserPower = laserPower
+            return b.build()
+        }
+    }
 
     companion object {
         fun me.jancasus.microscenery.network.v2.ClientSignal.toPoko(): ClientSignal =
@@ -85,6 +123,20 @@ sealed class ClientSignal {
                     )
                 }
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.STOP -> Stop
+                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.ABLATIONPOINTS ->{
+                    val points = this.ablationPoints.pointsList
+                    AblationPoints(points.map{
+                        AblationPoint(
+                        it.position.toPoko(),
+                        it.dwellTime,
+                        it.laserOn,
+                        it.laserOff,
+                        it.laserPower
+                    )
+                    })
+                }
+                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.ABLATIONSHUTTER ->
+                    AblationShutter(this.ablationShutter.open)
             }
     }
 }

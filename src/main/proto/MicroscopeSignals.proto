@@ -20,6 +20,7 @@ message MicroscopeStatus{
   EnumServerState state = 1;
   Vector3Float stagePosition = 2;
   bool live = 3;
+  bool ablationShutterOpen = 4;
 }
 enum EnumServerState{
   SERVER_STATE_UNKNOWN = 0;
@@ -31,6 +32,7 @@ enum EnumServerState{
   // full acquisition mode, stage and camera are controlled automatically
   SERVER_STATE_STACK = 4;
   SERVER_STATE_STARTUP = 5;
+  SERVER_STATE_ABLATION = 6;
 }
 
 message HardwareDimensions{
