@@ -181,6 +181,10 @@ class DemoMicroscopeHardware(
         }
     }
 
+    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+        TODO("Not yet implemented")
+    }
+
     override fun onLoop() {
         throw NotImplementedError("demo hardware has no active agent")
     }

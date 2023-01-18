@@ -80,10 +80,11 @@ sealed class ClientSignal {
 
     data class AblationPoint(
         val position: Vector3f,
-        val dwellTime: Float  ,
+        val dwellTime: Long  ,
         val laserOn: Boolean,
         val laserOff: Boolean,
-        val laserPower: Float  ,
+        val laserPower: Float,
+        val countMoveTime: Boolean
     ){
         fun toProto(): me.jancasus.microscenery.network.v2.AblationPoint{
             val b = me.jancasus.microscenery.network.v2.AblationPoint.newBuilder()
@@ -92,6 +93,7 @@ sealed class ClientSignal {
             b.laserOn = laserOn
             b.laserOff = laserOff
             b.laserPower = laserPower
+            b.countMoveTime = countMoveTime
             return b.build()
         }
     }
@@ -131,7 +133,8 @@ sealed class ClientSignal {
                         it.dwellTime,
                         it.laserOn,
                         it.laserOff,
-                        it.laserPower
+                        it.laserPower,
+                        it.countMoveTime
                     )
                     })
                 }

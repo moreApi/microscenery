@@ -41,10 +41,12 @@ message AblationPoints{
 }
 message AblationPoint{
   Vector3Float position = 1;
-  float dwellTime = 2;
+  // in nano
+  int64 dwellTime = 2;
   bool laserOn = 3;
   bool laserOff = 4;
   float laserPower = 5;
+  bool countMoveTime = 6;
 }
 message AblationShutter{
   bool open = 1;

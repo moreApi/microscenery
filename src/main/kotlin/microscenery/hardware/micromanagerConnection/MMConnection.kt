@@ -116,11 +116,21 @@ class MMConnection @JvmOverloads constructor(
         core.setXYPosition(target.x.toDouble(), target.y.toDouble())
         setup.zStage.position = target.z.toDouble()
 
-        // device name xyStage = "XY" ??
         if (wait) {
             core.waitForDevice(core.xyStageDevice)
+            core.waitForDevice(core.focusDevice)
         }
 
+    }
+
+    fun ablationShutter(open: Boolean, wait: Boolean){
+        //todo
+        logger.debug("Would ${if (open) "open" else "close"} the ablation shutter.")
+    }
+
+    fun laserPower(percent: Float){
+        logger.debug("Would set laser power to $percent")
+        //todo
     }
 
     private fun recordTimes(snap: Long, copy: Long) {

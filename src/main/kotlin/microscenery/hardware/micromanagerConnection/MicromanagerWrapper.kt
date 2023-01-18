@@ -12,7 +12,9 @@ import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
+import kotlin.system.measureNanoTime
 
 /**
  * Wrapper of a [MMConnection] to fit the MicroscopeHardware interface.
@@ -32,6 +34,9 @@ class MicromanagerWrapper(
     // this lock is only relevant for self replicating commands e.g. snapSlice(live=true)
     private val stopLock = Any()
 
+    private var ablationThread: Thread? = null
+
+    // for Slices and stacks
     private var idCounter = 0
     var lastSnap = 0L
     var vertexDiameter = MicroscenerySettings.get("MMConnection.vertexDiameter", mmConnection.pixelSizeUm)
@@ -62,6 +67,7 @@ class MicromanagerWrapper(
      * Reads settings and image size to update hardware dimensions.
      *
      * Takes one image with the microscope to make sure, image meta information are correctly set.
+     * Can be called from UI.
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun updateHardwareDimensions() {
@@ -76,6 +82,9 @@ class MicromanagerWrapper(
         )
     }
 
+    //############################## called from external threads ##############################
+    // to following functions are called from external threads and not from this agents thread
+
     override fun snapSlice() {
         hardwareCommandsQueue.add(HardwareCommand.SnapImage(false))
     }
@@ -89,11 +98,19 @@ class MicromanagerWrapper(
         hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
+    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+        val points = signal.points.map {
+            it.copy(position = hardwareDimensions.coercePosition(it.position, logger))
+        }
+        hardwareCommandsQueue.add(HardwareCommand.AblatePoints(points))
+    }
+
     override fun goLive() {
         hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
     }
 
     override fun stop() {
+        ablationThread?.interrupt()
         synchronized(stopLock) {
             hardwareCommandsQueue.clear()
             hardwareCommandsQueue.add(HardwareCommand.Stop)
@@ -108,13 +125,7 @@ class MicromanagerWrapper(
         }
     }
 
-    private fun addToCommandQueueIfNotStopped(vararg commands: HardwareCommand) {
-        synchronized(stopLock) {
-            if (hardwareCommandsQueue.peek() !is HardwareCommand.Stop) {
-                commands.forEach { hardwareCommandsQueue.add(it) }
-            }
-        }
-    }
+    //############################## end of called from external threads ##############################
 
     override fun onLoop() {
         val hwCommand = hardwareCommandsQueue.poll()
@@ -164,29 +175,7 @@ class MicromanagerWrapper(
                 // skip if next command is also move
                 if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
 
-                // precision check, if movement below stage precision, skip
-                val target = hwCommand.safeTarget
-                val overXYPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionXY")?.let {
-                    !stagePosition.xy().equals(target.xy(), it)
-                } ?: true
-                val overZPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionZ")?.let { precision ->
-                    val from = stagePosition.z
-                    val to = target.z
-                    to < from - precision || from + precision < to
-                } ?: true
-                if (!overXYPrecision && !overZPrecision){
-                    logger.info("Not moving stage to ${hwCommand.safeTarget.toReadableString()} because " +
-                            "to close to stage pos ${stagePosition.toReadableString()}")
-                    return
-                }
-
-                try {
-                    mmConnection.moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
-                } catch (t: Throwable) {
-                    logger.warn("Failed move command to ${hwCommand.safeTarget}", t)
-                    return
-                }
-                status = status.copy(stagePosition = hwCommand.safeTarget)
+                moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
             }
             is HardwareCommand.SnapImage -> {
                 if (hwCommand.live && lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
@@ -235,8 +224,80 @@ class MicromanagerWrapper(
             is HardwareCommand.Shutdown -> {
                 this.close()
             }
+            is HardwareCommand.AblatePoints -> {
+                ablationThread = thread(isDaemon = true) {
+                    mmConnection.ablationShutter(true,true)
+                    hwCommand.points.forEach { point ->
+                        try {
+                            if (Thread.currentThread().isInterrupted){
+                                return@thread
+                            }
+                            val moveTime = measureNanoTime {
+                                mmConnection.moveStage(point.position, true)
+                            }
+                            if (point.laserOn){
+                                mmConnection.laserPower(point.laserPower)
+                            }
+                            val sleepTime = point.dwellTime - if (point.countMoveTime) moveTime else 0
+                            if (sleepTime < 0){
+                                logger.warn("Ablation: stage movement was longer than dweel time. " +
+                                        "$moveTime ns > ${point.dwellTime} ns")
+                            } else {
+                                Thread.sleep(sleepTime)
+                            }
+                            if (point.laserOff){
+                                mmConnection.laserPower(0f)
+                            }
+                        } catch (_: InterruptedException){
+                        } finally {
+                            mmConnection.laserPower(0f)
+                            mmConnection.ablationShutter(false,true)
+                        }
+                    }
+                }
+                ablationThread?.join()
+                mmConnection.laserPower(0f)
+                mmConnection.ablationShutter(false,true)
+            }
         }
     }
+
+    private fun moveStage(target: Vector3f, wait: Boolean) {
+        // precision check, if movement below stage precision, skip
+        val overXYPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionXY")?.let {
+            !stagePosition.xy().equals(target.xy(), it)
+        } ?: true
+        val overZPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionZ")?.let { precision ->
+            val from = stagePosition.z
+            val to = target.z
+            to < from - precision || from + precision < to
+        } ?: true
+        if (!overXYPrecision && !overZPrecision) {
+            logger.info(
+                "Not moving stage to ${target.toReadableString()} because " +
+                        "to close to stage pos ${stagePosition.toReadableString()}"
+            )
+            return
+        }
+
+        try {
+            mmConnection.moveStage(target, wait)
+        } catch (t: Throwable) {
+            logger.warn("Failed move command to ${target.toReadableString()}", t)
+            return
+        }
+        status = status.copy(stagePosition = target)
+    }
+
+
+    private fun addToCommandQueueIfNotStopped(vararg commands: HardwareCommand) {
+        synchronized(stopLock) {
+            if (hardwareCommandsQueue.peek() !is HardwareCommand.Stop) {
+                commands.forEach { hardwareCommandsQueue.add(it) }
+            }
+        }
+    }
+
 
     private fun stageMinMax(): Pair<Vector3f, Vector3f> {
         val min = Vector3f(
@@ -267,5 +328,6 @@ class MicromanagerWrapper(
         data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
+        data class AblatePoints(val points: List<ClientSignal.AblationPoint>): HardwareCommand()
     }
 }

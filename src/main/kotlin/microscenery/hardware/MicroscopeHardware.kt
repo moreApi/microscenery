@@ -22,6 +22,8 @@ interface MicroscopeHardware {
     fun status(): MicroscopeStatus
     fun hardwareDimensions(): HardwareDimensions
 
+    fun ablatePoints(signal: ClientSignal.AblationPoints)
+
     val output: BlockingQueue<MicroscopeSignal>
 }
 
