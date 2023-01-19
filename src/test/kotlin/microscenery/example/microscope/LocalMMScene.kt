@@ -36,7 +36,7 @@ class LocalMMScene : DefaultScene() {
         MicroscenerySettings.set("Stage.maxY", 0f)
         MicroscenerySettings.set("Stage.maxZ", 120f)
 
-        MicroscenerySettings.set("MMConnection.core.configuration","C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake_picard.cfg")
+        MicroscenerySettings.set("MMConnection.core.configuration","C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg")
 
         val stageStart = Vector3f()
 
