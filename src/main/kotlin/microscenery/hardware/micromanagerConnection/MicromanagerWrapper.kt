@@ -46,8 +46,8 @@ class MicromanagerWrapper(
         }
 
     init {
-        MicroscenerySettings.setVector3fIfUnset("Stage.min",mmConnection.stagePosition)
-        MicroscenerySettings.setVector3fIfUnset("Stage.max",mmConnection.stagePosition)
+        MicroscenerySettings.setVector3fIfUnset("Stage.min", mmConnection.stagePosition)
+        MicroscenerySettings.setVector3fIfUnset("Stage.max", mmConnection.stagePosition)
 
         updateHardwareDimensions()
 
@@ -226,38 +226,42 @@ class MicromanagerWrapper(
             }
             is HardwareCommand.AblatePoints -> {
                 ablationThread = thread(isDaemon = true) {
-                    mmConnection.ablationShutter(true,true)
-                    hwCommand.points.forEach { point ->
-                        try {
-                            if (Thread.currentThread().isInterrupted){
+                    status = status.copy(state = ServerState.ABLATION)
+                    mmConnection.ablationShutter(true, true)
+                    try {
+                        hwCommand.points.forEach { point ->
+                            if (Thread.currentThread().isInterrupted) {
                                 return@thread
                             }
+                            logger.info(point.toString())
                             val moveTime = measureNanoTime {
                                 mmConnection.moveStage(point.position, true)
                             }
-                            if (point.laserOn){
+                            if (point.laserOn) {
                                 mmConnection.laserPower(point.laserPower)
                             }
                             val sleepTime = point.dwellTime - if (point.countMoveTime) moveTime else 0
-                            if (sleepTime < 0){
-                                logger.warn("Ablation: stage movement was longer than dweel time. " +
-                                        "$moveTime ns > ${point.dwellTime} ns")
+                            if (sleepTime < 0) {
+                                logger.warn(
+                                    "Ablation: stage movement was longer than dwell time. " + "$moveTime ns > ${point.dwellTime} ns"
+                                )
                             } else {
-                                Thread.sleep(sleepTime)
+                                Thread.sleep(sleepTime.nanosToMillis(), sleepTime.rem(1000000).toInt())
                             }
-                            if (point.laserOff){
+                            if (point.laserOff) {
                                 mmConnection.laserPower(0f)
                             }
-                        } catch (_: InterruptedException){
-                        } finally {
-                            mmConnection.laserPower(0f)
-                            mmConnection.ablationShutter(false,true)
                         }
+                    } catch (_: InterruptedException) {
+                    } finally {
+                        mmConnection.laserPower(0f)
+                        mmConnection.ablationShutter(false, true)
                     }
                 }
                 ablationThread?.join()
                 mmConnection.laserPower(0f)
-                mmConnection.ablationShutter(false,true)
+                mmConnection.ablationShutter(false, true)
+                status = status.copy(state = ServerState.MANUAL)
             }
         }
     }
@@ -328,6 +332,6 @@ class MicromanagerWrapper(
         data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
-        data class AblatePoints(val points: List<ClientSignal.AblationPoint>): HardwareCommand()
+        data class AblatePoints(val points: List<ClientSignal.AblationPoint>) : HardwareCommand()
     }
 }

@@ -4,10 +4,9 @@ import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
+import microscenery.millisToNanos
 import microscenery.pollForSignal
-import microscenery.signals.HardwareDimensions
-import microscenery.signals.MicroscopeSignal
-import microscenery.signals.MicroscopeStatus
+import microscenery.signals.*
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -63,7 +62,7 @@ internal class MicromanagerWrapperTest {
         }
 
         //no error is happening
-        assertEquals(Vector3f(-4000f),mmConnection.stagePosition)
+        assertEquals(Vector3f(-4000f), mmConnection.stagePosition)
         verify(mmConnection, never()).moveStage(any(), any())
     }
 
@@ -82,5 +81,37 @@ internal class MicromanagerWrapperTest {
         assert(wrapper.output.pollForSignal<HardwareDimensions>(ignoreNotFitting = false))
         assert(wrapper.output.pollForSignal<MicroscopeStatus>(ignoreNotFitting = false))
         assertFalse(wrapper.output.pollForSignal<MicroscopeSignal>(ignoreNotFitting = true))
+    }
+
+    /**
+     * Timed test to make sure that the ablation starts and stops fast after a stop command.
+     */
+    @Test
+    fun ablationAndStop() {
+        val mmConnection = Mockito.mock(MMConnection::class.java)
+        whenever(mmConnection.width).thenReturn(200)
+        whenever(mmConnection.height).thenReturn(200)
+        whenever(mmConnection.stagePosition).thenReturn(Vector3f(0f))
+        var laserPower = 0f
+        whenever(mmConnection.laserPower(0.5f)).then{ laserPower = 0.5f; 5f }
+        whenever(mmConnection.laserPower(0f)).then{ laserPower = 0f; 5f }
+        val wrapper = MicromanagerWrapper(mmConnection)
+        wrapper.output.pollForSignal<MicroscopeStatus>() //wait for start up to finish
+
+        wrapper.ablatePoints(ClientSignal.AblationPoints(
+            (0..500).map { ClientSignal.AblationPoint(Vector3f(), 50L.millisToNanos(), true, false, 0.5f, false) }
+        ))
+        assert(wrapper.output.pollForSignal<MicroscopeStatus>(ignoreNotFitting = true) { it.state == ServerState.ABLATION })
+        Thread.sleep(200)
+        assertEquals(0.5f, laserPower)
+        wrapper.stop()
+
+        Thread.sleep(200)
+        assertEquals(0f, laserPower)
+        assertEquals(ServerState.MANUAL,wrapper.status().state)
+
+        val order = inOrder(mmConnection)
+        order.verify(mmConnection).ablationShutter(true,true)
+        order.verify(mmConnection).ablationShutter(false,true)
     }
 }

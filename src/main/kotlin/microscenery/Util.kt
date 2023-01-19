@@ -158,3 +158,6 @@ fun Settings.setVector3fIfUnset(baseName: String, v: Vector3f){
     this.setIfUnset(baseName+"Y", v.y)
     this.setIfUnset(baseName+"Z", v.z)
 }
+
+fun Long.millisToNanos(): Long = this*1000000
+fun Long.nanosToMillis(): Long = this/1000000
