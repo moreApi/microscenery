@@ -62,7 +62,7 @@ class RemoteMicroscopeClient(
     }
 
     override fun ablatePoints(signal: ClientSignal.AblationPoints) {
-        TODO("Not yet implemented")
+        controlConnection.sendSignal(signal)
     }
 
     override fun goLive() {
