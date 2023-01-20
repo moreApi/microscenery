@@ -124,13 +124,13 @@ class MMConnection @JvmOverloads constructor(
     }
 
     fun ablationShutter(open: Boolean, wait: Boolean){
-        //todo
+        //todo ablationShutter
         logger.debug("Would ${if (open) "open" else "close"} the ablation shutter.")
     }
 
     fun laserPower(percent: Float){
         logger.debug("Would set laser power to $percent")
-        //todo
+        //todo laserPower
     }
 
     private fun recordTimes(snap: Long, copy: Long) {

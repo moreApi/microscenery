@@ -148,7 +148,8 @@ class StageSpaceManager(
     }
 
     /**
-     * Inserts a slice into the local sliceContainer and sorts it using its z coordinate -> TODO: Make this use the camera and sort by view-vector
+     * Inserts a slice into the local sliceContainer and sorts it using its z coordinate ->
+     * TODO: Make this use the camera and sort by view-vector issue #11
      */
     private fun insertSlice(slice: SliceRenderNode): Int {
         sortedSlices.add(slice)
