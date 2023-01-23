@@ -3,12 +3,19 @@ package microscenery.UI
 import graphics.scenery.Box
 import graphics.scenery.Camera
 import graphics.scenery.SettingsEditor
+import graphics.scenery.Sphere
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
+import graphics.scenery.primitives.Cylinder
+import graphics.scenery.utils.extensions.minus
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.MicroscenerySettings
+import microscenery.UP
+import microscenery.signals.ClientSignal
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
@@ -106,7 +113,7 @@ class StageSpaceUI {
                         stageSpaceManager.stageRoot.addChild(Box().apply { 
                             spatial{
                                 this.position = frame.spatial().position
-                                this.scale =frame.children.first().ifSpatial{}?.scale ?: Vector3f(1f)
+                                this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x  ?: 1f )/5f)
                             }
 
                             searchCubeStart = this
@@ -124,6 +131,76 @@ class StageSpaceUI {
             })
             inputHandler.addKeyBinding("searchCube", "6")
 
+            val ablationPoints = mutableListOf<HasSpatial>()
+            var goneToFirstPoint = false
+            inputHandler.addBehaviour("ablate", object : ClickBehaviour{
+                override fun click(x: Int, y: Int) {
+                    val frame = stageSpaceManager.focusTarget ?: return
+                    if (frame.mode != FrameGizmo.Mode.PASSIVE){
+                        stageSpaceManager.logger.warn("Frame not passive. Not going to plan ablation.")
+                        return
+                    }
+
+                    val last = ablationPoints.lastOrNull()
+                    last?.let {
+                        if (!goneToFirstPoint){
+                            stageSpaceManager.hardware.stagePosition = ablationPoints.first().spatial().position
+                            stageSpaceManager.logger.warn("Moving stage to first point. Open laser and press again!")
+                            goneToFirstPoint = true
+                            return
+                        }
+
+                        if (it.spatial().position == frame.spatial().position) {
+                            stageSpaceManager.hardware.ablatePoints(
+                                ClientSignal.AblationPoints(
+                                    //TODO subsample ablation points/lines
+                                    ablationPoints.mapIndexed { index, node ->
+                                        ClientSignal.AblationPoint(
+                                            node.spatial().position,
+                                            0L,
+                                            index == 0,
+                                            index == ablationPoints.size - 1,
+                                            0f, //todo set actual laser power
+                                            false
+                                        ).apply {
+                                            stageSpaceManager.logger.info("Building Ablation Point $this")
+                                        }
+                                    }
+                                )
+                            )
+
+                            ablationPoints.forEach { it.parent?.removeChild(it) }
+                            ablationPoints.clear()
+                            goneToFirstPoint = false
+                            return
+                        }
+                    }
+
+                    val point = Sphere(0.25f,8).apply {
+                        spatial {
+                            this.position = frame.spatial().position
+                            this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x  ?: 1f )/5f)
+                        }
+                    }
+                    stageSpaceManager.stageRoot.addChild(point)
+                    ablationPoints += point
+
+                    last?.let {
+                        val diff = point.spatial().position - it.spatial().position
+
+                        val line = Cylinder(0.05f, 1f, 20)
+                        line.material().metallic = 0.0f
+                        line.material().roughness = 1.0f
+                        line.spatial {
+                            scale.y = diff.length() / it.spatial().scale.x
+                            rotation = Quaternionf().rotationTo(UP, diff)
+                        }
+                        it.addChild(line)
+                    }
+                }
+
+            })
+            inputHandler.addKeyBinding("ablate", "7")
 
             inputHandler.addBehaviour("stop", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
