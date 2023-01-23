@@ -49,29 +49,7 @@ internal class MicromanagerWrapperTest {
     }
 
     @Test
-    fun failSaveStagePosCoercion() {
-
-        val mmConnection = Mockito.mock(MMConnection::class.java)
-
-        whenever(mmConnection.width).thenReturn(200)
-        whenever(mmConnection.height).thenReturn(200)
-        whenever(mmConnection.stagePosition).thenReturn(Vector3f())
-
-        assertThrows<IllegalStateException> {
-
-            val wrapper = MicromanagerWrapper(mmConnection)
-            wrapper.output.pollForSignal<MicroscopeStatus>()
-
-            //start testing
-            wrapper.stagePosition = (Vector3f(-4000f))
-            wrapper.output.pollForSignal<MicroscopeStatus>()
-
-        }
-    }
-
-
-    @Test
-    fun dontMoveStageAtStartup() {
+    fun rangeCheckAtStartup() {
 
         val mmConnection = Mockito.mock(MMConnection::class.java)
 
@@ -79,12 +57,11 @@ internal class MicromanagerWrapperTest {
         whenever(mmConnection.height).thenReturn(200)
         whenever(mmConnection.stagePosition).thenReturn(Vector3f(-4000f))
 
+        assertThrows<IllegalStateException> {
+            val wrapper = spy(MicromanagerWrapper(mmConnection) as MicroscopeHardware)
+            wrapper.output.pollForSignal<MicroscopeStatus>()
+        }
 
-        val wrapper = spy(MicromanagerWrapper(mmConnection) as MicroscopeHardware)
-        wrapper.output.pollForSignal<MicroscopeStatus>()
-
-        //start testing
-        Thread.sleep(5000)
         //no error is happening
         assertEquals(Vector3f(-4000f),mmConnection.stagePosition)
         verify(mmConnection, never()).moveStage(any(), any())

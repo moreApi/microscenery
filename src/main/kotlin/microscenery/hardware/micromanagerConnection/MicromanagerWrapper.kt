@@ -48,7 +48,7 @@ class MicromanagerWrapper(
 
         if (hardwareDimensions.coercePosition(mmConnection.stagePosition, null) != mmConnection.stagePosition){
             val msg = "Stage ${mmConnection.stagePosition.toReadableString()} not in allowed area " +
-                    "from ${MicroscenerySettings.getVector3("Stage.min")?.toReadableString()}"
+                    "from ${MicroscenerySettings.getVector3("Stage.min")?.toReadableString()}" +
                     "to ${MicroscenerySettings.getVector3("Stage.max")?.toReadableString()}. Aborting!"
             logger.error(msg)
             throw IllegalStateException(msg)
