@@ -7,7 +7,7 @@ import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.MicroscenerySettings
-import microscenery.stageSpace.FocusFrame
+import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -65,10 +65,10 @@ class StageSpaceUI {
             inputHandler.addBehaviour("steering", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
                     stageSpaceManager.focusTarget?.let {
-                        if (it.mode != FocusFrame.Mode.STEERING) {
-                            it.mode = FocusFrame.Mode.STEERING
+                        if (it.mode != FrameGizmo.Mode.STEERING) {
+                            it.mode = FrameGizmo.Mode.STEERING
                         } else {
-                            it.mode = FocusFrame.Mode.PASSIVE
+                            it.mode = FrameGizmo.Mode.PASSIVE
                         }
                         stageSpaceManager.logger.info("focusframe mode is now ${it.mode}")
                     }
@@ -79,7 +79,7 @@ class StageSpaceUI {
             inputHandler.addBehaviour("stackAcq", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
                     stageSpaceManager.focusTarget?.let {
-                        if (it.mode == FocusFrame.Mode.STACK_SELECTION) {
+                        if (it.mode == FrameGizmo.Mode.STACK_SELECTION) {
                             stageSpaceManager.focusTarget?.let {
                                 if (it.stackStartPos.z < it.spatial().position.z) stageSpaceManager.stack(
                                     it.stackStartPos,
@@ -88,9 +88,9 @@ class StageSpaceUI {
                                 )
                                 else stageSpaceManager.stack(it.spatial().position, it.stackStartPos, false)
                             }
-                            it.mode = FocusFrame.Mode.PASSIVE
+                            it.mode = FrameGizmo.Mode.PASSIVE
                         } else {
-                            it.mode = FocusFrame.Mode.STACK_SELECTION
+                            it.mode = FrameGizmo.Mode.STACK_SELECTION
                         }
                         stageSpaceManager.logger.info("focusframe mode is now ${it.mode}")
                     }

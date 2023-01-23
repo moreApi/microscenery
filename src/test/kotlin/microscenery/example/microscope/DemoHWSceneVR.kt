@@ -6,7 +6,7 @@ import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.DemoMicroscopeHardware
-import microscenery.stageSpace.FocusFrame
+import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
 import kotlin.concurrent.thread
 
@@ -39,10 +39,10 @@ class DemoHWSceneVR : DefaultVRScene() {
                 hmd, listOf(
                     Switch("Steering", false) { value ->
                         stageSpaceManager.focusTarget?.let {
-                            if (value && it.mode != FocusFrame.Mode.STEERING) {
-                                it.mode = FocusFrame.Mode.STEERING
+                            if (value && it.mode != FrameGizmo.Mode.STEERING) {
+                                it.mode = FrameGizmo.Mode.STEERING
                             } else {
-                                it.mode = FocusFrame.Mode.PASSIVE
+                                it.mode = FrameGizmo.Mode.PASSIVE
                             }
                             logger.info("focusframe mode is now ${it.mode}")
                         }

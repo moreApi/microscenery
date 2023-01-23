@@ -10,7 +10,7 @@ import microscenery.nowMillis
 import microscenery.signals.HardwareDimensions
 import org.joml.Vector3f
 
-class FocusFrame(
+class FrameGizmo(
     val stageSpaceManager: StageSpaceManager,
     hwd: HardwareDimensions,
 ) : Frame(hwd) {

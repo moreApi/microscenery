@@ -43,7 +43,7 @@ class StageSpaceManager(
 
     val stageRoot = RichNode("stage root")
     val focus: Frame
-    var focusTarget: FocusFrame? = null
+    var focusTarget: FrameGizmo? = null
     private val stageAreaBorders: Box
     var stageAreaCenter = Vector3f()
         private set
@@ -102,7 +102,7 @@ class StageSpaceManager(
         }
 
         if (addFocusFrame)
-            focusTarget = FocusFrame(this, hardware.hardwareDimensions()).apply {
+            focusTarget = FrameGizmo(this, hardware.hardwareDimensions()).apply {
                 spatial().position = hardware.stagePosition
                 stageRoot.addChild(this)
             }
