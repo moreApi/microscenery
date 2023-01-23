@@ -124,8 +124,9 @@ class MMConnection @JvmOverloads constructor(
     }
 
     fun ablationShutter(open: Boolean, wait: Boolean){
-        //todo ablationShutter
-        logger.debug("Would ${if (open) "open" else "close"} the ablation shutter.")
+        core.shutterOpen = open
+        if (wait)
+            core.waitForDevice(core.shutterDevice)
     }
 
     fun laserPower(percent: Float){
