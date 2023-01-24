@@ -21,7 +21,9 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         val client = RemoteMicroscopeClient(zContext = zContext)
         stageSpaceManager = StageSpaceManager(
             client, scene, hub, addFocusFrame = true,
-            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 90.0), scaleDownFactor = 300f
+            //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 90.0),
+            layout = MicroscopeLayout.Default(),
+            scaleDownFactor = 300f
         )
 
         //stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)

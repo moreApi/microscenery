@@ -2,6 +2,7 @@ package microscenery.example.microscope
 
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
+import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI.Companion.stageUserInteraction
 import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.stageSpace.MicroscopeLayout
@@ -24,6 +25,8 @@ class DemoHWScene : DefaultScene() {
 //        MicroscenerySettings.set("Stage.maxX", 44000f)
 //        MicroscenerySettings.set("Stage.maxY", 26000f)
 //        MicroscenerySettings.set("Stage.maxZ", 100f)
+        MicroscenerySettings.set("Stage.precisionXY", 10f)
+        MicroscenerySettings.set("Stage.precisionZ", 10f)
 
 
         val hw = DemoMicroscopeHardware(binning = 1)
