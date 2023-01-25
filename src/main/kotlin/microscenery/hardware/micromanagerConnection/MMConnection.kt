@@ -124,9 +124,11 @@ class MMConnection @JvmOverloads constructor(
     }
 
     fun ablationShutter(open: Boolean, wait: Boolean){
-        core.shutterOpen = open
+        val shutterName = MicroscenerySettings.get("Ablation.Shutter",core.shutterDevice)
+        core.setShutterOpen(shutterName, open)
+
         if (wait)
-            core.waitForDevice(core.shutterDevice)
+            core.waitForDevice(shutterName)
     }
 
     fun laserPower(percent: Float){
