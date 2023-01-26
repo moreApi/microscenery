@@ -164,7 +164,7 @@ class StageSpaceManager(
             is Slice -> {
                 if (signal.data == null) return
 
-                if (signal.stackIdAndSliceIndex != null && stacks.any { it.meta.Id == signal.stackIdAndSliceIndex.first }) {
+                if (signal.stackIdAndSliceIndex != null && stacks.any { it.meta.Id == signal.stackIdAndSliceIndex!!.first }) {
                     // slice belongs to a stack
                     handleStackSlice(signal)
                     return
@@ -253,7 +253,7 @@ class StageSpaceManager(
     private fun handleStackSlice(slice: Slice) {
         if (slice.data == null) return
         val stackId = slice.stackIdAndSliceIndex?.first ?: return
-        val sliceIndex = slice.stackIdAndSliceIndex.second
+        val sliceIndex = slice.stackIdAndSliceIndex!!.second
 
         val stack = stacks.find { it.meta.Id == stackId }
         if (stack == null) {
@@ -273,7 +273,7 @@ class StageSpaceManager(
         val hwd = hardware.hardwareDimensions()
 
         val node = SliceRenderNode(
-            signal.data,
+            signal.data!!,
             hwd.imageSize.x,
             hwd.imageSize.y,
             1f,

@@ -1,4 +1,4 @@
-import com.google.protobuf.gradle.protoc
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -17,33 +17,17 @@ repositories {
     maven("https://jitpack.io")
 }
 
-val ffmpegNatives = arrayOf("windows-x86_64", "linux-x86_64", "macosx-x86_64")
-fun DependencyHandlerScope.implementation(dep: String, natives: Array<String>) {
-    add("implementation", dep)
-    val split = dep.split(':')
-    for (native in natives)
-        org.gradle.kotlin.dsl.accessors.runtime.addExternalModuleDependencyTo(
-            this@implementation, "runtimeOnly",
-            split[0], split[1], split.getOrNull(2), null,
-            native, null, null
-        )
-}
-
 dependencies {
     // use first 6 letters of commit rev
-    implementation("graphics.scenery:scenery:b62c8d")
+    implementation("graphics.scenery:scenery:157aa4")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
+    implementation(project(":core"))
 
 //    implementation("org.bytedeco:ffmpeg:4.3.2-1.5.5", ffmpegNatives)
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg:4.1-1.4.4")
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg-platform:4.1-1.4.4")
-    implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
-    implementation ("com.google.protobuf:protobuf-java:3.21.5")
-    implementation("com.google.protobuf:protobuf-java-util:3.21.5")
-
-    implementation(files("manualLib/MMCoreJ.jar"))
 
     testImplementation("net.imagej:ij:1.53k")
     testImplementation("net.imagej:imagej-ops:0.45.5")
@@ -57,15 +41,6 @@ dependencies {
     //testImplementation(kotlin("test-junit"))
 }
 
-java.sourceSets["main"].java {
-    srcDir("build/generated/source/proto/main/java")
-}
-
-protobuf {
-    this.protobuf.protoc {
-        this.path = "protoc/bin/protoc.exe"
-    }
-}
 
 tasks.test {
     jvmArgs = listOf("-Xmx28G")
@@ -76,7 +51,6 @@ tasks.test {
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
 }
-
 
 tasks{
     // This registers gradle tasks for all example scenes
@@ -102,9 +76,4 @@ tasks{
                 }
             }
         }
-
-    register("copyRuntimeLibs", Copy::class) {
-        into("microsceneryDependencies")
-        from(configurations.runtimeClasspath)
-    }
 }

@@ -13,7 +13,7 @@ import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
 
 class VRGrabTheWorldSelfMove(
-    name: String,
+    @Suppress("UNUSED_PARAMETER") name: String,
     controllerHitbox: Node,
     private val cam: Spatial,
 ) : DragBehaviour {
