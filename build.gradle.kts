@@ -2,7 +2,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    java
     kotlin("jvm") version "1.7.10"
     id("com.google.protobuf") version "0.8.19"
 }
@@ -12,7 +11,6 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    jcenter()
     maven("https://maven.scijava.org/content/groups/public")
     maven("https://jitpack.io")
 }
@@ -24,6 +22,7 @@ dependencies {
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
     implementation(project(":core"))
+    implementation(files("core/manualLib/MMCoreJ.jar"))
 
 //    implementation("org.bytedeco:ffmpeg:4.3.2-1.5.5", ffmpegNatives)
 //    implementation("org.bytedeco.javacpp-presets:ffmpeg:4.1-1.4.4")

@@ -10,7 +10,6 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    jcenter()
     maven("https://maven.scijava.org/content/groups/public")
     maven("https://jitpack.io")
 }
@@ -40,9 +39,19 @@ java.sourceSets["main"].java {
     srcDir("build/generated/source/proto/main/java")
 }
 
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
 protobuf {
     this.protobuf.protoc {
-        this.path = "protoc/bin/protoc.exe"
+        this.path = "core/protoc/bin/protoc.exe"
     }
 }
 

@@ -1,5 +1,4 @@
 package microscenery.unit.network
-
 import microscenery.network.BiggishDataClient
 import microscenery.network.BiggishDataServer
 import microscenery.network.CHUNK_SIZE

@@ -12,8 +12,8 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.TimeUnit
 
-internal const val PIPELINE = 10
-internal const val CHUNK_SIZE = 250000
+const val PIPELINE = 10
+const val CHUNK_SIZE = 250000
 
 /**
  * Client that request and receives data from [BiggishDataServer].

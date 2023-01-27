@@ -1,7 +1,6 @@
 package microscenery.example.microscope
 
 import graphics.scenery.Box
-import graphics.scenery.SettingsEditor
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
@@ -58,7 +57,7 @@ class LocalMMScene : DefaultScene() {
         scene.addChild(hullbox)
 
         TransferFunctionEditor(tfContainer = stageSpaceManager)
-        SettingsEditor(MicroscenerySettings)
+        //SettingsEditor(MicroscenerySettings)
         stageSpaceManager.minDisplayRange = 50f
 
 

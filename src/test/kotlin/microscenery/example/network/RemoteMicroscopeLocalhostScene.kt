@@ -5,7 +5,6 @@ import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
 import microscenery.*
 import microscenery.example.microscope.DemoBehavior
-import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage

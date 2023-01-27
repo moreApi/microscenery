@@ -4,8 +4,8 @@ import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
+import microscenery.DemoMicroscopeHardware
 import microscenery.VRUI.VRUIManager
-import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
 import kotlin.concurrent.thread

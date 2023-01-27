@@ -2,7 +2,6 @@ package microscenery.UI
 
 import graphics.scenery.Box
 import graphics.scenery.Camera
-import graphics.scenery.SettingsEditor
 import graphics.scenery.Sphere
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.controls.InputHandler
@@ -289,7 +288,7 @@ class StageSpaceUI {
             inputHandler.addBehaviour("openEditors", object : ClickBehaviour {
                 override fun click(x: Int, y: Int) {
                     TransferFunctionEditor(stageSpaceManager)
-                    SettingsEditor(MicroscenerySettings)
+                    //SettingsEditor(MicroscenerySettings)
                 }
             })
             inputHandler.addKeyBinding("openEditors", "T")

@@ -1,6 +1,5 @@
-package graphics.scenery
+package fromScenery
 
-import fromScenery.LazyLogger
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

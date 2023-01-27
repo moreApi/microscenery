@@ -4,7 +4,7 @@
 
 package microscenery
 
-import graphics.scenery.Settings
+import fromScenery.Settings
 import microscenery.signals.MicroscopeSignal
 import org.joml.Matrix4f
 import org.joml.Vector3f

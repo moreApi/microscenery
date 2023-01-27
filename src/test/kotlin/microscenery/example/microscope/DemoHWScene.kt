@@ -2,9 +2,9 @@ package microscenery.example.microscope
 
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
+import microscenery.DemoMicroscopeHardware
 import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI.Companion.stageUserInteraction
-import microscenery.hardware.DemoMicroscopeHardware
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f

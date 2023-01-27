@@ -1,6 +1,6 @@
 package microscenery.example.network
 
-import microscenery.hardware.DemoMicroscopeHardware
+import microscenery.DemoMicroscopeHardware
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import org.zeromq.ZContext
