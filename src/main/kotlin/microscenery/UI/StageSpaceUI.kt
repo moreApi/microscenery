@@ -10,13 +10,10 @@ import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunctionEditor
-import microscenery.MicroscenerySettings
-import microscenery.UP
-import microscenery.let
+import microscenery.*
 import microscenery.signals.ClientSignal
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
-import microscenery.toReadableString
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -24,33 +21,6 @@ import kotlin.concurrent.thread
 
 class StageSpaceUI {
     companion object {
-        /**
-         * Samples a line between [p1] and [p2] with [precision] steps
-         *
-         * @return all points between [p1] and [p2]
-         */
-        private fun sampleLine(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
-            val diff = p2 - p1
-            val subDivisions = Vector3f(diff).absolute() / precision
-            val leadDim = subDivisions.maxComponent()
-            val otherDims = listOf(0,1,2).filter { it != leadDim }
-            val stepSize = Vector3f(diff) / subDivisions
-
-            val result = mutableListOf<Vector3f>()
-            for (i in 1 until subDivisions[leadDim].toInt()){
-                val exactPosition = diff * (i / subDivisions[leadDim] )
-                val p = Vector3f()
-                p.setComponent(leadDim, p1[leadDim] + stepSize[leadDim] * i)
-                for (dim in otherDims) {
-                    val precisionSteps = exactPosition[dim] / precision[dim]
-                    p.setComponent(dim, p1[dim]
-                            + precisionSteps.toInt() * precision[dim]
-                            + if(precisionSteps - precisionSteps.toInt() > 0.5f ) precision[dim] else 0f)
-                }
-                result += p
-            }
-            return result
-        }
 
         fun stageUserInteraction(stageSpaceManager: StageSpaceManager, inputHandler: InputHandler, cam: Camera) {
             listOf(
