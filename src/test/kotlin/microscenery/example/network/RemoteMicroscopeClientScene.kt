@@ -1,6 +1,5 @@
 package microscenery.example.network
 
-import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
 import microscenery.UI.StageSpaceUI
 import microscenery.lightSleepOnCondition
@@ -31,7 +30,7 @@ class RemoteMicroscopeClientScene : DefaultScene() {
         stageSpaceManager.focusTarget?.spatial()?.position = stageSpaceManager.focus.spatial().position
         //DemoBehavior(50f, stageSpaceManager).randomLive()
 
-        TransferFunctionEditor(tfContainer = stageSpaceManager)
+        //TransferFunctionEditor(tfContainer = stageSpaceManager)
         //SettingsEditor(settings = MicroscenerySettings)
 
 

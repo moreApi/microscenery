@@ -51,7 +51,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 protobuf {
     this.protobuf.protoc {
-        this.path = "core/protoc/bin/protoc.exe"
+        this.path = projectDir.resolve("protoc/bin/protoc.exe").absolutePath
     }
 }
 
@@ -59,5 +59,8 @@ tasks{
     register("copyRuntimeLibs", Copy::class) {
         into("microsceneryDependencies")
         from(configurations.runtimeClasspath)
+    }
+    jar{
+        this.archiveBaseName.set("microscenery-core")
     }
 }
