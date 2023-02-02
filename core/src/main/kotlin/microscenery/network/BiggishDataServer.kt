@@ -8,6 +8,7 @@ import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZFrame
 import org.zeromq.ZMQ
+import java.nio.Buffer
 import java.nio.ByteOrder
 
 /**
@@ -54,7 +55,8 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
         }
         replyBuilder.sliceAvailable = true
 
-        data.position(data.position() + request.offset.coerceAtMost(data.remaining()))
+        // this cast has to be done to be compatible with JDK 8
+        (data as Buffer).position(data.position() + request.offset.coerceAtMost(data.remaining()))
         val size = request.chunkSize.coerceAtMost(data.remaining()).coerceAtMost(CHUNK_SIZE)
 
         //OPTIMIZATION POTENTIAL: introduce ring buffer or something to avoid creating new buffers constantly. Check out what ZFrame.destroy does.

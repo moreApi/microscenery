@@ -7,6 +7,7 @@ import microscenery.let
 import mmcorej.CMMCore
 import org.joml.Vector3f
 import java.awt.Rectangle
+import java.nio.Buffer
 import java.nio.ShortBuffer
 
 /**
@@ -97,7 +98,7 @@ class MMConnection @JvmOverloads constructor(
 
         val start2 = System.currentTimeMillis()
         intoBuffer.put(img.pix as ShortArray)
-        intoBuffer.flip()
+        (intoBuffer as Buffer).flip() // this cast has to be done to be compatible with JDK 8
         copyTime += (System.currentTimeMillis() - start2)
         recordTimes(snapTime, copyTime)
     }

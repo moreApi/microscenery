@@ -11,6 +11,7 @@ import microscenery.signals.*
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
+import java.nio.Buffer
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
@@ -125,21 +126,21 @@ class MicromanagerWrapper(
         }
     }
 
+    /**
+     * Sets the stage position to [pos] in memory but does now issue commands to the hardware.
+     * Used for updates from the hardware cause by manual movement by the user.
+     */
+    @Suppress("unused")
+    fun updateStagePositionNoMovement(pos: Vector3f){
+        if (status.state != ServerState.STARTUP && !disableStagePosUpdates) {
+            status = status.copy(stagePosition = pos)
+        }
+    }
+
     //############################## end of called from external threads ##############################
 
     override fun onLoop() {
-        val hwCommand = hardwareCommandsQueue.poll()
-        if (hwCommand == null) {
-            // if not busy update stage position. It might have been moved via external inputs.
-            mmConnection.stagePosition.let {
-                if (stagePosition != it && status.state != ServerState.STARTUP && !disableStagePosUpdates) {
-                    status = status.copy(stagePosition = it)
-                }
-            }
-            Thread.sleep(200)
-            return
-        }
-        when (hwCommand) {
+        when (val hwCommand = hardwareCommandsQueue.poll()) {
             is HardwareCommand.GenerateStackCommands -> {
                 val meta = hwCommand.signal
 
@@ -189,7 +190,7 @@ class MicromanagerWrapper(
                     }
                 }
                 val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
-                buf.clear()
+                (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
                 try {
                     mmConnection.snapSlice(buf.asShortBuffer())
                 } catch (t: Throwable) {
