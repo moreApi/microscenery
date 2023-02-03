@@ -47,7 +47,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                     controlConnection.sendSignal(ActualMicroscopeSignal(signal.copy(data = null)))
                 }
             }
-            is Stack -> TODO()
+            is Stack -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
         }
     }
 
@@ -57,7 +57,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     private fun processClientSignal(it: ClientSignal) {
         when (it) {
             is ClientSignal.AcquireStack -> {
-                logger.warn("Stacks are not implemented for remote at the moment.")
+                microscope.acquireStack(it)
             }
             ClientSignal.ClientSignOn -> {
                 status = status.copy(connectedClients = status.connectedClients + 1)

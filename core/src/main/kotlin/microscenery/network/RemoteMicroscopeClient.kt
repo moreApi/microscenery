@@ -95,7 +95,7 @@ class RemoteMicroscopeClient(
                         }
                     }
                     is Stack -> {
-                        logger.warn("Stacks are not implemented for remote at the moment.")
+                        output.put(microscopeSignal)
                     }
                 }
             }
