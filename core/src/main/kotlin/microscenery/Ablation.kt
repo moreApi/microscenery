@@ -1,3 +1,7 @@
+@file:Suppress("unused")
+@file:JvmName("Ablation")
+@file:JvmMultifileClass
+
 package microscenery
 
 import fromScenery.utils.extensions.minus

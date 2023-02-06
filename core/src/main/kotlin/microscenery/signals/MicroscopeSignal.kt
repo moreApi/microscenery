@@ -202,6 +202,8 @@ data class AblationResults(val totalTimeMillis: Int, val perPointTime: List<Int>
         ar.addAllPerPointTime(perPointTime)
         return microscopeSignal.build()
     }
+
+    fun mean():Int = perPointTime.reduce{ acc, i -> acc + i }.div(perPointTime.size)
 }
 
 enum class ServerState {
