@@ -247,7 +247,10 @@ class StageSpaceManager(
                 }
                 stacks = stacks + StackContainer(stack, volume, buffer)
             }
-            is AblationResults -> TODO()
+            is AblationResults -> {
+                logger.info("Ablation took ${signal.totalTimeMillis}ms for ${signal.perPointTime.size} points " +
+                        "(${signal.perPointTime.reduce{acc, i -> acc + i }.div(signal.perPointTime.size)}ms mean)")
+            }
         }
     }
 

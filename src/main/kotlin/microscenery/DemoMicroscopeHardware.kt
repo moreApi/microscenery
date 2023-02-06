@@ -7,10 +7,12 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Volume
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
+import microscenery.signals.Stack
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
+import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import kotlin.concurrent.thread
@@ -182,7 +184,9 @@ class DemoMicroscopeHardware(
     }
 
     override fun ablatePoints(signal: ClientSignal.AblationPoints) {
-        TODO("Not yet implemented")
+        for (p in signal.points)
+            logger.info("Ablating $p")
+        output.put(AblationResults(signal.points.size*50,(1..signal.points.size).map { Random().nextInt(20)+40 }))
     }
 
     override fun onLoop() {

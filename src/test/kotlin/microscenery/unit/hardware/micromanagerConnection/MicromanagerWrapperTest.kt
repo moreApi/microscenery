@@ -1,12 +1,9 @@
 package microscenery.unit.hardware.micromanagerConnection
 
-import microscenery.MicroscenerySettings
-import microscenery.buildLaserPath
+import microscenery.*
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
-import microscenery.millisToNanos
-import microscenery.pollForSignal
 import microscenery.signals.*
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
@@ -134,8 +131,7 @@ internal class MicromanagerWrapperTest {
 
         MicroscenerySettings.set("Ablation.dryRun", true)
         // with very coarse precision no points in-between should be generated
-        MicroscenerySettings.set("Stage.precisionXY", 1000f)
-        MicroscenerySettings.set("Stage.precisionZ", 1000f)
+        MicroscenerySettings.setVector3("Ablation.precision", Vector3f(1000f))
         val positions = listOf(Vector3f(), Vector3f(200f),Vector3f(50f))
         mmWrapper.ablatePoints(buildLaserPath(positions))
         mmWrapper.output.pollForSignal<AblationResults>()

@@ -177,10 +177,7 @@ class StageSpaceUI {
                         goneToFirstPoint = false
                     }
 
-                    val precision = MicroscenerySettings.getOrNull<Float>("Stage.precisionXY").let(
-                        MicroscenerySettings.getOrNull<Float>("Stage.precisionZ")){ xy: Float, z: Float ->
-                        Vector3f(xy,xy,z)
-                    } ?: Vector3f(1f)
+                    val precision = MicroscenerySettings.getVector3("Ablation.precision")?: Vector3f(1f)
 
                     // sample line between last and current position
                     (sampleLine(last.spatial().position, frame.spatial().position, precision ) + frame.spatial().position)
