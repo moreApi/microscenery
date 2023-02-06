@@ -94,7 +94,7 @@ class RemoteMicroscopeClient(
                             requestedSlices[microscopeSignal.Id] = microscopeSignal
                         }
                     }
-                    is Stack -> {
+                    else -> {
                         output.put(microscopeSignal)
                     }
                 }

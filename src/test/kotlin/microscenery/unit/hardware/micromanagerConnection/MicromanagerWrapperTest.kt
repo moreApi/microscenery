@@ -1,6 +1,7 @@
 package microscenery.unit.hardware.micromanagerConnection
 
 import microscenery.MicroscenerySettings
+import microscenery.buildLaserPath
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
@@ -114,4 +115,42 @@ internal class MicromanagerWrapperTest {
         order.verify(mmConnection).ablationShutter(true,true)
         order.verify(mmConnection).ablationShutter(false,true)
     }
+
+    @Test
+    fun ablationDefault(){
+        MicroscenerySettings.set("Stage.minX", -100f)
+        MicroscenerySettings.set("Stage.minY", -100f)
+        MicroscenerySettings.set("Stage.minZ", -100f)
+        MicroscenerySettings.set("Stage.maxX", 100f)
+        MicroscenerySettings.set("Stage.maxY", 100f)
+        MicroscenerySettings.set("Stage.maxZ", 100f)
+
+        val mmConnection = Mockito.mock(MMConnection::class.java)
+        whenever(mmConnection.width).thenReturn(200)
+        whenever(mmConnection.height).thenReturn(200)
+        whenever(mmConnection.stagePosition).thenReturn(Vector3f())
+        val mmWrapper = MicromanagerWrapper(mmConnection, disableStagePosUpdates = true)
+        mmWrapper.output.pollForSignal<MicroscopeStatus>()//wait for start up to finish
+
+        MicroscenerySettings.set("Ablation.dryRun", true)
+        // with very coarse precision no points in-between should be generated
+        MicroscenerySettings.set("Stage.precisionXY", 1000f)
+        MicroscenerySettings.set("Stage.precisionZ", 1000f)
+        val positions = listOf(Vector3f(), Vector3f(200f),Vector3f(50f))
+        mmWrapper.ablatePoints(buildLaserPath(positions))
+        mmWrapper.output.pollForSignal<AblationResults>()
+
+
+        val order = inOrder(mmConnection)
+        order.verify(mmConnection).ablationShutter(true,true)
+        order.verify(mmConnection).moveStage(Vector3f(),true)
+        order.verify(mmConnection).moveStage(Vector3f(100f),true)
+        order.verify(mmConnection).moveStage(Vector3f(50f),true)
+        order.verify(mmConnection).ablationShutter(false,true)
+
+        verify(mmConnection, atMost(3)).moveStage(any(),any())
+        verify(mmConnection, atMost(2)).ablationShutter(false,true)
+        verify(mmConnection, atMost(1)).ablationShutter(true,true)
+    }
+
 }

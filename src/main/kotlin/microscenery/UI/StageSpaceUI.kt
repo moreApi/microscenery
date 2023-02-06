@@ -11,7 +11,6 @@ import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
-import microscenery.signals.ClientSignal
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
@@ -166,20 +165,7 @@ class StageSpaceUI {
                             return
                         }
                         stageSpaceManager.hardware.ablatePoints(
-                            ClientSignal.AblationPoints(
-                                ablationPoints.mapIndexed { index, node ->
-                                    ClientSignal.AblationPoint(
-                                        node.spatial().position,
-                                        0L,
-                                        index == 0,
-                                        index == ablationPoints.size - 1,
-                                        0f, //todo set actual laser power
-                                        false
-                                    ).apply {
-                                        stageSpaceManager.logger.info("Building Ablation Point $this")
-                                    }
-                                }
-                            )
+                            buildLaserPath(ablationPoints.map { it.spatial().position })
                         )
 
                         ablationPoints.forEach { it.parent?.removeChild(it) }

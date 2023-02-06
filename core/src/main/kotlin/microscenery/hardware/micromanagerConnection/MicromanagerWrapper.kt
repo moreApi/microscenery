@@ -226,15 +226,19 @@ class MicromanagerWrapper(
                 this.close()
             }
             is HardwareCommand.AblatePoints -> {
+                //this is a thread so it can be interrupted asynchronously
+                var totalTime = 0
+                val perPointTime = mutableListOf<Int>()
                 ablationThread = thread(isDaemon = true) {
                     status = status.copy(state = ServerState.ABLATION)
                     mmConnection.ablationShutter(true, true)
-                    try {
+                    try { totalTime = measureNanoTime {
                         hwCommand.points.forEach { point ->
                             if (Thread.currentThread().isInterrupted) {
                                 return@thread
                             }
-                            logger.info(point.toString())
+                            logger.info("Executing $point")
+                            val startAblation = System.nanoTime()
                             val moveTime = measureNanoTime {
                                 mmConnection.moveStage(point.position, true)
                             }
@@ -242,17 +246,18 @@ class MicromanagerWrapper(
                                 mmConnection.laserPower(point.laserPower)
                             }
                             val sleepTime = point.dwellTime - if (point.countMoveTime) moveTime else 0
-                            if (sleepTime < 0) {
+                            if (sleepTime < 0 && point.dwellTime > 0) {
                                 logger.warn(
                                     "Ablation: stage movement was longer than dwell time. " + "$moveTime ns > ${point.dwellTime} ns"
                                 )
                             } else {
-                                Thread.sleep(sleepTime.nanosToMillis(), sleepTime.rem(1000000).toInt())
+                                Thread.sleep(sleepTime.nanosToMillis())
                             }
                             if (point.laserOff) {
                                 mmConnection.laserPower(0f)
                             }
-                        }
+                            perPointTime.add((System.nanoTime() - startAblation).nanosToMillis().toInt())
+                        }}.nanosToMillis().toInt()
                     } catch (_: InterruptedException) {
                     } finally {
                         mmConnection.laserPower(0f)
@@ -263,6 +268,7 @@ class MicromanagerWrapper(
                 mmConnection.laserPower(0f)
                 mmConnection.ablationShutter(false, true)
                 status = status.copy(state = ServerState.MANUAL)
+                output.put(AblationResults(totalTime,perPointTime))
             }
         }
     }

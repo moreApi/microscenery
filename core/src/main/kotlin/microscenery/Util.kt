@@ -5,8 +5,6 @@
 package microscenery
 
 import fromScenery.Settings
-import fromScenery.utils.extensions.minus
-import fromScenery.utils.extensions.times
 import microscenery.signals.MicroscopeSignal
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -94,33 +92,12 @@ fun Settings.setVector3fIfUnset(baseName: String, v: Vector3f){
     this.setIfUnset(baseName+"Z", v.z)
 }
 
+fun Settings.setVector3(baseName: String, v: Vector3f){
+    this.set(baseName+"X", v.x)
+    this.set(baseName+"Y", v.y)
+    this.set(baseName+"Z", v.z)
+}
+
 fun Long.millisToNanos(): Long = this*1000000
 fun Long.nanosToMillis(): Long = this/1000000
 
-/**
- * Samples a line between [p1] and [p2] with [precision] steps
- *
- * @return all points between [p1] and [p2]
- */
-fun sampleLine(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
-    val diff = p2 - p1
-    val subDivisions = Vector3f(diff).absolute() / precision
-    val leadDim = subDivisions.maxComponent()
-    val otherDims = listOf(0,1,2).filter { it != leadDim }
-    val stepSize = Vector3f(diff) / subDivisions
-
-    val result = mutableListOf<Vector3f>()
-    for (i in 1 until subDivisions[leadDim].toInt()){
-        val exactPosition = diff * (i / subDivisions[leadDim] )
-        val p = Vector3f()
-        p.setComponent(leadDim, p1[leadDim] + stepSize[leadDim] * i)
-        for (dim in otherDims) {
-            val precisionSteps = exactPosition[dim] / precision[dim]
-            p.setComponent(dim, p1[dim]
-                    + precisionSteps.toInt() * precision[dim]
-                    + if(precisionSteps - precisionSteps.toInt() > 0.5f ) precision[dim] else 0f)
-        }
-        result += p
-    }
-    return result
-}

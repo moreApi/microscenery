@@ -48,6 +48,10 @@ sealed class MicroscopeSignal {
                 me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.HARDWAREDIMENSIONS -> {
                     this.hardwareDimensions.toPoko()
                 }
+                me.jancasus.microscenery.network.v2.MicroscopeSignal.SignalCase.ABLATIONRESULTS -> {
+                    val ar = this.ablationResults
+                    AblationResults(ar.totalTimeMillis,ar.perPointTimeList)
+                }
             }
     }
 }
@@ -187,6 +191,16 @@ data class MicroscopeStatus(
                 ss.live
             )
         }
+    }
+}
+
+data class AblationResults(val totalTimeMillis: Int, val perPointTime: List<Int>) : MicroscopeSignal() {
+    override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
+        val microscopeSignal = me.jancasus.microscenery.network.v2.MicroscopeSignal.newBuilder()
+        val ar = microscopeSignal.ablationResultsBuilder
+        ar.totalTimeMillis = totalTimeMillis
+        ar.addAllPerPointTime(perPointTime)
+        return microscopeSignal.build()
     }
 }
 

@@ -39,15 +39,13 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         val signal = microscope.output.poll(200, TimeUnit.MILLISECONDS) ?: return
 
         when (signal) {
-            is HardwareDimensions -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
-            is MicroscopeStatus -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
             is Slice -> {
                 signal.data?.let {
                     storage.addSlice(signal.Id, signal.data)
                     controlConnection.sendSignal(ActualMicroscopeSignal(signal.copy(data = null)))
                 }
             }
-            is Stack -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
+            else -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
         }
     }
 

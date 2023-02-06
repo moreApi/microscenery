@@ -247,6 +247,7 @@ class StageSpaceManager(
                 }
                 stacks = stacks + StackContainer(stack, volume, buffer)
             }
+            is AblationResults -> TODO()
         }
     }
 
