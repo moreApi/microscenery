@@ -1,5 +1,6 @@
 package microscenery.example.network
 
+import microscenery.example.microscope.LocalMMScene.Companion.initLocalMMCore
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
@@ -15,7 +16,7 @@ class RemoteMicroscopeServerMMExample {
             // settings like port can be set in [microscenery.properties]
             val zContext = ZContext()
 
-            val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection())
+            val hardware: MicroscopeHardware = MicromanagerWrapper(MMConnection(initLocalMMCore()))
             val imgSize = hardware.hardwareDimensions().imageSize
 
             @Suppress("UNUSED_VARIABLE")

@@ -12,6 +12,7 @@ import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.nio.Buffer
+import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
@@ -135,6 +136,23 @@ class MicromanagerWrapper(
         if (status.state != ServerState.STARTUP && !disableStagePosUpdates) {
             status = status.copy(stagePosition = pos)
         }
+    }
+
+    /**
+     * Send data as slice.
+     * Used for data acquired by use of the traditional micromanager interface.
+     */
+    @Suppress("unused")
+    fun externalSnap(position: Vector3f, data: ByteBuffer){
+        val sliceSignal = Slice(
+            idCounter++,
+            System.currentTimeMillis(),
+            position,
+            hardwareDimensions.byteSize,
+            null,
+            data
+        )
+        output.put(sliceSignal)
     }
 
     //############################## end of called from external threads ##############################

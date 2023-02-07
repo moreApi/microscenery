@@ -11,6 +11,7 @@ import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
+import mmcorej.CMMCore
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
@@ -35,12 +36,12 @@ class LocalMMScene : DefaultScene() {
         MicroscenerySettings.set("Stage.maxY", 0f)
         MicroscenerySettings.set("Stage.maxZ", 120f)
 
-        MicroscenerySettings.set("MMConnection.core.configuration","C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg")
+
 
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
-            MicromanagerWrapper(MMConnection().apply { moveStage(stageStart, false) })
+            MicromanagerWrapper(MMConnection(initLocalMMCore()).apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
             hardware, scene, hub, addFocusFrame = true, scaleDownFactor = 50f,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
@@ -94,6 +95,23 @@ class LocalMMScene : DefaultScene() {
         @JvmStatic
         fun main(args: Array<String>) {
             LocalMMScene().main()
+        }
+
+        fun initLocalMMCore(): CMMCore {
+            //init core from properties
+            val core = CMMCore()
+            val mmConfiguration = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo.cfg"
+            //val mmConfiguratio = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg"
+            core.loadSystemConfiguration(mmConfiguration)
+
+            /*
+            val mmSettingsGroupName = "FakeCam"
+            val mmPresetName = "TiffStack_16_Cherry_time"
+            mmSettingsGroupName?.let(mmSettingsGroupName) { _, _ ->
+                logger.info("Setting $mmSettingsGroupName to $mmPresetName")
+                core.setConfig(mmSettingsGroupName, mmPresetName)
+            }*/
+            return core
         }
     }
 

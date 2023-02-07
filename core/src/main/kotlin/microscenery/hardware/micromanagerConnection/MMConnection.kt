@@ -3,7 +3,6 @@ package microscenery.hardware.micromanagerConnection
 
 import fromScenery.LazyLogger
 import microscenery.MicroscenerySettings
-import microscenery.let
 import mmcorej.CMMCore
 import org.joml.Vector3f
 import java.awt.Rectangle
@@ -18,12 +17,11 @@ import java.nio.ShortBuffer
  * MMConnection.core.settingsGroupName
  * MMConnection.core.presetName
  */
-class MMConnection @JvmOverloads constructor(
-    core_: CMMCore? = null
+class MMConnection(
+    private val core: CMMCore
 ) {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val core: CMMCore
     private val setup: microscenery.hardware.SPIMSetup
 
     var width: Int = 0
@@ -51,25 +49,8 @@ class MMConnection @JvmOverloads constructor(
     init {
         MicroscenerySettings.setIfUnset("MMConnection.OriginMoveProtection", true)
 
-        if (core_ != null) {
-            core = core_
-        } else {
-            //init core from properties
-            core = CMMCore()
-
-            val info = core.versionInfo
-            println(info)
-
-            val mmConfiguration = MicroscenerySettings.get<String>("MMConnection.core.configuration")
-            core.loadSystemConfiguration(mmConfiguration)
-
-            val mmSettingsGroupName = MicroscenerySettings.getOrNull<String>("MMConnection.core.settingsGroupName")
-            val mmPresetName = MicroscenerySettings.getOrNull<String>("MMConnection.core.presetName")
-            mmSettingsGroupName?.let(mmSettingsGroupName) { _, _ ->
-                logger.info("Setting $mmSettingsGroupName to $mmPresetName")
-                core.setConfig(mmSettingsGroupName, mmPresetName)
-            }
-        }
+        logger.info(core.versionInfo)
+        logger.info(core.apiVersionInfo)
 
         setup = microscenery.hardware.SPIMSetup.createDefaultSetup(core)
 

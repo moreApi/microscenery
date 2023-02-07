@@ -58,6 +58,7 @@ sealed class MicroscopeSignal {
 
 /**
  * @param size size of the slice in bytes
+ * @param stackIdAndSliceIndex is null if not associated with a stack
  */
 data class Slice(
     val Id: Int,

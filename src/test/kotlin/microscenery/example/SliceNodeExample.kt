@@ -4,8 +4,9 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import io.scif.util.FormatTools
 import microscenery.DefaultScene
-import microscenery.stageSpace.SliceRenderNode
+import microscenery.example.microscope.LocalMMScene.Companion.initLocalMMCore
 import microscenery.hardware.micromanagerConnection.MMConnection
+import microscenery.stageSpace.SliceRenderNode
 import net.imglib2.type.numeric.NumericType
 import net.imglib2.type.numeric.integer.*
 import net.imglib2.type.numeric.real.FloatType
@@ -135,7 +136,7 @@ class SliceNodeMMExample : DefaultScene() {
 
         val tf = TransferFunction.ramp()
 
-        val mmConnection = MMConnection()
+        val mmConnection = MMConnection(initLocalMMCore())
 
         for (i in 0..100) {
             val buffer = MemoryUtil.memAlloc(mmConnection.height * mmConnection.width * 2)//shortType
