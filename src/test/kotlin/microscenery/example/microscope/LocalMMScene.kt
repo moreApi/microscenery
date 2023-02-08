@@ -4,7 +4,7 @@ import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
-import microscenery.UI.StageSpaceUI.Companion.stageUserInteraction
+import microscenery.UI.StageSpaceUI
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
@@ -85,10 +85,7 @@ class LocalMMScene : DefaultScene() {
 
     override fun inputSetup() {
         super.inputSetup()
-
-        inputHandler?.let {
-            stageUserInteraction(stageSpaceManager, it, cam)
-        }
+        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler)
     }
 
     companion object {

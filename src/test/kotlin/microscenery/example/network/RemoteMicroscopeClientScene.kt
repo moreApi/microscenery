@@ -51,11 +51,7 @@ class RemoteMicroscopeClientScene : DefaultScene() {
 
     override fun inputSetup() {
         super.inputSetup()
-
-        inputHandler?.let {
-            StageSpaceUI.stageUserInteraction(stageSpaceManager, it, cam)
-        }
-
+        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler)
     }
 
     companion object {

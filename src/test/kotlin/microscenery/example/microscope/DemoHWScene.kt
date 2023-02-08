@@ -4,14 +4,14 @@ import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
 import microscenery.DemoMicroscopeHardware
 import microscenery.MicroscenerySettings
-import microscenery.UI.StageSpaceUI.Companion.stageUserInteraction
+import microscenery.UI.StageSpaceUI
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 
-class DemoHWScene : DefaultScene() {
+class DemoHWScene : DefaultScene(withSwingUI = true) {
     lateinit var stageSpaceManager: StageSpaceManager
 
     override fun init() {
@@ -70,9 +70,7 @@ class DemoHWScene : DefaultScene() {
     override fun inputSetup() {
         super.inputSetup()
 
-        inputHandler?.let {
-            stageUserInteraction(stageSpaceManager, it, cam)
-        }
+        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler)
     }
 
     companion object {
