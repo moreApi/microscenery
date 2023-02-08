@@ -25,8 +25,8 @@ class DemoHWScene : DefaultScene() {
 //        MicroscenerySettings.set("Stage.maxX", 44000f)
 //        MicroscenerySettings.set("Stage.maxY", 26000f)
 //        MicroscenerySettings.set("Stage.maxZ", 100f)
-        MicroscenerySettings.set("Stage.precisionXY", 10f)
-        MicroscenerySettings.set("Stage.precisionZ", 10f)
+        MicroscenerySettings.set("Stage.precisionXY", 1f)
+        MicroscenerySettings.set("Stage.precisionZ", 1f)
 
 
         val hw = DemoMicroscopeHardware(binning = 1)
