@@ -7,6 +7,7 @@ import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.primitives.Cylinder
+import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunctionEditor
@@ -31,6 +32,8 @@ import kotlin.concurrent.thread
 data class StageUICommand(val name: String, val key: String?, val command: ClickBehaviour?)
 
 class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
+    internal val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+
     var searchCubeStart: Box? = null
 
     val commands = listOf(
@@ -53,7 +56,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                     } else {
                         it.mode = FrameGizmo.Mode.PASSIVE
                     }
-                    stageSpaceManager.logger.info("focusframe mode is now ${it.mode}")
+                    logger.info("focus frame mode is now ${it.mode}")
                 }
             }
         }),
@@ -73,7 +76,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                     } else {
                         it.mode = FrameGizmo.Mode.STACK_SELECTION
                     }
-                    stageSpaceManager.logger.info("focusframe mode is now ${it.mode}")
+                    logger.info("focus frame mode is now ${it.mode}")
                 }
             }
         }),
@@ -106,7 +109,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
             override fun click(x: Int, y: Int) {
                 val frame = stageSpaceManager.focusTarget ?: return
                 if (frame.mode != FrameGizmo.Mode.PASSIVE) {
-                    stageSpaceManager.logger.warn("Frame not passive. Not going to plan ablation.")
+                    logger.warn("Frame not passive. Not going to plan ablation.")
                     return
                 }
 
@@ -122,7 +125,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                     }
                     stageSpaceManager.stageRoot.addChild(point)
                     ablationPoints += point
-                    stageSpaceManager.logger.info("set first ablation point to ${frame.spatial().position.toReadableString()}")
+                    logger.info("set first ablation point to ${frame.spatial().position.toReadableString()}")
                     return
                 }
 
@@ -130,7 +133,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                 if (last.spatial().position == frame.spatial().position) {
                     if (!goneToFirstPoint) {
                         stageSpaceManager.hardware.stagePosition = ablationPoints.first().spatial().position
-                        stageSpaceManager.logger.warn("Moving stage to first point. Open laser and press again!")
+                        logger.warn("Moving stage to first point. Open laser and press again!")
                         goneToFirstPoint = true
                         return
                     }
@@ -143,7 +146,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                     goneToFirstPoint = false
                     return
                 } else if (goneToFirstPoint) {
-                    stageSpaceManager.logger.warn("Movement detected, aborting ablation staging.")
+                    logger.warn("Movement detected, aborting ablation staging.")
                     goneToFirstPoint = false
                 }
 
@@ -176,7 +179,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                         rotation = Quaternionf().rotationTo(UP, diff)
                     }
                     last.addChild(line)
-                    stageSpaceManager.logger.info("set ablation point to ${frame.spatial().position.toReadableString()}")
+                    logger.info("set ablation point to ${frame.spatial().position.toReadableString()}")
                 }
             }
         }),
@@ -248,12 +251,12 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
             )
         }
         MicroscenerySettings.setIfUnset("FrameControl", false)
-        remapControl(stageSpaceManager, inputHandler)
+        remapControl(inputHandler)
         MicroscenerySettings.addUpdateRoutine(
             "FrameControl"
         ) {
-            stageSpaceManager.logger.info("FrameControl = ${MicroscenerySettings.getProperty<Boolean>("FrameControl")}")
-            remapControl(stageSpaceManager, inputHandler)
+            logger.info("FrameControl = ${MicroscenerySettings.getProperty<Boolean>("FrameControl")}")
+            remapControl(inputHandler)
         }
         inputHandler.addBehaviour("switchControl", ClickBehaviour { _, _ ->
             val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
@@ -288,43 +291,43 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }
     }
 
-    companion object {
-        private fun remapControl(stageSpaceManager: StageSpaceManager, inputHandler: InputHandler) {
-            val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
-            val defaultBehaviours = listOf(
-                "move_forward" to "W",
-                "move_back" to "S",
-                "move_left" to "A",
-                "move_right" to "D",
-                "move_up" to "K",
-                "move_down" to "J"
-            )
-            val frameBehaviours = listOf(
-                "frame_forward" to "J",
-                "frame_back" to "K",
-                "frame_left" to "A",
-                "frame_right" to "D",
-                "frame_up" to "W",
-                "frame_down" to "S"
-            )
-            if (frameControl) {
-                defaultBehaviours.forEach { (name, _) ->
-                    inputHandler.removeKeyBinding(name)
-                    stageSpaceManager.logger.info("removed keys $name")
-                }
-                frameBehaviours.forEach { (name, key) ->
-                    inputHandler.addKeyBinding(name, key)
-                    stageSpaceManager.logger.info("added key $key to $name")
-                }
-            } else {
-                frameBehaviours.forEach { (name, _) ->
-                    inputHandler.removeKeyBinding(name)
-                    stageSpaceManager.logger.info("removed keys from $name")
-                }
-                defaultBehaviours.forEach { (name, key) ->
-                    inputHandler.addKeyBinding(name, key)
-                    stageSpaceManager.logger.info("added key $key to $name")
-                }
+    private fun remapControl(inputHandler: InputHandler) {
+        val frameControl = MicroscenerySettings.getProperty<Boolean>("FrameControl")
+        val defaultBehaviours = listOf(
+            "move_forward" to "W",
+            "move_back" to "S",
+            "move_left" to "A",
+            "move_right" to "D",
+            "move_up" to "K",
+            "move_down" to "J"
+        )
+        val frameBehaviours = listOf(
+            "frame_forward" to "J",
+            "frame_back" to "K",
+            "frame_left" to "A",
+            "frame_right" to "D",
+            "frame_up" to "W",
+            "frame_down" to "S"
+        )
+        if (frameControl) {
+            logger.info("Frame control active.")
+            defaultBehaviours.forEach { (name, _) ->
+                inputHandler.removeKeyBinding(name)
+                logger.debug("removed keys $name")
+            }
+            frameBehaviours.forEach { (name, key) ->
+                inputHandler.addKeyBinding(name, key)
+                logger.debug("added key $key to $name")
+            }
+        } else {
+            logger.info("Camera control active.")
+            frameBehaviours.forEach { (name, _) ->
+                inputHandler.removeKeyBinding(name)
+                logger.debug("removed keys from $name")
+            }
+            defaultBehaviours.forEach { (name, key) ->
+                inputHandler.addKeyBinding(name, key)
+                logger.debug("added key $key to $name")
             }
         }
     }
