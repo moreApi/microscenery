@@ -48,7 +48,7 @@ class StageSpaceManager(
     var stageAreaCenter = Vector3f()
         private set
 
-    private var sortedSlices = ArrayList<SliceRenderNode>()
+    private val sortedSlices = ArrayList<SliceRenderNode>()
     private var stacks = emptyList<StackContainer>()
 
     private var transferFunctionOffset = 0.0f
@@ -373,6 +373,19 @@ class StageSpaceManager(
         positions.forEach {
             this.stagePosition = it
             this.snapSlice()
+        }
+    }
+
+    fun clearStage(){
+        sortedSlices.forEach {
+            it.parent?.removeChild(it)
+        }
+        sortedSlices.clear()
+        val tmp = stacks
+        stacks = emptyList()
+        tmp.forEach {
+            it.volume.parent?.removeChild(it.volume)
+            MemoryUtil.memFree(it.buffer)
         }
     }
 

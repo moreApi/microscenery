@@ -180,6 +180,11 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                 }
             }
         }),
+        StageUICommand("clearStage", "8", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                stageSpaceManager.clearStage()
+            }
+        }),
         StageUICommand("stop", "0", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
                 searchCubeStart?.let { it.parent?.removeChild(it) }
