@@ -8,8 +8,6 @@ import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.toFloatArray
 import graphics.scenery.volumes.BufferedVolume
-import graphics.scenery.volumes.HasTransferFunction
-import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.Agent
 import microscenery.MicroscenerySettings
@@ -37,22 +35,19 @@ class StageSpaceManager(
     addFocusFrame: Boolean = true,
     val scaleDownFactor: Float = 100f,
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
-) : Agent(), HasTransferFunction {
-    internal val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
-
+) : Agent() {
+    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val stageRoot = RichNode("stage root")
     val focus: Frame
     var focusTarget: FrameGizmo? = null
+    val transferFunctionManager = TransferFunctionManager(this)
+
     private val stageAreaBorders: Box
     var stageAreaCenter = Vector3f()
         private set
-
-    private val sortedSlices = ArrayList<SliceRenderNode>()
-    private var stacks = emptyList<StackContainer>()
-
-    private var transferFunctionOffset = 0.0f
-    private var transferFunctionScale = 0.0f
+    internal val sortedSlices = ArrayList<SliceRenderNode>()
+    internal var stacks = emptyList<StackContainer>()
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
@@ -60,29 +55,10 @@ class StageSpaceManager(
             hardware.stagePosition = value
         }
 
-    override var minDisplayRange: Float = 0.0f
-        set(value) {
-            field = value
-            calculateOffsetAndScale()
-            updateTransferFunction()
-        }
-    override var maxDisplayRange: Float = 1000.0f
-        set(value) {
-            field = value
-            calculateOffsetAndScale()
-            updateTransferFunction()
-        }
-    override var transferFunction: TransferFunction = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
-        set(value) {
-            field = value
-            updateTransferFunction()
-        }
-
     init {
         MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolutionX", Vector3f(10f))
 
         scene.addChild(stageRoot)
-        calculateOffsetAndScale()
 
         stageAreaBorders = Box(Vector3f(1f), insideNormals = true)
         stageAreaBorders.name = "stageAreaBorders"
@@ -112,39 +88,6 @@ class StageSpaceManager(
 
 
         startAgent()
-    }
-
-    /**
-     * Iterates over all slices and stacks and updates their transferFunction, offset and scale values according
-     * to the currently set values of this manager
-     */
-    private fun updateTransferFunction() {
-        sortedSlices.forEach {
-            it.transferFunction = transferFunction
-            it.transferFunctionOffset = transferFunctionOffset
-            it.transferFunctionScale = transferFunctionScale
-        }
-        stacks.forEach {
-            it.volume.transferFunction = transferFunction
-            it.volume.minDisplayRange = minDisplayRange
-            it.volume.maxDisplayRange = maxDisplayRange
-        }
-    }
-
-    /**
-     * This normally happens inside the converter of a volume.
-     * Converts the minDisplayRange and maxDisplayRange values into an offset and scale used inside the shader
-     */
-    private fun calculateOffsetAndScale() {
-        // Rangescale is either 255 or 65535
-        val rangeScale = when (hardware.hardwareDimensions().numericType) {
-            NumericType.INT8 -> 255
-            NumericType.INT16 -> 65535
-        }
-        val fmin = minDisplayRange / rangeScale
-        val fmax = maxDisplayRange / rangeScale
-        transferFunctionScale = 1.0f / (fmax - fmin)
-        transferFunctionOffset = -fmin * transferFunctionScale
     }
 
     /**
@@ -231,13 +174,13 @@ class StageSpaceManager(
                     )
                 }
                 volume.goToLastTimepoint()
-                volume.transferFunction = transferFunction
+                volume.transferFunction = transferFunctionManager.transferFunction
                 volume.name = "Stack ${signal.Id}"
                 volume.origin = Origin.Center
                 volume.spatial().position = (signal.from + signal.to).mul(0.5f)
                 volume.spatial().scale = Vector3f(1f, -1f, sliceThickness)
                 volume.pixelToWorldRatio = 1f // conversion is done by stage root
-                volume.setTransferFunctionRange(minDisplayRange, maxDisplayRange)
+                volume.setTransferFunctionRange(transferFunctionManager.minDisplayRange, transferFunctionManager.maxDisplayRange)
 
                 stageRoot.addChild(volume)
 
@@ -282,9 +225,9 @@ class StageSpaceManager(
             hwd.imageSize.y,
             1f,
             hwd.numericType.bytes,
-            transferFunction,
-            transferFunctionOffset,
-            transferFunctionScale
+            transferFunctionManager.transferFunction,
+            transferFunctionManager.transferFunctionOffset,
+            transferFunctionManager.transferFunctionScale
         )
         node.spatial {
             position = signal.stagePos
@@ -389,8 +332,7 @@ class StageSpaceManager(
         }
     }
 
-    private class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
-
+    internal class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
 
     companion object {
         private fun BufferedVolume.goToNewTimepoint(buffer: ByteBuffer) {

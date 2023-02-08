@@ -1,8 +1,5 @@
 package microscenery.example.microscope
 
-import graphics.scenery.Box
-import graphics.scenery.attribute.material.Material
-import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.hardware.MicroscopeHardware
@@ -36,8 +33,6 @@ class LocalMMScene : DefaultScene() {
         MicroscenerySettings.set("Stage.maxY", 0f)
         MicroscenerySettings.set("Stage.maxZ", 120f)
 
-
-
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
@@ -46,21 +41,6 @@ class LocalMMScene : DefaultScene() {
             hardware, scene, hub, addFocusFrame = true, scaleDownFactor = 50f,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
-
-        val hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
-        hullbox.name = "hullbox"
-        hullbox.material {
-            ambient = Vector3f(0.6f, 0.6f, 0.6f)
-            diffuse = Vector3f(0.4f, 0.4f, 0.4f)
-            specular = Vector3f(0.0f, 0.0f, 0.0f)
-            cullingMode = Material.CullingMode.Front
-        }
-        scene.addChild(hullbox)
-
-        TransferFunctionEditor(tfContainer = stageSpaceManager)
-        //SettingsEditor(MicroscenerySettings)
-        stageSpaceManager.minDisplayRange = 50f
-
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
 
