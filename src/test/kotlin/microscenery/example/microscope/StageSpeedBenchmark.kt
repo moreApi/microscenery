@@ -2,7 +2,7 @@ package microscenery.example.microscope
 
 import graphics.scenery.utils.extensions.plus
 import microscenery.MicroscenerySettings
-import microscenery.example.microscope.LocalMMScene.Companion.initLocalMMCore
+import microscenery.example.microscope.LocalMMScene.Companion.initLocalMMCoreFake
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.isFullyLessThan
 import microscenery.toReadableString
@@ -16,7 +16,7 @@ fun main() {
     // with picard stage
     MicroscenerySettings.set("MMConnection.core.configuration","C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake_picard.cfg")
 
-    val con = MMConnection(initLocalMMCore())
+    val con = MMConnection(initLocalMMCoreFake())
 
     val min = 0f
     val max = 100f
