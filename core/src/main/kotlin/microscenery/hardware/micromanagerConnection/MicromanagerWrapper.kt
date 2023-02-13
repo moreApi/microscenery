@@ -26,6 +26,7 @@ import kotlin.system.measureNanoTime
  */
 class MicromanagerWrapper(
     private val mmConnection: MMConnection,
+    private val mmStudioConnector: MMStudioConnector = DummyMMStudioConnector(),
     var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
     val disableStagePosUpdates: Boolean = false
 ) : MicroscopeHardwareAgent() {
@@ -125,6 +126,10 @@ class MicromanagerWrapper(
             hardwareCommandsQueue.clear()
             hardwareCommandsQueue.add(HardwareCommand.Shutdown)
         }
+    }
+
+    override fun startAcquisition() {
+        hardwareCommandsQueue.add(HardwareCommand.StartAcquisition)
     }
 
     /**
@@ -288,6 +293,7 @@ class MicromanagerWrapper(
                 status = status.copy(state = ServerState.MANUAL)
                 output.put(AblationResults(totalTime,perPointTime))
             }
+            HardwareCommand.StartAcquisition -> mmStudioConnector.startAcquisition()
         }
     }
 
@@ -358,5 +364,6 @@ class MicromanagerWrapper(
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
         data class AblatePoints(val points: List<ClientSignal.AblationPoint>) : HardwareCommand()
+        object StartAcquisition : HardwareCommand()
     }
 }

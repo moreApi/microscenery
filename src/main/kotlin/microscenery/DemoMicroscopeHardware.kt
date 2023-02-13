@@ -197,5 +197,7 @@ class DemoMicroscopeHardware(
         throw NotImplementedError("demo does not use MicroscopeAgents stage handling")
     }
 
-
+    override fun startAcquisition() {
+        snapSlice()
+    }
 }

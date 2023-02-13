@@ -65,6 +65,10 @@ class RemoteMicroscopeClient(
         controlConnection.sendSignal(signal)
     }
 
+    override fun startAcquisition() {
+        controlConnection.sendSignal(ClientSignal.StartAcquisition)
+    }
+
     override fun goLive() {
         controlConnection.sendSignal(ClientSignal.Live)
     }

@@ -23,6 +23,7 @@ interface MicroscopeHardware {
     fun hardwareDimensions(): HardwareDimensions
 
     fun ablatePoints(signal: ClientSignal.AblationPoints)
+    fun startAcquisition()
 
     val output: BlockingQueue<MicroscopeSignal>
 }

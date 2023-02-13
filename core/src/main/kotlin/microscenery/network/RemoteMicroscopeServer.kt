@@ -73,6 +73,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
             ClientSignal.Stop -> microscope.stop()
             is ClientSignal.AblationPoints -> microscope.ablatePoints(it)
             is ClientSignal.AblationShutter -> TODO()
+            ClientSignal.StartAcquisition -> microscope.startAcquisition()
         }
     }
 

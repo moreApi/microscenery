@@ -18,6 +18,7 @@ sealed class ClientSignal {
             Stop -> cs.stopBuilder.build()
             is AblationPoints -> throw NotImplementedError("This case should be overwritten.")
             is AblationShutter -> throw NotImplementedError("This case should be overwritten.")
+            StartAcquisition -> cs.startAcquisitionBuilder.build()
         }
         return cs.build()
     }
@@ -27,6 +28,7 @@ sealed class ClientSignal {
     object Shutdown : ClientSignal()
     object SnapImage : ClientSignal()
     object Stop : ClientSignal()
+    object StartAcquisition : ClientSignal()
 
     data class MoveStage(val target: Vector3f) : ClientSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
@@ -140,6 +142,7 @@ sealed class ClientSignal {
                 }
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.ABLATIONSHUTTER ->
                     AblationShutter(this.ablationShutter.open)
+                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.STARTACQUISITION -> StartAcquisition
             }
     }
 }
