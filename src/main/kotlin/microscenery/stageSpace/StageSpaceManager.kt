@@ -65,6 +65,7 @@ class StageSpaceManager(
         stageAreaBorders.material {
             ambient = Vector3f(0.6f, 0.6f, 0.6f)
             diffuse = Vector3f(0.4f, 0.4f, 0.4f)
+            diffuse = Vector3f(0.4f, 0.4f, 0.4f)
             specular = Vector3f(0.0f, 0.0f, 0.0f)
             cullingMode = Material.CullingMode.Front
         }
