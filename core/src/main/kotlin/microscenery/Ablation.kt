@@ -6,6 +6,7 @@ package microscenery
 
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.times
+import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.ClientSignal
 import org.joml.Vector3f
 
@@ -37,6 +38,18 @@ fun sampleLine(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
     return result
 }
 
+fun initAblationSettings(){
+    MicroscenerySettings.setVector3fIfUnset("Ablation.precision", Vector3f(1f))
+    MicroscenerySettings.set("Ablation.dwellTimeMillis", 0L)
+    MicroscenerySettings.set("Ablation.laserPower", 0f)
+    // count time it takes to move towards next point to that points dwell time
+    MicroscenerySettings.set("Ablation.countMoveTime", true)
+    MicroscenerySettings.set("Ablation.pauseLaserOnMove", false)
+    MicroscenerySettings.set("Ablation.dryRun", true)
+    MicroscenerySettings.set("Ablation.repetitions", 1)
+    MicroscenerySettings.set("Ablation.startAcquisitionAfter", false)
+}
+
 /**
  * Uses [MicroscenerySettings] to map [points] to [ClientSignal.AblationPoints]
  */
@@ -44,8 +57,8 @@ fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
     val dwellTime = MicroscenerySettings.get("Ablation.dwellTimeMillis", 0L)
     val laserPower = MicroscenerySettings.get("Ablation.laserPower", 0f)
     // count time it takes to move towards next point to that points dwell time
-    val countMoveTime = MicroscenerySettings.get("Ablation.CountMoveTime", true)
-    val pauseLaserOnMove = MicroscenerySettings.get("Ablation.PauseLaserOnMove", false)
+    val countMoveTime = MicroscenerySettings.get("Ablation.countMoveTime", true)
+    val pauseLaserOnMove = MicroscenerySettings.get("Ablation.pauseLaserOnMove", false)
     val dryRun = MicroscenerySettings.get("Ablation.dryRun", true)
 
     return ClientSignal.AblationPoints(points.mapIndexed { index, vector3f ->
@@ -58,8 +71,21 @@ fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
             countMoveTime
         )
     })
+}
 
-    //label total time
-    //recorded time - label
-    //        do dry run
+fun executeAblationCommandSequence(hardware: MicroscopeHardware, signal: ClientSignal.AblationPoints ){
+    val dryRun = MicroscenerySettings.get("Ablation.dryRun", true)
+    val repetitions = MicroscenerySettings.get("Ablation.repetitions", 1)
+    val startAcquisitionAfter = MicroscenerySettings.get("Ablation.startAcquisitionAfter", false)
+
+    hardware.stagePosition = signal.points.first().position
+    hardware.ablatePoints(signal)
+    if (!dryRun) {
+        for (r in 2..repetitions) {
+            hardware.ablatePoints(signal)
+        }
+    }
+    if (startAcquisitionAfter){
+        hardware.startAcquisition()
+    }
 }

@@ -34,6 +34,10 @@ data class StageUICommand(val name: String, val key: String?, val command: Click
 class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     internal val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
+    init {
+        initAblationSettings()
+    }
+
     var searchCubeStart: Box? = null
 
     val commands = listOf(
@@ -137,7 +141,8 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                         goneToFirstPoint = true
                         return
                     }
-                    stageSpaceManager.hardware.ablatePoints(
+                    executeAblationCommandSequence(
+                        stageSpaceManager.hardware,
                         buildLaserPath(ablationPoints.map { it.spatial().position })
                     )
 

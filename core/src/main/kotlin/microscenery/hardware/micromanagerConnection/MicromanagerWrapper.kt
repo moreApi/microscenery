@@ -273,7 +273,7 @@ class MicromanagerWrapper(
                                 logger.warn(
                                     "Ablation: stage movement was longer than dwell time. " + "$moveTime ns > ${point.dwellTime} ns"
                                 )
-                            } else {
+                            } else if (sleepTime > 0){
                                 Thread.sleep(sleepTime.nanosToMillis())
                             }
                             if (point.laserOff) {
