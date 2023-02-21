@@ -16,6 +16,7 @@ import microscenery.setVector3fIfUnset
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D.distance
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
@@ -97,7 +98,12 @@ class StageSpaceManager(
      */
     private fun insertSlice(slice: SliceRenderNode): Int {
         sortedSlices.add(slice)
-        sortedSlices.sortBy { it.spatial().position.z() }
+
+        val cam = scene.activeObserver
+        val camPosition = cam?.spatial()?.position
+
+        sortedSlices.sortBy { it.spatial().position.distance(camPosition) }
+
         return sortedSlices.indexOf(slice)
     }
 
