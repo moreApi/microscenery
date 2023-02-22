@@ -16,7 +16,6 @@ import microscenery.setVector3fIfUnset
 import microscenery.signals.*
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D.distance
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
@@ -58,6 +57,7 @@ class StageSpaceManager(
 
     init {
         MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolutionX", Vector3f(10f))
+        MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
 
         scene.addChild(stageRoot)
 
@@ -89,22 +89,48 @@ class StageSpaceManager(
         focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
 
 
+        
+        val cam = scene.findObserver()
+        if(cam != null)
+        {
+            var oldPos = cam.spatial().position
+
+            cam.update += {
+                if(MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
+                    sortedSlices.forEach { it
+                        stageRoot.children.remove(it)
+                    }
+                    sortSlices()
+                    sortedSlices.forEach { it
+                        stageRoot.children.add(it)
+                    }
+                    oldPos = cam.spatial().position
+                }
+            }
+        }
+
         startAgent()
     }
 
     /**
-     * Inserts a slice into the local sliceContainer and sorts it using its z coordinate ->
-     * TODO: Make this use the camera and sort by view-vector issue #11
+     * Inserts a slice into the local [sortedSlices] and returns its index AFTER it has been sorted properly
      */
     private fun insertSlice(slice: SliceRenderNode): Int {
         sortedSlices.add(slice)
-
-        val cam = scene.activeObserver
-        val camPosition = cam?.spatial()?.position
-
-        sortedSlices.sortBy { it.spatial().position.distance(camPosition) }
-
+        sortSlices()
         return sortedSlices.indexOf(slice)
+    }
+
+    /**
+     * Sorts the [sortedSlices] container using the distance between camera and slice in descending order (the furthest first)
+     */
+    private fun sortSlices() {
+        val cam = scene.findObserver()
+        if(cam != null)
+        {
+            val camPosition = cam.spatial().position
+            sortedSlices.sortByDescending { it.spatial().worldPosition().distance(camPosition) }
+        }
     }
 
     override fun onLoop() {
