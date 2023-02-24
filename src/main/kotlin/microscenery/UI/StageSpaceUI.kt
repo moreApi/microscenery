@@ -220,6 +220,12 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
             }
         }),
         StageUICommand("toggle frame/cam control", "E", null),
+        StageUICommand("toggleBorders", "B", object : ClickBehaviour {
+            override fun click(x: Int, y: Int) {
+                val state = MicroscenerySettings.get<Boolean>("Stage.ToggleSliceBorder")
+                MicroscenerySettings.set("Stage.ToggleSliceBorder", !state)
+            }
+        }),
     )
 
     fun stageSwingUI(panel: JPanel){

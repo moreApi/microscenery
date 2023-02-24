@@ -58,6 +58,12 @@ class StageSpaceManager(
     init {
         MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolutionX", Vector3f(10f))
 
+        MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
+        MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder",
+            {
+                setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder"))
+            })
+
         scene.addChild(stageRoot)
 
         stageAreaBorders = Box(Vector3f(1f), insideNormals = true)
@@ -90,6 +96,17 @@ class StageSpaceManager(
 
         startAgent()
     }
+
+    /**
+     * Sets the slice border visibility according to [visibility]
+     */
+    fun setSliceBorderVisibility(visibility : Boolean)
+    {
+        sortedSlices.forEach { it
+            it.setBorderVisibility(visibility)
+        }
+    }
+
 
     /**
      * Inserts a slice into the local sliceContainer and sorts it using its z coordinate ->

@@ -13,7 +13,7 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
 
     fun randomStatic() {
         val sortedSlices = ArrayList<Vector3f>()
-        for (i in 0..200) {
+        for (i in 0..2) {
             val target = Random.random3DVectorFromRange(0f, extend)
             sortedSlices.add(target)
         }
