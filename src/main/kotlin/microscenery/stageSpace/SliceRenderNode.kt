@@ -1,15 +1,13 @@
 package microscenery.stageSpace
 
-import graphics.scenery.Blending
-import graphics.scenery.BufferUtils
-import graphics.scenery.DefaultNode
-import graphics.scenery.ShaderMaterial
+import graphics.scenery.*
 import graphics.scenery.attribute.geometry.HasGeometry
 import graphics.scenery.attribute.material.HasCustomMaterial
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.attribute.renderable.HasRenderable
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.backends.Shaders
+import graphics.scenery.primitives.Line
 import graphics.scenery.textures.Texture
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
@@ -18,6 +16,7 @@ import net.imglib2.type.numeric.integer.UnsignedShortType
 import net.imglib2.type.numeric.real.FloatType
 import org.joml.Vector3f
 import org.joml.Vector3i
+import org.joml.Vector4f
 import java.nio.ByteBuffer
 
 /**
@@ -157,6 +156,42 @@ class SliceRenderNode(
             blending.sourceAlphaBlendFactor = Blending.BlendFactor.One
             blending.destinationAlphaBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
             blending.alphaBlending = Blending.BlendOp.add
+        }
+    }
+
+    /**
+     * Adds or removes the border according to [visibility]
+     */
+    fun setBorderVisibility(visibility : Boolean)
+    {
+        if(visibility)
+        {
+            val border = Line(8, false, true)
+            border.name = "Border"
+
+            val side = 1.0f
+            val side2 = side/2.0f
+            val color = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+            border.lineColor = color
+            border.startColor = color
+            border.endColor = color
+            border.edgeWidth = 4f
+            //the lines have a slight Z offset, because the planes apparently are also created with an offset of o.f (side2) (planecode is origin of this code
+            val z = 0.5f
+            border.addPoint(Vector3f(-side2, -side2, 0.0f + z))
+            border.addPoint(Vector3f(side2, -side2, 0.0f + z))
+            border.addPoint(Vector3f(side2, -side2, 0.0f + z))
+            border.addPoint(Vector3f(side2, side2, 0.0f + z))
+            border.addPoint(Vector3f(side2, side2, 0.0f + z))
+            border.addPoint(Vector3f(-side2, side2, 0.0f + z))
+            border.addPoint(Vector3f(-side2, side2, 0.0f + z))
+            border.addPoint(Vector3f(-side2, -side2, 0.0f + z))
+            this.addChild(border)
+        }
+        else
+        {
+            val border = this.getChildrenByName("Border").first()
+            this.removeChild(border)
         }
     }
 

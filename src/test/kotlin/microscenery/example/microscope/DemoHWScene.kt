@@ -1,5 +1,7 @@
 package microscenery.example.microscope
 
+import graphics.scenery.Settings
+import graphics.scenery.SettingsEditor
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
 import microscenery.DemoMicroscopeHardware

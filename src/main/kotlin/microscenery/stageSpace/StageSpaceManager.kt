@@ -59,6 +59,12 @@ class StageSpaceManager(
         //    setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder"))
         //}
 
+        MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
+        MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder",
+            {
+                setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder"))
+            })
+
         scene.addChild(stageRoot)
 
         stageAreaBorders = Box(Vector3f(1f), insideNormals = true)
@@ -89,6 +95,27 @@ class StageSpaceManager(
         focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
 
         startAgent()
+    }
+
+    /**
+     * Sets the slice border visibility according to [visibility]
+     */
+    fun setSliceBorderVisibility(visibility : Boolean)
+    {
+        sortedSlices.forEach { it
+            it.setBorderVisibility(visibility)
+        }
+    }
+
+
+    /**
+     * Inserts a slice into the local sliceContainer and sorts it using its z coordinate ->
+     * TODO: Make this use the camera and sort by view-vector issue #11
+     */
+    private fun insertSlice(slice: SliceRenderNode): Int {
+        sortedSlices.add(slice)
+        sortedSlices.sortBy { it.spatial().position.z() }
+        return sortedSlices.indexOf(slice)
     }
 
     override fun onLoop() {
