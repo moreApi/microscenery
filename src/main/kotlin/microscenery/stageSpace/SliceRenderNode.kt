@@ -73,10 +73,10 @@ class SliceRenderNode(
             vertices = BufferUtils.allocateFloatAndPut(
                 floatArrayOf(
                     // Front
-                    -side2, -side2, side2,
-                    side2, -side2, side2,
-                    side2, side2, side2,
-                    -side2, side2, side2
+                    -side2, -side2, 0.0f,
+                    side2, -side2, 0.0f,
+                    side2, side2, 0.0f,
+                    -side2, side2, 0.0f
                 )
             )
 
@@ -170,22 +170,21 @@ class SliceRenderNode(
             border.name = "Border"
 
             val side = 1.0f
-            val side2 = side/2.0f
+            val side2 = side / 2.0f
             val color = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
             border.lineColor = color
             border.startColor = color
             border.endColor = color
             border.edgeWidth = 4f
-            //the lines have a slight Z offset, because the planes apparently are also created with an offset of o.f (side2) (planecode is origin of this code
-            val z = 0.5f
-            border.addPoint(Vector3f(-side2, -side2, 0.0f + z))
-            border.addPoint(Vector3f(side2, -side2, 0.0f + z))
-            border.addPoint(Vector3f(side2, -side2, 0.0f + z))
-            border.addPoint(Vector3f(side2, side2, 0.0f + z))
-            border.addPoint(Vector3f(side2, side2, 0.0f + z))
-            border.addPoint(Vector3f(-side2, side2, 0.0f + z))
-            border.addPoint(Vector3f(-side2, side2, 0.0f + z))
-            border.addPoint(Vector3f(-side2, -side2, 0.0f + z))
+
+            border.addPoint(Vector3f(-side2, -side2, 0.0f))
+            border.addPoint(Vector3f(side2, -side2, 0.0f))
+            border.addPoint(Vector3f(side2, -side2, 0.0f))
+            border.addPoint(Vector3f(side2, side2, 0.0f))
+            border.addPoint(Vector3f(side2, side2, 0.0f))
+            border.addPoint(Vector3f(-side2, side2, 0.0f))
+            border.addPoint(Vector3f(-side2, side2, 0.0f))
+            border.addPoint(Vector3f(-side2, -side2, 0.0f))
             this.addChild(border)
         }
         else
