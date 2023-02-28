@@ -11,9 +11,9 @@ import org.joml.Vector3f
 @Suppress("unused")
 class DemoBehavior(private val extend: Float, private val stageSpaceManager: StageSpaceManager) {
 
-    fun randomStatic() {
+    fun randomStatic(amount: Int = 200) {
         val sortedSlices = ArrayList<Vector3f>()
-        for (i in 0..200) {
+        for (i in 0..amount) {
             val target = Random.random3DVectorFromRange(0f, extend)
             sortedSlices.add(target)
         }
