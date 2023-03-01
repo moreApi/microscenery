@@ -162,7 +162,6 @@ class StageSpaceManager(
                 handleSingleSlice(signal)
             }
             is HardwareDimensions -> {
-                logger.info("Got HWD:$signal")
                 stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
                 stageRoot.spatial {
                     scale = Vector3f((1 / scaleDownFactor) * signal.vertexDiameter)
