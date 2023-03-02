@@ -26,6 +26,10 @@ dependencies {
     implementation("com.google.protobuf:protobuf-java-util:3.21.5")
     implementation("org.zeromq:jeromq:0.5.2")
     implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
+    // this is the version micromanager uses
+    implementation("com.miglayout:miglayout:3.7.4")
+
+
 
     implementation(files("manualLib/MMCoreJ.jar"))
 

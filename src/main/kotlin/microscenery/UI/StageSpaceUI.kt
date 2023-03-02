@@ -1,5 +1,6 @@
 package microscenery.UI
 
+import fromScenery.SettingsEditor
 import graphics.scenery.Box
 import graphics.scenery.Camera
 import graphics.scenery.Sphere
@@ -216,7 +217,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         StageUICommand("openEditors", "T", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
                 TransferFunctionEditor(stageSpaceManager.sliceManager.transferFunctionManager)
-                //SettingsEditor(MicroscenerySettings)
+                SettingsEditor(MicroscenerySettings)
             }
         }),
         StageUICommand("toggle frame/cam control", "E", null),
