@@ -4,7 +4,7 @@ import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
 import microscenery.signals.NumericType
 
-class TransferFunctionManager(val stageSpace: StageSpaceManager): HasTransferFunction {
+class TransferFunctionManager(val sliceManager: SliceManager) : HasTransferFunction {
 
     internal var transferFunctionOffset = 0.0f
     internal var transferFunctionScale = 1.0f
@@ -32,12 +32,12 @@ class TransferFunctionManager(val stageSpace: StageSpaceManager): HasTransferFun
      * to the currently set values of this manager
      */
     private fun updateTransferFunction() {
-        stageSpace.sortedSlices.forEach {
+        sliceManager.sortedSlices.forEach {
             it.transferFunction = transferFunction
             it.transferFunctionOffset = transferFunctionOffset
             it.transferFunctionScale = transferFunctionScale
         }
-        stageSpace.stacks.forEach {
+        sliceManager.stacks.forEach {
             it.volume.transferFunction = transferFunction
             it.volume.minDisplayRange = minDisplayRange
             it.volume.maxDisplayRange = maxDisplayRange
@@ -50,7 +50,7 @@ class TransferFunctionManager(val stageSpace: StageSpaceManager): HasTransferFun
      */
     private fun calculateOffsetAndScale() {
         // Rangescale is either 255 or 65535
-        val rangeScale = when (stageSpace.hardware.hardwareDimensions().numericType) {
+        val rangeScale = when (sliceManager.hardware.hardwareDimensions().numericType) {
             NumericType.INT8 -> 255
             NumericType.INT16 -> 65535
         }
