@@ -21,6 +21,7 @@ import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
@@ -47,6 +48,7 @@ class StageSpaceManager(
     var stageAreaCenter = Vector3f()
         private set
     internal val sortedSlices = ArrayList<SliceRenderNode>()
+    private val sortingSlicesLock = ReentrantLock()
     internal var stacks = emptyList<StackContainer>()
 
     var stagePosition: Vector3f
@@ -57,6 +59,7 @@ class StageSpaceManager(
 
     init {
         MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolutionX", Vector3f(10f))
+        MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
 
         MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
         MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder",
@@ -94,6 +97,20 @@ class StageSpaceManager(
         focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
 
 
+        
+        val cam = scene.findObserver()
+        if(cam != null)
+        {
+            var oldPos = cam.spatial().position
+
+            cam.update += {
+                if(MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
+                    sortAndInsertSlices(cam.spatial().position)
+                    oldPos = cam.spatial().position
+                }
+            }
+        }
+
         startAgent()
     }
 
@@ -112,11 +129,42 @@ class StageSpaceManager(
      * Inserts a slice into the local sliceContainer and sorts it using its z coordinate ->
      * TODO: Make this use the camera and sort by view-vector issue #11
      */
-    private fun insertSlice(slice: SliceRenderNode): Int {
-        sortedSlices.add(slice)
-        sortedSlices.sortBy { it.spatial().position.z() }
-        return sortedSlices.indexOf(slice)
+    private fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null){
+        if (newSlice != null) {
+            sortingSlicesLock.lock()
+            // detect too close slices to replace them
+            val minDistance = hardware.hardwareDimensions().vertexDiameter
+            stageRoot.children.filter {
+                it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
+                    newSlice.spatial().position, minDistance
+                ) ?: false
+            }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+                .forEach {
+                    stageRoot.removeChild(it)
+                    sortedSlices.remove(it)
+                }
+
+            stageRoot.addChild(newSlice)
+            sortedSlices.add(newSlice)
+        }
+
+        // If I have this lock that means I just inserted a slice and need to sort it. Otherwise, I look if it is free.
+        // If yes I sort. If no I return because someone else is sorting (and inserting).
+        if (sortingSlicesLock.isHeldByCurrentThread || sortingSlicesLock.tryLock()) {
+            sortedSlices.forEach {
+                stageRoot.children.remove(it)
+            }
+
+            //Sorts the [sortedSlices] container using the distance between camera and slice in descending order (the furthest first)
+            sortedSlices.sortByDescending { it.spatial().worldPosition().distance(camPosition) }
+
+            sortedSlices.forEach {
+                stageRoot.children.add(it)
+            }
+            sortingSlicesLock.unlock()
+        }
     }
+
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
@@ -134,7 +182,6 @@ class StageSpaceManager(
                 handleSingleSlice(signal)
             }
             is HardwareDimensions -> {
-                logger.info("Got HWD:$signal")
                 stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
                 stageRoot.spatial {
                     scale = Vector3f((1 / scaleDownFactor) * signal.vertexDiameter)
@@ -252,22 +299,7 @@ class StageSpaceManager(
             rotation = layout.sheetRotation()
         }
 
-        val minDistance = hardware.hardwareDimensions().vertexDiameter
-        stageRoot.children.filter {
-            it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
-                signal.stagePos, minDistance
-            ) ?: false
-        }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
-            .forEach {
-                stageRoot.removeChild(it)
-                sortedSlices.remove(it)
-            }
-        stageRoot.addChild(node)
-
-        val index = insertSlice(node)
-        //now follows insurance, that slides get ordered correctly
-        stageRoot.children.remove(node)
-        stageRoot.children.add(index, node)
+        sortAndInsertSlices(scene.findObserver()?.spatial()?.position?:Vector3f(),node)
     }
 
     fun stack(from: Vector3f, to: Vector3f, live: Boolean) {
