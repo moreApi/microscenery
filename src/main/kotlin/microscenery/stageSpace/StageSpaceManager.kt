@@ -6,23 +6,14 @@ import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.utils.extensions.toFloatArray
-import graphics.scenery.volumes.BufferedVolume
-import graphics.scenery.volumes.Volume
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.setVector3fIfUnset
 import microscenery.signals.*
-import net.imglib2.type.numeric.integer.UnsignedByteType
-import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector2f
 import org.joml.Vector3f
-import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 /**
  * Handles in and output events concerning the microscope.
