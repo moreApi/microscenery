@@ -61,11 +61,10 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
         }
     }
 
-
     override fun inputSetup() {
         super.inputSetup()
 
-        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler)
+        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler)
     }
 
     companion object {
