@@ -191,7 +191,7 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         val value = tableContents.getValueAt(row, 1)
         val castValue = settings.parseType("$value")
         val settingString = setting as String
-        val oldValue = settings.parseType(settings.getProperty<String>(settingString) + "")
+        val oldValue = settings.getProperty<Any>(settingString)
 
         if(castValue::class.java.typeName != oldValue::class.java.typeName)
         {
