@@ -47,7 +47,13 @@ class StageSpaceManager(
         }
 
     init {
-        MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolutionX", Vector3f(10f))
+        MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolution", Vector3f(10f))
+        MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
+
+        //MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
+        //MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder") {
+        //    setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder"))
+        //}
 
         scene.addChild(stageRoot)
 
