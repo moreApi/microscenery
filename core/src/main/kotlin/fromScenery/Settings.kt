@@ -1,35 +1,23 @@
 package fromScenery
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.io.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.io.path.Path
+import kotlin.io.path.outputStream
 
 /**
- * Flexible settings store. Stores a hash map of <String, Any>,
+ * Flexible settings store for scenery. Stores a hash map of <String, Any>,
  * which one can query for a specific setting and type then.
  *
- * Takes settings from cmd arguments and property file.
- * To set a setting "settingA" to 5
- * - via cmd parameter add a jvm argument "-D{@code prefix}settingA=5 "
- * - provide a java properties file either hardcoded as constructor parameter or set the cmd parameter
- * "-D{@code prefix}propertiesFile=pathToFile"
- * If both are present the cmd value will be prioritized.
- *
- * @param prefix parameter prefix this settings instance filters for. Defaults to "scenery."
- * @param propertiesFile if set to properties file will also be imported
- *
  * @author Ulrik Günther <hello@ulrik.is>
- * @author Jan Tiemann
- * @author Konrad Michel <konrad.michel@mailbox.tu-dresden.de>
+ * @author Konrad Michel <Konrad.Michel@mailbox.tu-dresden.de>
  */
-class Settings( prefix : String = "scenery.", propertiesFilePath : String? = null){
+class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputStream? = null) {
     private var settingsStore = ConcurrentHashMap<String, Any>()
     private val logger by LazyLogger()
 
     var settingsUpdateRoutines : HashMap<String, ArrayList<() -> Unit>> = HashMap()
-    lateinit var propertiesFile : File
 
     init {
         val properties = System.getProperties()
@@ -45,14 +33,9 @@ class Settings( prefix : String = "scenery.", propertiesFilePath : String? = nul
             set(key.substringAfter(prefix), parsed)
         }
 
-        // Add properties from file, take given file or from params
-        val propertiesFile2 = getOrNull("propertiesFile") ?: propertiesFilePath
-        if (propertiesFile2 != null) {
-            // put properties into settings
-           loadPropertiesFile(File(propertiesFile2))
-        }
-        else {
-            propertiesFile = File(File("").absolutePath + "properties.properties")
+        if(inputPropertiesStream != null)
+        {
+            loadProperties(inputPropertiesStream)
         }
 
     }
@@ -61,41 +44,29 @@ class Settings( prefix : String = "scenery.", propertiesFilePath : String? = nul
      * Loads the .properties [file]
      * Currently not clearing the old settings -> Overwrites the already set and add new ones. Old stay untouched, if not set by new settings
      */
-    fun loadPropertiesFile(file : File)
+    fun loadProperties(inputStream : InputStream)
     {
-        if(file.extension == "properties")
-        {
-            FileInputStream(file).use { input ->
-                val prop = Properties()
-                // load a properties file
-                prop.load(input)
-                prop.propertyNames().toList().forEach { propName ->
-                    set(propName as String, parseType(prop.getProperty(propName)))
-                }
-            }
-            propertiesFile = file
-            logger.info("New Properties loaded from $file")
-        }
-        else
-        {
-            logger.warn("${file.absolutePath} is no propertiesFile!")
+        val prop = Properties()
+        prop.load(inputStream)
+        prop.propertyNames().toList().forEach { propName ->
+            set(propName as String, parseType(prop.getProperty(propName)))
         }
     }
 
     /**
-     * Saves the currently set settings into [file] if set, or the [propertiesFile] set in [this].
+     * Saves the currently set settings into [path] if set, or the default properties location (root) set in [this]
      */
-    fun saveProperties(file : File? = null)
+    fun saveProperties(path : String? = null)
     {
         val props = Properties()
         this.getAllSettings().sortedDescending().forEach { setting ->
             props.setProperty(setting, this.getOrNull<String?>(setting).toString())
         }
-        val out : FileOutputStream
-        if(file != null)
-            out = FileOutputStream(file)
+        val out : OutputStream
+        if(path != null)
+            out = Path(path).outputStream()
         else
-            out = FileOutputStream(propertiesFile)
+            out = Path(File("").absolutePath + "properties.properties").outputStream()
 
         props.store(out, null)
     }
@@ -151,17 +122,28 @@ class Settings( prefix : String = "scenery.", propertiesFilePath : String? = nul
     /**
      * Compatibility function for Java, see [get]. Returns the settings value for [name], if found.
      */
-    @JvmOverloads fun <T> getProperty(name: String, default: T? = null): T = get(name,default)
+    @JvmOverloads fun <T> getProperty(name: String, default: T? = null): T{
+        if(!settingsStore.containsKey(name)) {
+            if(default == null) {
+                logger.warn("Settings don't contain '$name'")
+            } else {
+                logger.debug("Settings don't contain '$name'")
+            }
+        }
 
+        @Suppress("UNCHECKED_CAST")
+        val s = settingsStore[name] as? T
+        return s
+            ?: (default ?: throw IllegalStateException("Cast of $name failed, the setting might not exist (current value: $s)"))
+    }
 
     /**
-    * Calls a function, if set, from [settingsUpdateRoutines], for the given [setting]
-    * @param[setting] Name of the setting
-    */
+     * Calls a function, if set, from [settingsUpdateRoutines], for the given [setting]
+     * @param[setting] Name of the setting
+     */
     private fun onValueChange(setting : String) {
         settingsUpdateRoutines[setting]?.forEach { it.invoke() }
     }
-
 
     /**
      * Add or a setting in the store only if it does not exist yet.
