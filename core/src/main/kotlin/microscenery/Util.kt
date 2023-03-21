@@ -9,11 +9,12 @@ import microscenery.signals.MicroscopeSignal
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.io.FileInputStream
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
 
 
-val MicroscenerySettings = Settings(prefix = "microscenery.", propertiesFilePath = "microscenery.properties")
+val MicroscenerySettings = Settings(prefix = "microscenery.", inputPropertiesStream = FileInputStream("microscenery.properties"))
 
 val UP = Vector3f(0f, 1f, 0f)
 
