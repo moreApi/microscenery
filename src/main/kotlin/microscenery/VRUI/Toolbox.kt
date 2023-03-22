@@ -1,5 +1,6 @@
 package microscenery.VRUI
 
+import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
@@ -17,7 +18,7 @@ class Toolbox(
     button: List<OpenVRHMD.OpenVRButton>,
     controllerSide: List<TrackerRole>,
     customMenu: WheelMenu? = null,
-    volume: () -> Volume
+    target: () -> Node?
 ) {
     val pointTool = PointEntityTool()
     val lineTool = LineEntityTool()
@@ -31,9 +32,12 @@ class Toolbox(
         tfe.visible = false
 
         val defaultMenu: List<Pair<String, (Spatial) -> Unit>> = listOf("slicing tool" to { device ->
-            scene.addChild(croppingTool)
-            croppingTool.spatial().position = device.worldPosition()
-            croppingTool.activate(volume())
+            target()?.let {
+                if (it !is Volume) return@let
+                scene.addChild(croppingTool)
+                croppingTool.spatial().position = device.worldPosition()
+                croppingTool.activate(it)
+            }
         }, "point" to { device ->
             scene.addChild(pointTool)
             pointTool.visible = true
@@ -43,25 +47,31 @@ class Toolbox(
             lineTool.visible = true
             lineTool.spatial().position = device.worldPosition()
         }, "trans fun" to { device ->
-            scene.addChild(tfe)
-            tfe.spatial {
-                position = device.worldPosition()
-                // this breaks everything :(
-                //rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
+            target()?.let {
+                if (it !is Volume) return@let
+                scene.addChild(tfe)
+                tfe.spatial {
+                    position = device.worldPosition()
+                    // this breaks everything :(
+                    //rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
+                }
+                tfe.visible = true
+                it.transferFunction = tfe.transferFunction
             }
-            tfe.visible = true
-            volume().transferFunction = tfe.transferFunction
         }, "options" to {
             val m = WheelMenu(hmd, listOf(Switch("hull", true) { scene.find("hullbox")?.visible = it }), true)
             m.spatial().position = it.worldPosition()
             scene.addChild(m)
         }, "color" to {
-            val m = WheelMenu(hmd, Colormap.list().map {
-                Action(it) { volume().colormap = Colormap.get(it) }
-            }.toList(), true)
+            target()?.let { volume ->
+                if (volume !is Volume) return@let
+                val m = WheelMenu(hmd, Colormap.list().map {
+                    Action(it) { volume.colormap = Colormap.get(it) }
+                }.toList(), true)
 
-            m.spatial().position = it.worldPosition()
-            scene.addChild(m)
+                m.spatial().position = it.worldPosition()
+                scene.addChild(m)
+            }
         })
 
         VRSelectionWheel.createAndSet(
@@ -73,7 +83,5 @@ class Toolbox(
                 })
             } ?: defaultMenu
         )
-
-        //VRScaleNode(volume)
     }
 }

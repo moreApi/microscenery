@@ -8,7 +8,6 @@ import graphics.scenery.controls.behaviours.VRTwoHandDragBehavior
 import graphics.scenery.controls.behaviours.VRTwoHandDragOffhand
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.Volume
 import microscenery.UP
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -20,8 +19,10 @@ class VR2HandSpatialManipulation(
     controller: Spatial,
     offhand: VRTwoHandDragOffhand,
     val scene: Scene,
-    var scaleLocked: Boolean = false
+    var scaleLocked: Boolean = false,
+    val target: () -> Spatial?
 ) : VRTwoHandDragBehavior(name, controller, offhand) {
+
 
     override fun dragDelta(
         currentPositionMain: Vector3f,
@@ -29,8 +30,6 @@ class VR2HandSpatialManipulation(
         lastPositionMain: Vector3f,
         lastPositionOff: Vector3f
     ) {
-        val volume = scene.findByClassname(Volume::class.java.simpleName).firstOrNull() ?: return
-
         val scaleDelta =
             VRScale.getScaleDelta(currentPositionMain, currentPositionOff, lastPositionMain, lastPositionOff)
 
@@ -43,7 +42,7 @@ class VR2HandSpatialManipulation(
         val oldReinRotation = Quaternionf().lookAlong(oldRein, UP)
         val diff = oldReinRotation.mul(newReinRotation.invert())
 
-        volume.ifSpatial {
+        target()?.apply {
             this.rotation.mul(diff)
             if (!scaleLocked)
                 this.scale *= Vector3f(scaleDelta)
@@ -56,13 +55,13 @@ class VR2HandSpatialManipulation(
          * Convenience method for adding scale behaviour
          */
         fun createAndSet(
-            hmd: OpenVRHMD, button: OpenVRHMD.OpenVRButton, scene: Scene
+            hmd: OpenVRHMD, button: OpenVRHMD.OpenVRButton, scene: Scene, target: () -> Spatial?
         ): CompletableFuture<VR2HandSpatialManipulation> {
             @Suppress("UNCHECKED_CAST") return createAndSet(
                 hmd,
                 button
             ) { controller: Spatial, offhand: VRTwoHandDragOffhand ->
-                VR2HandSpatialManipulation("Scaling", controller, offhand, scene)
+                VR2HandSpatialManipulation("Scaling", controller, offhand, scene, target = target)
             } as CompletableFuture<VR2HandSpatialManipulation>
         }
     }

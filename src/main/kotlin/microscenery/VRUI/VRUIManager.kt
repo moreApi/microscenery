@@ -1,5 +1,6 @@
 package microscenery.VRUI
 
+import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.Sphere
 import graphics.scenery.controls.InputHandler
@@ -7,20 +8,20 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.*
-import graphics.scenery.volumes.Volume
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
 import org.joml.Vector3f
 
 class VRUIManager {
+
     companion object {
         fun initBehavior(
             scene: Scene,
             hmd: OpenVRHMD,
             inputHandler: InputHandler?,
             customActions: WheelMenu? = null,
-            volume: () -> Volume
+            target: () -> Node?
         ) {
             initControllerIndicator(hmd)
 
@@ -35,7 +36,7 @@ class VRUIManager {
             inputHandler?.initStickMovement(hmd)
 
             val vr2HandSpatialManipulation =
-                VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene)
+                VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene){target()?.spatialOrNull()}
             val scalingLockToggle = Switch(
                 "lock scaling", false
             ) { vr2HandSpatialManipulation.getNow(null)?.scaleLocked = it }
@@ -61,7 +62,7 @@ class VRUIManager {
                 listOf(OpenVRHMD.OpenVRButton.Menu),
                 listOf(TrackerRole.RightHand),
                 customActionsPlusScaleSwitch,
-                volume
+                target
             )
         }
 
