@@ -2,10 +2,14 @@ package fromScenery
 
 
 import net.miginfocom.swing.MigLayout
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.io.File
+import java.util.*
 import javax.swing.*
 import javax.swing.event.TableModelEvent
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -176,9 +180,36 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         tableContents.columnCount = 0
         tableContents.addColumn("Property")
         tableContents.addColumn("Value")
+
+        val format = "%.3f"
         for(key in settingKeys)
         {
-            tableContents.addRow(arrayOf("$key", "${settings.get<String>(key)}"))
+            var entry = "${settings.get<String>(key)}"
+            val value = settings.get<Any>(key)
+            when(value::class.java.typeName) {
+                Vector2f::class.java.typeName ->
+                {
+                    value as Vector2f;
+                    entry = "Vec(${String.format(Locale.US, format, value.x)} " +
+                            "${String.format(Locale.US, format, value.y)})"
+                }
+                Vector3f::class.java.typeName ->
+                {
+                    value as Vector3f
+                    entry = "Vec(${String.format(Locale.US, format, value.x)} " +
+                            "${String.format(Locale.US, format, value.y)} " +
+                            "${String.format(Locale.US, format, value.z)})"
+                }
+                Vector4f::class.java.typeName ->
+                {
+                    value as Vector4f
+                    entry = "Vec(${String.format(Locale.US, format, value.x)} " +
+                            "${String.format(Locale.US, format, value.y)} " +
+                            "${String.format(Locale.US, format, value.z)} " +
+                            "${String.format(Locale.US, format, value.w)})"
+                }
+            }
+            tableContents.addRow(arrayOf(key, entry))
         }
         settingsTable.rowSorter.toggleSortOrder(0)
     }
@@ -193,6 +224,7 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         val settingString = setting as String
         val oldValue = settings.getProperty<Any>(settingString)
 
+        logger.info("New Value: $castValue ; OldValue: $oldValue")
         if(castValue::class.java.typeName != oldValue::class.java.typeName)
         {
             JOptionPane.showMessageDialog(mainFrame,

@@ -1,5 +1,8 @@
 package fromScenery
 
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.io.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -74,14 +77,31 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
     /**
      * Parses the type from the incoming string, returns the casted value
      */
-    fun parseType(value:String): Any = when {
+    fun parseType(value : String): Any = when {
         value.lowercase() == "false" || value.lowercase() == "true" -> value.toBoolean()
+        value.contains("Vec(") && value.contains(")") -> makeVector(value.replace("Vec(", "").replace(")", ""))
         value.lowercase().contains(".") && value.lowercase().toFloatOrNull() != null -> value.lowercase().toFloat()
         value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
         value.lowercase().contains(".") && value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
         value.lowercase().contains("l") && value.lowercase().replace("l", "").toLongOrNull() != null -> value.lowercase().replace("l", "").toLong()
         value.toIntOrNull() != null -> value.toInt()
         else -> value
+    }
+    private fun makeVector(value : String) : Any {
+        val values = value.trim().split("\\s".toRegex()).toTypedArray()
+        logger.info("Vector: ${values.contentToString()}")
+        logger.info("Size: ${values.size}")
+        return when (values.size) {
+            2 -> Vector2f(values[0].toFloat(), values[1].toFloat())
+            3 -> Vector3f(values[0].toFloat(), values[1].toFloat(), values[2].replace("f", "").toFloat())
+            4 -> Vector4f(
+                values[0].replace("f", "").toFloat(),
+                values[1].replace("f", "").toFloat(),
+                values[2].replace("f", "").toFloat(),
+                values[3].replace("f", "").toFloat()
+            )
+            else -> value
+        }
     }
 
     /**
