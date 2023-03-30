@@ -2,13 +2,12 @@ package fromScenery
 
 
 import net.miginfocom.swing.MigLayout
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.util.*
 import javax.swing.*
 import javax.swing.event.TableModelEvent
@@ -181,32 +180,33 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         tableContents.addColumn("Property")
         tableContents.addColumn("Value")
 
-        val format = "%.3f"
+        val format = "%.2f"
+        val locale = Locale.US
         for(key in settingKeys)
         {
-            var entry = "${settings.get<String>(key)}"
+            var entry = "${settings.get<String>(key)}" // -> for some reason only this string casting works
             val value = settings.get<Any>(key)
             when(value::class.java.typeName) {
-                Vector2f::class.java.typeName ->
+                Vector2f::class.java.typeName, Vector2i::class.java.typeName ->
                 {
                     value as Vector2f;
-                    entry = "Vec(${String.format(Locale.US, format, value.x)} " +
-                            "${String.format(Locale.US, format, value.y)})"
+                    entry = "(${String.format(locale, format, value.x)}," +
+                            "${String.format(locale, format, value.y)})"
                 }
-                Vector3f::class.java.typeName ->
+                Vector3f::class.java.typeName, Vector3i::class.java.typeName ->
                 {
                     value as Vector3f
-                    entry = "Vec(${String.format(Locale.US, format, value.x)} " +
-                            "${String.format(Locale.US, format, value.y)} " +
-                            "${String.format(Locale.US, format, value.z)})"
+                    entry = "(${String.format(locale, format, value.x)}," +
+                            "${String.format(locale, format, value.y)}," +
+                            "${String.format(locale, format, value.z)})"
                 }
-                Vector4f::class.java.typeName ->
+                Vector4f::class.java.typeName, Vector4i::class.java.typeName ->
                 {
                     value as Vector4f
-                    entry = "Vec(${String.format(Locale.US, format, value.x)} " +
-                            "${String.format(Locale.US, format, value.y)} " +
-                            "${String.format(Locale.US, format, value.z)} " +
-                            "${String.format(Locale.US, format, value.w)})"
+                    entry = "(${String.format(locale, format, value.x)}," +
+                            "${String.format(locale, format, value.y)}," +
+                            "${String.format(locale, format, value.z)}," +
+                            "${String.format(locale, format, value.w)})"
                 }
             }
             tableContents.addRow(arrayOf(key, entry))
@@ -220,19 +220,22 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
     private fun changeSettingsTableAt(row : Int) {
         val setting = tableContents.getValueAt(row, 0)
         val value = tableContents.getValueAt(row, 1)
-        val castValue = settings.parseType("$value")
         val settingString = setting as String
         val oldValue = settings.getProperty<Any>(settingString)
 
-        logger.info("New Value: $castValue ; OldValue: $oldValue")
-        if(castValue::class.java.typeName != oldValue::class.java.typeName)
-        {
+        val castValue = try {
+            settings.parseType("$value")
+        } catch (e: NumberFormatException) {
+            JOptionPane.showMessageDialog(mainFrame, e.message, "Type Error", JOptionPane.ERROR_MESSAGE)
+            return
+        } //also throws IllegalArgumentException if there are too little or too many Arguments in the vector, but this is catched earlier
+
+        if(castValue::class.java.typeName != oldValue::class.java.typeName) {
             JOptionPane.showMessageDialog(mainFrame,
                 "Wrong Type! Expected ${oldValue::class.java.typeName}, inserted ${castValue::class.java.typeName}",
                 "Type Error", JOptionPane.ERROR_MESSAGE)
             return
         }
-
         settings.set("$setting", castValue)
     }
 

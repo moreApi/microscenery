@@ -1,11 +1,10 @@
 package fromScenery
 
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.io.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import javax.swing.JOptionPane
 import kotlin.io.path.Path
 import kotlin.io.path.outputStream
 
@@ -79,7 +78,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
      */
     fun parseType(value : String): Any = when {
         value.lowercase() == "false" || value.lowercase() == "true" -> value.toBoolean()
-        value.contains("Vec(") && value.contains(")") -> makeVector(value.replace("Vec(", "").replace(")", ""))
+        value.contains("(") && value.contains(")") && (value.contains(".") || value.lowercase().contains("f")) -> makeVector(value.replace("(", "").replace(")", ""))
         value.lowercase().contains(".") && value.lowercase().toFloatOrNull() != null -> value.lowercase().toFloat()
         value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
         value.lowercase().contains(".") && value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
@@ -87,21 +86,50 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
         value.toIntOrNull() != null -> value.toInt()
         else -> value
     }
+
     private fun makeVector(value : String) : Any {
-        val values = value.trim().split("\\s".toRegex()).toTypedArray()
-        logger.info("Vector: ${values.contentToString()}")
-        logger.info("Size: ${values.size}")
-        return when (values.size) {
-            2 -> Vector2f(values[0].toFloat(), values[1].toFloat())
-            3 -> Vector3f(values[0].toFloat(), values[1].toFloat(), values[2].replace("f", "").toFloat())
-            4 -> Vector4f(
-                values[0].replace("f", "").toFloat(),
-                values[1].replace("f", "").toFloat(),
-                values[2].replace("f", "").toFloat(),
-                values[3].replace("f", "").toFloat()
-            )
-            else -> value
+        val snippets = value.trim().split(",".toRegex()).toTypedArray()
+
+        var allInts = true
+        var allFloats = true
+        snippets.forEachIndexed { i, it ->
+            allInts = allInts && checkType(parseType(it), listOf("Integer", "Long"))
+            allFloats = allFloats && checkType(parseType(it), listOf("Float", "Double"))
+            if(!(allInts || allFloats))
+                throw NumberFormatException("Wrong type inserted at index $i")
         }
+        return when (snippets.size) {
+            2 ->
+            {
+                if(allInts)
+                    return Vector2i(snippets[0].toInt(), snippets[1].toInt())
+                else
+                    return Vector2f(snippets[0].toFloat(), snippets[1].toFloat())
+            }
+            3 ->
+            {
+                if(allInts)
+                    return Vector3i(snippets[0].toInt(), snippets[1].toInt(), snippets[2].toInt())
+                else
+                    return Vector3f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat())
+            }
+            4 ->
+            {
+                if(allInts)
+                    return Vector4i(snippets[0].toInt(), snippets[1].toInt(), snippets[2].toInt(), snippets[3].toInt())
+                else
+                    return Vector4f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat(), snippets[3].toFloat())
+            }
+            else -> IllegalArgumentException("Too little or too many arguments!")
+        }
+    }
+
+    private fun checkType(first : Any, seconds : List<String>) : Boolean {
+        seconds.forEach {
+            if(first::class.java.typeName == "java.lang.$it")
+                return true
+        }
+        return false
     }
 
     /**
