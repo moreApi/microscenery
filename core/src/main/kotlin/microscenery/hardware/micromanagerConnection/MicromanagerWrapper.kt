@@ -165,82 +165,13 @@ class MicromanagerWrapper(
     override fun onLoop() {
         when (val hwCommand = hardwareCommandsQueue.poll()) {
             is HardwareCommand.GenerateStackCommands -> {
-                val meta = hwCommand.signal
-
-                val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
-                val end = hardwareDimensions.coercePosition(meta.endPosition, logger)
-                val dist = end - start
-                val steps = (dist.length() / meta.stepSize).roundToInt()
-                val step = dist * (1f / steps)
-
-                val currentStack = Stack(
-                    idCounter++,
-                    false,
-                    start,
-                    end,
-                    steps,
-                    nowMillis()
-                )
-                output.put(currentStack)
-                status = status.copy(state = ServerState.STACK)
-
-                for (i in 0 until steps) {
-                    hardwareCommandsQueue.add(
-                        HardwareCommand.MoveStage(
-                            start + (step * i.toFloat()),
-                            hardwareDimensions,
-                            true
-                        )
-                    )
-                    hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id to i))
-                }
+                executeGenerateStackCommands(hwCommand)
             }
             is HardwareCommand.MoveStage -> {
-                // skip if next command is also move
-                if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
-
-                moveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
+                executeMoveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
             }
             is HardwareCommand.SnapImage -> {
-                if (hwCommand.live && lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
-                    if (hardwareCommandsQueue.isEmpty()) {
-                        Thread.sleep(
-                            (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
-                        )
-                    } else {
-                        hardwareCommandsQueue.add(hwCommand)
-                        return
-                    }
-                }
-                val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
-                (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
-                try {
-                    mmConnection.snapSlice(buf.asShortBuffer())
-                } catch (t: Throwable) {
-                    logger.warn("Failed snap command", t)
-                    return
-                }
-                val sliceSignal = Slice(
-                    idCounter++,
-                    System.currentTimeMillis(),
-                    mmConnection.stagePosition,
-                    hardwareDimensions.byteSize,
-                    hwCommand.stackIdAndSliceIndex,
-                    buf
-                )
-                output.put(sliceSignal)
-                lastSnap = System.currentTimeMillis()
-                if (hwCommand.live) {
-                    when (status.state) {
-                        ServerState.LIVE -> {}
-                        ServerState.MANUAL -> status = status.copy(state = ServerState.LIVE)
-                        else -> {
-                            stop()
-                            throw IllegalStateException("Want to go live but server is ${status.state}. Stopping.")
-                        }
-                    }
-                    addToCommandQueueIfNotStopped(hwCommand)
-                }
+                executeSnapImage(hwCommand)
             }
             is HardwareCommand.Stop -> {
                 status = status.copy(state = ServerState.MANUAL)
@@ -249,55 +180,138 @@ class MicromanagerWrapper(
                 this.close()
             }
             is HardwareCommand.AblatePoints -> {
-                //this is a thread so it can be interrupted asynchronously
-                var totalTime = 0
-                val perPointTime = mutableListOf<Int>()
-                ablationThread = thread(isDaemon = true) {
-                    status = status.copy(state = ServerState.ABLATION)
-                    mmConnection.ablationShutter(true, true)
-                    try { totalTime = measureNanoTime {
-                        hwCommand.points.forEach { point ->
-                            if (Thread.currentThread().isInterrupted) {
-                                return@thread
-                            }
-                            logger.info("Executing $point")
-                            val startAblation = System.nanoTime()
-                            val moveTime = measureNanoTime {
-                                mmConnection.moveStage(point.position, true)
-                            }
-                            if (point.laserOn) {
-                                mmConnection.laserPower(point.laserPower)
-                            }
-                            val sleepTime = point.dwellTime - if (point.countMoveTime) moveTime else 0
-                            if (sleepTime < 0 && point.dwellTime > 0) {
-                                logger.warn(
-                                    "Ablation: stage movement was longer than dwell time. " + "$moveTime ns > ${point.dwellTime} ns"
-                                )
-                            } else if (sleepTime > 0){
-                                Thread.sleep(sleepTime.nanosToMillis())
-                            }
-                            if (point.laserOff) {
-                                mmConnection.laserPower(0f)
-                            }
-                            perPointTime.add((System.nanoTime() - startAblation).nanosToMillis().toInt())
-                        }}.nanosToMillis().toInt()
-                    } catch (_: InterruptedException) {
-                    } finally {
-                        mmConnection.laserPower(0f)
-                        mmConnection.ablationShutter(false, true)
-                    }
-                }
-                ablationThread?.join()
-                mmConnection.laserPower(0f)
-                mmConnection.ablationShutter(false, true)
-                status = status.copy(state = ServerState.MANUAL)
-                output.put(AblationResults(totalTime,perPointTime))
+                executeAblatePoints(hwCommand)
             }
             HardwareCommand.StartAcquisition -> mmStudioConnector.startAcquisition()
         }
     }
 
-    private fun moveStage(target: Vector3f, wait: Boolean) {
+    private fun executeSnapImage(hwCommand: HardwareCommand.SnapImage) {
+        if (hwCommand.live && lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
+            if (hardwareCommandsQueue.isEmpty()) {
+                Thread.sleep(
+                    (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
+                )
+            } else {
+                hardwareCommandsQueue.add(hwCommand)
+                return
+            }
+        }
+        val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
+        (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
+        try {
+            mmConnection.snapSlice(buf.asShortBuffer())
+        } catch (t: Throwable) {
+            logger.warn("Failed snap command", t)
+            return
+        }
+        val sliceSignal = Slice(
+            idCounter++,
+            System.currentTimeMillis(),
+            mmConnection.stagePosition,
+            hardwareDimensions.byteSize,
+            hwCommand.stackIdAndSliceIndex,
+            buf
+        )
+        output.put(sliceSignal)
+        lastSnap = System.currentTimeMillis()
+        if (hwCommand.live) {
+            when (status.state) {
+                ServerState.LIVE -> {}
+                ServerState.MANUAL -> status = status.copy(state = ServerState.LIVE)
+                else -> {
+                    stop()
+                    throw IllegalStateException("Want to go live but server is ${status.state}. Stopping.")
+                }
+            }
+            addToCommandQueueIfNotStopped(hwCommand)
+        }
+    }
+
+    private fun executeGenerateStackCommands(hwCommand: HardwareCommand.GenerateStackCommands) {
+        val meta = hwCommand.signal
+
+        val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
+        val end = hardwareDimensions.coercePosition(meta.endPosition, logger)
+        val dist = end - start
+        val steps = (dist.length() / meta.stepSize).roundToInt()
+        val step = dist * (1f / steps)
+
+        val currentStack = Stack(
+            idCounter++,
+            false,
+            start,
+            end,
+            steps,
+            nowMillis()
+        )
+        output.put(currentStack)
+        status = status.copy(state = ServerState.STACK)
+
+        for (i in 0 until steps) {
+            hardwareCommandsQueue.add(
+                HardwareCommand.MoveStage(
+                    start + (step * i.toFloat()),
+                    hardwareDimensions,
+                    true
+                )
+            )
+            hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id to i))
+        }
+    }
+
+    private fun executeAblatePoints(hwCommand: HardwareCommand.AblatePoints) {
+        //this is a thread so it can be interrupted asynchronously
+        var totalTime = 0
+        val perPointTime = mutableListOf<Int>()
+        ablationThread = thread(isDaemon = true) {
+            status = status.copy(state = ServerState.ABLATION)
+            mmConnection.ablationShutter(true, true)
+            try {
+                totalTime = measureNanoTime {
+                    hwCommand.points.forEach { point ->
+                        if (Thread.currentThread().isInterrupted) {
+                            return@thread
+                        }
+                        logger.info("Executing $point")
+                        val startAblation = System.nanoTime()
+                        val moveTime = measureNanoTime {
+                            mmConnection.moveStage(point.position, true)
+                        }
+                        if (point.laserOn) {
+                            mmConnection.laserPower(point.laserPower)
+                        }
+                        val sleepTime = point.dwellTime - if (point.countMoveTime) moveTime else 0
+                        if (sleepTime < 0 && point.dwellTime > 0) {
+                            logger.warn(
+                                "Ablation: stage movement was longer than dwell time. " + "$moveTime ns > ${point.dwellTime} ns"
+                            )
+                        } else if (sleepTime > 0) {
+                            Thread.sleep(sleepTime.nanosToMillis())
+                        }
+                        if (point.laserOff) {
+                            mmConnection.laserPower(0f)
+                        }
+                        perPointTime.add((System.nanoTime() - startAblation).nanosToMillis().toInt())
+                    }
+                }.nanosToMillis().toInt()
+            } catch (_: InterruptedException) {
+            } finally {
+                mmConnection.laserPower(0f)
+                mmConnection.ablationShutter(false, true)
+            }
+        }
+        ablationThread?.join()
+        mmConnection.laserPower(0f)
+        mmConnection.ablationShutter(false, true)
+        status = status.copy(state = ServerState.MANUAL)
+        output.put(AblationResults(totalTime, perPointTime))
+    }
+
+    private fun executeMoveStage(target: Vector3f, wait: Boolean) {
+        // skip if next command is also move
+        if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
+
         // precision check, if movement below stage precision, skip
         val overXYPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionXY")?.let {
             !stagePosition.xy().equals(target.xy(), it)
