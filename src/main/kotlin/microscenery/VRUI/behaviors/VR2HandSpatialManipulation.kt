@@ -20,6 +20,7 @@ class VR2HandSpatialManipulation(
     offhand: VRTwoHandDragOffhand,
     val scene: Scene,
     var scaleLocked: Boolean = false,
+    var rotationLocked: Boolean = false,
     val target: () -> Spatial?
 ) : VRTwoHandDragBehavior(name, controller, offhand) {
 
@@ -43,9 +44,8 @@ class VR2HandSpatialManipulation(
         val diff = oldReinRotation.mul(newReinRotation.invert())
 
         target()?.apply {
-            this.rotation.mul(diff)
-            if (!scaleLocked)
-                this.scale *= Vector3f(scaleDelta)
+            if (!rotationLocked) this.rotation.mul(diff)
+            if (!scaleLocked) this.scale *= Vector3f(scaleDelta)
             this.needsUpdate = true
         }
     }
@@ -55,13 +55,25 @@ class VR2HandSpatialManipulation(
          * Convenience method for adding scale behaviour
          */
         fun createAndSet(
-            hmd: OpenVRHMD, button: OpenVRHMD.OpenVRButton, scene: Scene, target: () -> Spatial?
+            hmd: OpenVRHMD,
+            button: OpenVRHMD.OpenVRButton,
+            scene: Scene,
+            scaleLocked: Boolean = false,
+            rotationLocked: Boolean = false,
+            target: () -> Spatial?
         ): CompletableFuture<VR2HandSpatialManipulation> {
             @Suppress("UNCHECKED_CAST") return createAndSet(
-                hmd,
-                button
+                hmd, button
             ) { controller: Spatial, offhand: VRTwoHandDragOffhand ->
-                VR2HandSpatialManipulation("Scaling", controller, offhand, scene, target = target)
+                VR2HandSpatialManipulation(
+                    "Scaling",
+                    controller,
+                    offhand,
+                    scene,
+                    scaleLocked,
+                    rotationLocked,
+                    target = target
+                )
             } as CompletableFuture<VR2HandSpatialManipulation>
         }
     }

@@ -2,7 +2,6 @@ package microscenery.example.microscope
 
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.WheelMenu
-import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.DemoMicroscopeHardware
 import microscenery.VRUI.VRUIManager
@@ -56,7 +55,7 @@ class DemoHWSceneVR : DefaultVRScene() {
                 )
             )
         ) {
-            scene.findByClassname(Volume::class.simpleName!!).first() as Volume
+            stageSpaceManager.stageRoot
         }
     }
 

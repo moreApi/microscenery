@@ -85,7 +85,7 @@ class LocalMMSceneVR : DefaultVRScene() {
                 )
             )
         ) {
-            scene.find("women")
+            stageSpaceManager.stageRoot
         }
     }
 

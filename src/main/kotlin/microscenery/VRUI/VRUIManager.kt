@@ -36,7 +36,7 @@ class VRUIManager {
             inputHandler?.initStickMovement(hmd)
 
             val vr2HandSpatialManipulation =
-                VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene){target()?.spatialOrNull()}
+                VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene, rotationLocked = true){target()?.spatialOrNull()}
             val scalingLockToggle = Switch(
                 "lock scaling", false
             ) { vr2HandSpatialManipulation.getNow(null)?.scaleLocked = it }
