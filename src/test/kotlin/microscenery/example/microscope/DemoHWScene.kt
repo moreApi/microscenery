@@ -30,7 +30,6 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
             scene,
             hub,
             addFocusFrame = true,
-            scaleDownFactor = 100f,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
 //            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )

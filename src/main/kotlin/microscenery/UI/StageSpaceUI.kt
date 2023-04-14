@@ -275,7 +275,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                 { stageSpaceManager.scene.findObserver() },
                 { stageSpaceManager.focusTarget },
                 false,
-                mouseSpeed = { 100f * 5 / stageSpaceManager.scaleDownFactor })
+                mouseSpeed = { 25f })
         )
         inputHandler.addKeyBinding("frameDragging", "1")
 

@@ -5,7 +5,6 @@ import microscenery.UI.StageSpaceUI
 import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
-import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.zeromq.ZContext
 
@@ -19,8 +18,6 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
         stageSpaceManager = StageSpaceManager(
             client, scene, hub, addFocusFrame = true,
             //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 90.0),
-            layout = MicroscopeLayout.Default(),
-            scaleDownFactor = 300f
         )
 
         //stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)

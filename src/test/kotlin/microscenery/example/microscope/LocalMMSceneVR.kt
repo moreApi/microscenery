@@ -38,8 +38,7 @@ class LocalMMSceneVR : DefaultVRScene() {
         val hardware: MicroscopeHardware =
             MicromanagerWrapper(MMConnection(LocalMMScene.initLocalMMCoreFake()).apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
-            hardware, scene, hub, addFocusFrame = true, scaleDownFactor = 200f,
-            layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
+            hardware, scene, hub, addFocusFrame = true, layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
 
         hullbox.visible = false

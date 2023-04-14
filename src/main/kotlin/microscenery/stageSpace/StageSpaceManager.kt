@@ -26,7 +26,6 @@ class StageSpaceManager(
     val scene: Scene,
     val hub: Hub,
     addFocusFrame: Boolean = true,
-    val scaleDownFactor: Float = 100f,
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent() {
     private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -96,29 +95,7 @@ class StageSpaceManager(
                 sliceManager.handleSliceSignal(signal, layout)
             }
             is HardwareDimensions -> {
-                stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
-                stageRoot.spatial {
-                    scale = Vector3f((1 / scaleDownFactor) * signal.vertexDiameter)
-                    position = Vector3f(-1f) * stageAreaCenter * scale
-                }
-                stageAreaBorders.spatial {
-                    position = stageAreaCenter
-                    scale = (signal.stageMax - signal.stageMin).apply {
-                        // extra space for images at the edge of stage space
-                        val imgPixSize = Vector2f(signal.imageSize)
-                        val imageSize = when (layout.sheet) {
-                            MicroscopeLayout.Axis.X -> Vector3f(0f, imgPixSize.y, imgPixSize.x)
-                            MicroscopeLayout.Axis.Y -> Vector3f(imgPixSize.x, 0f, imgPixSize.y)
-                            MicroscopeLayout.Axis.Z -> Vector3f(imgPixSize, 0f)
-                        }
-                        this.add(imageSize)
-                        this.mul(1.02f)
-                    }
-                }
-
-                focusTarget?.applyHardwareDimensions(signal)
-                focus.applyHardwareDimensions(signal)
-
+                handleHardwareDimensionsSignal(signal)
             }
             is MicroscopeStatus -> {
                 focus.spatial().position = signal.stagePosition
@@ -131,6 +108,34 @@ class StageSpaceManager(
                         "(${signal.mean()}ms mean)")
             }
         }
+    }
+
+    private fun handleHardwareDimensionsSignal(signal: HardwareDimensions) {
+        stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
+
+        stageRoot.spatial {
+            // scale the space in such a way that is initially always the same visual size and easy to handle by GUI
+            val xSize = (signal.stageMax.x - signal.stageMin.x + signal.imageSize.x)
+            scale = Vector3f((1 / xSize) * 3)
+            position = Vector3f(-1f) * stageAreaCenter * scale
+        }
+        stageAreaBorders.spatial {
+            position = stageAreaCenter
+            scale = (signal.stageMax - signal.stageMin).apply {
+                // extra space for images at the edge of stage space
+                val imgPixSize = Vector2f(signal.imageSize)
+                val imageSize = when (layout.sheet) {
+                    MicroscopeLayout.Axis.X -> Vector3f(0f, imgPixSize.y, imgPixSize.x)
+                    MicroscopeLayout.Axis.Y -> Vector3f(imgPixSize.x, 0f, imgPixSize.y)
+                    MicroscopeLayout.Axis.Z -> Vector3f(imgPixSize, 0f)
+                }
+                this.add(imageSize)
+                this.mul(1.02f)
+            }
+        }
+
+        focusTarget?.applyHardwareDimensions(signal)
+        focus.applyHardwareDimensions(signal)
     }
 
     fun stack(from: Vector3f, to: Vector3f, live: Boolean) {

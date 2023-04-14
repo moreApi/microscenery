@@ -19,7 +19,7 @@ class DemoHWSceneVR : DefaultVRScene() {
 
 
         val hw = DemoMicroscopeHardware()
-        stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true, scaleDownFactor = 200f)
+        stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true)
 
 
         thread {
