@@ -42,21 +42,22 @@ class VRTeleport(
     }
 
     override fun drag(x: Int, y: Int) {
-        val bodyCenter = hmd.getPosition().mul(0.5f) + cam.worldPosition()
+        val bodyCenter = hmd.getPosition() + cam.worldPosition()
         bodyCenter.y = 0f
         val controller = controllerSpatial.worldPosition()
         controller.y = 0f
         val dist = bodyCenter.distance(controller) * 2
-        target.spatial().position.z = dist.pow(3) * -1f
+        target.spatial().position.z = dist.pow(5) * -1f
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun end(x: Int, y: Int) {
+        val targetPos = target.spatial().worldPosition()
         GlobalScope.launch {
             val fadeTime = 300L
             hmd.fadeToBlack(fadeTime * 0.001f)
             delay(fadeTime)
-            cam.position = target.spatial().worldPosition() - hmd.getPosition().mul(0.5f)
+            cam.position = targetPos - hmd.getPosition()
             hmd.fateToClear(fadeTime * 0.001f)
         }
         controllerHitbox.removeChild(target)
