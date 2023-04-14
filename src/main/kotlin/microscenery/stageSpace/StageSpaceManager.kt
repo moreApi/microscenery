@@ -8,6 +8,7 @@ import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.Agent
 import microscenery.MicroscenerySettings
+import microscenery.copy
 import microscenery.hardware.MicroscopeHardware
 import microscenery.setVector3fIfUnset
 import microscenery.signals.*
@@ -71,13 +72,13 @@ class StageSpaceManager(
 
 
         focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
-            spatial().position = hardware.stagePosition
+            spatial().position = hardware.stagePosition.copy()
             stageRoot.addChild(this)
         }
 
         if (addFocusFrame)
             focusTarget = FrameGizmo(this, hardware.hardwareDimensions()).apply {
-                spatial().position = hardware.stagePosition
+                spatial().position = hardware.stagePosition.copy()
                 stageRoot.addChild(this)
             }
 

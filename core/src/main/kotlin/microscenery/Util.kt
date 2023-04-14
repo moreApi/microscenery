@@ -65,6 +65,7 @@ fun nowMillis(): Long = System.currentTimeMillis()
 
 fun Matrix4f.copy(): Matrix4f = Matrix4f(this)
 
+fun Vector3f.copy(): Vector3f = Vector3f(this)
 fun Vector3f.toVector4f(w: Float): Vector4f = Vector4f(this, w)
 fun Vector4f.toVector3f(): Vector3f = Vector3f(x, y, z)
 
