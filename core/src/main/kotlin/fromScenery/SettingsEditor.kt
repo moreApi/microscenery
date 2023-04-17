@@ -189,7 +189,7 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         tableContents.addColumn("Property")
         tableContents.addColumn("Value")
 
-        val format = "%.5f"
+        val format = "%f"
         val locale = Locale.US
         for(key in settingKeys)
         {
