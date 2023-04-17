@@ -78,7 +78,7 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
                 {
 
                     val castValue = try {
-                        settings.parseType(addValuefield.text)
+                        Settings.parseType(addValuefield.text)
                     } catch (e: IllegalArgumentException) {
                         addValuefield.text = null
                         JOptionPane.showMessageDialog(mainFrame, e.message, "Type Error", JOptionPane.ERROR_MESSAGE)
@@ -235,7 +235,7 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         val oldValue = settings.getProperty<Any>(settingString)
 
         val castValue = try {
-            settings.parseType("$value")
+            Settings.parseType("$value")
         } catch (e: NumberFormatException) {
             JOptionPane.showMessageDialog(mainFrame, e.message, "Type Error", JOptionPane.ERROR_MESSAGE)
             return

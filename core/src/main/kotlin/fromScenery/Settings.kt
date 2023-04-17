@@ -73,59 +73,6 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
     }
 
     /**
-     * Parses the type from the incoming string, returns the casted value
-     */
-    fun parseType(value : String): Any = when {
-        value.lowercase() == "false" || value.lowercase() == "true" -> value.toBoolean()
-        value.contains("(") && value.contains(")") -> makeVector(value.replace("(", "").replace(")", ""))
-        value.lowercase().contains(".") && value.lowercase().toFloatOrNull() != null -> value.lowercase().toFloat()
-        value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
-        value.lowercase().contains(".") && value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
-        value.lowercase().contains("l") && value.lowercase().replace("l", "").toLongOrNull() != null -> value.lowercase().replace("l", "").toLong()
-        value.toIntOrNull() != null -> value.toInt()
-        else -> value
-    }
-
-    private fun makeVector(value : String) : Any {
-        val snippets = value.trim().split(",".toRegex()).toTypedArray()
-
-        var allFloats = true
-        snippets.forEachIndexed { i, it ->
-            snippets[i].trim()
-            allFloats = allFloats && checkType(parseType(it), listOf("Float", "Double", "Integer", "Long"))
-            if(!allFloats)
-                throw NumberFormatException("Wrong type inserted at index $i")
-        }
-        when (snippets.size) {
-            2 ->
-            {
-                return Vector2f(snippets[0].toFloat(), snippets[1].toFloat())
-            }
-            3 ->
-            {
-                return Vector3f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat())
-            }
-            4 ->
-            {
-                return Vector4f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat(), snippets[3].toFloat())
-            }
-            else ->
-            {
-                throw IllegalArgumentException("Too little or too many arguments!")
-            }
-        }
-
-    }
-
-    private fun checkType(first : Any, seconds : List<String>) : Boolean {
-        seconds.forEach {
-            if(first::class.java.typeName == "java.lang.$it")
-                return true
-        }
-        return false
-    }
-
-    /**
      * Query the settings store for a setting [name] and type T
      *
      * @param[name] The name of the setting
@@ -259,5 +206,59 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
      */
     fun getAllSettings(): List<String> {
         return settingsStore.keys().toList()
+    }
+
+    companion object {
+        private fun checkType(first : Any, seconds : List<String>) : Boolean {
+            seconds.forEach {
+                if(first::class.java.typeName == "java.lang.$it")
+                    return true
+            }
+            return false
+        }
+
+        private fun makeVector(value : String) : Any {
+            val snippets = value.trim().split(",".toRegex()).toTypedArray()
+    
+            var allFloats = true
+            snippets.forEachIndexed { i, it ->
+                allFloats = allFloats && checkType(parseType(it), listOf("Float", "Double", "Integer", "Long"))
+                if(!allFloats)
+                    throw NumberFormatException("Wrong type inserted at index $i")
+            }
+            when (snippets.size) {
+                2 ->
+                {
+                    return Vector2f(snippets[0].toFloat(), snippets[1].toFloat())
+                }
+                3 ->
+                {
+                    return Vector3f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat())
+                }
+                4 ->
+                {
+                    return Vector4f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat(), snippets[3].toFloat())
+                }
+                else ->
+                {
+                    throw IllegalArgumentException("Too little or too many arguments!")
+                }
+            }
+    
+        }
+
+        /**
+         * Parses the type from the incoming string, returns the casted value
+         */
+        fun parseType(value : String): Any = when {
+            value.lowercase() == "false" || value.lowercase() == "true" -> value.toBoolean()
+            value.contains("(") && value.contains(")") -> makeVector(value.replace("(", "").replace(")", "").replace(" ", ""))
+            value.lowercase().contains(".") && value.lowercase().toFloatOrNull() != null -> value.lowercase().toFloat()
+            value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
+            value.lowercase().contains(".") && value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
+            value.lowercase().contains("l") && value.lowercase().replace("l", "").toLongOrNull() != null -> value.lowercase().replace("l", "").toLong()
+            value.toIntOrNull() != null -> value.toInt()
+            else -> value
+        }
     }
 }
