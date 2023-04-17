@@ -191,9 +191,10 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
 
         val format = "%.5f"
         val locale = Locale.US
-        @Suppress("RemoveSingleExpressionStringTemplate")
         for(key in settingKeys)
         {
+            @Suppress("RemoveSingleExpressionStringTemplate")
+            // casting to sting does not work otherwise. There seems to be some wonky behavior with the casting
             var entry = "${settings.get<String>(key)}"
             val value = settings.get<Any>(key)
             when(value::class.java.typeName) {
