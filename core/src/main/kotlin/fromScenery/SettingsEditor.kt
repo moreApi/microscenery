@@ -189,40 +189,40 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         tableContents.addColumn("Property")
         tableContents.addColumn("Value")
 
-        val format = "%f"
-        val locale = Locale.US
+
         for(key in settingKeys)
         {
             @Suppress("RemoveSingleExpressionStringTemplate")
-            // casting to sting does not work otherwise. There seems to be some wonky behavior with the casting
+            // Casting to string does not work otherwise. There seems to be some wonky behavior with the casting
             var entry = "${settings.get<String>(key)}"
             val value = settings.get<Any>(key)
             when(value::class.java.typeName) {
                 Vector2f::class.java.typeName ->
                 {
                     value as Vector2f
-                    entry = "(${String.format(locale, format, value.x)}," +
-                            "${String.format(locale, format, value.y)})"
+                    entry = "("+ trimAndFormatEntry(value.x) +", "+ trimAndFormatEntry(value.y) + ")"
                 }
                 Vector3f::class.java.typeName ->
                 {
                     value as Vector3f
-                    entry = "(${String.format(locale, format, value.x)}," +
-                            "${String.format(locale, format, value.y)}," +
-                            "${String.format(locale, format, value.z)})"
+                    entry = "("+ trimAndFormatEntry(value.x) +", "+ trimAndFormatEntry(value.y) +", "+ trimAndFormatEntry(value.z) + ")"
                 }
                 Vector4f::class.java.typeName ->
                 {
                     value as Vector4f
-                    entry = "(${String.format(locale, format, value.x)}," +
-                            "${String.format(locale, format, value.y)}," +
-                            "${String.format(locale, format, value.z)}," +
-                            "${String.format(locale, format, value.w)})"
+                    entry = "("+ trimAndFormatEntry(value.x) +", "+ trimAndFormatEntry(value.y) +", "+ trimAndFormatEntry(value.z) +", "+ trimAndFormatEntry(value.w) + ")"
                 }
             }
             tableContents.addRow(arrayOf(key, entry))
         }
         settingsTable.rowSorter.toggleSortOrder(0)
+    }
+
+    private fun trimAndFormatEntry(value : Float) : String {
+        val format = "%f"
+        val locale = Locale.US
+
+        return String.format(locale, format, value).trim('0').trim('.')
     }
 
     /**

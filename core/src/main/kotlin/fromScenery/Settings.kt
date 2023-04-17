@@ -91,6 +91,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
 
         var allFloats = true
         snippets.forEachIndexed { i, it ->
+            snippets[i].trim()
             allFloats = allFloats && checkType(parseType(it), listOf("Float", "Double", "Integer", "Long"))
             if(!allFloats)
                 throw NumberFormatException("Wrong type inserted at index $i")
