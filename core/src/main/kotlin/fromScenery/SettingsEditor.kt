@@ -7,7 +7,6 @@ import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.util.*
 import javax.swing.*
 import javax.swing.event.TableModelEvent
@@ -79,7 +78,19 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
             override fun keyReleased(e: KeyEvent) {
                 if(e.keyCode == KeyEvent.VK_ENTER)
                 {
-                    settings.setIfUnset(addTextfield.text.toString(), settings.parseType(addValuefield.text))
+
+                    val castValue = try {
+                        settings.parseType(addValuefield.text)
+                    } catch (e: IllegalArgumentException) {
+                        addValuefield.text = null
+                        JOptionPane.showMessageDialog(mainFrame, e.message, "Type Error", JOptionPane.ERROR_MESSAGE)
+                        return
+                    } catch (e: NumberFormatException) {
+                        addValuefield.text = null
+                        JOptionPane.showMessageDialog(mainFrame, e.message, "Type Error", JOptionPane.ERROR_MESSAGE)
+                        return
+                    }
+                    settings.setIfUnset(addTextfield.text.toString(), castValue)
                     addTextfield.text = null
                     addValuefield.text = null
 
@@ -180,27 +191,27 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         tableContents.addColumn("Property")
         tableContents.addColumn("Value")
 
-        val format = "%.2f"
+        val format = "%.5f"
         val locale = Locale.US
         for(key in settingKeys)
         {
             var entry = "${settings.get<String>(key)}" // -> for some reason only this string casting works
             val value = settings.get<Any>(key)
             when(value::class.java.typeName) {
-                Vector2f::class.java.typeName, Vector2i::class.java.typeName ->
+                Vector2f::class.java.typeName ->
                 {
                     value as Vector2f;
                     entry = "(${String.format(locale, format, value.x)}," +
                             "${String.format(locale, format, value.y)})"
                 }
-                Vector3f::class.java.typeName, Vector3i::class.java.typeName ->
+                Vector3f::class.java.typeName ->
                 {
                     value as Vector3f
                     entry = "(${String.format(locale, format, value.x)}," +
                             "${String.format(locale, format, value.y)}," +
                             "${String.format(locale, format, value.z)})"
                 }
-                Vector4f::class.java.typeName, Vector4i::class.java.typeName ->
+                Vector4f::class.java.typeName ->
                 {
                     value as Vector4f
                     entry = "(${String.format(locale, format, value.x)}," +
@@ -228,7 +239,7 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         } catch (e: NumberFormatException) {
             JOptionPane.showMessageDialog(mainFrame, e.message, "Type Error", JOptionPane.ERROR_MESSAGE)
             return
-        } //also throws IllegalArgumentException if there are too little or too many Arguments in the vector, but this is catched earlier
+        } //also throws IllegalArgumentException if there are too little or too many Arguments in the vector, but this is caught earlier
 
         if(castValue::class.java.typeName != oldValue::class.java.typeName) {
             JOptionPane.showMessageDialog(mainFrame,
