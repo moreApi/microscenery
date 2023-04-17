@@ -22,8 +22,6 @@ import javax.swing.table.DefaultTableModel
  */
 class SettingsEditor @JvmOverloads constructor(var settings : Settings, private val mainFrame : JFrame = JFrame("SettingsEditor"), width : Int = 480, height : Int = 500) {
 
-    private val logger by LazyLogger()
-
     private val settingsTable : JTable
     private var tableContents : DefaultTableModel
 
@@ -200,7 +198,7 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
             when(value::class.java.typeName) {
                 Vector2f::class.java.typeName ->
                 {
-                    value as Vector2f;
+                    value as Vector2f
                     entry = "(${String.format(locale, format, value.x)}," +
                             "${String.format(locale, format, value.y)})"
                 }

@@ -42,7 +42,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
     }
 
     /**
-     * Loads the .properties [file]
+     * Loads the .properties [inputStream]
      * Currently not clearing the old settings -> Overwrites the already set and add new ones. Old stay untouched, if not set by new settings
      */
     fun loadProperties(inputStream : InputStream)
@@ -55,7 +55,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
     }
 
     /**
-     * Saves the currently set settings into [path] if set, or the default properties location (root) set in [this]
+     * Saves the currently set settings into [path] if set, or the default properties location (root) set
      */
     fun saveProperties(path : String? = null)
     {
