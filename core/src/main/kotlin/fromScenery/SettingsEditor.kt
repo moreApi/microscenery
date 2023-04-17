@@ -191,9 +191,10 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
 
         val format = "%.5f"
         val locale = Locale.US
+        @Suppress("RemoveSingleExpressionStringTemplate")
         for(key in settingKeys)
         {
-            var entry = "${settings.get<String>(key)}" // -> for some reason only this string casting works
+            var entry = "${settings.get<String>(key)}"
             val value = settings.get<Any>(key)
             when(value::class.java.typeName) {
                 Vector2f::class.java.typeName ->
