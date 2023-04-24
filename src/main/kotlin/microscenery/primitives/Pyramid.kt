@@ -6,6 +6,7 @@ import graphics.scenery.net.Networkable
 import graphics.scenery.utils.extensions.*
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.msgpack.jackson.dataformat.Tuple
 import java.lang.IllegalArgumentException
 import kotlin.jvm.JvmOverloads
 
@@ -13,59 +14,60 @@ import kotlin.jvm.JvmOverloads
  * Constructs a 4-sided pyramid [Node] with side length given in [sizes] and height given in [height]
  *
  * @author Konrad Michel <konrad.michel@mailbox.tu-dresden.de>
- * @property[sizes] The side length of the pyramids bottom plane
+ * @property[bottomWidth] The width of the pyramids bottom plane
+ * @property[bottomDepth] The depth of the pyramids bottom plane
  * @property[height] The height of the pyramid
  */
-open class Pyramid @JvmOverloads constructor(val sizes: Vector2f = Vector2f(1.0f, 1.0f), val height : Float, val insideNormals: Boolean = false) : Mesh("box") {
+open class Pyramid @JvmOverloads constructor(val bottomWidth : Float, val bottomDepth : Float, val height : Float, val insideNormals: Boolean = false) : Mesh("box") {
     init {
         val side = 1.0f
         val side2 = side / 2.0f
 
         boundingBox = OrientedBoundingBox(this,
-            -side2 * sizes.x(),
+            -side2 * bottomWidth,
             0.0f,
-            -side2 * sizes.y(),
-            side2 * sizes.x(),
+            -side2 * bottomDepth,
+            side2 * bottomWidth,
             height,
-            side2 * sizes.y())
+            side2 * bottomDepth)
 
         geometry {
 
             vertices = BufferUtils.allocateFloatAndPut(floatArrayOf(
                 // Bottom
-                -sizes.x() * side2, 0.0f,-side2*sizes.y(),
-                sizes.x() * side2, 0.0f, -side2*sizes.y(),
-                -sizes.x() * side2, 0.0f, side2*sizes.y(),
-                sizes.x() * side2, 0.0f, +side2*sizes.y(),
+                -bottomWidth * side2, 0.0f,-side2*bottomDepth,
+                bottomWidth * side2, 0.0f, -side2*bottomDepth,
+                -bottomWidth * side2, 0.0f, side2*bottomDepth,
+                bottomWidth * side2, 0.0f, +side2*bottomDepth,
 
                 // Front
-                -sizes.x() * side2, 0.0f, side2*sizes.y(),
-                sizes.x() * side2, 0.0f, +side2*sizes.y(),
+                -bottomWidth * side2, 0.0f, side2*bottomDepth,
+                bottomWidth * side2, 0.0f, +side2*bottomDepth,
                 0.0f, height, 0.0f,
 
                 // Right
-                sizes.x() * side2, 0.0f, +side2*sizes.y(),
-                sizes.x() * side2, 0.0f, -side2*sizes.y(),
+                bottomWidth * side2, 0.0f, +side2*bottomDepth,
+                bottomWidth * side2, 0.0f, -side2*bottomDepth,
                 0.0f, height, 0.0f,
 
                 // Back
-                sizes.x() * side2, 0.0f, -side2*sizes.y(),
-                -sizes.x() * side2, 0.0f,-side2*sizes.y(),
+                bottomWidth * side2, 0.0f, -side2*bottomDepth,
+                -bottomWidth * side2, 0.0f,-side2*bottomDepth,
                 0.0f, height, 0.0f,
 
                 // Left
-                -sizes.x() * side2, 0.0f,-side2*sizes.y(),
-                -sizes.x() * side2, 0.0f, side2*sizes.y(),
+                -bottomWidth * side2, 0.0f,-side2*bottomDepth,
+                -bottomWidth * side2, 0.0f, side2*bottomDepth,
                 0.0f, height, 0.0f
             ))
 
             val flip: Float = if(insideNormals) { -1.0f } else { 1.0f }
 
-            val frontRight = Vector3f(sizes.x() * side2, 0.0f, side2*sizes.y())
-            val frontLeft = Vector3f(-sizes.x() * side2, 0.0f, side2*sizes.y())
-            val backRight = Vector3f(sizes.x() * side2, 0.0f, -side2*sizes.y())
+            val frontRight = Vector3f(bottomWidth * side2, 0.0f, side2*bottomDepth)
+            val frontLeft = Vector3f(-bottomWidth * side2, 0.0f, side2*bottomDepth)
+            val backRight = Vector3f(bottomWidth * side2, 0.0f, -side2*bottomDepth)
             val top = Vector3f(0.0f, height, 0.0f)
-            val backLeft = Vector3f(-sizes.x() * side2, 0.0f,-side2*sizes.y())
+            val backLeft = Vector3f(-bottomWidth * side2, 0.0f,-side2*bottomDepth)
 
             val frontNormal = (frontLeft-frontRight).cross(top-frontRight)
             val rightNormal = (backRight-frontRight).cross(top-frontRight)
@@ -132,7 +134,7 @@ open class Pyramid @JvmOverloads constructor(val sizes: Vector2f = Vector2f(1.0f
     }
 
     override fun getConstructorParameters(): Any? {
-        return sizes to insideNormals
+        return Vector3f(bottomWidth, height, bottomDepth) to insideNormals
     }
 
     override fun constructWithParameters(parameters: Any, hub: Hub): Networkable {
@@ -142,27 +144,6 @@ open class Pyramid @JvmOverloads constructor(val sizes: Vector2f = Vector2f(1.0f
         if (sizes == null || insideNormals == null){
             throw IllegalArgumentException()
         }
-        return Box(sizes,insideNormals)
-    }
-
-    companion object {
-        /**
-         * Creates a box with a hull of size [outerSize] and a wall thickness given in [wallThickness].
-         * Returns a container node containing both.
-         */
-        @JvmStatic fun hulledBox(outerSize: Vector3f = Vector3f(1.0f, 1.0f, 1.0f), wallThickness: Float = 0.05f): Mesh {
-            val container = Mesh()
-            val outer = Box(outerSize, insideNormals = false)
-            container.addChild(outer)
-
-            val innerSize = outerSize - Vector3f(1.0f, 1.0f, 1.0f) * wallThickness * 0.5f
-            val inner = Box(innerSize, insideNormals = true)
-            inner.material {
-                cullingMode = Material.CullingMode.Front
-            }
-            container.addChild(inner)
-
-            return container
-        }
+        return Pyramid(sizes.x, sizes.z, sizes.y, insideNormals)
     }
 }
