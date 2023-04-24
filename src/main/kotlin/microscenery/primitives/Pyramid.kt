@@ -69,10 +69,10 @@ open class Pyramid @JvmOverloads constructor(val bottomWidth : Float, val bottom
             val top = Vector3f(0.0f, height, 0.0f)
             val backLeft = Vector3f(-bottomWidth * side2, 0.0f,-side2*bottomDepth)
 
-            val frontNormal = (frontLeft-frontRight).cross(top-frontRight)
-            val rightNormal = (backRight-frontRight).cross(top-frontRight)
-            val backNormal = (backRight-backLeft).cross(top-backLeft)
-            val leftNormal = (frontLeft-backLeft).cross(top-backLeft)
+            val frontNormal = ((top-frontRight).cross(frontLeft-frontRight)).normalize()
+            val rightNormal = ((backRight-frontRight).cross(top-frontRight)).normalize()
+            val backNormal = ((top-backLeft).cross(backRight-backLeft)).normalize()
+            val leftNormal = ((frontLeft-backLeft).cross(top-backLeft)).normalize()
 
             normals = BufferUtils.allocateFloatAndPut(floatArrayOf(
                 // Bottom
