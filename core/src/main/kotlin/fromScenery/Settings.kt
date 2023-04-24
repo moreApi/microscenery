@@ -1,5 +1,6 @@
 package fromScenery
 
+import org.joml.*
 import java.io.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -41,7 +42,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
     }
 
     /**
-     * Loads the .properties [file]
+     * Loads the .properties [inputStream]
      * Currently not clearing the old settings -> Overwrites the already set and add new ones. Old stay untouched, if not set by new settings
      */
     fun loadProperties(inputStream : InputStream)
@@ -54,7 +55,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
     }
 
     /**
-     * Saves the currently set settings into [path] if set, or the default properties location (root) set in [this]
+     * Saves the currently set settings into [path] if set, or the default properties location (root) set
      */
     fun saveProperties(path : String? = null)
     {
@@ -69,19 +70,6 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
             out = Path(File("").absolutePath + "properties.properties").outputStream()
 
         props.store(out, null)
-    }
-
-    /**
-     * Parses the type from the incoming string, returns the casted value
-     */
-    fun parseType(value:String): Any = when {
-        value.lowercase() == "false" || value.lowercase() == "true" -> value.toBoolean()
-        value.lowercase().contains(".") && value.lowercase().toFloatOrNull() != null -> value.lowercase().toFloat()
-        value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
-        value.lowercase().contains(".") && value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
-        value.lowercase().contains("l") && value.lowercase().replace("l", "").toLongOrNull() != null -> value.lowercase().replace("l", "").toLong()
-        value.toIntOrNull() != null -> value.toInt()
-        else -> value
     }
 
     /**
@@ -218,5 +206,59 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
      */
     fun getAllSettings(): List<String> {
         return settingsStore.keys().toList()
+    }
+
+    companion object {
+        private fun checkType(first : Any, seconds : List<String>) : Boolean {
+            seconds.forEach {
+                if(first::class.java.typeName == "java.lang.$it")
+                    return true
+            }
+            return false
+        }
+
+        private fun makeVector(value : String) : Any {
+            val snippets = value.trim().split(",".toRegex()).toTypedArray()
+    
+            var allFloats = true
+            snippets.forEachIndexed { i, it ->
+                allFloats = allFloats && checkType(parseType(it), listOf("Float", "Double", "Integer", "Long"))
+                if(!allFloats)
+                    throw NumberFormatException("Wrong type inserted at index $i")
+            }
+            when (snippets.size) {
+                2 ->
+                {
+                    return Vector2f(snippets[0].toFloat(), snippets[1].toFloat())
+                }
+                3 ->
+                {
+                    return Vector3f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat())
+                }
+                4 ->
+                {
+                    return Vector4f(snippets[0].toFloat(), snippets[1].toFloat(), snippets[2].toFloat(), snippets[3].toFloat())
+                }
+                else ->
+                {
+                    throw IllegalArgumentException("Too little or too many arguments!")
+                }
+            }
+    
+        }
+
+        /**
+         * Parses the type from the incoming string, returns the casted value
+         */
+        fun parseType(value : String): Any = when {
+            value.lowercase() == "false" || value.lowercase() == "true" -> value.toBoolean()
+            value.contains("(") && value.contains(")") -> makeVector(value.replace("(", "").replace(")", "").replace(" ", ""))
+            value.lowercase().contains(".") && value.lowercase().toFloatOrNull() != null -> value.lowercase().toFloat()
+            value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
+            value.lowercase().contains(".") && value.lowercase().contains("f") && value.lowercase().replace("f", "").toFloatOrNull() != null -> value.lowercase().replace("f", "").toFloat()
+            value.lowercase().contains("l") && value.lowercase().replace("l", "").toLongOrNull() != null -> value.lowercase().replace("l", "").toLong()
+            value.toIntOrNull() != null -> value.toInt()
+            else -> value
+        }
     }
 }
