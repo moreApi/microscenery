@@ -218,13 +218,6 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         settingsTable.rowSorter.toggleSortOrder(0)
     }
 
-    private fun trimAndFormatEntry(value : Float) : String {
-        val format = "%f"
-        val locale = Locale.US
-
-        return String.format(locale, format, value).trim('0').trim('.')
-    }
-
     /**
      *Changes the value at [row], no need to define the setting
      */
@@ -248,6 +241,28 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
             return
         }
         settings.set("$setting", castValue)
+    }
+
+    companion object {
+        fun trimAndFormatEntry(value : Float) : String {
+            val format = "%f"
+            val locale = Locale.US
+            val floatCharArray = String.format(locale, format, value).toCharArray()
+            var endIndex = floatCharArray.size-1
+
+            // Reverse iterate string until digit is not a zero
+            // Then check if next char is '.' -> if yes, keep last 0
+            for(index in floatCharArray.size-1 downTo  0 ) {
+                if(floatCharArray[index] != '0') {
+                    endIndex = index
+                    if(floatCharArray[index] == '.')
+                        endIndex++
+                    break
+                }
+            }
+
+            return floatCharArray.concatToString(0, endIndex + 1)
+        }
     }
 
 }
