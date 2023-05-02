@@ -1,8 +1,8 @@
 package microscenery.unit.settings
 
 
-import com.jogamp.common.util.ReflectionUtil.instanceOf
 import fromScenery.Settings
+import fromScenery.SettingsEditor
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.assertThrows
 import java.lang.IllegalArgumentException
 import kotlin.test.assertEquals
 
-class TypeParsingTest {
+class SettingsTest {
 
     @Test
     fun parseType()
@@ -80,7 +80,25 @@ class TypeParsingTest {
             Settings.parseType("(1,1,1,1,1)")
         }
         assertEquals("Too little or too many arguments!", argumentException.message)
+    }
 
+    @Test
+    fun trimAndFormat() {
+
+        assertEquals("1.0", SettingsEditor.trimAndFormatEntry(1f))
+        assertEquals("1.0", SettingsEditor.trimAndFormatEntry(1.0f))
+        assertEquals("1.0", SettingsEditor.trimAndFormatEntry(1.000f))
+
+        assertEquals("0.0", SettingsEditor.trimAndFormatEntry(0f))
+        assertEquals("0.0", SettingsEditor.trimAndFormatEntry(0.0f))
+        assertEquals("0.0", SettingsEditor.trimAndFormatEntry(0.0000f))
+
+
+        assertEquals("1.01", SettingsEditor.trimAndFormatEntry(1.01f))
+        assertEquals("1.01", SettingsEditor.trimAndFormatEntry(1.01000f))
+
+        assertEquals("0.01", SettingsEditor.trimAndFormatEntry(0.01f))
+        assertEquals("0.01", SettingsEditor.trimAndFormatEntry(0.01000f))
     }
 
 
