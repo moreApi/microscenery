@@ -1,10 +1,6 @@
 package microscenery.example.microscope
 
 import graphics.scenery.AmbientLight
-import graphics.scenery.Box
-import graphics.scenery.Mesh
-import graphics.scenery.attribute.material.Material
-import graphics.scenery.controls.behaviours.Grabable
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.WheelMenu
 import microscenery.DefaultVRScene
@@ -45,15 +41,6 @@ class LocalMMSceneVR : DefaultVRScene() {
 
         scene.addChild(AmbientLight(0.25f))
 
-        val p = Box()
-        p.material().diffuse = Vector3f(0.5f)
-        p.material().cullingMode = Material.CullingMode.FrontAndBack
-        p.addAttribute(Grabable::class.java, Grabable())
-        p.name = "women"
-        val women = Mesh().readFrom("C:\\Users\\JanCasus\\repos\\microscenery\\models\\poster\\vr_women.obj")
-        women.spatial().position.y -= 0.55f
-        p.addChild(women)
-        scene.addChild(p)
     }
 
     override fun inputSetup() {
