@@ -8,6 +8,7 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.*
+import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
@@ -21,7 +22,8 @@ class VRUIManager {
             hmd: OpenVRHMD,
             inputHandler: InputHandler?,
             customActions: WheelMenu? = null,
-            target: () -> Node?
+            stageSpaceUI: StageSpaceUI? = null,
+            target: () -> Node?,
         ) {
             initControllerIndicator(hmd)
 
@@ -64,6 +66,13 @@ class VRUIManager {
                 customActionsPlusScaleSwitch,
                 target
             )
+            stageSpaceUI?.let { ssui ->
+                VRSelectionWheel.createAndSet(
+                    scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+                    listOf(TrackerRole.LeftHand),
+                    ssui.vrMenuActions()
+                )
+            }
         }
 
         private fun InputHandler.initStickMovement(hmd: OpenVRHMD) {

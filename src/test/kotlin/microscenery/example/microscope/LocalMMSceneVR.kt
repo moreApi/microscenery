@@ -1,8 +1,6 @@
 package microscenery.example.microscope
 
 import graphics.scenery.AmbientLight
-import graphics.scenery.controls.behaviours.Switch
-import graphics.scenery.controls.behaviours.WheelMenu
 import microscenery.DefaultVRScene
 import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI
@@ -10,7 +8,6 @@ import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMConnection
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
-import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
@@ -45,32 +42,15 @@ class LocalMMSceneVR : DefaultVRScene() {
 
     override fun inputSetup() {
         super.inputSetup()
+        val ssUI = StageSpaceUI(stageSpaceManager)
+
         inputHandler?.let {
-            StageSpaceUI(stageSpaceManager).stageKeyUI(it, cam)
+            ssUI.stageKeyUI(it, cam)
         }
 
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
-            customActions = WheelMenu(
-                hmd, listOf(
-                    Switch("Steering", false) { value ->
-                        stageSpaceManager.focusTarget?.let {
-                            if (value && it.mode != FrameGizmo.Mode.STEERING) {
-                                it.mode = FrameGizmo.Mode.STEERING
-                            } else {
-                                it.mode = FrameGizmo.Mode.PASSIVE
-                            }
-                            logger.info("focusframe mode is now ${it.mode}")
-                        }
-                    },
-                    Switch("Live", false) {
-                        if (it)
-                            stageSpaceManager.goLive()
-                        else
-                            stageSpaceManager.stop()
-                    },
-                )
-            )
+            stageSpaceUI = ssUI
         ) {
             stageSpaceManager.stageRoot
         }

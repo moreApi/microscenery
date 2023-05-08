@@ -5,6 +5,7 @@ import graphics.scenery.Box
 import graphics.scenery.Camera
 import graphics.scenery.Sphere
 import graphics.scenery.attribute.spatial.HasSpatial
+import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.primitives.Cylinder
@@ -41,166 +42,161 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
 
     var searchCubeStart: Box? = null
 
-    val commands = listOf(
+    val comGoLive = StageUICommand("goLive", "3"
+    ) { x, y -> stageSpaceManager.goLive() }
+    val comSteering = StageUICommand("steering", "4") { x, y ->
+        stageSpaceManager.focusTarget?.let {
+            if (it.mode != FrameGizmo.Mode.STEERING) {
+                it.mode = FrameGizmo.Mode.STEERING
+            } else {
+                it.mode = FrameGizmo.Mode.PASSIVE
+            }
+            logger.info("focus frame mode is now ${it.mode}")
+        }
+    }
+    val comStackAcq = StageUICommand("stackAcq", "5") { x, y ->
+        stageSpaceManager.focusTarget?.let {
+            if (it.mode == FrameGizmo.Mode.STACK_SELECTION) {
+                stageSpaceManager.focusTarget?.let {
+                    if (it.stackStartPos.z < it.spatial().position.z) stageSpaceManager.stack(
+                        it.stackStartPos,
+                        it.spatial().position,
+                        false
+                    )
+                    else stageSpaceManager.stack(it.spatial().position, it.stackStartPos, false)
+                }
+                it.mode = FrameGizmo.Mode.PASSIVE
+            } else {
+                it.mode = FrameGizmo.Mode.STACK_SELECTION
+            }
+            logger.info("focus frame mode is now ${it.mode}")
+        }
+    }
+    val comSearchCube = StageUICommand("searchCube", "6", object : ClickBehaviour {
+        override fun click(x: Int, y: Int) {
+            val frame = stageSpaceManager.focusTarget ?: return
+            if (searchCubeStart == null) {
+                stageSpaceManager.stageRoot.addChild(Box().apply {
+                    spatial {
+                        this.position = frame.spatial().position
+                        this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x ?: 1f) / 5f)
+                    }
+
+                    searchCubeStart = this
+                })
+            } else {
+                val p1 = searchCubeStart!!.spatial().position
+                val p2 = frame.spatial().position
+
+                stageSpaceManager.exploreCubeStageSpace(p1, p2)
+
+                searchCubeStart?.let { it.parent?.removeChild(it) }
+                searchCubeStart = null
+            }
+        }
+    })
+    val comAblate = StageUICommand("ablate", "7", object : ClickBehaviour {
+        val ablationPoints = mutableListOf<HasSpatial>()
+        var goneToFirstPoint = false
+        override fun click(x: Int, y: Int) {
+            val frame = stageSpaceManager.focusTarget ?: return
+            if (frame.mode != FrameGizmo.Mode.PASSIVE) {
+                logger.warn("Frame not passive. Not going to plan ablation.")
+                return
+            }
+
+            val last = ablationPoints.lastOrNull()
+            if (last == null) {
+                //first point
+                val point = Sphere(0.25f, 8).apply {
+                    spatial {
+                        this.position = frame.spatial().position
+                        //get scaling from frame
+                        this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x ?: 1f) / 5f)
+                    }
+                }
+                stageSpaceManager.stageRoot.addChild(point)
+                ablationPoints += point
+                logger.info("set first ablation point to ${frame.spatial().position.toReadableString()}")
+                return
+            }
+
+            //no movement -> end condition
+            if (last.spatial().position == frame.spatial().position) {
+                if (!goneToFirstPoint) {
+                    stageSpaceManager.hardware.stagePosition = ablationPoints.first().spatial().position
+                    logger.warn("Moving stage to first point. Open laser and press again!")
+                    goneToFirstPoint = true
+                    return
+                }
+                executeAblationCommandSequence(
+                    stageSpaceManager.hardware,
+                    buildLaserPath(ablationPoints.map { it.spatial().position })
+                )
+
+                ablationPoints.forEach { it.parent?.removeChild(it) }
+                ablationPoints.clear()
+                goneToFirstPoint = false
+                return
+            } else if (goneToFirstPoint) {
+                logger.warn("Movement detected, aborting ablation staging.")
+                goneToFirstPoint = false
+            }
+
+            val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
+
+            // sample line between last and current position
+            (sampleLine(last.spatial().position, frame.spatial().position, precision) + frame.spatial().position)
+                .forEach {
+                    val point = Sphere(0.25f, 8).apply {
+                        spatial {
+                            this.position = it
+                            this.scale = Vector3f(last.spatial().scale) / 2f
+                        }
+                    }
+                    stageSpaceManager.stageRoot.addChild(point)
+                    ablationPoints += point
+                }
+
+            // increase size of this positions marker and add line
+            ablationPoints.last().let {
+                it.spatial().scale *= 2f
+
+                val diff = it.spatial().position - last.spatial().position
+
+                val line = Cylinder(0.01f, 1f, 20)
+                line.material().metallic = 0.0f
+                line.material().roughness = 1.0f
+                line.spatial {
+                    scale.y = diff.length() / last.spatial().scale.x
+                    rotation = Quaternionf().rotationTo(UP, diff)
+                }
+                last.addChild(line)
+                logger.info("set ablation point to ${frame.spatial().position.toReadableString()}")
+            }
+        }
+    })
+    val comClearStage = StageUICommand("clearStage", "8") { x, y -> stageSpaceManager.clearStage() }
+    val comStop = StageUICommand("stop", "0") { x, y ->
+        searchCubeStart?.let { it.parent?.removeChild(it) }
+        searchCubeStart = null
+        stageSpaceManager.stop()
+    }
+
+    val desktopCommands = listOf(
         StageUICommand("drag with mouse", "1", null),
         StageUICommand("snap", "2", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
                 stageSpaceManager.snapSlice()
             }
         }),
-        StageUICommand("goLive", "3", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                stageSpaceManager.goLive()
-            }
-        }),
-        StageUICommand("steering", "4", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                stageSpaceManager.focusTarget?.let {
-                    if (it.mode != FrameGizmo.Mode.STEERING) {
-                        it.mode = FrameGizmo.Mode.STEERING
-                    } else {
-                        it.mode = FrameGizmo.Mode.PASSIVE
-                    }
-                    logger.info("focus frame mode is now ${it.mode}")
-                }
-            }
-        }),
-        StageUICommand("stackAcq", "5", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                stageSpaceManager.focusTarget?.let {
-                    if (it.mode == FrameGizmo.Mode.STACK_SELECTION) {
-                        stageSpaceManager.focusTarget?.let {
-                            if (it.stackStartPos.z < it.spatial().position.z) stageSpaceManager.stack(
-                                it.stackStartPos,
-                                it.spatial().position,
-                                false
-                            )
-                            else stageSpaceManager.stack(it.spatial().position, it.stackStartPos, false)
-                        }
-                        it.mode = FrameGizmo.Mode.PASSIVE
-                    } else {
-                        it.mode = FrameGizmo.Mode.STACK_SELECTION
-                    }
-                    logger.info("focus frame mode is now ${it.mode}")
-                }
-            }
-        }),
-        StageUICommand("searchCube", "6", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                val frame = stageSpaceManager.focusTarget ?: return
-                if (searchCubeStart == null) {
-                    stageSpaceManager.stageRoot.addChild(Box().apply {
-                        spatial {
-                            this.position = frame.spatial().position
-                            this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x ?: 1f) / 5f)
-                        }
-
-                        searchCubeStart = this
-                    })
-                } else {
-                    val p1 = searchCubeStart!!.spatial().position
-                    val p2 = frame.spatial().position
-
-                    stageSpaceManager.exploreCubeStageSpace(p1, p2)
-
-                    searchCubeStart?.let { it.parent?.removeChild(it) }
-                    searchCubeStart = null
-                }
-            }
-        }),
-        StageUICommand("ablate", "7", object : ClickBehaviour {
-            val ablationPoints = mutableListOf<HasSpatial>()
-            var goneToFirstPoint = false
-            override fun click(x: Int, y: Int) {
-                val frame = stageSpaceManager.focusTarget ?: return
-                if (frame.mode != FrameGizmo.Mode.PASSIVE) {
-                    logger.warn("Frame not passive. Not going to plan ablation.")
-                    return
-                }
-
-                val last = ablationPoints.lastOrNull()
-                if (last == null) {
-                    //first point
-                    val point = Sphere(0.25f, 8).apply {
-                        spatial {
-                            this.position = frame.spatial().position
-                            //get scaling from frame
-                            this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x ?: 1f) / 5f)
-                        }
-                    }
-                    stageSpaceManager.stageRoot.addChild(point)
-                    ablationPoints += point
-                    logger.info("set first ablation point to ${frame.spatial().position.toReadableString()}")
-                    return
-                }
-
-                //no movement -> end condition
-                if (last.spatial().position == frame.spatial().position) {
-                    if (!goneToFirstPoint) {
-                        stageSpaceManager.hardware.stagePosition = ablationPoints.first().spatial().position
-                        logger.warn("Moving stage to first point. Open laser and press again!")
-                        goneToFirstPoint = true
-                        return
-                    }
-                    executeAblationCommandSequence(
-                        stageSpaceManager.hardware,
-                        buildLaserPath(ablationPoints.map { it.spatial().position })
-                    )
-
-                    ablationPoints.forEach { it.parent?.removeChild(it) }
-                    ablationPoints.clear()
-                    goneToFirstPoint = false
-                    return
-                } else if (goneToFirstPoint) {
-                    logger.warn("Movement detected, aborting ablation staging.")
-                    goneToFirstPoint = false
-                }
-
-                val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
-
-                // sample line between last and current position
-                (sampleLine(last.spatial().position, frame.spatial().position, precision) + frame.spatial().position)
-                    .forEach {
-                        val point = Sphere(0.25f, 8).apply {
-                            spatial {
-                                this.position = it
-                                this.scale = Vector3f(last.spatial().scale) / 2f
-                            }
-                        }
-                        stageSpaceManager.stageRoot.addChild(point)
-                        ablationPoints += point
-                    }
-
-                // increase size of this positions marker and add line
-                ablationPoints.last().let {
-                    it.spatial().scale *= 2f
-
-                    val diff = it.spatial().position - last.spatial().position
-
-                    val line = Cylinder(0.01f, 1f, 20)
-                    line.material().metallic = 0.0f
-                    line.material().roughness = 1.0f
-                    line.spatial {
-                        scale.y = diff.length() / last.spatial().scale.x
-                        rotation = Quaternionf().rotationTo(UP, diff)
-                    }
-                    last.addChild(line)
-                    logger.info("set ablation point to ${frame.spatial().position.toReadableString()}")
-                }
-            }
-        }),
-        StageUICommand("clearStage", "8", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                stageSpaceManager.clearStage()
-            }
-        }),
-        StageUICommand("stop", "0", object : ClickBehaviour {
-            override fun click(x: Int, y: Int) {
-                searchCubeStart?.let { it.parent?.removeChild(it) }
-                searchCubeStart = null
-                stageSpaceManager.stop()
-            }
-        }),
+        comGoLive,
+        comSteering,
+        comStackAcq,
+        comSearchCube,
+        comAblate,
+        comClearStage,
+        comStop,
         StageUICommand("help", "H", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
                 thread {
@@ -223,24 +219,30 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         StageUICommand("toggle frame/cam control", "E", null),
     )
 
-    fun stageSwingUI(panel: JPanel){
-        commands.forEach {
+    val vrCommands = listOf(comGoLive,comSteering,comStackAcq,comSearchCube,comAblate,comClearStage,comStop)
+
+    fun vrMenuActions(): List<Pair<String, (Spatial) -> Unit>> = vrCommands.map {
+            it.name to {_ -> it.command?.click(0,0)}
+        }
+
+    fun stageSwingUI(panel: JPanel) {
+        desktopCommands.forEach {
             val (name, key, command) = it
 
             when {
                 (command == null && key != null) -> {
                     panel.add(JLabel(name))
                     // two panels to be aligned with buttons
-                    panel.add(JLabel(" : $key"),"wrap")
+                    panel.add(JLabel(" : $key"), "wrap")
                 }
                 (command != null) -> {
                     val but = JButton(name)
-                    but.addActionListener { command.click(0,0) }
-                    if (key == null){
-                        panel.add(but,"wrap")
+                    but.addActionListener { command.click(0, 0) }
+                    if (key == null) {
+                        panel.add(but, "wrap")
                     } else {
                         panel.add(but)
-                        panel.add(JLabel(" : $key"),"wrap")
+                        panel.add(JLabel(" : $key"), "wrap")
                     }
                 }
             }
@@ -279,7 +281,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         )
         inputHandler.addKeyBinding("frameDragging", "1")
 
-        commands.forEach {
+        desktopCommands.forEach {
             val (name, key, command) = it
             if (key == null || command == null) return@forEach
 
@@ -288,7 +290,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }
     }
 
-    fun stageUI(base: DefaultScene, inputHandler: InputHandler?){
+    fun stageUI(base: DefaultScene, inputHandler: InputHandler?) {
         base.extraPanel?.let { stageSwingUI(it) }
         base.mainFrame?.pack()
 
