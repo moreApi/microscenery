@@ -12,7 +12,7 @@ import kotlin.io.path.Path
 /**
  * VR, mmConnection local or controlled Stream remote
  */
-class T1Head : DefaultVRScene(T1Head::class.java.simpleName) {
+class T1HeadVR : DefaultVRScene(T1HeadVR::class.java.simpleName) {
 
 
     override fun init() {
@@ -46,7 +46,7 @@ class T1Head : DefaultVRScene(T1Head::class.java.simpleName) {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            T1Head().main()
+            T1HeadVR().main()
         }
     }
 }
