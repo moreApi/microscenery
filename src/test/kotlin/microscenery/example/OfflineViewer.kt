@@ -2,6 +2,8 @@ package microscenery.example
 
 import graphics.scenery.Hub
 import graphics.scenery.Origin
+import graphics.scenery.controls.behaviours.Switch
+import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
@@ -18,7 +20,7 @@ import kotlin.io.path.Path
 val openSpimScale3 = Vector3f(.225f, .225f, 3.348f)
 val openSpimScale15 = Vector3f(.225f, .225f, 1.524f)
 
-fun currentVolume(hub: Hub) = cherry(hub)
+fun currentVolume(hub: Hub) = mohammadMouseBrain(hub)
 
 
 fun hydra(hub: Hub): Volume {
@@ -185,10 +187,12 @@ class OfflineViewer2D : DefaultScene() {
 
 class OfflineViewerVR() : DefaultVRScene("Embo Scene") {
 
+    lateinit var vol: Volume
+
     override fun init() {
         super.init()
 
-        val vol = currentVolume(hub)
+        vol = currentVolume(hub)
         scene.addChild(vol)
 
 
@@ -203,7 +207,11 @@ class OfflineViewerVR() : DefaultVRScene("Embo Scene") {
     override fun inputSetup() {
         super.inputSetup()
 
-        VRUIManager.initBehavior(scene, hmd, inputHandler) {
+        VRUIManager.initBehavior(scene, hmd, inputHandler, customActions =
+        WheelMenu(hmd, listOf(Switch("freeze blocks",false){
+            vol.volumeManager.freezeRequiredBlocks = it
+        }), false)
+        ) {
             scene.findByClassname(Volume::class.simpleName!!).first() as Volume
         }
     }

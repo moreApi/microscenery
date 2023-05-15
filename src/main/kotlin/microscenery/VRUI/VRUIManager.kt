@@ -50,6 +50,7 @@ class VRUIManager {
                 hmd,
                 listOf(OpenVRHMD.OpenVRButton.Side),
                 listOf(TrackerRole.RightHand, TrackerRole.LeftHand),
+                holdToDrag = false,
                 onGrab = { node, device -> (hmd as? OpenVRHMD)?.vibrate(device); VRTouch.unapplySelectionColor(node) })
             VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand, TrackerRole.LeftHand), false)
             VRPress.createAndSet(
