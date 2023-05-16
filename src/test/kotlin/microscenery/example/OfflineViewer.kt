@@ -192,14 +192,18 @@ class OfflineViewerVR() : DefaultVRScene("Embo Scene") {
     override fun init() {
         super.init()
 
-        vol = currentVolume(hub)
-        scene.addChild(vol)
-
+        thread {
+            //delay volume loading to not crash VR...
+            Thread.sleep(1000)
+            vol = currentVolume(hub)
+            scene.addChild(vol)
+        }
 
         thread {
+            // debug loop
             while (true) {
                 Thread.sleep(500)
-                val s = scene
+                val s = vol
             }
         }
     }
