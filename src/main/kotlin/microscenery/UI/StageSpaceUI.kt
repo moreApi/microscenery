@@ -187,6 +187,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         StageUICommand("drag with mouse", "1", null),
         StageUICommand("snap", "2", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
+                logger.info("Snap slice command")
                 stageSpaceManager.snapSlice()
             }
         }),
