@@ -1,6 +1,6 @@
 # Microscenery
-## General Architecture
+## Components
 ![](doc/FrontBackEnd.png)
 
-## With Micromanager
+## A Micromanager Setup
 ![](doc/Architecture.png)
