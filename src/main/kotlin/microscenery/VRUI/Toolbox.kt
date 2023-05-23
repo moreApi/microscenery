@@ -23,6 +23,7 @@ class Toolbox(
     val pointTool = PointEntityTool()
     val lineTool = LineEntityTool()
     val croppingTool = CroppingTool()
+    val bubblesTool = BubblesTool()
     val tfe = TransferFunction1DEditor()
 
     init {
@@ -42,10 +43,14 @@ class Toolbox(
             scene.addChild(pointTool)
             pointTool.visible = true
             pointTool.spatial().position = device.worldPosition()
-        }, "line" to { device ->
+        },"line" to { device ->
             scene.addChild(lineTool)
             lineTool.visible = true
             lineTool.spatial().position = device.worldPosition()
+        },"bubble" to { device ->
+            scene.addChild(bubblesTool)
+            bubblesTool.visible = true
+            bubblesTool.spatial().position = device.worldPosition()
         }, "trans fun" to { device ->
             target()?.let {
                 if (it !is Volume) return@let
