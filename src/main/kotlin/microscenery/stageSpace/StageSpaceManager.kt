@@ -2,18 +2,22 @@ package microscenery.stageSpace
 
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.utils.extensions.xyz
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.copy
 import microscenery.hardware.MicroscopeHardware
 import microscenery.setVector3fIfUnset
 import microscenery.signals.*
+import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4f
 import java.util.concurrent.TimeUnit
 
 /**
@@ -208,4 +212,14 @@ class StageSpaceManager(
     fun clearStage() {
         sliceManager.clearSlices()
     }
+
+    fun worldToStageSpace(s: Spatial){
+        s.position = worldToStageSpace(Vector3f(1f,0f,0f))
+        s.scale *= getInverseWorldScale()
+    }
+
+    fun worldToStageSpace(v: Vector3f): Vector3f =
+        Matrix4f(stageRoot.spatial().world).invertAffine().transform(Vector4f().set(v, 1.0f)).xyz()
+
+    fun getInverseWorldScale(): Vector3f = Matrix4f(stageRoot.spatial().world).invertAffine().getScale(Vector3f())
 }
