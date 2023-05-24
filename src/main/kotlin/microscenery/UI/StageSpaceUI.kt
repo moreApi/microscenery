@@ -3,20 +3,16 @@ package microscenery.UI
 import fromScenery.SettingsEditor
 import graphics.scenery.Box
 import graphics.scenery.Camera
-import graphics.scenery.Sphere
-import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
-import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.LazyLogger
-import graphics.scenery.utils.extensions.minus
-import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.TransferFunctionEditor
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.MicroscenerySettings
+import microscenery.initAblationSettings
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
-import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import javax.swing.JButton
@@ -31,7 +27,7 @@ import kotlin.concurrent.thread
  * If command is null, no automatic keyboard behavior will be created and in swing gui only a label with the key will
  * be created
  */
-data class StageUICommand(val name: String, val key: String?, val command: ClickBehaviour?)
+open class StageUICommand(val name: String, val key: String?, val command: ClickBehaviour?)
 
 class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     internal val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -95,87 +91,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
             }
         }
     })
-    val comAblate = StageUICommand("ablate", "7", object : ClickBehaviour {
-        val ablationPoints = mutableListOf<HasSpatial>()
-        var goneToFirstPoint = false
-        override fun click(x: Int, y: Int) {
-            val frame = stageSpaceManager.focusTarget ?: return
-            if (frame.mode != FrameGizmo.Mode.PASSIVE) {
-                logger.warn("Frame not passive. Not going to plan ablation.")
-                return
-            }
-
-            val last = ablationPoints.lastOrNull()
-            if (last == null) {
-                //first point
-                val point = Sphere(0.25f, 8).apply {
-                    spatial {
-                        this.position = frame.spatial().position
-                        //get scaling from frame
-                        this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x ?: 1f) / 5f)
-                    }
-                }
-                stageSpaceManager.stageRoot.addChild(point)
-                ablationPoints += point
-                logger.info("set first ablation point to ${frame.spatial().position.toReadableString()}")
-                return
-            }
-
-            //no movement -> end condition
-            if (last.spatial().position == frame.spatial().position) {
-                if (!goneToFirstPoint) {
-                    stageSpaceManager.hardware.stagePosition = ablationPoints.first().spatial().position
-                    logger.warn("Moving stage to first point. Open laser and press again!")
-                    goneToFirstPoint = true
-                    return
-                }
-                executeAblationCommandSequence(
-                    stageSpaceManager.hardware,
-                    buildLaserPath(ablationPoints.map { it.spatial().position })
-                )
-
-                ablationPoints.forEach { it.parent?.removeChild(it) }
-                ablationPoints.clear()
-                goneToFirstPoint = false
-                return
-            } else if (goneToFirstPoint) {
-                logger.warn("Movement detected, aborting ablation staging.")
-                goneToFirstPoint = false
-            }
-
-            val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
-
-            // sample line between last and current position
-            (sampleLine(last.spatial().position, frame.spatial().position, precision) + frame.spatial().position)
-                .forEach {
-                    val point = Sphere(0.25f, 8).apply {
-                        spatial {
-                            this.position = it
-                            this.scale = Vector3f(last.spatial().scale) / 2f
-                        }
-                    }
-                    stageSpaceManager.stageRoot.addChild(point)
-                    ablationPoints += point
-                }
-
-            // increase size of this positions marker and add line
-            ablationPoints.last().let {
-                it.spatial().scale *= 2f
-
-                val diff = it.spatial().position - last.spatial().position
-
-                val line = Cylinder(0.01f, 1f, 20)
-                line.material().metallic = 0.0f
-                line.material().roughness = 1.0f
-                line.spatial {
-                    scale.y = diff.length() / last.spatial().scale.x
-                    rotation = Quaternionf().rotationTo(UP, diff)
-                }
-                last.addChild(line)
-                logger.info("set ablation point to ${frame.spatial().position.toReadableString()}")
-            }
-        }
-    })
+    val comAblate = AblateStageUICom(stageSpaceManager)
     val comClearStage = StageUICommand("clearStage", "8") { x, y -> stageSpaceManager.clearStage() }
     val comStop = StageUICommand("stop", "0") { x, y ->
         searchCubeStart?.let { it.parent?.removeChild(it) }
@@ -228,7 +144,9 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
 
     fun stageSwingUI(panel: JPanel) {
         desktopCommands.forEach {
-            val (name, key, command) = it
+            val name = it.name
+            val key = it.key
+            val command = it.command
 
             when {
                 (command == null && key != null) -> {
@@ -283,7 +201,9 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         inputHandler.addKeyBinding("frameDragging", "1")
 
         desktopCommands.forEach {
-            val (name, key, command) = it
+            val name = it.name
+            val key = it.key
+            val command = it.command
             if (key == null || command == null) return@forEach
 
             inputHandler.addBehaviour(name, command)
