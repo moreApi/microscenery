@@ -1,5 +1,6 @@
 package microscenery
 
+import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.controls.OpenVRHMD
 import microscenery.VRUI.behaviors.AnalogInputWrapper
@@ -23,4 +24,11 @@ fun wrapForAnalogInputIfNeeded(
         AnalogInputWrapper(behavior, scene)
     else
         behavior
+}
+
+/**
+ * Remove node from parent if there is one.
+ */
+fun Node.detach(){
+    this.parent?.removeChild(this)
 }
