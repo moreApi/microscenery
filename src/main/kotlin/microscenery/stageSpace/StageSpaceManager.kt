@@ -54,11 +54,14 @@ class StageSpaceManager(
         MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolution", Vector3f(10f))
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
 
+<<<<<<< HEAD
         //MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
         //MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder") {
         //    setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder"))
         //}
 
+=======
+>>>>>>> 874cb9f824f23db672c44c53d31a4b6824408697
         MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
         MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder",
             {
@@ -104,6 +107,47 @@ class StageSpaceManager(
     {
         sortedSlices.forEach { it
             it.setBorderVisibility(visibility)
+        }
+    }
+
+
+    /**
+     * Inserts a slice into the local sliceContainer and sorts it using its z coordinate ->
+     * TODO: Make this use the camera and sort by view-vector issue #11
+     */
+    private fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null){
+        if (newSlice != null) {
+            sortingSlicesLock.lock()
+            // detect too close slices to replace them
+            val minDistance = hardware.hardwareDimensions().vertexDiameter
+            stageRoot.children.filter {
+                it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
+                    newSlice.spatial().position, minDistance
+                ) ?: false
+            }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+                .forEach {
+                    stageRoot.removeChild(it)
+                    sortedSlices.remove(it)
+                }
+
+            stageRoot.addChild(newSlice)
+            sortedSlices.add(newSlice)
+        }
+
+        // If I have this lock that means I just inserted a slice and need to sort it. Otherwise, I look if it is free.
+        // If yes I sort. If no I return because someone else is sorting (and inserting).
+        if (sortingSlicesLock.isHeldByCurrentThread || sortingSlicesLock.tryLock()) {
+            sortedSlices.forEach {
+                stageRoot.children.remove(it)
+            }
+
+            //Sorts the [sortedSlices] container using the distance between camera and slice in descending order (the furthest first)
+            sortedSlices.sortByDescending { it.spatial().worldPosition().distance(camPosition) }
+
+            sortedSlices.forEach {
+                stageRoot.children.add(it)
+            }
+            sortingSlicesLock.unlock()
         }
     }
 
