@@ -11,6 +11,7 @@ import graphics.scenery.controls.behaviours.VRSelectionWheel
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
+import microscenery.stageSpace.StageSpaceManager
 
 class Toolbox(
     val scene: Scene,
@@ -18,11 +19,13 @@ class Toolbox(
     button: List<OpenVRHMD.OpenVRButton>,
     controllerSide: List<TrackerRole>,
     customMenu: WheelMenu? = null,
+    stageSpaceManager: StageSpaceManager? = null,
     target: () -> Node?
 ) {
     val pointTool = PointEntityTool()
     val lineTool = LineEntityTool()
     val croppingTool = CroppingTool()
+    val pathAblationTool = stageSpaceManager?.let { PathAblationTool( stageSpaceManager = it,hmd=hmd) }
     val bubblesTool = BubblesTool()
     val tfe = TransferFunction1DEditor()
 
@@ -30,6 +33,7 @@ class Toolbox(
         pointTool.visible = false
         lineTool.visible = false
         croppingTool.visible = false
+        pathAblationTool?.visible = false
         tfe.visible = false
 
         val defaultMenu: List<Pair<String, (Spatial) -> Unit>> = listOf("slicing tool" to { device ->
@@ -47,10 +51,16 @@ class Toolbox(
             scene.addChild(lineTool)
             lineTool.visible = true
             lineTool.spatial().position = device.worldPosition()
-        },"bubble" to { device ->
-            scene.addChild(bubblesTool)
-            bubblesTool.visible = true
-            bubblesTool.spatial().position = device.worldPosition()
+        },"ablation" to { device ->
+            if (pathAblationTool != null){
+                scene.addChild(pathAblationTool)
+                pathAblationTool.visible = true
+                pathAblationTool.spatial().position = device.worldPosition()
+            } else {
+                scene.addChild(bubblesTool)
+                bubblesTool.visible = true
+                bubblesTool.spatial().position = device.worldPosition()
+            }
         }, "trans fun" to { device ->
             target()?.let {
                 if (it !is Volume) return@let

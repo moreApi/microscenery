@@ -65,6 +65,7 @@ class VRUIManager {
                 listOf(OpenVRHMD.OpenVRButton.Menu),
                 listOf(TrackerRole.RightHand),
                 customActionsPlusScaleSwitch,
+                stageSpaceUI?.stageSpaceManager,
                 target
             )
             stageSpaceUI?.let { ssui ->
