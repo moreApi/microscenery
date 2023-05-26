@@ -35,6 +35,12 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
     init {
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
 
+        MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
+        MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder",
+            {
+                setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder"))
+            })
+
         val cam = scene.findObserver()
         if(cam != null)
         {
@@ -46,6 +52,16 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
                     oldPos = cam.spatial().position
                 }
             }
+        }
+    }
+
+    /**
+     * Sets the slice border visibility according to [visibility]
+     */
+    fun setSliceBorderVisibility(visibility : Boolean)
+    {
+        sortedSlices.forEach { it
+            it.setBorderVisibility(visibility)
         }
     }
 
