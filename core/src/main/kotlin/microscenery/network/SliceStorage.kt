@@ -1,6 +1,6 @@
 package microscenery.network
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import microscenery.MicroscenerySettings
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentSkipListMap
  * Default is 2mb.
  */
 class SliceStorage(val maxStorageSize: Int = MicroscenerySettings.get("Network.DataStorageSizeMb", 2) * 1024 * 1024) {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private var currentlyStoredBytes = 0
 

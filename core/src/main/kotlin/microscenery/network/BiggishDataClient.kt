@@ -1,6 +1,6 @@
 package microscenery.network
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import me.jancasus.microscenery.network.v2.ReplyHeaderSliceChunk
 import me.jancasus.microscenery.network.v2.RequestSliceChunk
 import microscenery.Agent
@@ -24,7 +24,7 @@ const val CHUNK_SIZE = 250000
  * Uses a credit system to avoid overflowing the transmission medium.
  */
 class BiggishDataClient(zContext: ZContext, port: Int, host: String = "localhost") : Agent() {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val dealer: ZMQ.Socket = zContext.createSocket(SocketType.DEALER)
 

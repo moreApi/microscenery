@@ -1,6 +1,6 @@
 package microscenery.network
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
@@ -18,7 +18,7 @@ class RemoteMicroscopeClient(
     host: String = MicroscenerySettings.get("Network.host"),
     val zContext: ZContext
 ) : MicroscopeHardwareAgent() {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsClient(zContext, basePort, host, listOf(this::processServerSignal))
     private val dataConnection = BiggishDataClient(zContext, basePort + 1, host)

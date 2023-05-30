@@ -1,7 +1,7 @@
 package microscenery.hardware.micromanagerConnection
 
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import microscenery.MicroscenerySettings
 import mmcorej.CMMCore
 import org.joml.Vector3f
@@ -20,7 +20,7 @@ import java.nio.ShortBuffer
 class MMConnection(
     private val core: CMMCore
 ) {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val setup: microscenery.hardware.SPIMSetup
 

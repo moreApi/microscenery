@@ -1,6 +1,6 @@
 package microscenery.hardware.micromanagerConnection
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
@@ -30,7 +30,7 @@ class MicromanagerWrapper(
     var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
     val disableStagePosUpdates: Boolean = false
 ) : MicroscopeHardwareAgent() {
-    protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val hardwareCommandsQueue = ArrayBlockingQueue<HardwareCommand>(5000)
 
@@ -366,7 +366,7 @@ class MicromanagerWrapper(
     }
 
     private sealed class HardwareCommand {
-        protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+        protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
         class MoveStage(target: Vector3f, hwd: HardwareDimensions, val waitForCompletion: Boolean = false) :
             HardwareCommand() {

@@ -16,7 +16,7 @@ import kotlin.io.path.outputStream
  */
 class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputStream? = null) {
     private var settingsStore = ConcurrentHashMap<String, Any>()
-    private val logger by LazyLogger()
+    private val logger by lazyLogger()
 
     var settingsUpdateRoutines : HashMap<String, ArrayList<() -> Unit>> = HashMap()
 

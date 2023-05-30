@@ -1,6 +1,6 @@
 package microscenery.network
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import me.jancasus.microscenery.network.v2.ReplyHeaderSliceChunk
 import me.jancasus.microscenery.network.v2.RequestSliceChunk
 import microscenery.Agent
@@ -15,7 +15,7 @@ import java.nio.ByteOrder
  * Dumb server that answers requests for parts of slices from the storage.
  */
 class BiggishDataServer(val port: Int, private val storage: SliceStorage, zContext: ZContext) : Agent() {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val router: ZMQ.Socket
 

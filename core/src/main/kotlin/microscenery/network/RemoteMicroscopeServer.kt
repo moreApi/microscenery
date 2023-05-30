@@ -1,6 +1,6 @@
 package microscenery.network
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
@@ -17,7 +17,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val basePort: Int = MicroscenerySettings.get("Network.basePort"),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
 ) : Agent(false) {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsServer(zContext, basePort, listOf(this::processClientSignal))
     val dataSender = BiggishDataServer(basePort + 1, storage, zContext)
