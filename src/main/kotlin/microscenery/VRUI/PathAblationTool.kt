@@ -7,8 +7,7 @@ import graphics.scenery.Sphere
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.primitives.Cylinder
-import microscenery.UP
-import microscenery.detach
+import microscenery.*
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -106,6 +105,7 @@ class PathAblationTool(
         ink.material().metallic = 0.0f
         ink.material().roughness = 1.0f
 
+
         inkOutput.addChild(ink)
         preparedInk = ink
     }
@@ -149,7 +149,27 @@ class PathAblationTool(
             logger.warn("No path to ablate found.")
             return
         }
-        //todo convert and ablate path
+
+        val path = mutableListOf<Vector3f>()
+        val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
+
+        var cur = lastInk
+        while (cur != null){
+            path += stageSpaceManager.worldToStageSpace(cur.spatial().position)
+            if (cur.previous != null){
+                // sample line between last and current position
+                (sampleLine(cur.previous!!.spatial().position, cur.spatial().position, precision))
+                    .forEach {
+                        path += it
+                    }
+            }
+            cur = cur.previous
+        }
+
+        executeAblationCommandSequence(
+            stageSpaceManager.hardware,
+            buildLaserPath(path)
+        )
     }
 }
 
@@ -164,7 +184,7 @@ internal class AblationPoint(val previous: AblationPoint? = null, radius: Float 
          this.addChild(line)
 
         this.addAttribute(Touchable::class.java, Touchable())
-        this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))
+        this.addAttribute(Grabable::class.java, Grabable(lockRotation = true))
 
          update += {
              previous?.let {
