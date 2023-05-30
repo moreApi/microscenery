@@ -1,9 +1,9 @@
 package microscenery
 
-import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.Volume
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
@@ -29,7 +29,7 @@ class DemoMicroscopeHardware(
     val dataSide: Int = 200,
     val binning: Int = 1
 ) : MicroscopeHardwareAgent() {
-    protected val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
     val stageContent: ByteBuffer

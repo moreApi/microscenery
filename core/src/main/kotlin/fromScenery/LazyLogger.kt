@@ -4,7 +4,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
- * LazyLogger - Extension function to flexibly return correct logger names for classes implementing this interface
+ * lazyLogger - Extension function to flexibly return correct logger names for classes implementing this interface
  *
  * Heavily inspired by [Idiomatic way of logging in Kotlin](https://stackoverflow.com/questions/34416869/idiomatic-way-of-logging-in-kotlin).
  *

@@ -1,6 +1,6 @@
 package microscenery.network
 
-import fromScenery.LazyLogger
+import fromScenery.lazyLogger
 import kotlinx.event.event
 import me.jancasus.microscenery.network.v2.ClientSignal
 import me.jancasus.microscenery.network.v2.EnumServerState
@@ -23,7 +23,7 @@ class ControlSignalsServer(
     zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
     listeners: List<(microscenery.signals.ClientSignal) -> Unit> = emptyList()
 ) : Agent() {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket
 

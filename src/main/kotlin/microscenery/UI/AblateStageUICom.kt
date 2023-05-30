@@ -3,9 +3,9 @@ package microscenery.UI
 import graphics.scenery.Sphere
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.primitives.Cylinder
-import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.utils.lazyLogger
 import microscenery.*
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
@@ -14,7 +14,7 @@ import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 
 class AblateStageUICom(stageSpaceManager: StageSpaceManager): StageUICommand("ablate", "7", object : ClickBehaviour {
-    val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val ablationPoints = mutableListOf<HasSpatial>()
     var goneToFirstPoint = false

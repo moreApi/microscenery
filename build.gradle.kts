@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     // use first 6 letters of commit rev
-    implementation("graphics.scenery:scenery:8494bd")
+    implementation("graphics.scenery:scenery:c915853a2c96e866571bc513cd91305ec805491a")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 

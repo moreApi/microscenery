@@ -3,11 +3,11 @@ package microscenery.stageSpace
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.attribute.spatial.Spatial
-import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.xyz
+import graphics.scenery.utils.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.copy
@@ -32,7 +32,7 @@ class StageSpaceManager(
     addFocusFrame: Boolean = true,
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent() {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val stageRoot = RichNode("stage root")
     val focus: Frame

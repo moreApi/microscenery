@@ -6,7 +6,7 @@ import graphics.scenery.Camera
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
-import graphics.scenery.utils.LazyLogger
+import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
@@ -30,7 +30,7 @@ import kotlin.concurrent.thread
 open class StageUICommand(val name: String, val key: String?, val command: ClickBehaviour?)
 
 class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
-    internal val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    internal val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     init {
         initAblationSettings()

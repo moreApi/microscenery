@@ -1,9 +1,9 @@
 package microscenery.stageSpace
 
 import graphics.scenery.*
-import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.toFloatArray
+import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Volume
 import microscenery.MicroscenerySettings
@@ -21,7 +21,7 @@ import kotlin.concurrent.withLock
 
 
 class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, val scene : Scene) {
-    private val logger by LazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
     internal val sortedSlices = ArrayList<SliceRenderNode>()
@@ -60,7 +60,7 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
      */
     fun setSliceBorderVisibility(visibility : Boolean)
     {
-        sortedSlices.forEach { it
+        sortedSlices.forEach {
             it.setBorderVisibility(visibility)
         }
     }
