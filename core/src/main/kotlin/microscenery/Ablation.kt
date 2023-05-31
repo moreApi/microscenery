@@ -5,18 +5,19 @@
 package microscenery
 
 import fromScenery.utils.extensions.minus
+import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.ClientSignal
 import org.joml.Vector3f
 
 /**
- * Samples a line between [p1] and [p2] with [precision] steps
+ * Samples a line from [p1] to [p2] along a grid of [precision]
  *
  * @return all points between [p1] and [p2]
  */
-fun sampleLine(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
-    val diff = p2 - p1
+fun sampleLineGrid(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
+    val diff = p1 - p2
     val subDivisions = Vector3f(diff).absolute() / precision
     val leadDim = subDivisions.maxComponent()
     val otherDims = listOf(0,1,2).filter { it != leadDim }
@@ -33,6 +34,25 @@ fun sampleLine(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
                     + precisionSteps.toInt() * precision[dim]
                     + if(precisionSteps - precisionSteps.toInt() > 0.5f ) precision[dim] else 0f)
         }
+        result += p
+    }
+    return result
+}
+
+/**
+ * Samples a line from [p1] to [p2] with a step size that is limited by [precision].
+ *
+ * @return all points between [p1] and [p2]
+ */
+fun sampleLineSmooth(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
+    val diff = p1 - p2
+    val subDivisions = Vector3f(diff).absolute() / precision
+    val leadDim = subDivisions.maxComponent()
+    val stepSize = Vector3f(diff) / subDivisions
+
+    val result = mutableListOf<Vector3f>()
+    for (i in 1 until subDivisions[leadDim].toInt()){
+        val p = Vector3f(stepSize).times(i.toFloat()).plus(p1)
         result += p
     }
     return result

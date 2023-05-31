@@ -158,7 +158,7 @@ class PathAblationTool(
             path += stageSpaceManager.worldToStageSpace(cur.spatial().position)
             if (cur.previous != null){
                 // sample line between last and current position
-                (sampleLine(cur.previous!!.spatial().position, cur.spatial().position, precision))
+                (sampleLineSmooth(cur.previous!!.spatial().position, cur.spatial().position, precision))
                     .forEach {
                         path += it
                     }

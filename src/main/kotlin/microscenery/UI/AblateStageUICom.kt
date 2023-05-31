@@ -67,7 +67,7 @@ class AblateStageUICom(stageSpaceManager: StageSpaceManager): StageUICommand("ab
         val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
 
         // sample line between last and current position
-        (sampleLine(last.spatial().position, frame.spatial().position, precision) + frame.spatial().position)
+        (sampleLineGrid(last.spatial().position, frame.spatial().position, precision) + frame.spatial().position)
             .forEach {
                 val point = Sphere(0.25f, 8).apply {
                     spatial {
