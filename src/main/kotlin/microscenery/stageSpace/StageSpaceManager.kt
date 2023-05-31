@@ -53,6 +53,7 @@ class StageSpaceManager(
     init {
         MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolution", Vector3f(10f))
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
+        MicroscenerySettings.setIfUnset("Stage.NextStackLive", false)
 
         scene.addChild(stageRoot)
 
@@ -137,7 +138,7 @@ class StageSpaceManager(
         focus.applyHardwareDimensions(signal)
     }
 
-    fun stack(from: Vector3f, to: Vector3f, live: Boolean) {
+    fun stack(from: Vector3f, to: Vector3f, live: Boolean = MicroscenerySettings.get("Stage.NextStackLive", false)) {
         hardware.acquireStack(
             ClientSignal.AcquireStack(
                 from,

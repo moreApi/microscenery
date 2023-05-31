@@ -56,10 +56,9 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                 stageSpaceManager.focusTarget?.let {
                     if (it.stackStartPos.z < it.spatial().position.z) stageSpaceManager.stack(
                         it.stackStartPos,
-                        it.spatial().position,
-                        false
+                        it.spatial().position
                     )
-                    else stageSpaceManager.stack(it.spatial().position, it.stackStartPos, false)
+                    else stageSpaceManager.stack(it.spatial().position, it.stackStartPos)
                 }
                 it.mode = FrameGizmo.Mode.PASSIVE
             } else {

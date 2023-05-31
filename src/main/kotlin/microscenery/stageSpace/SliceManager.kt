@@ -115,6 +115,8 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
 
     fun handleStackSignal(stackSignal : Stack, hub : Hub) {
         val stack = stackSignal
+        if (stacks.any { it.meta.Id == stack.Id }) return //stack is already know TODO: update metadata?
+
         val x = hardware.hardwareDimensions().imageSize.x
         val y = hardware.hardwareDimensions().imageSize.y
         val z = stack.slicesCount

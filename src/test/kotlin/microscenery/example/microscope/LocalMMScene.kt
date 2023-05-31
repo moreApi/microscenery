@@ -29,9 +29,9 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
         MicroscenerySettings.set("Stage.minX", -300f)
         MicroscenerySettings.set("Stage.minY", -300f)
         MicroscenerySettings.set("Stage.minZ", -250f)
-        MicroscenerySettings.set("Stage.maxX", 3000f)
-        MicroscenerySettings.set("Stage.maxY", 3000f)
-        MicroscenerySettings.set("Stage.maxZ", 2500f)
+        MicroscenerySettings.set("Stage.maxX", 300f)
+        MicroscenerySettings.set("Stage.maxY", 300f)
+        MicroscenerySettings.set("Stage.maxZ", 250f)
 
         val stageStart = Vector3f()
 
