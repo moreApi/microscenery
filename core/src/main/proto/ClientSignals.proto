@@ -35,6 +35,7 @@ message AcquireStack{
   bool live = 4;
   Vector2Int roiStart = 5;
   Vector2Int roiEnd = 6;
+  int32 id = 7;
 }
 message Stop {};
 message AblationPoints{

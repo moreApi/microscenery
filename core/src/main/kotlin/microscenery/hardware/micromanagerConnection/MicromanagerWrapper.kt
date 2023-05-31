@@ -238,8 +238,8 @@ class MicromanagerWrapper(
         val step = dist * (1f / steps)
 
         val currentStack = Stack(
-            idCounter++,
-            false,
+            if (meta.id > 0) meta.id else idCounter++,
+            meta.live,
             start,
             end,
             steps,
@@ -257,6 +257,11 @@ class MicromanagerWrapper(
                 )
             )
             hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id to i))
+        }
+
+        if (hwCommand.signal.live) {
+            addToCommandQueueIfNotStopped(HardwareCommand.GenerateStackCommands(
+                signal = meta.copy(id = currentStack.Id)))
         }
     }
 

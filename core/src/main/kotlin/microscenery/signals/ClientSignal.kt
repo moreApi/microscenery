@@ -44,7 +44,8 @@ sealed class ClientSignal {
         val stepSize: Float,
         val live: Boolean = false,
         val roiStart: Vector2i = Vector2i(),
-        val roiEnd: Vector2i = Vector2i()
+        val roiEnd: Vector2i = Vector2i(),
+        val id: Int = -1
     ) : ClientSignal() {
         override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
             val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
@@ -55,6 +56,7 @@ sealed class ClientSignal {
             asb.live = this.live
             asb.roiStart = this.roiStart.toProto()
             asb.roiEnd = this.roiEnd.toProto()
+            asb.id = this.id
             asb.build()
             return cs.build()
         }
@@ -123,7 +125,8 @@ sealed class ClientSignal {
                         ast.stepSize,
                         ast.live,
                         ast.roiStart.toPoko(),
-                        ast.roiEnd.toPoko()
+                        ast.roiEnd.toPoko(),
+                        ast.id
                     )
                 }
                 me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.STOP -> Stop
