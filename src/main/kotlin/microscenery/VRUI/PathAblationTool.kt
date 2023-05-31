@@ -28,6 +28,7 @@ class PathAblationTool(
 
     private var preparedInk: AblationPoint? = null
     private var lastInk: AblationPoint? = null
+    private var planedPath: List<Sphere> = emptyList()
 
     init {
         val tipLength = 0.025f
@@ -53,9 +54,11 @@ class PathAblationTool(
                         onHold = {
                             if (startOfPress + timeForLongClickMillis > System.currentTimeMillis()){
                                 val m = WheelMenu(hmd, listOf(
-                                    Action("clear path"){clearPath() },
+                                    Action("clear path"){clearInk() },
                                     Action("undo"){undoLastPoint() },
                                     Action("pause"){pauseDrawing() },
+                                    Action("plan ablation"){planPath()},
+                                    Action("remove plan"){unplanPath()},
                                     Action("ablate path"){ablatePath() },
                                 ),true)
                                 m.spatial().position = it.worldPosition()
@@ -110,7 +113,7 @@ class PathAblationTool(
         preparedInk = ink
     }
 
-    private fun clearPath(){
+    private fun clearInk(){
         if (lastInk == null) return
         var cur = lastInk
         while (cur != null){
@@ -144,12 +147,7 @@ class PathAblationTool(
         }
     }
 
-    private fun ablatePath(){
-        if (lastInk == null){
-            logger.warn("No path to ablate found.")
-            return
-        }
-
+    private fun planPath(){
         val path = mutableListOf<Vector3f>()
         val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
 
@@ -165,10 +163,37 @@ class PathAblationTool(
             }
             cur = cur.previous
         }
+        planedPath = path.map {
+            val point = Sphere(0.25f, 8).apply {
+                spatial {
+                    this.position = it
+                    this.scale = Vector3f(0.5f)
+                }
+            }
+            stageSpaceManager.stageRoot.addChild(point)
+            point
+        }
+    }
+
+    private fun unplanPath(){
+        planedPath.forEach {
+            it.detach()
+        }
+        planedPath = emptyList()
+    }
+
+    private fun ablatePath(){
+        if (planedPath.isEmpty()){
+            logger.warn("No path planned")
+            stageSpaceManager.scene.findObserver()?.showMessage(
+                "No path planned"
+            )
+            return
+        }
 
         executeAblationCommandSequence(
             stageSpaceManager.hardware,
-            buildLaserPath(path)
+            buildLaserPath(planedPath.map { it.spatial().position })
         )
     }
 }
