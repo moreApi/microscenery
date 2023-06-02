@@ -210,7 +210,7 @@ class StageSpaceManager(
     }
 
     fun worldToStageSpace(s: Spatial){
-        s.position = worldToStageSpace(Vector3f(1f,0f,0f))
+        s.position = worldToStageSpace(s.worldPosition())
         s.scale *= getInverseWorldScale()
     }
 
