@@ -16,9 +16,6 @@ open class Frame(
     color: Vector3f? = null
 ) : RichNode("focus") {
 
-    protected var stageMin: Vector3f = Vector3f()
-    protected var stageMax: Vector3f = Vector3f(1f)
-
     protected val pivot: RichNode
     protected val beams: List<Box>
 
@@ -73,7 +70,5 @@ open class Frame(
     fun applyHardwareDimensions(hwd: HardwareDimensions) {
         pivot.spatialOrNull()?.scale =
             Vector3f(hwd.imageSize.x.toFloat(), hwd.imageSize.y.toFloat(), 1f)
-        stageMin = hwd.stageMin
-        stageMax = hwd.stageMax
     }
 }

@@ -39,10 +39,8 @@ class FrameGizmo(
         var lastUpdate = 0L
         this.update += {
             spatial {
-                val coerced = Vector3f()
-                position.min(stageMax, coerced)
-                coerced.max(stageMin)
 
+                val coerced = stageSpaceManager.hardware.hardwareDimensions().coercePosition(position,null)
                 if (position != coerced) position = coerced
 
                 when(mode){
