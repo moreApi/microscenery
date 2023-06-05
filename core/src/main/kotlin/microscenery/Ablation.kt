@@ -17,7 +17,7 @@ import org.joml.Vector3f
  * @return all points between [p1] and [p2]
  */
 fun sampleLineGrid(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
-    val diff = p1 - p2
+    val diff = p2 - p1
     val subDivisions = Vector3f(diff).absolute() / precision
     val leadDim = subDivisions.maxComponent()
     val otherDims = listOf(0,1,2).filter { it != leadDim }
@@ -40,18 +40,19 @@ fun sampleLineGrid(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector
 }
 
 /**
- * Samples a line from [p1] to [p2] with a step size that is limited by [precision].
+ * Samples a line from [p1] to [p2] with a step size that is limited by [precision]. Excluding start and end point
  *
  * @return all points between [p1] and [p2]
  */
 fun sampleLineSmooth(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vector3f>{
-    val diff = p1 - p2
+    val diff = p2 - p1
     val subDivisions = Vector3f(diff).absolute() / precision
     val leadDim = subDivisions.maxComponent()
-    val stepSize = Vector3f(diff) / subDivisions
+    val maxSteps = subDivisions[leadDim].toInt() //round down
+    val stepSize = Vector3f(diff) / maxSteps.toFloat()
 
     val result = mutableListOf<Vector3f>()
-    for (i in 1 until subDivisions[leadDim].toInt()){
+    for (i in 1 until maxSteps){
         val p = Vector3f(stepSize).times(i.toFloat()).plus(p1)
         result += p
     }

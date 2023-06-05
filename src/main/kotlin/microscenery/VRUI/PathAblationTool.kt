@@ -154,12 +154,13 @@ class PathAblationTool(
     }
 
     private fun planPath() {
+        if (lastInk == null) return
         val path = mutableListOf<Vector3f>()
         val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
 
         var cur = lastInk
         while (cur != null) {
-            path += stageSpaceManager.worldToStageSpace(cur.spatial().position)
+            path += cur.spatial().position
             if (cur.previous != null) {
                 // sample line between last and current position
                 (sampleLineSmooth(cur.previous!!.spatial().position, cur.spatial().position, precision))
@@ -170,10 +171,10 @@ class PathAblationTool(
             cur = cur.previous
         }
         planedPath = path.map {
-            val point = Sphere(0.25f, 8).apply {
+            val point = Sphere(0.01f, 8).apply {
                 spatial {
                     this.position = it
-                    this.scale = Vector3f(0.5f)
+                    this.scale = lastInk!!.spatial().scale
                 }
             }
             stageSpaceManager.stageRoot.addChild(point)
