@@ -2,6 +2,7 @@ package microscenery.stageSpace
 
 import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
+import microscenery.MicroscenerySettings
 import microscenery.signals.NumericType
 
 class TransferFunctionManager(val sliceManager: SliceManager) : HasTransferFunction {
@@ -9,13 +10,13 @@ class TransferFunctionManager(val sliceManager: SliceManager) : HasTransferFunct
     internal var transferFunctionOffset = 0.0f
     internal var transferFunctionScale = 1.0f
 
-    override var minDisplayRange: Float = 0.0f
+    override var minDisplayRange: Float = MicroscenerySettings.get("TransferFunction.DisplayRangeMin",0f)
         set(value) {
             field = value
             calculateOffsetAndScale()
             updateTransferFunction()
         }
-    override var maxDisplayRange: Float = 1000.0f
+    override var maxDisplayRange: Float  = MicroscenerySettings.get("TransferFunction.DisplayRangeMax",1000.0f)
         set(value) {
             field = value
             calculateOffsetAndScale()
@@ -27,11 +28,16 @@ class TransferFunctionManager(val sliceManager: SliceManager) : HasTransferFunct
             updateTransferFunction()
         }
 
+    init {
+        calculateOffsetAndScale()
+        updateTransferFunction()
+    }
+
     /**
      * Iterates over all slices and stacks and updates their transferFunction, offset and scale values according
      * to the currently set values of this manager
      */
-    private fun updateTransferFunction() {
+    internal fun updateTransferFunction() {
         sliceManager.sortedSlices.forEach {
             it.transferFunction = transferFunction
             it.transferFunctionOffset = transferFunctionOffset
