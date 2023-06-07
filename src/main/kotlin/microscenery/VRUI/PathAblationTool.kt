@@ -155,6 +155,8 @@ class PathAblationTool(
 
     private fun planPath() {
         if (lastInk == null) return
+        unplanPath()
+
         val path = mutableListOf<Vector3f>()
         val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
 
