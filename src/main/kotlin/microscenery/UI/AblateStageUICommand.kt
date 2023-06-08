@@ -13,7 +13,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 
-class AblateStageUICom(stageSpaceManager: StageSpaceManager): StageUICommand("ablate", "7", object : ClickBehaviour {
+class AblateStageUICommand(stageSpaceManager: StageSpaceManager): StageUICommand("ablate", "7", object : ClickBehaviour {
     val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val ablationPoints = mutableListOf<HasSpatial>()

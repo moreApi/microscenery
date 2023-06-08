@@ -90,7 +90,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
             }
         }
     })
-    val comAblate = AblateStageUICom(stageSpaceManager)
+    val comAblate = AblateStageUICommand(stageSpaceManager)
     val comClearStage = StageUICommand("clearStage", "8") { x, y -> stageSpaceManager.clearStage() }
     val comStop = StageUICommand("stop", "0") { x, y ->
         searchCubeStart?.let { it.parent?.removeChild(it) }
