@@ -269,6 +269,7 @@ class MicromanagerWrapper(
         //this is a thread so it can be interrupted asynchronously
         var totalTime = 0
         val perPointTime = mutableListOf<Int>()
+        val debug = MicroscenerySettings.get("debug",false)
         ablationThread = thread(isDaemon = true) {
             status = status.copy(state = ServerState.ABLATION)
             mmConnection.ablationShutter(true, true)
@@ -281,7 +282,11 @@ class MicromanagerWrapper(
                         logger.info("Executing $point")
                         val startAblation = System.nanoTime()
                         val moveTime = measureNanoTime {
-                            mmConnection.moveStage(point.position, true)
+                            if (debug){
+                                executeMoveStage(point.position,true)
+                            } else {
+                                mmConnection.moveStage(point.position, true)
+                            }
                         }
                         if (point.laserOn) {
                             mmConnection.laserPower(point.laserPower)
