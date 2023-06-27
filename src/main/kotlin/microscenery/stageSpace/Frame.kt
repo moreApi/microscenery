@@ -69,6 +69,6 @@ open class Frame(
 
     fun applyHardwareDimensions(hwd: HardwareDimensions) {
         pivot.spatialOrNull()?.scale =
-            Vector3f(hwd.imageSize.x.toFloat(), hwd.imageSize.y.toFloat(), 1f)
+            Vector3f(hwd.imageSize.x.toFloat()*hwd.vertexDiameter, hwd.imageSize.y.toFloat()*hwd.vertexDiameter, 1f)
     }
 }

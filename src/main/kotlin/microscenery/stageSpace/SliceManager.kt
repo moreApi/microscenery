@@ -2,6 +2,7 @@ package microscenery.stageSpace
 
 import graphics.scenery.*
 import graphics.scenery.utils.extensions.plus
+import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.toFloatArray
 import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.BufferedVolume
@@ -148,8 +149,15 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
         volume.transferFunction = transferFunctionManager.transferFunction
         volume.name = "Stack ${stackSignal.Id}"
         volume.origin = Origin.Center
-        volume.spatial().position = (stackSignal.from + stackSignal.to).mul(0.5f)
-        volume.spatial().scale = Vector3f(1f, -1f, sliceThickness)
+        volume.spatial {
+            position = (stackSignal.from + stackSignal.to).mul(0.5f)
+            scale = Vector3f(1f, -1f, sliceThickness)
+            scale *= Vector3f(
+                hardware.hardwareDimensions().vertexDiameter,
+                hardware.hardwareDimensions().vertexDiameter,
+                1f
+            )
+        }
         volume.pixelToWorldRatio = 1f // conversion is done by stage root
         volume.setTransferFunctionRange(transferFunctionManager.minDisplayRange, transferFunctionManager.maxDisplayRange)
 
@@ -188,7 +196,7 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
             signal.data!!,
             hwd.imageSize.x,
             hwd.imageSize.y,
-            1f,
+            hwd.vertexDiameter,
             hwd.numericType.bytes,
             transferFunctionManager.transferFunction,
             transferFunctionManager.transferFunctionOffset,
