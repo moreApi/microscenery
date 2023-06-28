@@ -44,6 +44,14 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
         }
     }
 
+    fun positions(vararg pos : Vector3f) {
+        pos.sortBy { it.z() }
+        for (target in pos) {
+            stageSpaceManager.stagePosition = target
+            stageSpaceManager.snapSlice()
+        }
+    }
+
     fun randomLive() {
         stageSpaceManager.goLive()
         stageSpaceManager.focusTarget?.let { focus ->
