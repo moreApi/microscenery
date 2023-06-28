@@ -18,15 +18,19 @@ sealed class MicroscopeLayout(val sheet: Axis) {
     /**
      * TODO: leaning of the sheet
      */
-    class Scape(sheet: Axis, val camRotationDeg: Double) : MicroscopeLayout(sheet) {
+    class Scape(sheet: Axis, val camRotationRad: Float) : MicroscopeLayout(sheet) {
         override fun sheetRotation(): Quaternionf {
             val rot = Quaternionf()
-            when (sheet) {
-                Axis.X -> rot.rotateY(Math.toRadians(90.0).toFloat())
-                Axis.Y -> rot.rotateX(Math.toRadians(90.0).toFloat())
-                Axis.Z -> throw IllegalStateException("Scape system with Z sheet is unknown to the developer. Sry.")
-            }
-            rot.rotateAxis(Math.toRadians(camRotationDeg).toFloat(), Axis.Z.vector)
+                .rotateLocalX(camRotationRad)
+                .rotateTo(Axis.Z.vector, sheet.vector)
+
+//            val rot = Quaternionf()
+//            when (sheet) {
+//                Axis.X -> rot.rotateY(Math.toRadians(90.0).toFloat())
+//                Axis.Y -> rot.rotateX(Math.toRadians(90.0).toFloat())
+//                Axis.Z -> throw IllegalStateException("Scape system with Z sheet is unknown to the developer. Sry.")
+//            }
+//            rot.rotateAxis(Math.toRadians(camRotationDeg).toFloat(), Axis.Z.vector)
             return rot
         }
     }
