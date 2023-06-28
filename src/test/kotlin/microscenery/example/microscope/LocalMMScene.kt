@@ -26,19 +26,19 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
 //        MicroscenerySettings.set("Stage.maxZ", 100f)
 //        val stageStart =Vector3f(41000f, 23000f, 0f)
 
-        MicroscenerySettings.set("Stage.minX", -300f)
-        MicroscenerySettings.set("Stage.minY", -300f)
-        MicroscenerySettings.set("Stage.minZ", -250f)
-        MicroscenerySettings.set("Stage.maxX", 300f)
-        MicroscenerySettings.set("Stage.maxY", 300f)
+//        MicroscenerySettings.set("Stage.minX", -300f)
+//        MicroscenerySettings.set("Stage.minY", -300f)
+//        MicroscenerySettings.set("Stage.minZ", -250f)
+        MicroscenerySettings.set("Stage.maxX", 30f)
+        MicroscenerySettings.set("Stage.maxY", 30f)
         MicroscenerySettings.set("Stage.maxZ", 250f)
 
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
-            MicromanagerWrapper(MMConnection(initLocalMMCoreFake()).apply { moveStage(stageStart, false) })
+            MicromanagerWrapper(MMConnection(initLocalMMCoreFake(SkewedC1HPO)).apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
-            hardware, scene, hub, addFocusFrame = true, layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
+            hardware, scene, hub, addFocusFrame = true, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
         )
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
@@ -51,7 +51,16 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
         //Thread.sleep(2000)
         //db.randomLive()
         //db.fixedStack(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 120f))
-        //db.fixed()
+        db.positions(
+            Vector3f(0f,0f,20f),
+            Vector3f(0f,0f,30f),
+            Vector3f(0f,0f,40f),
+            Vector3f(0f,0f,50f),
+            Vector3f(0f,0f,60f),
+            Vector3f(0f,0f,70f),
+            Vector3f(0f,0f,80f),
+        )
+
 
         thread {
             while (true) {
@@ -73,13 +82,15 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
             LocalMMScene().main()
         }
 
-        fun initLocalMMCoreFake(): CMMCore {
+        val CHERRY = "TiffStack_16_Cherry_time"
+        val SkewedC1HPO = "Skewed-C1-HPO"
+
+        fun initLocalMMCoreFake(mmPresetName: String = CHERRY): CMMCore {
             val core = CMMCore()
             val mmConfiguration = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_fake.cfg"
             core.loadSystemConfiguration(mmConfiguration)
 
             val mmSettingsGroupName = "FakeCam"
-            val mmPresetName = "TiffStack_16_Cherry_time"
             println("Setting $mmSettingsGroupName to $mmPresetName")
             core.setConfig(mmSettingsGroupName, mmPresetName)
             return core
