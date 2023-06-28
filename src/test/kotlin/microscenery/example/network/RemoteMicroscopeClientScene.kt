@@ -17,6 +17,7 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
         val client = RemoteMicroscopeClient(zContext = zContext)
         stageSpaceManager = StageSpaceManager(
             client, scene, hub, addFocusFrame = true,
+            //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
             //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 90.0),
         )
 
