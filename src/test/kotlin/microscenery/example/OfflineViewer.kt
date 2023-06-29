@@ -1,5 +1,6 @@
 package microscenery.example
 
+import bvv.core.VolumeViewerOptions
 import graphics.scenery.Hub
 import graphics.scenery.Origin
 import graphics.scenery.controls.behaviours.Switch
@@ -13,7 +14,6 @@ import microscenery.DefaultVRScene
 import microscenery.VRUI.VRUIManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import tpietzsch.example2.VolumeViewerOptions
 import kotlin.concurrent.thread
 import kotlin.io.path.Path
 

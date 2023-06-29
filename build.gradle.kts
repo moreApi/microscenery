@@ -15,8 +15,12 @@ repositories {
 }
 
 dependencies {
-    // use first 6 letters of commit rev
-    implementation("graphics.scenery:scenery:c915853a2c96e866571bc513cd91305ec805491a")
+    // This should point to the most recent commit of scenery:jans-dirtier-branch
+    // At the moment scenery:jans-dirtier-branch should be a merge of:
+    // - branch-of-jan
+    // - LineColorFix
+    // - build/0.9.0-preparations
+    implementation("graphics.scenery:scenery:c9d5aec58be7f897522949d9ddb38c7f7da14bdd")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 

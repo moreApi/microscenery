@@ -27,14 +27,12 @@ class Toolbox(
     val croppingTool = CroppingTool()
     val pathAblationTool = stageSpaceManager?.let { PathAblationTool( stageSpaceManager = it,hmd=hmd) }
     val bubblesTool = BubblesTool()
-    val tfe = TransferFunction1DEditor()
 
     init {
         pointTool.visible = false
         lineTool.visible = false
         croppingTool.visible = false
         pathAblationTool?.visible = false
-        tfe.visible = false
 
         val defaultMenu: List<Pair<String, (Spatial) -> Unit>> = listOf("slicing tool" to { device ->
             target()?.let {
@@ -60,18 +58,6 @@ class Toolbox(
                 scene.addChild(bubblesTool)
                 bubblesTool.visible = true
                 bubblesTool.spatial().position = device.worldPosition()
-            }
-        }, "trans fun" to { device ->
-            target()?.let {
-                if (it !is Volume) return@let
-                scene.addChild(tfe)
-                tfe.spatial {
-                    position = device.worldPosition()
-                    // this breaks everything :(
-                    //rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
-                }
-                tfe.visible = true
-                it.transferFunction = tfe.transferFunction
             }
         }, "options" to {
             val m = WheelMenu(hmd, listOf(Switch("hull", true) { scene.find("hullbox")?.visible = it }), true)
