@@ -17,16 +17,16 @@ import java.nio.ShortBuffer
  * MMConnection.core.settingsGroupName
  * MMConnection.core.presetName
  */
-class MMConnection(
+class MMCoreConnector(
     private val core: CMMCore
 ) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val setup: microscenery.hardware.SPIMSetup
 
-    var width: Int = 0
-    var height: Int = 0
-    var pixelSizeUm: Float = 0f
+    val width: Int get() = core.imageWidth.toInt()
+    val height: Int get() = core.imageHeight.toInt()
+    val pixelSizeUm: Float get() = core.pixelSizeUm.toFloat()
 
     var snapTimes = listOf<Long>()
     var copyTimes = listOf<Long>()
@@ -58,10 +58,7 @@ class MMConnection(
     }
 
     fun updateSize() {
-        setup.snapImage() // do this so the following parameters are set
-        width = core.imageWidth.toInt()
-        height = core.imageHeight.toInt()
-        pixelSizeUm = core.pixelSizeUm.toFloat()
+        if (width == 0) setup.snapImage()
     }
 
     @Suppress("unused")
@@ -89,11 +86,6 @@ class MMConnection(
      *  @param wait if true wait until stage reached target.
      */
     fun moveStage(target: Vector3f, wait: Boolean) {
-        if (MicroscenerySettings.get("MMConnection.OriginMoveProtection", true)
-            && target == Vector3f(0f)){//( target.x == 0f || target.y == 0f || target.z == 0f)){
-            logger.warn("Ignoring stage move command because MMConnection.OriginMoveProtection is true")
-            return
-        }
 
         core.setXYPosition(target.x.toDouble(), target.y.toDouble())
         setup.zStage.position = target.z.toDouble()

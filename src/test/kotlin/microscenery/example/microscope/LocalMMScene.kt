@@ -3,7 +3,7 @@ package microscenery.example.microscope
 import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.hardware.MicroscopeHardware
-import microscenery.hardware.micromanagerConnection.MMConnection
+import microscenery.hardware.micromanagerConnection.MMCoreConnector
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout
@@ -36,7 +36,7 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
-            MicromanagerWrapper(MMConnection(initLocalMMCoreFake(SkewedC1HPO)).apply { moveStage(stageStart, false) })
+            MicromanagerWrapper(MMCoreConnector(initLocalMMCoreFake(SkewedC1HPO)).apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
             hardware, scene, hub, addFocusFrame = true, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
         )

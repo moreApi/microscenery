@@ -6,7 +6,7 @@ import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
-import microscenery.hardware.micromanagerConnection.MMConnection
+import microscenery.hardware.micromanagerConnection.MMCoreConnector
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
@@ -29,7 +29,7 @@ class LocalMMSceneVR : DefaultVRScene() {
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
-            MicromanagerWrapper(MMConnection(LocalMMScene.initLocalMMCoreFake()).apply { moveStage(stageStart, false) })
+            MicromanagerWrapper(MMCoreConnector(LocalMMScene.initLocalMMCoreFake()).apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
             hardware, scene, hub, addFocusFrame = true, layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )

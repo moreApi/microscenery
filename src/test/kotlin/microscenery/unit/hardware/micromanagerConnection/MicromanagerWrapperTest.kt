@@ -2,7 +2,7 @@ package microscenery.unit.hardware.micromanagerConnection
 
 import microscenery.*
 import microscenery.hardware.MicroscopeHardware
-import microscenery.hardware.micromanagerConnection.MMConnection
+import microscenery.hardware.micromanagerConnection.MMCoreConnector
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.signals.*
 import org.joml.Vector3f
@@ -24,14 +24,14 @@ internal class MicromanagerWrapperTest {
         MicroscenerySettings.set("Stage.maxY", 100f)
         MicroscenerySettings.set("Stage.maxZ", 100f)
 
-        val mmConnection = Mockito.mock(MMConnection::class.java)
+        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
 
-        whenever(mmConnection.width).thenReturn(200)
-        whenever(mmConnection.height).thenReturn(200)
-        whenever(mmConnection.stagePosition).thenReturn(Vector3f())
+        whenever(mmCoreConnector.width).thenReturn(200)
+        whenever(mmCoreConnector.height).thenReturn(200)
+        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f())
 
 
-        val wrapper = MicromanagerWrapper(mmConnection, disableStagePosUpdates = true)
+        val wrapper = MicromanagerWrapper(mmCoreConnector, disableStagePosUpdates = true)
         wrapper.output.pollForSignal<MicroscopeStatus>()
 
         //start testing
@@ -40,41 +40,41 @@ internal class MicromanagerWrapperTest {
 
         wrapper.stagePosition = (Vector3f(400f))
         wrapper.output.pollForSignal<MicroscopeStatus>()
-        verify(mmConnection).moveStage(Vector3f(-100f), true)
-        verify(mmConnection).moveStage(Vector3f(100f), true)
+        verify(mmCoreConnector).moveStage(Vector3f(-100f), true)
+        verify(mmCoreConnector).moveStage(Vector3f(100f), true)
 
     }
 
     @Test
     fun rangeCheckAtStartup() {
 
-        val mmConnection = Mockito.mock(MMConnection::class.java)
+        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
 
-        whenever(mmConnection.width).thenReturn(200)
-        whenever(mmConnection.height).thenReturn(200)
-        whenever(mmConnection.stagePosition).thenReturn(Vector3f(-4000f))
+        whenever(mmCoreConnector.width).thenReturn(200)
+        whenever(mmCoreConnector.height).thenReturn(200)
+        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f(-4000f))
 
         assertThrows<IllegalStateException> {
-            val wrapper = spy(MicromanagerWrapper(mmConnection) as MicroscopeHardware)
+            val wrapper = spy(MicromanagerWrapper(mmCoreConnector) as MicroscopeHardware)
             wrapper.output.pollForSignal<MicroscopeStatus>()
         }
 
         //no error is happening
-        assertEquals(Vector3f(-4000f), mmConnection.stagePosition)
-        verify(mmConnection, never()).moveStage(any(), any())
+        assertEquals(Vector3f(-4000f), mmCoreConnector.stagePosition)
+        verify(mmCoreConnector, never()).moveStage(any(), any())
     }
 
     @Test
     fun minimalStartup() {
 
-        val mmConnection = Mockito.mock(MMConnection::class.java)
+        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
 
-        whenever(mmConnection.width).thenReturn(200)
-        whenever(mmConnection.height).thenReturn(200)
-        whenever(mmConnection.stagePosition).thenReturn(Vector3f(0f))
+        whenever(mmCoreConnector.width).thenReturn(200)
+        whenever(mmCoreConnector.height).thenReturn(200)
+        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f(0f))
 
 
-        val wrapper = MicromanagerWrapper(mmConnection)
+        val wrapper = MicromanagerWrapper(mmCoreConnector)
         //start testing
         assert(wrapper.output.pollForSignal<HardwareDimensions>(ignoreNotFitting = false))
         assert(wrapper.output.pollForSignal<MicroscopeStatus>(ignoreNotFitting = false))
@@ -86,14 +86,14 @@ internal class MicromanagerWrapperTest {
      */
     @Test
     fun ablationAndStop() {
-        val mmConnection = Mockito.mock(MMConnection::class.java)
-        whenever(mmConnection.width).thenReturn(200)
-        whenever(mmConnection.height).thenReturn(200)
-        whenever(mmConnection.stagePosition).thenReturn(Vector3f(0f))
+        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
+        whenever(mmCoreConnector.width).thenReturn(200)
+        whenever(mmCoreConnector.height).thenReturn(200)
+        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f(0f))
         var laserPower = 0f
-        whenever(mmConnection.laserPower(0.5f)).then{ laserPower = 0.5f; 5f }
-        whenever(mmConnection.laserPower(0f)).then{ laserPower = 0f; 5f }
-        val wrapper = MicromanagerWrapper(mmConnection)
+        whenever(mmCoreConnector.laserPower(0.5f)).then{ laserPower = 0.5f; 5f }
+        whenever(mmCoreConnector.laserPower(0f)).then{ laserPower = 0f; 5f }
+        val wrapper = MicromanagerWrapper(mmCoreConnector)
         wrapper.output.pollForSignal<MicroscopeStatus>() //wait for start up to finish
 
         wrapper.ablatePoints(ClientSignal.AblationPoints(
@@ -108,9 +108,9 @@ internal class MicromanagerWrapperTest {
         assertEquals(0f, laserPower)
         assertEquals(ServerState.MANUAL,wrapper.status().state)
 
-        val order = inOrder(mmConnection)
-        order.verify(mmConnection).ablationShutter(true,true)
-        order.verify(mmConnection).ablationShutter(false,true)
+        val order = inOrder(mmCoreConnector)
+        order.verify(mmCoreConnector).ablationShutter(true,true)
+        order.verify(mmCoreConnector).ablationShutter(false,true)
     }
 
     @Test
@@ -122,11 +122,11 @@ internal class MicromanagerWrapperTest {
         MicroscenerySettings.set("Stage.maxY", 100f)
         MicroscenerySettings.set("Stage.maxZ", 100f)
 
-        val mmConnection = Mockito.mock(MMConnection::class.java)
-        whenever(mmConnection.width).thenReturn(200)
-        whenever(mmConnection.height).thenReturn(200)
-        whenever(mmConnection.stagePosition).thenReturn(Vector3f())
-        val mmWrapper = MicromanagerWrapper(mmConnection, disableStagePosUpdates = true)
+        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
+        whenever(mmCoreConnector.width).thenReturn(200)
+        whenever(mmCoreConnector.height).thenReturn(200)
+        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f())
+        val mmWrapper = MicromanagerWrapper(mmCoreConnector, disableStagePosUpdates = true)
         mmWrapper.output.pollForSignal<MicroscopeStatus>()//wait for start up to finish
 
         MicroscenerySettings.set("Ablation.dryRun", true)
@@ -137,16 +137,16 @@ internal class MicromanagerWrapperTest {
         mmWrapper.output.pollForSignal<AblationResults>()
 
 
-        val order = inOrder(mmConnection)
-        order.verify(mmConnection).ablationShutter(true,true)
-        order.verify(mmConnection).moveStage(Vector3f(),true)
-        order.verify(mmConnection).moveStage(Vector3f(100f),true)
-        order.verify(mmConnection).moveStage(Vector3f(50f),true)
-        order.verify(mmConnection).ablationShutter(false,true)
+        val order = inOrder(mmCoreConnector)
+        order.verify(mmCoreConnector).ablationShutter(true,true)
+        order.verify(mmCoreConnector).moveStage(Vector3f(),true)
+        order.verify(mmCoreConnector).moveStage(Vector3f(100f),true)
+        order.verify(mmCoreConnector).moveStage(Vector3f(50f),true)
+        order.verify(mmCoreConnector).ablationShutter(false,true)
 
-        verify(mmConnection, atMost(3)).moveStage(any(),any())
-        verify(mmConnection, atMost(2)).ablationShutter(false,true)
-        verify(mmConnection, atMost(1)).ablationShutter(true,true)
+        verify(mmCoreConnector, atMost(3)).moveStage(any(),any())
+        verify(mmCoreConnector, atMost(2)).ablationShutter(false,true)
+        verify(mmCoreConnector, atMost(1)).ablationShutter(true,true)
     }
 
 }
