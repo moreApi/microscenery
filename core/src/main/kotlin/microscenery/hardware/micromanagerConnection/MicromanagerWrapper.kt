@@ -19,13 +19,13 @@ import kotlin.math.roundToInt
 import kotlin.system.measureNanoTime
 
 /**
- * Wrapper of a [MMConnection] to fit the MicroscopeHardware interface.
+ * Wrapper of a [MMCoreConnector] to fit the MicroscopeHardware interface.
  * Queues incoming commands
  *
  * @param disableStagePosUpdates if true the position of the stage is only updated on move commands. Makes status updates more deterministic for tests.
  */
 class MicromanagerWrapper(
-    private val mmConnection: MMConnection,
+    private val mmCoreConnector: MMCoreConnector,
     private val mmStudioConnector: MMStudioConnector = DummyMMStudioConnector(),
     var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
     val disableStagePosUpdates: Boolean = false
@@ -42,20 +42,22 @@ class MicromanagerWrapper(
     // for Slices and stacks
     private var idCounter = 0
     var lastSnap = 0L
-    var vertexDiameter = MicroscenerySettings.get("MMConnection.vertexDiameter", mmConnection.pixelSizeUm)
+    var vertexDiameter = MicroscenerySettings.get("MMConnection.vertexDiameter", mmCoreConnector.pixelSizeUm)
         set(value) {
             field = value
             updateHardwareDimensions()
         }
 
     init {
-        MicroscenerySettings.setVector3fIfUnset("Stage.min", mmConnection.stagePosition)
-        MicroscenerySettings.setVector3fIfUnset("Stage.max", mmConnection.stagePosition)
+        MicroscenerySettings.setVector3fIfUnset("Stage.min", mmCoreConnector.stagePosition)
+        MicroscenerySettings.setVector3fIfUnset("Stage.max", mmCoreConnector.stagePosition)
+        MicroscenerySettings.setIfUnset("MMConnection.useStudioAPI",true)
+
 
         updateHardwareDimensions()
 
-        if (hardwareDimensions.coercePosition(mmConnection.stagePosition, null) != mmConnection.stagePosition){
-            val msg = "Stage ${mmConnection.stagePosition.toReadableString()} not in allowed area " +
+        if (hardwareDimensions.coercePosition(mmCoreConnector.stagePosition, null) != mmCoreConnector.stagePosition){
+            val msg = "Stage ${mmCoreConnector.stagePosition.toReadableString()} not in allowed area " +
                     "from ${MicroscenerySettings.getVector3("Stage.min")?.toReadableString()}" +
                     "to ${MicroscenerySettings.getVector3("Stage.max")?.toReadableString()}. Aborting!" +
                     "Adjust stage position or properties file."
@@ -64,7 +66,7 @@ class MicromanagerWrapper(
         }
 
         startAgent()
-        status = status.copy(stagePosition = mmConnection.stagePosition, state = ServerState.MANUAL)
+        status = status.copy(stagePosition = mmCoreConnector.stagePosition, state = ServerState.MANUAL)
     }
 
     /**
@@ -76,11 +78,11 @@ class MicromanagerWrapper(
     @Suppress("MemberVisibilityCanBePrivate")
     fun updateHardwareDimensions() {
         val (stageMin, stageMax) = stageMinMax()
-        mmConnection.updateSize()
+        mmCoreConnector.updateSize()
 
         hardwareDimensions = HardwareDimensions(
             stageMin, stageMax,
-            Vector2i(mmConnection.width, mmConnection.height),
+            Vector2i(mmCoreConnector.width, mmCoreConnector.height),
             vertexDiameter,
             NumericType.INT16
         )
@@ -175,6 +177,9 @@ class MicromanagerWrapper(
                 executeSnapImage(hwCommand)
             }
             is HardwareCommand.Stop -> {
+                if(MicroscenerySettings.get("MMConnection.useStudioAPI",false)) {
+                    mmStudioConnector.live(false)
+                }
                 status = status.copy(state = ServerState.MANUAL)
             }
             is HardwareCommand.Shutdown -> {
@@ -188,6 +193,11 @@ class MicromanagerWrapper(
     }
 
     private fun executeSnapImage(hwCommand: HardwareCommand.SnapImage) {
+        if(hwCommand.live && MicroscenerySettings.get("MMConnection.useStudioAPI",false)) {
+            mmStudioConnector.live(true)
+            return
+        }
+
         if (hwCommand.live && lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
             if (hardwareCommandsQueue.isEmpty()) {
                 Thread.sleep(
@@ -198,23 +208,29 @@ class MicromanagerWrapper(
                 return
             }
         }
-        val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
-        (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
-        try {
-            mmConnection.snapSlice(buf.asShortBuffer())
-        } catch (t: Throwable) {
-            logger.warn("Failed snap command", t)
-            return
+
+        if (MicroscenerySettings.get("MMConnection.useStudioAPI",false)) {
+            //TODO handle stack slices
+            mmStudioConnector.snap()
+        } else {
+            val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
+            (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
+            try {
+                mmCoreConnector.snapSlice(buf.asShortBuffer())
+            } catch (t: Throwable) {
+                logger.warn("Failed snap command", t)
+                return
+            }
+            val sliceSignal = Slice(
+                idCounter++,
+                System.currentTimeMillis(),
+                mmCoreConnector.stagePosition,
+                hardwareDimensions.byteSize,
+                hwCommand.stackIdAndSliceIndex,
+                buf
+            )
+            output.put(sliceSignal)
         }
-        val sliceSignal = Slice(
-            idCounter++,
-            System.currentTimeMillis(),
-            mmConnection.stagePosition,
-            hardwareDimensions.byteSize,
-            hwCommand.stackIdAndSliceIndex,
-            buf
-        )
-        output.put(sliceSignal)
         lastSnap = System.currentTimeMillis()
         if (hwCommand.live) {
             when (status.state) {
@@ -273,7 +289,7 @@ class MicromanagerWrapper(
         val debug = MicroscenerySettings.get("debug",false)
         ablationThread = thread(isDaemon = true) {
             status = status.copy(state = ServerState.ABLATION)
-            mmConnection.ablationShutter(true, true)
+            mmCoreConnector.ablationShutter(true, true)
             try {
                 totalTime = measureNanoTime {
                     hwCommand.points.forEach { point ->
@@ -286,11 +302,11 @@ class MicromanagerWrapper(
                             if (debug){
                                 executeMoveStage(point.position,true)
                             } else {
-                                mmConnection.moveStage(point.position, true)
+                                mmCoreConnector.moveStage(point.position, true)
                             }
                         }
                         if (point.laserOn) {
-                            mmConnection.laserPower(point.laserPower)
+                            mmCoreConnector.laserPower(point.laserPower)
                         }
                         val sleepTime = point.dwellTime - if (point.countMoveTime) moveTime else 0
                         if (sleepTime < 0 && point.dwellTime > 0) {
@@ -301,20 +317,20 @@ class MicromanagerWrapper(
                             Thread.sleep(sleepTime.nanosToMillis())
                         }
                         if (point.laserOff) {
-                            mmConnection.laserPower(0f)
+                            mmCoreConnector.laserPower(0f)
                         }
                         perPointTime.add((System.nanoTime() - startAblation).nanosToMillis().toInt())
                     }
                 }.nanosToMillis().toInt()
             } catch (_: InterruptedException) {
             } finally {
-                mmConnection.laserPower(0f)
-                mmConnection.ablationShutter(false, true)
+                mmCoreConnector.laserPower(0f)
+                mmCoreConnector.ablationShutter(false, true)
             }
         }
         ablationThread?.join()
-        mmConnection.laserPower(0f)
-        mmConnection.ablationShutter(false, true)
+        mmCoreConnector.laserPower(0f)
+        mmCoreConnector.ablationShutter(false, true)
         status = status.copy(state = ServerState.MANUAL)
         output.put(AblationResults(totalTime, perPointTime))
     }
@@ -340,12 +356,20 @@ class MicromanagerWrapper(
             return
         }
 
+
+        if (MicroscenerySettings.get("MMConnection.OriginMoveProtection", true)
+            && target == Vector3f(0f)){//( target.x == 0f || target.y == 0f || target.z == 0f)){
+            logger.warn("Ignoring stage move command because MMConnection.OriginMoveProtection is true")
+            return
+        }
+
         try {
-            mmConnection.moveStage(target, wait)
+            mmCoreConnector.moveStage(target, wait)
         } catch (t: Throwable) {
             logger.warn("Failed move command to ${target.toReadableString()}", t)
             return
         }
+
         status = status.copy(stagePosition = target)
     }
 
