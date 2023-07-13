@@ -1,6 +1,9 @@
 package microscenery.stageSpace
 
-import graphics.scenery.*
+import graphics.scenery.Blending
+import graphics.scenery.BufferUtils
+import graphics.scenery.DefaultNode
+import graphics.scenery.ShaderMaterial
 import graphics.scenery.attribute.geometry.HasGeometry
 import graphics.scenery.attribute.material.HasCustomMaterial
 import graphics.scenery.attribute.material.Material

@@ -51,7 +51,7 @@ class MicromanagerWrapper(
     init {
         MicroscenerySettings.setVector3fIfUnset("Stage.min", mmCoreConnector.stagePosition)
         MicroscenerySettings.setVector3fIfUnset("Stage.max", mmCoreConnector.stagePosition)
-        MicroscenerySettings.setIfUnset("MMConnection.useStudioAPI",true)
+        MicroscenerySettings.setIfUnset("MMConnection.useStudioAPI",mmStudioConnector !is DummyMMStudioConnector )
 
 
         updateHardwareDimensions()

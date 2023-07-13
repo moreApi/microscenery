@@ -1,6 +1,4 @@
 
 rootProject.name = "microscenery"
+include("frontend","core")
 
-include("core")
-
-//includeBuild("../scenery")
