@@ -1,4 +1,5 @@
-
 rootProject.name = "microscenery"
-include("frontend","core")
 
+include("core")
+include("frontend")
+include("zenSysConCon")
