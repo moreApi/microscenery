@@ -25,6 +25,7 @@ dependencies {
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
     implementation(project(":core"))
+    implementation(project(":zenSysConCon"))
     implementation(files("../core/manualLib/MMCoreJ.jar"))
 
 //    implementation("org.bytedeco:ffmpeg:4.3.2-1.5.5", ffmpegNatives)
