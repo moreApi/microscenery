@@ -123,14 +123,14 @@ class StageSpaceManager(
             position = stageAreaCenter
             scale = (signal.stageMax - signal.stageMin).apply {
                 // extra space for images at the edge of stage space
-                val imgPixSize = Vector2f(signal.imageSize)
+                val imgPixSize = Vector2f(signal.imageSize) * signal.vertexDiameter
                 val imageSize = when (layout.sheet) {
                     MicroscopeLayout.Axis.X -> Vector3f(0f, imgPixSize.y, imgPixSize.x)
                     MicroscopeLayout.Axis.Y -> Vector3f(imgPixSize.x, 0f, imgPixSize.y)
                     MicroscopeLayout.Axis.Z -> Vector3f(imgPixSize, 0f)
                 }
                 this.add(imageSize)
-                this.mul(1.02f)
+                this.mul(1.1f)
             }
         }
 
