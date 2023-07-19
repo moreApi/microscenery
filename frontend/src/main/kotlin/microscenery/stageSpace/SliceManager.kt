@@ -25,16 +25,25 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
-    internal val sortedSlices = ArrayList<SliceRenderNode>()
     private val sortingSlicesLock = ReentrantLock()
 
+    internal val sortedSlices = ArrayList<SliceRenderNode>()
     internal var stacks = emptyList<StackContainer>()
-
 
     val transferFunctionManager = TransferFunctionManager(this)
 
+    private val flipVector: Vector3f
+        get() {return Vector3f(
+            if (MicroscenerySettings.get("Stage.Image.FlipX",false)) -1f else 1f,
+            if (MicroscenerySettings.get("Stage.Image.FlipY",false)) -1f else 1f,
+            if (MicroscenerySettings.get("Stage.Image.FlipZ",false)) -1f else 1f)}
+
     init {
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
+
+        MicroscenerySettings.setIfUnset("Stage.Image.FlipX", false)
+        MicroscenerySettings.setIfUnset("Stage.Image.FlipY", false)
+        MicroscenerySettings.setIfUnset("Stage.Image.FlipZ", false)
 
         MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
         MicroscenerySettings.addUpdateRoutine(
@@ -154,6 +163,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
                 hardware.hardwareDimensions().vertexDiameter,
                 1f
             )
+            scale *= flipVector
         }
         volume.pixelToWorldRatio = 1f // conversion is done by stage root
         volume.setTransferFunctionRange(
@@ -205,6 +215,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         node.spatial {
             position = signal.stagePos
             rotation = layout.sheetRotation()
+            scale *= flipVector
         }
 
         sortAndInsertSlices(scene.findObserver()?.spatial()?.position ?: Vector3f(), node)
