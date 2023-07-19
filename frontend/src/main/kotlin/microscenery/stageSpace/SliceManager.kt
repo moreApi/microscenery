@@ -21,12 +21,12 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 
-class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, val scene : Scene) {
+class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, val scene: Scene) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
     internal val sortedSlices = ArrayList<SliceRenderNode>()
-    internal val sortingSlicesLock = ReentrantLock()
+    private val sortingSlicesLock = ReentrantLock()
 
     internal var stacks = emptyList<StackContainer>()
 
@@ -37,18 +37,16 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
 
         MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
-        MicroscenerySettings.addUpdateRoutine("Stage.ToggleSliceBorder",
-            {
-                setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder"))
-            })
+        MicroscenerySettings.addUpdateRoutine(
+            "Stage.ToggleSliceBorder"
+        ) { setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder")) }
 
         val cam = scene.findObserver()
-        if(cam != null)
-        {
+        if (cam != null) {
             var oldPos = cam.spatial().position
 
             cam.update += {
-                if(MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
+                if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
                     sortAndInsertSlices(cam.spatial().position)
                     oldPos = cam.spatial().position
                 }
@@ -59,14 +57,13 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
     /**
      * Sets the slice border visibility according to [visibility]
      */
-    fun setSliceBorderVisibility(visibility : Boolean)
-    {
+    private fun setSliceBorderVisibility(visibility: Boolean) {
         sortedSlices.forEach {
             it.setBorderVisibility(visibility)
         }
     }
 
-    fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null){
+    private fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null) {
         if (newSlice != null) {
             sortingSlicesLock.lock()
             // detect too close slices to replace them
@@ -102,7 +99,7 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
 
     }
 
-    fun handleSliceSignal(sliceSignal : Slice, layout: MicroscopeLayout) {
+    fun handleSliceSignal(sliceSignal: Slice, layout: MicroscopeLayout) {
         if (sliceSignal.data == null) return
 
         if (sliceSignal.stackIdAndSliceIndex != null && stacks.any { it.meta.Id == sliceSignal.stackIdAndSliceIndex!!.first }) {
@@ -114,7 +111,7 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
         handleSingleSlice(sliceSignal, layout)
     }
 
-    fun handleStackSignal(stackSignal : Stack, hub : Hub) {
+    fun handleStackSignal(stackSignal: Stack, hub: Hub) {
         val stack = stackSignal
         if (stacks.any { it.meta.Id == stack.Id }) return //stack is already know TODO: update metadata?
 
@@ -159,7 +156,10 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
             )
         }
         volume.pixelToWorldRatio = 1f // conversion is done by stage root
-        volume.setTransferFunctionRange(transferFunctionManager.minDisplayRange, transferFunctionManager.maxDisplayRange)
+        volume.setTransferFunctionRange(
+            transferFunctionManager.minDisplayRange,
+            transferFunctionManager.maxDisplayRange
+        )
 
         stageRoot.addChild(volume)
 
@@ -188,7 +188,7 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
         stack.volume.goToNewTimepoint(stack.buffer)
     }
 
-    private fun handleSingleSlice(signal : Slice, layout: MicroscopeLayout) {
+    private fun handleSingleSlice(signal: Slice, layout: MicroscopeLayout) {
         if (signal.data == null) return
         val hwd = hardware.hardwareDimensions()
 
@@ -207,7 +207,7 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
             rotation = layout.sheetRotation()
         }
 
-        sortAndInsertSlices(scene.findObserver()?.spatial()?.position?:Vector3f(), node)
+        sortAndInsertSlices(scene.findObserver()?.spatial()?.position ?: Vector3f(), node)
     }
 
     fun clearSlices() {
@@ -222,7 +222,6 @@ class SliceManager(val hardware : MicroscopeHardware, val stageRoot : RichNode, 
             MemoryUtil.memFree(it.buffer)
         }
     }
-
 
 
     internal class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
