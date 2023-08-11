@@ -17,7 +17,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
 
 
         //val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
-        val id = """C:\Users\JanCasus\Zeiss\sd3\20230712_488_square_ring.czi"""
+        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
 
         val cziWrap = CZIFileWrapper(id)
         val zenMicroscope = ZenMicroscope()
@@ -34,8 +34,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
         thread {
             while (true){
                 Thread.sleep(200)
-                print(stageSpaceManager)
-                print(zenMicroscope)
+                stageSpaceManager to zenMicroscope
             }
         }
     }

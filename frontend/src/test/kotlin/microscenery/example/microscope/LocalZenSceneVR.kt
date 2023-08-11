@@ -19,8 +19,8 @@ class LocalZenSceneVR : DefaultVRScene() {
 
 
         //val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
-        //val id = """C:\Users\JanCasus\Zeiss\sd3\20230712_488_square_ring.czi"""
-        val id = """C:\Users\JanCasus\Zeiss\sd3\20230712_488_square_ring3.czi"""
+        //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
+        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
 
         val cziWrap = CZIFileWrapper(id)
         val zenMicroscope = ZenMicroscope()
