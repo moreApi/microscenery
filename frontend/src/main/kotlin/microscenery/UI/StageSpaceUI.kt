@@ -141,7 +141,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }),
     )
 
-    val vrCommands = listOf(comGoLive,comSteering,comStackAcq,comSearchCube,comAblate,comClearStage,comStop)
+    val vrCommands = listOf(comGoLive,comSteering,comStackAcq,comSearchCube,comClearStage,comStop)
 
     fun vrMenuActions(): List<Pair<String, (Spatial) -> Unit>> = vrCommands.map {
             it.name to {_ -> it.command?.click(0,0)}
