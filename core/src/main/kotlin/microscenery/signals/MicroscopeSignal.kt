@@ -1,11 +1,15 @@
 package microscenery.signals
 
 import com.google.protobuf.util.Timestamps.fromMillis
+import fromScenery.utils.extensions.minus
+import fromScenery.utils.extensions.plus
+import fromScenery.utils.extensions.times
 import me.jancasus.microscenery.network.v2.EnumNumericType
 import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.signals.HardwareDimensions.Companion.toPoko
 import microscenery.signals.MicroscopeStatus.Companion.toPoko
 import microscenery.toReadableString
+import org.joml.Vector2f
 import org.joml.Vector2i
 import org.joml.Vector3f
 import java.nio.ByteBuffer
@@ -152,11 +156,23 @@ data class HardwareDimensions(
      */
     fun coercePosition(
         target: Vector3f,
-        logger: org.slf4j.Logger?
+        logger: org.slf4j.Logger?,
+        inImageSpace: Boolean = false
     ): Vector3f {
         val safeTarget = Vector3f()
+
+        val min = if (!inImageSpace)
+            stageMin
+        else
+            stageMin - Vector3f(Vector2f(imageSize) * vertexDiameter * 0.5f, 0f)
+
+        val max = if (!inImageSpace)
+            stageMax
+        else
+            stageMax + Vector3f(Vector2f(imageSize) * vertexDiameter * 0.5f, 0f)
+
         for (i in 0..2) {
-            safeTarget.setComponent(i, target[i].coerceIn(stageMin[i], stageMax[i]))
+            safeTarget.setComponent(i, target[i].coerceIn(min[i], max[i]))
         }
         if (safeTarget != target) {
             logger?.warn("Had to coerce stage parameters! From ${target.toReadableString()} to ${safeTarget.toReadableString()}")
