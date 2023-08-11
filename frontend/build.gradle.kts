@@ -19,8 +19,7 @@ dependencies {
     // At the moment scenery:jans-dirtier-branch should be a merge of:
     // - branch-of-jan
     // - LineColorFix
-    // - build/0.9.0-preparations
-    implementation("graphics.scenery:scenery:c9d5aec58be7f897522949d9ddb38c7f7da14bdd")
+    implementation("graphics.scenery:scenery:2e50e6c")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
@@ -66,7 +65,7 @@ tasks{
 
             register<JavaExec>(name = exampleName) {
                 classpath = sourceSets.test.get().runtimeClasspath
-                main = className
+                //main = className
                 group = "examples.$exampleType"
 
                 val props = System.getProperties().filter { (k, _) -> k.toString().startsWith("scenery.") }
