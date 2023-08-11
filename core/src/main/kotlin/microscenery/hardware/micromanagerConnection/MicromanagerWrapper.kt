@@ -14,6 +14,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 import kotlin.system.measureNanoTime
@@ -166,7 +167,7 @@ class MicromanagerWrapper(
     //############################## end of called from external threads ##############################
 
     override fun onLoop() {
-        when (val hwCommand = hardwareCommandsQueue.poll()) {
+        when (val hwCommand = hardwareCommandsQueue.poll(200, TimeUnit.MILLISECONDS)) {
             is HardwareCommand.GenerateStackCommands -> {
                 executeGenerateStackCommands(hwCommand)
             }
