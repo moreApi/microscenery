@@ -10,11 +10,17 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
 
 
-val MicroscenerySettings = Settings(prefix = "microscenery.", inputPropertiesStream = FileInputStream("microscenery.properties"))
+val MicroscenerySettings = Settings(prefix = "microscenery.", inputPropertiesStream = try {
+    FileInputStream("microscenery.properties")
+} catch (t: FileNotFoundException){
+    System.err.println("microscenery.properties not found. Using default settings.")
+    null
+})
 
 val UP = Vector3f(0f, 1f, 0f)
 
