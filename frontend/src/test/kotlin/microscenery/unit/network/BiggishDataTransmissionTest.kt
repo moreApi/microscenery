@@ -24,15 +24,21 @@ class BiggishDataTransmissionTest {
 
     private val storageSize = 50 * 1024 * 1024
 
-    @BeforeEach
-    fun init() {
+
+    fun init(port: Int = 4400, storage: SliceStorage = SliceStorage(storageSize)) {
         zContext = ZContext()
         zContext.linger = 0
-        storage = SliceStorage(storageSize)
-        server = BiggishDataServer(4400, storage, zContext)
-        client = BiggishDataClient(zContext, 4400)
+        this.storage = storage
+        server = BiggishDataServer(port, storage, zContext)
+        client = BiggishDataClient(zContext, port)
         Thread.sleep(500)
     }
+
+    /**
+     * JUnit can't handle kotlin default parameters :(
+     */
+    @BeforeEach
+    fun init2() = init()
 
     @AfterEach
     fun reset() {
@@ -64,9 +70,8 @@ class BiggishDataTransmissionTest {
     fun large() {
         val dataSize = CHUNK_SIZE * 2 + 5
         //increase storage size
-        storage = SliceStorage(CHUNK_SIZE * 3)
-        server.close().join()
-        server = BiggishDataServer(4400, storage, zContext)
+        reset()
+        init(4400,SliceStorage(CHUNK_SIZE * 3))
 
         storage.addSlice(1, ByteBuffer.wrap(ByteArray(dataSize) { (it + 10).toByte() }))
         assert(client.requestSlice(1, dataSize))
