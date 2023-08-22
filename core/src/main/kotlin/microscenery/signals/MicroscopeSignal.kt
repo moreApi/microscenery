@@ -112,11 +112,15 @@ data class Stack(
     }
 }
 
+/**
+ * @param imageSize in pixel
+ * @param vertexDiameter pixel to stage coord ratio
+ */
 data class HardwareDimensions(
     val stageMin: Vector3f,
     val stageMax: Vector3f,
     val imageSize: Vector2i,
-    val vertexDiameter: Float, // pixel to stage coord ratio
+    val vertexDiameter: Float,
     val numericType: NumericType
 ) : MicroscopeSignal() {
     override fun toProto(): me.jancasus.microscenery.network.v2.MicroscopeSignal {
