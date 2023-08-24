@@ -5,8 +5,11 @@ import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
 import microscenery.stageSpace.StageSpaceManager
+import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenMicroscope
+import microscenery.zenSysConCon.sysCon.SysConNamedPipeConnector
 import org.joml.Vector3f
+import org.mockito.Mockito
 import kotlin.concurrent.thread
 
 class LocalZenSceneVR : DefaultVRScene() {
@@ -21,7 +24,9 @@ class LocalZenSceneVR : DefaultVRScene() {
         //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
         val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
 
-        val zenMicroscope = ZenMicroscope()
+        val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
+        val sysCon: SysConNamedPipeConnector = Mockito.mock(SysConNamedPipeConnector::class.java)
+        val zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
         stageSpaceManager = StageSpaceManager(hardware, scene, hub, addFocusFrame = false)
