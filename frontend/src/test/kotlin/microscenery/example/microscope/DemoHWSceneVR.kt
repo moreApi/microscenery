@@ -2,9 +2,12 @@ package microscenery.example.microscope
 
 import microscenery.DefaultVRScene
 import microscenery.DemoMicroscopeHardware
+import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
+import microscenery.setVector3
 import microscenery.stageSpace.StageSpaceManager
+import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 class DemoHWSceneVR : DefaultVRScene() {
@@ -14,8 +17,11 @@ class DemoHWSceneVR : DefaultVRScene() {
     override fun init() {
         super.init()
 
+        MicroscenerySettings.set("Stage.precisionXY", 1f)
+        MicroscenerySettings.set("Stage.precisionZ", 1f)
+        MicroscenerySettings.setVector3("Ablation.PointCloud.MinDistUm", Vector3f(1f))
 
-        val hw = DemoMicroscopeHardware()
+        val hw = DemoMicroscopeHardware(dataSide = 100)
         stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true)
 
 
