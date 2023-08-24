@@ -54,8 +54,15 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 }
 
 protobuf {
+    var protocPath = providers.gradleProperty("protoc.path").orNull
+    if(protocPath == null) {
+        logger.warn("protoc path property (protoc.path) not found, falling back to default.")
+        protocPath = projectDir.resolve("protoc/bin/protoc.exe").absolutePath
+    }
+
+    logger.info("Using protoc from $protocPath")
     this.protobuf.protoc {
-        this.path = projectDir.resolve("protoc/bin/protoc.exe").absolutePath
+        this.path = protocPath
     }
 }
 
