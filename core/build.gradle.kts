@@ -22,8 +22,8 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.7.36")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("org.joml:joml:1.10.5")
-    implementation ("com.google.protobuf:protobuf-java:3.21.5")
-    implementation("com.google.protobuf:protobuf-java-util:3.21.5")
+    implementation ("com.google.protobuf:protobuf-java:3.21.7")
+    implementation("com.google.protobuf:protobuf-java-util:3.21.7")
     implementation("org.zeromq:jeromq:0.5.2")
     implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
     // this is the version micromanager uses
