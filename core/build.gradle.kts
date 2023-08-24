@@ -22,8 +22,8 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.7.36")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("org.joml:joml:1.10.5")
-    implementation ("com.google.protobuf:protobuf-java:3.21.5")
-    implementation("com.google.protobuf:protobuf-java-util:3.21.5")
+    implementation ("com.google.protobuf:protobuf-java:3.21.7")
+    implementation("com.google.protobuf:protobuf-java-util:3.21.7")
     implementation("org.zeromq:jeromq:0.5.2")
     implementation ("com.github.stuhlmeier:kotlin-events:v2.0")
     // this is the version micromanager uses
@@ -54,8 +54,15 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 }
 
 protobuf {
+    var protocPath = providers.gradleProperty("protoc.path").orNull
+    if(protocPath == null) {
+        logger.warn("protoc path property (protoc.path) not found, falling back to default.")
+        protocPath = projectDir.resolve("protoc/bin/protoc.exe").absolutePath
+    }
+
+    logger.info("Using protoc from $protocPath")
     this.protobuf.protoc {
-        this.path = projectDir.resolve("protoc/bin/protoc.exe").absolutePath
+        this.path = protocPath
     }
 }
 
