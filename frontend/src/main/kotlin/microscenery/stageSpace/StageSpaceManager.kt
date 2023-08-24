@@ -115,7 +115,7 @@ class StageSpaceManager(
 
         stageRoot.spatial {
             // scale the space in such a way that is initially always the same visual size and easy to handle by GUI
-            val xSize = (signal.stageMax.x - signal.stageMin.x + signal.imageSize.x)
+            val xSize = (signal.stageMax.x - signal.stageMin.x + signal.imageSize.x * signal.vertexDiameter)
             scale = Vector3f((1 / xSize) * 3)
             position = Vector3f(-1f) * stageAreaCenter * scale
         }
