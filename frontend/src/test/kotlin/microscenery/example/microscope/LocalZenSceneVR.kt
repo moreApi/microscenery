@@ -1,6 +1,8 @@
 package microscenery.example.microscope
 
 import microscenery.DefaultVRScene
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
@@ -18,6 +20,8 @@ class LocalZenSceneVR : DefaultVRScene() {
     override fun init() {
         super.init()
         cam.spatial().position = Vector3f(0f, 0f, 5f)
+
+        MicroscenerySettings.set(Settings.VRToolbox.BubblesEnabled, true)
 
 
         //val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""

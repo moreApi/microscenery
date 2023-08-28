@@ -12,6 +12,7 @@ import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
 import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.stageSpace.StageSpaceManager
 
 class Toolbox(
@@ -26,58 +27,66 @@ class Toolbox(
     val pointTool = PointEntityTool()
     val lineTool = LineEntityTool()
     val croppingTool = CroppingTool()
-    val pathAblationTool = stageSpaceManager?.let { PathAblationTool( stageSpaceManager = it,hmd=hmd) }
-    val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager= it,hmd=hmd) }
+    val pathAblationTool = stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd) }
+    val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd) }
     val bubblesTool = BubblesTool()
 
     init {
-        MicroscenerySettings.setIfUnset("VR.AblationMethod","Points") //Points or Path
-
         pointTool.visible = false
         lineTool.visible = false
         croppingTool.visible = false
         pathAblationTool?.visible = false
         pointCloudAblationTool?.visible = false
 
-        val defaultMenu: List<Pair<String, (Spatial) -> Unit>> = listOf("slicing tool" to { device ->
+        var defaultMenu: List<Pair<String, (Spatial) -> Unit>> = listOf()
+
+        fun addIfEnabled(key: String, name: String, command: (Spatial) -> Unit) {
+            if (MicroscenerySettings.get(key, false)) {
+                defaultMenu = defaultMenu + (name to command)
+            }
+        }
+
+        addIfEnabled(Settings.VRToolbox.SlicingEnabled, "slicing tool") { device ->
             target()?.let {
                 if (it !is Volume) return@let
                 scene.addChild(croppingTool)
                 croppingTool.spatial().position = device.worldPosition()
                 croppingTool.activate(it)
             }
-        }, "point" to { device ->
+        }
+        addIfEnabled(Settings.VRToolbox.DrawPointsEnabled, "point") { device ->
             scene.addChild(pointTool)
             pointTool.visible = true
             pointTool.spatial().position = device.worldPosition()
-        },"line" to { device ->
+        }
+        addIfEnabled(Settings.VRToolbox.DrawLineEnabled, "line") { device ->
             scene.addChild(lineTool)
             lineTool.visible = true
             lineTool.spatial().position = device.worldPosition()
-        },"ablation" to { device ->
-            val ablationMode = MicroscenerySettings.get<String>("VR.AblationMethod")
-            when{
-                ablationMode == "Path" && pathAblationTool != null -> {
-                    scene.addChild(pathAblationTool)
-                    pathAblationTool.visible = true
-                    pathAblationTool.spatial().position = device.worldPosition()
-                }
-                ablationMode == "Points" && pointCloudAblationTool != null -> {
-                    scene.addChild(pointCloudAblationTool)
-                    pointCloudAblationTool.visible = true
-                    pointCloudAblationTool.spatial().position = device.worldPosition()
-                }
-                else -> {
-                    scene.addChild(bubblesTool)
-                    bubblesTool.visible = true
-                    bubblesTool.spatial().position = device.worldPosition()
-                }
+        }
+        if (pathAblationTool != null)
+            addIfEnabled(Settings.VRToolbox.PathAblationEnabled, "path ablation") { device ->
+                scene.addChild(pathAblationTool)
+                pathAblationTool.visible = true
+                pathAblationTool.spatial().position = device.worldPosition()
             }
-        }, "options" to {
+        if (pointCloudAblationTool != null)
+            addIfEnabled(Settings.VRToolbox.PointAblationEnabled, "point ablation") { device ->
+                scene.addChild(pointCloudAblationTool)
+                pointCloudAblationTool.visible = true
+                pointCloudAblationTool.spatial().position = device.worldPosition()
+            }
+        addIfEnabled(Settings.VRToolbox.BubblesEnabled, "bubbles") { device ->
+            scene.addChild(bubblesTool)
+            bubblesTool.visible = true
+            bubblesTool.spatial().position = device.worldPosition()
+        }
+        addIfEnabled(Settings.VRToolbox.OptionsEnabled, "options") {
             val m = WheelMenu(hmd, listOf(Switch("hull", true) { scene.find("hullbox")?.visible = it }), true)
             m.spatial().position = it.worldPosition()
             scene.addChild(m)
-        }, "color" to {
+        }
+        addIfEnabled(Settings.VRToolbox.ColorChooserEnabled, "color") {
             target()?.let { volume ->
                 if (volume !is Volume) return@let
                 val m = WheelMenu(hmd, Colormap.list().map {
@@ -87,7 +96,7 @@ class Toolbox(
                 m.spatial().position = it.worldPosition()
                 scene.addChild(m)
             }
-        })
+        }
 
         VRSelectionWheel.createAndSet(
             scene, hmd, button, controllerSide,
