@@ -4,10 +4,12 @@ import fromScenery.utils.extensions.minus
 import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.Sphere
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.utils.Wiggler
 import microscenery.*
+import microscenery.primitives.Pyramid
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 
@@ -15,8 +17,8 @@ class PointCloudAblationTool(
     var pointColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f),
     val stageSpaceManager: StageSpaceManager,
     hmd: OpenVRHMD,
-) : Box(Vector3f(0.05f, 0.13f, 0.05f)) {
-    private val tip: Box
+) : Box(Vector3f(0.04f, 0.10f, 0.04f)) {
+    private val tip: HasSpatial
     private val inkOutput: RichNode
 
     private var eraser = false
@@ -27,12 +29,12 @@ class PointCloudAblationTool(
     init {
         MicroscenerySettings.setVector3fIfUnset("Ablation.PointCloud.MinDistUm",Vector3f(100f))
 
-        val tipLength = 0.025f
-        tip = Box(Vector3f(0.015f, tipLength, 0.015f))
-        tip.spatial().position = Vector3f(0f, this.sizes.y / 2 + tipLength / 2, 0f)
+        val tipLength = 0.06f
+        tip = Pyramid(0.03f,0.03f,tipLength)
+        tip.spatial().position = Vector3f(0f, sizes.y/2, 0f)
         addChild(tip)
         inkOutput = RichNode()
-        inkOutput.spatial().position.y = tipLength / 2
+        inkOutput.spatial().position.y = tipLength
         tip.addChild(inkOutput)
         prepareInk()
 

@@ -21,7 +21,8 @@ class LocalZenSceneVR : DefaultVRScene() {
         super.init()
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
-        MicroscenerySettings.set(Settings.VRToolbox.BubblesEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
 
 
         //val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
