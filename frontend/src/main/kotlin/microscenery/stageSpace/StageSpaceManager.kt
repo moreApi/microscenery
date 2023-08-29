@@ -43,6 +43,7 @@ class StageSpaceManager(
         private set
 
     val sliceManager = SliceManager(hardware, stageRoot, scene)
+    val ablationManager = AblationManager(hardware,this,scene)
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition

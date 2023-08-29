@@ -8,7 +8,8 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.Wiggler
-import microscenery.*
+import microscenery.UP
+import microscenery.detach
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -27,9 +28,8 @@ class PathAblationTool(
     private val tip: Box
     private val inkOutput: RichNode
 
-    private var preparedInk: AblationPoint? = null
-    private var lastInk: AblationPoint? = null
-    private var planedPath: List<Sphere> = emptyList()
+    private var preparedInk: InkLine? = null
+    private var lastInk: InkLine? = null
 
     init {
         val tipLength = 0.025f
@@ -59,10 +59,7 @@ class PathAblationTool(
                                 val m = WheelMenu(
                                     hmd, listOf(
                                         Action("clear path") { clearInk() },
-                                        Action("undo") { undoLastPoint() },
-                                        Action("plan ablation") { planPath() },
-                                        Action("remove plan") { unplanPath() },
-                                        Action("ablate path") { ablatePath() },
+                                        Action("undo") { undoLastPoint() }
                                     ), true
                                 )
                                 m.spatial().position = it.worldPosition()
@@ -97,7 +94,7 @@ class PathAblationTool(
      */
     private fun prepareInk() {
         if (preparedInk != null) logger.warn("Someone has left some old ink and ordered new ink.")
-        val ink = AblationPoint(lastInk, 0.015f)
+        val ink = InkLine(lastInk, 0.015f)
         ink.material().diffuse = lineColor
         ink.material().metallic = 0.0f
         ink.material().roughness = 1.0f
@@ -153,87 +150,34 @@ class PathAblationTool(
         prepareInk()
     }
 
-    private fun planPath() {
-        if (lastInk == null) return
-        unplanPath()
+    internal class InkLine(val previous: InkLine? = null, radius: Float = 0.015f) :
+        Sphere(radius, segments = 16) {
+        val line: Cylinder = Cylinder(0.005f, 1f, 20)
 
-        val path = mutableListOf<Vector3f>()
-        val precision = MicroscenerySettings.getVector3("Ablation.precision") ?: Vector3f(1f)
+        init {
+            this.addAttribute(Touchable::class.java, Touchable())
+            this.addAttribute(Grabable::class.java, Grabable(lockRotation = true))
+        }
 
-        var cur = lastInk
-        while (cur != null) {
-            path += cur.spatial().position
-            if (cur.previous != null) {
-                // sample line between last and current position
-                (sampleLineSmooth(cur.previous!!.spatial().position, cur.spatial().position, precision))
-                    .forEach {
-                        path += it
+        /**
+         * adding a visible = false line from the beginning does not work for some reason. This is a workaround.
+         */
+        fun addLine() {
+            if (previous == null) return
+
+            line.material().diffuse = this.material().diffuse
+            line.material().metallic = 0.0f
+            line.material().roughness = 1.0f
+            this.addChild(line)
+
+            update += {
+                let {
+                    val diff =
+                        (previous.spatial().position - this.spatial().position).div(spatial().scale) //position is in stage space, everything below ablation point not
+                    line.spatial {
+                        scale.y = diff.length()
+                        rotation = Quaternionf().rotationTo(UP, diff)
                     }
-            }
-            cur = cur.previous
-        }
-        planedPath = path.map {
-            val point = Sphere(0.01f, 8).apply {
-                spatial {
-                    this.position = it
-                    this.scale = lastInk!!.spatial().scale
-                }
-            }
-            stageSpaceManager.stageRoot.addChild(point)
-            point
-        }
-    }
-
-    private fun unplanPath() {
-        planedPath.forEach {
-            it.detach()
-        }
-        planedPath = emptyList()
-    }
-
-    private fun ablatePath() {
-        if (planedPath.isEmpty()) {
-            logger.warn("No path planned")
-            stageSpaceManager.scene.findObserver()?.showMessage(
-                "No path planned"
-            )
-            return
-        }
-
-        executeAblationCommandSequence(
-            stageSpaceManager.hardware,
-            buildLaserPath(planedPath.map { it.spatial().position })
-        )
-    }
-}
-
-internal class AblationPoint(val previous: AblationPoint? = null, radius: Float = 0.015f) :
-    Sphere(radius, segments = 16) {
-    val line: Cylinder = Cylinder(0.005f, 1f, 20)
-
-    init {
-        this.addAttribute(Touchable::class.java, Touchable())
-        this.addAttribute(Grabable::class.java, Grabable(lockRotation = true))
-    }
-
-    /**
-     * adding a visible = false line from the beginning does not work for some reason. This is a workaround.
-     */
-    fun addLine() {
-        if (previous == null) return
-
-        line.material().diffuse = this.material().diffuse
-        line.material().metallic = 0.0f
-        line.material().roughness = 1.0f
-        this.addChild(line)
-
-        update += {
-            let {
-                val diff =
-                    (previous.spatial().position - this.spatial().position).div(spatial().scale) //position is in stage space, everything below ablation point not
-                line.spatial {
-                    scale.y = diff.length()
-                    rotation = Quaternionf().rotationTo(UP, diff)
                 }
             }
         }

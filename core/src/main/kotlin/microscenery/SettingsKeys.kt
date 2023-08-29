@@ -11,4 +11,10 @@ object Settings {
         const val OptionsEnabled: String = "VRToolBox.OptionsEnabled"
         const val ColorChooserEnabled: String = "VRToolBox.ColorChooserEnabled"
     }
+
+    object Ablation {
+        const val Enabled = "Ablation.Enabled"
+        const val Precision = "Ablation.precision" //Vec3f
+        const val Size = "Ablation.Size" //Vec3f
+    }
 }

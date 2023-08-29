@@ -146,10 +146,9 @@ class PointCloudAblationTool(
             Wiggler(ink,0.01f,300)
             return
         }
-        if( placedPoints.any {
-                (it.spatial().position -  ink.spatial().worldPosition()).absolute().isFullyLessThan(minDistance)}
+        if( placedPoints.any { placedInk ->
+                (placedInk.spatial().position - posInStageSpace).absolute().isFullyLessThan(minDistance)}
         ){
-            //todo thiss needs to be in stage coordinates
             return //point is to close to another one
         }
 
