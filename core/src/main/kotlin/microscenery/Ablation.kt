@@ -94,6 +94,7 @@ fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
     })
 }
 
+//TODO move to MMMicroscope
 fun executeAblationCommandSequence(hardware: MicroscopeHardware, signal: ClientSignal.AblationPoints ){
     val dryRun = MicroscenerySettings.get("Ablation.dryRun", true)
     val repetitions = MicroscenerySettings.get("Ablation.repetitions", 1)
