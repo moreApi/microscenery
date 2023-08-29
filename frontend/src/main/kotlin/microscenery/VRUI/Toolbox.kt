@@ -4,16 +4,19 @@ import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
+import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.controls.behaviours.VRSelectionWheel
+import graphics.scenery.controls.behaviours.VRSelectionWheel.Companion.toActions
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.stageSpace.StageSpaceManager
+import org.scijava.ui.behaviour.DragBehaviour
 
 class Toolbox(
     val scene: Scene,
@@ -22,6 +25,7 @@ class Toolbox(
     controllerSide: List<TrackerRole>,
     customMenu: WheelMenu? = null,
     stageSpaceManager: StageSpaceManager? = null,
+    enabled: () -> Boolean = {true},
     target: () -> Node?
 ) {
     val pointTool = PointEntityTool()
@@ -98,14 +102,61 @@ class Toolbox(
             }
         }
 
-        VRSelectionWheel.createAndSet(
-            scene, hmd, button, controllerSide,
-            customMenu?.let {
-                defaultMenu + ("scene ops" to {
-                    customMenu.spatial().position = it.worldPosition()
-                    scene.addChild(customMenu)
-                })
-            } ?: defaultMenu
-        )
+        class EnableableDragBehaviorWrapper(val isEnabled: () -> Boolean, val wrapped: DragBehaviour): DragBehaviour{
+            var startEnabled = false
+            override fun init(x: Int, y: Int) {
+                if (isEnabled()) {
+                    startEnabled = true
+                    wrapped.init(x,y)
+                } else {
+                    startEnabled = false
+                }
+            }
+
+            override fun drag(x: Int, y: Int) {
+                if (startEnabled) wrapped.drag(x,y)
+            }
+
+            override fun end(x: Int, y: Int) {
+                if (startEnabled) wrapped.end(x,y)
+            }
+
+        }
+
+
+        // custom set to allow disableling
+        val actions: List<Pair<String, (Spatial) -> Unit>> = customMenu?.let {
+            defaultMenu + ("scene ops" to {
+                customMenu.spatial().position = it.worldPosition()
+                scene.addChild(customMenu)
+            })
+        } ?: defaultMenu
+        hmd.events.onDeviceConnect.add { _, device, _ ->
+            if (device.type == TrackedDeviceType.Controller) {
+                device.model?.let { controller ->
+                    if (controllerSide.contains(device.role)) {
+                        val name = "ToolBoxWheelMenu:${hmd.trackingSystemName}:${device.role}:$button"
+                        val vrToolSelector = EnableableDragBehaviorWrapper(
+                            enabled,
+                            VRSelectionWheel(
+                                controller.children.first().spatialOrNull()
+                                    ?: throw IllegalArgumentException("The target controller needs a spatial."),
+                                scene,
+                                hmd,
+                                actions.toActions(
+                                    controller.children.first().spatialOrNull() ?: throw IllegalArgumentException(
+                                        "The target controller needs a spatial."
+                                    )
+                                )
+                            )
+                        )
+                        hmd.addBehaviour(name, vrToolSelector)
+                        button.forEach {
+                            hmd.addKeyBinding(name, device.role, it)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

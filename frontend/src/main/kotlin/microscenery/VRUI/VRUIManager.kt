@@ -8,6 +8,8 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.*
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
@@ -52,7 +54,7 @@ class VRUIManager {
                 listOf(TrackerRole.RightHand, TrackerRole.LeftHand),
                 holdToDrag = false,
                 onGrab = { node, device -> (hmd as? OpenVRHMD)?.vibrate(device); Touch.unapplySelectionColor(node) })
-            VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand, TrackerRole.LeftHand), false)
+            val touch = VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand, TrackerRole.LeftHand), false)
             VRPress.createAndSet(
                 scene,
                 hmd,
@@ -66,14 +68,26 @@ class VRUIManager {
                 listOf(TrackerRole.RightHand),
                 customActionsPlusScaleSwitch,
                 stageSpaceUI?.stageSpaceManager,
+                {touch.get()?.selected?.isEmpty() ?: true},
                 target
             )
-            stageSpaceUI?.let { ssui ->
-                VRSelectionWheel.createAndSet(
-                    scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+            if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
+                VRSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
                     listOf(TrackerRole.LeftHand),
-                    ssui.vrMenuActions()
+                    listOf(
+                    "plan ablation" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.composeAblation()},
+                    "remove plan" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.scrapAblation() },
+                    "ablate path" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.executeAblation() },
+                    )
                 )
+            } else {
+                stageSpaceUI?.let { ssui ->
+                    VRSelectionWheel.createAndSet(
+                        scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+                        listOf(TrackerRole.LeftHand),
+                        ssui.vrMenuActions()
+                    )
+                }
             }
         }
 
