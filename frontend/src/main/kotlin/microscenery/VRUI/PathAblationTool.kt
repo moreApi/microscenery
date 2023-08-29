@@ -113,7 +113,7 @@ class PathAblationTool(
 
         if (posInStageSpace != coerced) {
             //ink is out of stage space bounds
-            Wiggler(ink.spatial(), range = 0.01f, lifeTimeMillis = 300)
+            Wiggler(ink, range = 0.01f, lifeTimeMillis = 300)
             return
         }
 

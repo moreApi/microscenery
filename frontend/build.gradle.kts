@@ -19,7 +19,8 @@ dependencies {
     // At the moment scenery:jans-dirtier-branch should be a merge of:
     // - branch-of-jan
     // - LineColorFix
-    implementation("graphics.scenery:scenery:2e50e6c")
+    // WIP WIP evrything is broken and temp
+    implementation("graphics.scenery:scenery:2a7fc34acd")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
