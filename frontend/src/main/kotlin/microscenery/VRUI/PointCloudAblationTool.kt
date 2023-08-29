@@ -20,11 +20,17 @@ class PointCloudAblationTool(
 ) : Box(Vector3f(0.04f, 0.10f, 0.04f)) {
     private val tip: HasSpatial
     private val inkOutput: RichNode
+    private var eraserHead: Box = Box(Vector3f(0.02f))
 
-    private var eraser = false
+    private var eraserActive = false
+        set(value) {
+            toggleEraser(value)
+            field = value
+        }
 
-    private var preparedInk: Sphere? = null
+    private var preparedInk: Ink? = null
     private var placedPoints: List<Sphere> = emptyList()
+    private var inkTouchingEraser: List<Ink> = emptyList()
 
     init {
         MicroscenerySettings.setVector3fIfUnset("Ablation.PointCloud.MinDistUm",Vector3f(100f))
@@ -37,6 +43,11 @@ class PointCloudAblationTool(
         inkOutput.spatial().position.y = tipLength
         tip.addChild(inkOutput)
         prepareInk()
+
+        eraserHead.spatial{
+            position = Vector3f(0f,tipLength,0f)
+        }
+        Touch("point ablation eraser", eraserHead,{placedPoints})
 
         this.addAttribute(Touchable::class.java, Touchable())
         this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))
@@ -51,9 +62,14 @@ class PointCloudAblationTool(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
                         onHold = {
-                            if (timeOfLastInk + timeBetweenInks < System.currentTimeMillis()) {
-                                placeInk()
-                                timeOfLastInk = System.currentTimeMillis()
+                            if (!eraserActive){
+                                if (timeOfLastInk + timeBetweenInks < System.currentTimeMillis()) {
+                                    placeInk()
+                                    timeOfLastInk = System.currentTimeMillis()
+                                }
+                            } else {
+                                inkTouchingEraser.forEach { it.detach() }
+                                inkTouchingEraser = emptyList()
                             }
                         }
                     ),
@@ -79,10 +95,7 @@ class PointCloudAblationTool(
                             val m = WheelMenu(
                                 hmd, listOf(
                                     Action("clear all") { clearInk() },
-                                    Switch("eraser",false) { toggleEraser(it) },
-                                    Action("plan ablation") { planAblation() },
-                                    Action("remove plan") { removePlan() },
-                                    Action("ablate") { ablate() },
+                                    Switch("eraser",eraserActive) { eraserActive = !eraserActive }
                                 ), true
                             )
                             m.spatial().position = it.worldPosition()
@@ -94,18 +107,14 @@ class PointCloudAblationTool(
         )
     }
 
-    private fun planAblation() {
-        TODO("Not yet implemented")
-    }
-    private fun removePlan() {
-        TODO("Not yet implemented")
-    }
-    private fun ablate() {
-        TODO("Not yet implemented")
-    }
-
-    private fun toggleEraser(it: Boolean) {
-
+    private fun toggleEraser(eraserActive: Boolean) {
+        if (eraserActive){
+            inkTouchingEraser = emptyList()
+            tip.addChild(eraserHead)
+            eraserHead.spatial().needsUpdate = true
+        } else {
+            eraserHead.detach()
+        }
     }
 
     private fun clearInk() {
@@ -120,11 +129,7 @@ class PointCloudAblationTool(
      */
     private fun prepareInk() {
         if (preparedInk != null) logger.warn("Someone has left some old ink and ordered new ink.")
-        val ink = Sphere( 0.005f)
-        ink.material().diffuse = pointColor
-        ink.material().metallic = 0.0f
-        ink.material().roughness = 1.0f
-
+        val ink = Ink( 0.005f,pointColor,this)
         inkOutput.addChild(ink)
         preparedInk = ink
     }
@@ -137,16 +142,14 @@ class PointCloudAblationTool(
         val coerced = stageSpaceManager.hardware.hardwareDimensions().coercePosition(posInStageSpace, null, true)
 
         if (posInStageSpace != coerced) {
-            val oldWiggler = ink.getAttributeOrNull(Wiggler::class.java)
-            if (oldWiggler?.active == true) return
             //ink is out of stage space bounds, wiggle in protest
-            ink.addAttribute(Wiggler::class.java,Wiggler(ink.spatial(), range = 0.01f, lifeTimeMillis = 300))
+            Wiggler(ink,0.01f,300)
             return
         }
         if( placedPoints.any {
                 (it.spatial().position -  ink.spatial().worldPosition()).absolute().isFullyLessThan(minDistance)}
         ){
-            //todo does not work
+            //todo thiss needs to be in stage coordinates
             return //point is to close to another one
         }
 
@@ -159,5 +162,18 @@ class PointCloudAblationTool(
 
         preparedInk = null
         prepareInk()
+    }
+
+    class Ink(radius: Float, color: Vector3f, source: PointCloudAblationTool):Sphere(radius){
+        init {
+            this.addAttribute(Touchable::class.java, Touchable(
+                onTouch = {source.inkTouchingEraser += this},
+                onRelease = {source.inkTouchingEraser -= this}
+            ))
+
+            material().diffuse = color
+            material().metallic = 0.0f
+            material().roughness = 1.0f
+        }
     }
 }
