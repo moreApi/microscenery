@@ -17,7 +17,7 @@ class AblationManager(val hardware: MicroscopeHardware, val stageSpaceManager: S
     private var planedPath: List<Sphere> = emptyList()
 
     private fun getAllInkPositions(): List<Vector3f> {
-        val pointsInWS = scene.discover(scene,{it is PointCloudAblationTool.Ink || it is PathAblationTool.InkLine })
+        val pointsInWS = stageSpaceManager.stageRoot.children.filter{it is PointCloudAblationTool.Ink || it is PathAblationTool.InkLine }
             .flatMap { ink ->
                 when (ink) {
                     is PointCloudAblationTool.Ink -> {

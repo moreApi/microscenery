@@ -13,6 +13,10 @@ object Settings {
     }
 
     object Ablation {
+        object PointTool {
+            const val MinDistUm = "Ablation.PointTool.MinDistUm"
+        }
+
         const val Enabled = "Ablation.Enabled"
         const val Precision = "Ablation.precision" //Vec3f
         const val Size = "Ablation.Size" //Vec3f

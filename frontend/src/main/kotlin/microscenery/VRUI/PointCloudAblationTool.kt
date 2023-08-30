@@ -33,7 +33,7 @@ class PointCloudAblationTool(
     private var inkTouchingEraser: List<Ink> = emptyList()
 
     init {
-        MicroscenerySettings.setVector3fIfUnset("Ablation.PointCloud.MinDistUm",Vector3f(100f))
+        MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(100f))
 
         val tipLength = 0.06f
         tip = Pyramid(0.03f,0.03f,tipLength)
@@ -135,7 +135,7 @@ class PointCloudAblationTool(
     }
 
     private fun placeInk() {
-        val minDistance = MicroscenerySettings.getVector3("Ablation.PointCloud.MinDistUm") ?: return
+        val minDistance = MicroscenerySettings.getVector3(Settings.Ablation.PointTool.MinDistUm) ?: return
 
         val ink = preparedInk ?: return
         val posInStageSpace = stageSpaceManager.worldToStageSpace(ink.spatial().worldPosition())
