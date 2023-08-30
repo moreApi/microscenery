@@ -114,6 +114,8 @@ class PathAblationTool(
             return
         }
 
+        ink.getAttributeOrNull(Wiggler::class.java)?.deativate()?.join() // avoids a bug where a point is moved after placing
+
         ink.spatial().position = ink.spatial().worldPosition()
 
         stageSpaceManager.worldToStageSpace(ink.spatial())
