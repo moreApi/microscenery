@@ -31,6 +31,8 @@ class PathAblationTool(
     private var preparedInk: InkLine? = null
     private var lastInk: InkLine? = null
 
+    private var menu: VRFastSelectionWheel? = null
+
     init {
         val tipLength = 0.025f
         tip = Box(Vector3f(0.015f, tipLength, 0.015f))
@@ -40,38 +42,13 @@ class PathAblationTool(
         inkOutput.spatial().position.y = tipLength / 2
         tip.addChild(inkOutput)
 
-        var startOfPress = System.currentTimeMillis()
-        var menuOpened = false
-        val timeForLongClickMillis = 1000
-
         this.addAttribute(Touchable::class.java, Touchable())
         this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))
         this.addAttribute(
             Pressable::class.java, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onPress = {
-                            startOfPress = System.currentTimeMillis()
-                            menuOpened = false
-                        },
-                        onHold = {
-                            if (startOfPress + timeForLongClickMillis < System.currentTimeMillis() && !menuOpened) {
-                                val m = WheelMenu(
-                                    hmd, listOf(
-                                        Action("clear path") { clearInk() },
-                                        Action("undo") { undoLastPoint() }
-                                    ), true
-                                )
-                                m.spatial().position = it.worldPosition()
-                                tip.getScene()?.addChild(m)
-                                menuOpened = true
-                            }
-                        },
                         onRelease = {
-                            if (menuOpened) {
-                                // menu has be opened
-                                return@SimplePressable
-                            }
                             if (preparedInk == null) {
                                 prepareInk()
                             } else {
@@ -79,10 +56,31 @@ class PathAblationTool(
                             }
                         }
                     ),
-                    CLOSE_BUTTON to SimplePressable(onPress = {
-                        this.visible = false
-                        parent?.removeChild(this)
-                    })
+                    MENU_BUTTON to SimplePressable(
+                        onPress = {
+                            val scene = getScene() ?: return@SimplePressable
+                            val m = VRFastSelectionWheel(
+                                it, scene, hmd, listOf(
+                                    Action("clear path") { clearInk() },
+                                    Action("undo") { undoLastPoint() },
+                                    Action("hide") {
+                                        this.visible = false
+                                        this.detach()
+                                    })
+                            )
+
+                            m.init(0, 0)
+                            menu = m
+                        },
+                        onHold =
+                        {
+                            menu?.drag(0, 0)
+                        },
+                        onRelease =
+                        {
+                            menu?.end(0, 0)
+                        }
+                    )
                 )
             )
         )

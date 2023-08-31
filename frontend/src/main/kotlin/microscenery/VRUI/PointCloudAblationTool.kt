@@ -32,6 +32,8 @@ class PointCloudAblationTool(
     private var placedPoints: List<Sphere> = emptyList()
     private var inkTouchingEraser: List<Ink> = emptyList()
 
+    private var menu: VRFastSelectionWheel? = null
+
     init {
         MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(100f))
 
@@ -52,17 +54,14 @@ class PointCloudAblationTool(
         this.addAttribute(Touchable::class.java, Touchable())
         this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))
 
-        var startOfPressMenu = System.currentTimeMillis()
         var timeOfLastInk = System.currentTimeMillis()
-        var toolHid = false
-        val timeForLongClickMillis = 1000
         val timeBetweenInks = 50
         this.addAttribute(
             Pressable::class.java, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
                         onHold = {
-                            if (!eraserActive){
+                            if (!eraserActive) {
                                 if (timeOfLastInk + timeBetweenInks < System.currentTimeMillis()) {
                                     placeInk()
                                     timeOfLastInk = System.currentTimeMillis()
@@ -73,33 +72,29 @@ class PointCloudAblationTool(
                             }
                         }
                     ),
-                    CLOSE_BUTTON to SimplePressable(
+                    MENU_BUTTON to SimplePressable(
                         onPress = {
-                            startOfPressMenu = System.currentTimeMillis()
-                            toolHid = false
-                        },
-                        onHold = {
-                            if (startOfPressMenu + timeForLongClickMillis < System.currentTimeMillis() && !toolHid) {
-                                // hide tool
-                                this.visible = false
-                                parent?.removeChild(this)
-                                toolHid = true
-                            }
-                        },
-                        onRelease = {
-                            if (toolHid) {
-                                // tool has been hidden
-                                return@SimplePressable
-                            }
-                            // open menu
-                            val m = WheelMenu(
-                                hmd, listOf(
+                            val scene = getScene() ?: return@SimplePressable
+                            val m = VRFastSelectionWheel(
+                                it, scene, hmd, listOf(
                                     Action("clear all") { clearInk() },
-                                    Switch("eraser",eraserActive) { eraserActive = !eraserActive }
-                                ), true
+                                    Switch("eraser", eraserActive) { eraserActive = !eraserActive },
+                                    Action("hide") {
+                                        this.visible = false
+                                        this.detach()
+                                    })
                             )
-                            m.spatial().position = it.worldPosition()
-                            tip.getScene()?.addChild(m)
+
+                            m.init(0, 0)
+                            menu = m
+                        },
+                        onHold =
+                        {
+                            menu?.drag(0, 0)
+                        },
+                        onRelease =
+                        {
+                            menu?.end(0, 0)
                         }
                     )
                 )
