@@ -39,8 +39,8 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     var searchCubeStart: Box? = null
 
     val comGoLive = StageUICommand("goLive", "3"
-    ) { x, y -> stageSpaceManager.goLive() }
-    val comSteering = StageUICommand("steering", "4") { x, y ->
+    ) { _, _ -> stageSpaceManager.goLive() }
+    val comSteering = StageUICommand("steering", "4") { _, _ ->
         stageSpaceManager.focusTarget?.let {
             if (it.mode != FrameGizmo.Mode.STEERING) {
                 it.mode = FrameGizmo.Mode.STEERING
@@ -50,7 +50,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
             logger.info("focus frame mode is now ${it.mode}")
         }
     }
-    val comStackAcq = StageUICommand("stackAcq", "5") { x, y ->
+    val comStackAcq = StageUICommand("stackAcq", "5") { _, _ ->
         stageSpaceManager.focusTarget?.let {
             if (it.mode == FrameGizmo.Mode.STACK_SELECTION) {
                 stageSpaceManager.focusTarget?.let {
@@ -91,8 +91,8 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }
     })
     val comAblate = AblateStageUICommand(stageSpaceManager)
-    val comClearStage = StageUICommand("clearStage", "8") { x, y -> stageSpaceManager.clearStage() }
-    val comStop = StageUICommand("stop", "0") { x, y ->
+    val comClearStage = StageUICommand("clearStage", "8") { _, _ -> stageSpaceManager.clearStage() }
+    val comStop = StageUICommand("stop", "0") { _, _ ->
         searchCubeStart?.let { it.parent?.removeChild(it) }
         searchCubeStart = null
         stageSpaceManager.stop()
