@@ -1,6 +1,9 @@
 package microscenery.example
 
 import microscenery.DefaultScene
+import microscenery.VRUI.elements.Column
+import microscenery.VRUI.elements.Row
+import microscenery.VRUI.elements.TextBox
 import microscenery.VRUI.elements.ValueEdit
 import kotlin.concurrent.thread
 
@@ -9,7 +12,10 @@ class Playground() : DefaultScene() {
         super.init()
 
 
-        val menu = ValueEdit(0,{it+1},{it-1},{it+10},{it-10})
+        val menu = Column(
+            Row(TextBox("lasor bower")),
+            ValueEdit(0,{it+1},{it-1},{it+10},{it-10})
+        )
         scene.addChild(menu)
 
         thread {

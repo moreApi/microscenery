@@ -4,10 +4,10 @@ import graphics.scenery.RichNode
 import graphics.scenery.utils.lazyLogger
 
 /**
- * Currently assumes elements are mirrord in size
+ * Rows ugly cousin that assumes everyone has the height of 1.
  */
-class Row(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
-    : RichNode("UI Row"), Ui3DElement {
+class Column(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
+: RichNode("UI Column"), Ui3DElement {
     override val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     override var width = 0f
@@ -17,29 +17,25 @@ class Row(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middleAlig
         elements.forEach { this.addChild(it) }
         update += {
             val uiChildren = children.filterIsInstance(Ui3DElement::class.java)
-            val currentWidth = uiChildren.sumOf { it.width.toDouble() }.toFloat() + (uiChildren.size-1)*margin
-            if (currentWidth != width){
-                width = currentWidth
-                var indexWidth = 0f
+            val currentHeight = uiChildren.sumOf { 1.0 }.toFloat() + (uiChildren.size-1)*margin
+            if (currentHeight != width){
+                width = currentHeight
+                var indexHeight = 0f
                 uiChildren.forEach {
                     it.spatial(){
-                        position.x = indexWidth
+                        position.y = indexHeight
                         needsUpdate = true
                     }
-                    indexWidth += it.width + margin
+                    indexHeight += 1f + margin
                 }
                 if (middleAlign){
-                    indexWidth -= margin
+                    indexHeight -= margin
                     spatial {
-                        position.x = indexWidth * -0.5f
+                        position.y = indexHeight * -0.5f
                         needsUpdate = true
                     }
                 }
             }
         }
-    }
-
-    fun forceUpdate() {
-        width = -1f
     }
 }
