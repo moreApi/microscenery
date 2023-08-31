@@ -58,13 +58,13 @@ class VRUIManager {
             VRPress.createAndSet(
                 scene,
                 hmd,
-                listOf(OpenVRHMD.OpenVRButton.Trigger, OpenVRHMD.OpenVRButton.A),
+                listOf(OpenVRHMD.OpenVRButton.Trigger, OpenVRHMD.OpenVRButton.A, OpenVRHMD.OpenVRButton.Menu),
                 listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
             )
             Toolbox(
                 scene,
                 hmd,
-                listOf(OpenVRHMD.OpenVRButton.Menu),
+                listOf(MENU_BUTTON),
                 listOf(TrackerRole.RightHand),
                 customActionsPlusScaleSwitch,
                 stageSpaceUI?.stageSpaceManager,
@@ -72,7 +72,7 @@ class VRUIManager {
                 target
             )
             if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
-                VRSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+                VRFastSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
                     listOf(TrackerRole.LeftHand),
                     listOf(
                     "plan ablation" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.composeAblation()},
@@ -82,7 +82,7 @@ class VRUIManager {
                 )
             } else {
                 stageSpaceUI?.let { ssui ->
-                    VRSelectionWheel.createAndSet(
+                    VRFastSelectionWheel.createAndSet(
                         scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
                         listOf(TrackerRole.LeftHand),
                         ssui.vrMenuActions()

@@ -8,8 +8,8 @@ import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
-import graphics.scenery.controls.behaviours.VRSelectionWheel
-import graphics.scenery.controls.behaviours.VRSelectionWheel.Companion.toActions
+import graphics.scenery.controls.behaviours.VRFastSelectionWheel
+import graphics.scenery.controls.behaviours.VRFastSelectionWheel.Companion.toActions
 import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
@@ -138,7 +138,7 @@ class Toolbox(
                         val name = "ToolBoxWheelMenu:${hmd.trackingSystemName}:${device.role}:$button"
                         val vrToolSelector = EnableableDragBehaviorWrapper(
                             enabled,
-                            VRSelectionWheel(
+                            VRFastSelectionWheel(
                                 controller.children.first().spatialOrNull()
                                     ?: throw IllegalArgumentException("The target controller needs a spatial."),
                                 scene,
