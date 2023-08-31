@@ -1,10 +1,7 @@
 package microscenery.example
 
-import graphics.scenery.RichNode
 import microscenery.DefaultScene
-import microscenery.UI.Row
-import microscenery.UI.TextBox
-import org.joml.Vector3f
+import microscenery.VRUI.elements.ValueEdit
 import kotlin.concurrent.thread
 
 class Playground() : DefaultScene() {
@@ -12,46 +9,8 @@ class Playground() : DefaultScene() {
         super.init()
 
 
-        val menu = RichNode()
-
-
-
-
-        Row(
-            TextBox("laser power")
-        ).apply {
-            spatial {
-                position = Vector3f(0f, 0.6f, 0f)
-            }
-
-            menu.addChild(this)
-        }
-
-
-        Row(
-            TextBox("laser power")
-        ).apply {
-            spatial {
-                position = Vector3f(0f, 0.6f, 0f)
-            }
-            menu.addChild(this)
-        }
-
-        Row(
-            TextBox("++"),
-            TextBox("+"),
-            TextBox("5"),
-            TextBox("-"),
-            TextBox("--")
-        ).apply {
-            spatial {
-                position = Vector3f(0f, -0.6f, 0f)
-            }
-            menu.addChild(this)
-        }
-
+        val menu = ValueEdit(0,{it+1},{it-1},{it+10},{it-10})
         scene.addChild(menu)
-
 
         thread {
             menu

@@ -1,4 +1,4 @@
-package microscenery.UI
+package microscenery.VRUI.elements
 
 import graphics.scenery.attribute.spatial.HasSpatial
 
