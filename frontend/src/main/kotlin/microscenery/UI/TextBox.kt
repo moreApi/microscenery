@@ -9,13 +9,17 @@ import org.joml.Vector4f
 /**
  * Text with a Box behind it.
  */
-class TextBox(text: String, var margin: Float = 0.2f, var minSize: Float = 0f, thickness: Float = 0.5f): RichNode("TextBox") {
+class TextBox(text: String, var padding: Float = 0.2f, var minSize: Float = 0f, thickness: Float = 0.5f):
+    RichNode("TextBox"), Ui3DElement {
     val box = Box(Vector3f(1f, 1f, thickness))
     val board = TextBoard()
 
     var text by board::text
     var fontColor by board::fontColor
     var backgroundColor by box.material()::diffuse
+
+    override var width = 0f
+        private set
 
     init {
         board.text = text
@@ -41,7 +45,7 @@ class TextBox(text: String, var margin: Float = 0.2f, var minSize: Float = 0f, t
                     }
 
                     box.spatial {
-                        scale.x = maxX + margin
+                        scale.x = maxX + padding
                         position = Vector3f(
                             maxX / 2f,
                             0.43f,
@@ -49,6 +53,7 @@ class TextBox(text: String, var margin: Float = 0.2f, var minSize: Float = 0f, t
                         )
                         needsUpdate = true
                     }
+                    width = maxX
                     textGeom = board.geometry().vertices
                 }
             }
