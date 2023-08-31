@@ -28,7 +28,7 @@ class TransferFunctionManager(val sliceManager: SliceManager) : HasTransferFunct
             updateTransferFunction()
         }
 
-    override var range: Pair<Float, Float> = 0.0f to 1000f
+    override var range: Pair<Float, Float> = 0.0f to 10000f
 
     init {
         calculateOffsetAndScale()

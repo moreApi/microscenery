@@ -19,7 +19,8 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
 
 
         //val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
-        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
+//        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
+        val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila1.czi"""
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConNamedPipeConnector = Mockito.mock(SysConNamedPipeConnector::class.java)
@@ -31,7 +32,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
 
         thread {
             Thread.sleep(5000)
-
+            logger.info("loading $id")
             zenMicroscope.debugStack(id)
         }
         thread {

@@ -25,9 +25,10 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
 
 
-        //val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
+        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
         //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
-        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
+        //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
+        //val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConNamedPipeConnector = Mockito.mock(SysConNamedPipeConnector::class.java)
