@@ -1,5 +1,6 @@
 package microscenery.VRUI.elements
 
+import fromScenery.utils.extensions.times
 import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.primitives.TextBoard
@@ -9,7 +10,10 @@ import org.joml.Vector4f
 /**
  * Text with a Box behind it.
  */
-open class TextBox(text: String, var padding: Float = 0.2f, var minSize: Float = 0f, val height: Float = 1.0f, thickness: Float = 0.5f):
+open class TextBox(
+    text: String, var padding: Float = 0.2f, var minSize: Float = 0f,
+    final override var height: Float = 1.0f, thickness: Float = 0.5f
+) :
     RichNode("TextBox"), Ui3DElement {
     val box = Box(Vector3f(1f, height, thickness))
     val board = TextBoard()
@@ -26,8 +30,14 @@ open class TextBox(text: String, var padding: Float = 0.2f, var minSize: Float =
         board.name = "$text TextBox"
         board.transparent = 1
         board.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+        board.spatial {
+            scale *= height
+        }
+
         box.material().diffuse = Vector3f(1f)
-        box.spatial().position.z = box.sizes.z * -0.5f - 0.05f
+        box.spatial {
+            position.z = box.sizes.z * -0.5f - 0.05f
+        }
 
         this.addChild(board)
         this.addChild(box)
@@ -43,6 +53,7 @@ open class TextBox(text: String, var padding: Float = 0.2f, var minSize: Float =
                         bv.get()
                         bv.get()
                     }
+                    maxX *= board.spatial().scale.x
 
                     box.spatial {
                         scale.x = maxX + padding

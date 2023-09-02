@@ -85,13 +85,16 @@ class VRUIManager {
                     listOf(TrackerRole.LeftHand),
                     WheelMenu.TrackingMode.LIVE,
                     ui = Column(
-                        Row(TextBox("lasor bower")),
+                        Row(TextBox("lasor bower", height = 0.8f)),
                             ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
-                        Row(TextBox("lasor bower")),
-                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
-                        Row(TextBox("lasor bower")),
-                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
-                        Row(TextBox("ablate"))
+                        Row(TextBox("step size", height = 0.8f)),
+                            ValueEdit(500,{it+10},{it-10},{it+100},{it-100}),
+                        Row(TextBox("repetitions", height = 0.8f)),
+                            ValueEdit(1,{it+1},{it-1},{it+10},{it-10}),
+                        Row(Button("ablate"){
+                            println(" ablating!!!!")
+                        },
+                        middleAlign = true)
                     )
                 )
             } else {

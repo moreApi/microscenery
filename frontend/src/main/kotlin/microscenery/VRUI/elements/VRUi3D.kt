@@ -1,5 +1,7 @@
 package microscenery.VRUI.elements
 
+import fromScenery.utils.extensions.plus
+import graphics.scenery.RichNode
 import graphics.scenery.Scene
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
@@ -18,18 +20,20 @@ class VRUi3D(
     val controller: Spatial,
     val scene: Scene,
     val hmd: TrackerInput,
-    var trackingMode: WheelMenu.TrackingMode = WheelMenu.TrackingMode.LIVE,
-    var ui: Column,
+    var trackingMode: WheelMenu.TrackingMode,
+    var offset: Vector3f,
+    var scale: Float,
+    val ui: Column,
 ) : DragBehaviour {
 
+    val root = RichNode("VRUi3D")
 
     init {
-        ui.update.add {
+        root.addChild(ui)
+        root.update.add {
             if (trackingMode == WheelMenu.TrackingMode.LIVE) {
-                ui.spatial {
-                    rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
-                }
-                ui.spatial().position = controller.worldPosition()
+                ui.spatial().rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
+                root.spatial().position = controller.worldPosition() + offset
             }
         }
     }
@@ -39,17 +43,17 @@ class VRUi3D(
      * This function is called by the framework. Usually you don't need to call this.
      */
     override fun init(x: Int, y: Int) {
-        if (ui.parent == null){
-            ui.spatial {
-                position = controller.worldPosition()
-                if (trackingMode == WheelMenu.TrackingMode.START) {
-                    rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
-                }
-                scale = Vector3f(0.07f)
+        if (root.parent == null){
+            root.spatial().position = controller.worldPosition() + offset
+
+            if (trackingMode == WheelMenu.TrackingMode.START) {
+                ui.spatial().rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
             }
-            scene.addChild(ui)
+             ui.spatial().scale = Vector3f(scale)
+
+            scene.addChild(root)
         } else {
-            ui.detach()
+            root.detach()
         }
     }
 
@@ -79,6 +83,8 @@ class VRUi3D(
             button: List<OpenVRHMD.OpenVRButton>,
             controllerSide: List<TrackerRole>,
             trackingMode: WheelMenu.TrackingMode = WheelMenu.TrackingMode.LIVE,
+            offset: Vector3f = Vector3f(1.5f,0f,0.1f),
+            scale: Float = 0.05f,
             ui: Column,
         ): Future<VRUi3D> {
             val future = CompletableFuture<VRUi3D>()
@@ -93,6 +99,8 @@ class VRUi3D(
                                 scene,
                                 hmd,
                                 trackingMode,
+                                offset,
+                                scale,
                                 ui
                             )
                             hmd.addBehaviour(name, behavior)

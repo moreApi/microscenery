@@ -7,4 +7,9 @@ interface Ui3DElement: HasSpatial {
      * Assuming no scaling
      */
     val width: Float
+
+    /**
+     * Assuming no scaling
+     */
+    val height: Float
 }
