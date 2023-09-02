@@ -1,4 +1,4 @@
-package microscenery.VRUI.elements
+package microscenery.VRUI.Gui3D
 
 import fromScenery.utils.extensions.plus
 import graphics.scenery.RichNode
@@ -16,7 +16,7 @@ import org.scijava.ui.behaviour.DragBehaviour
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
-class VRUi3D(
+class VR3DGui(
     val controller: Spatial,
     val scene: Scene,
     val hmd: TrackerInput,
@@ -26,7 +26,9 @@ class VRUi3D(
     val ui: Column,
 ) : DragBehaviour {
 
-    val root = RichNode("VRUi3D")
+    class VR3DGuiRootNode(val owner:VR3DGui): RichNode("VRUi3D")
+
+    val root = VR3DGuiRootNode(this)
 
     init {
         root.addChild(ui)
@@ -83,17 +85,17 @@ class VRUi3D(
             button: List<OpenVRHMD.OpenVRButton>,
             controllerSide: List<TrackerRole>,
             trackingMode: WheelMenu.TrackingMode = WheelMenu.TrackingMode.LIVE,
-            offset: Vector3f = Vector3f(1.5f,0f,0.1f),
+            offset: Vector3f = Vector3f(0.15f,0f,0.1f),
             scale: Float = 0.05f,
             ui: Column,
-        ): Future<VRUi3D> {
-            val future = CompletableFuture<VRUi3D>()
+        ): Future<VR3DGui> {
+            val future = CompletableFuture<VR3DGui>()
             hmd.events.onDeviceConnect.add { _, device, _ ->
                 if (device.type == TrackedDeviceType.Controller) {
                     device.model?.let { controller ->
                         if (controllerSide.contains(device.role)) {
                             val name = "Ui3DWindow:${hmd.trackingSystemName}:${device.role}:$button"
-                            val behavior = VRUi3D(
+                            val behavior = VR3DGui(
                                 controller.children.first().spatialOrNull()
                                     ?: throw IllegalArgumentException("The target controller needs a spatial."),
                                 scene,

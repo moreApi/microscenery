@@ -27,7 +27,7 @@ class FrameGizmo(
     init {
         // ui interaction
         beams.forEach { beam ->
-            beam.addAttribute(Grabable::class.java, Grabable(target = this, lockRotation = true))
+            beam.addAttribute(Grabable::class.java, Grabable(target = {this}, lockRotation = true))
             beam.addAttribute(Touchable::class.java, Touchable())
             beam.addAttribute(
                 Pressable::class.java, PerButtonPressable(

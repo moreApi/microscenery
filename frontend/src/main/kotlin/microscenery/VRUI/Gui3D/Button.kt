@@ -1,4 +1,4 @@
-package microscenery.VRUI.elements
+package microscenery.VRUI.Gui3D
 
 import graphics.scenery.controls.behaviours.Pressable
 import graphics.scenery.controls.behaviours.SimplePressable

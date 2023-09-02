@@ -1,11 +1,11 @@
-package microscenery.VRUI.elements
+package microscenery.VRUI.Gui3D
 
 import graphics.scenery.RichNode
 import graphics.scenery.utils.lazyLogger
 
 
-open class Row(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
-    : RichNode("UI Row"), Ui3DElement {
+open class Row(vararg elements: Gui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
+    : RichNode("UI Row"), Gui3DElement {
     override val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     final override var width = 0f
@@ -15,8 +15,8 @@ open class Row(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middl
 
     init {
         elements.forEach { this.addChild(it) }
-        update += {
-            val uiChildren = children.filterIsInstance(Ui3DElement::class.java)
+        postUpdate += {
+            val uiChildren = children.filterIsInstance(Gui3DElement::class.java)
             val currentWidth = uiChildren.sumOf { it.width.toDouble() }.toFloat() + (uiChildren.size-1)*margin
             if (currentWidth != width){
                 width = currentWidth

@@ -1,4 +1,4 @@
-package microscenery.VRUI.elements
+package microscenery.VRUI.Gui3D
 
 class ValueEdit<T>(start:T,
                    plus: (T) -> T,
@@ -6,7 +6,7 @@ class ValueEdit<T>(start:T,
                    plusPlus: ((T) -> T)? = null,
                    minusMinus: ((T) -> T)? = null,
                    toString: ((T) -> String)? = null
-): Row(), Ui3DElement {
+): Row(), Gui3DElement {
 
     var value : T = start
         set(value) {

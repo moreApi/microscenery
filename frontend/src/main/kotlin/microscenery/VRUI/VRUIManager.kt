@@ -11,10 +11,10 @@ import graphics.scenery.controls.behaviours.*
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.UI.StageSpaceUI
+import microscenery.VRUI.Gui3D.*
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
-import microscenery.VRUI.elements.*
 import org.joml.Vector3f
 
 class VRUIManager {
@@ -81,7 +81,7 @@ class VRUIManager {
 //                    "ablate path" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.executeAblation() },
 //                    )
 //                )
-                VRUi3D.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+                VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
                     listOf(TrackerRole.LeftHand),
                     WheelMenu.TrackingMode.LIVE,
                     ui = Column(

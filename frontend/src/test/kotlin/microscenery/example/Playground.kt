@@ -1,10 +1,10 @@
 package microscenery.example
 
 import microscenery.DefaultScene
-import microscenery.VRUI.elements.Column
-import microscenery.VRUI.elements.Row
-import microscenery.VRUI.elements.TextBox
-import microscenery.VRUI.elements.ValueEdit
+import microscenery.VRUI.Gui3D.Column
+import microscenery.VRUI.Gui3D.Row
+import microscenery.VRUI.Gui3D.TextBox
+import microscenery.VRUI.Gui3D.ValueEdit
 import kotlin.concurrent.thread
 
 class Playground() : DefaultScene() {
