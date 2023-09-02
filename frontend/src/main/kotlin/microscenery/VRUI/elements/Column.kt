@@ -4,9 +4,9 @@ import graphics.scenery.RichNode
 import graphics.scenery.utils.lazyLogger
 
 /**
- * Rows ugly cousin that assumes everyone has the height of 1.
+ * Rows ugly cousin that assumes everyone has the height of 1. Anchor is bottom middle.
  */
-class Column(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
+class Column(vararg elements: Ui3DElement, val margin: Float = 0.3f, var middleAlign: Boolean = false)
 : RichNode("UI Column"), Ui3DElement {
     override val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -16,7 +16,7 @@ class Column(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middleA
     init {
         elements.forEach { this.addChild(it) }
         update += {
-            val uiChildren = children.filterIsInstance(Ui3DElement::class.java)
+            val uiChildren = children.filterIsInstance(Ui3DElement::class.java).reversed()
             val currentHeight = uiChildren.sumOf { 1.0 }.toFloat() + (uiChildren.size-1)*margin
             if (currentHeight != width){
                 width = currentHeight

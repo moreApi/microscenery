@@ -14,6 +14,7 @@ import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
+import microscenery.VRUI.elements.*
 import org.joml.Vector3f
 
 class VRUIManager {
@@ -72,12 +73,25 @@ class VRUIManager {
                 target
             )
             if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
-                VRFastSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+//                VRFastSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+//                    listOf(TrackerRole.LeftHand),
+//                    listOf(
+//                    "plan ablation" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.composeAblation()},
+//                    "remove plan" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.scrapAblation() },
+//                    "ablate path" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.executeAblation() },
+//                    )
+//                )
+                VRUi3D.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
                     listOf(TrackerRole.LeftHand),
-                    listOf(
-                    "plan ablation" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.composeAblation()},
-                    "remove plan" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.scrapAblation() },
-                    "ablate path" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.executeAblation() },
+                    WheelMenu.TrackingMode.LIVE,
+                    ui = Column(
+                        Row(TextBox("lasor bower")),
+                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
+                        Row(TextBox("lasor bower")),
+                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
+                        Row(TextBox("lasor bower")),
+                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
+                        Row(TextBox("ablate"))
                     )
                 )
             } else {

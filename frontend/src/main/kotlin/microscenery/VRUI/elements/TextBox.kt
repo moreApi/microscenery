@@ -9,9 +9,9 @@ import org.joml.Vector4f
 /**
  * Text with a Box behind it.
  */
-open class TextBox(text: String, var padding: Float = 0.2f, var minSize: Float = 0f, thickness: Float = 0.5f):
+open class TextBox(text: String, var padding: Float = 0.2f, var minSize: Float = 0f, val height: Float = 1.0f, thickness: Float = 0.5f):
     RichNode("TextBox"), Ui3DElement {
-    val box = Box(Vector3f(1f, 1f, thickness))
+    val box = Box(Vector3f(1f, height, thickness))
     val board = TextBoard()
 
     var text by board::text

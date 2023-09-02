@@ -3,9 +3,7 @@ package microscenery.VRUI.elements
 import graphics.scenery.RichNode
 import graphics.scenery.utils.lazyLogger
 
-/**
- * Currently assumes elements are mirrord in size
- */
+
 class Row(vararg elements: Ui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
     : RichNode("UI Row"), Ui3DElement {
     override val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))

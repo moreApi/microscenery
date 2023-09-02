@@ -1,9 +1,6 @@
 package microscenery.VRUI.elements
 
 import graphics.scenery.RichNode
-import graphics.scenery.controls.behaviours.Pressable
-import graphics.scenery.controls.behaviours.SimplePressable
-import graphics.scenery.controls.behaviours.Touchable
 
 class ValueEdit<T>(start:T,
                    plus: (T) -> T,
@@ -30,20 +27,13 @@ class ValueEdit<T>(start:T,
 
         valueText = TextBox(valueToString())
 
-        minusMinus?.let { row.addChild(generateButton("--",it)) }
-        row.addChild(generateButton("-",minus))
+        minusMinus?.let { row.addChild(Button("--") { value = it(value) }) }
+        row.addChild(Button("-") { value = minus(value) })
         row.addChild(valueText)
-        row.addChild(generateButton("+",plus))
-        plusPlus?.let { row.addChild(generateButton("++",it)) }
+        row.addChild(Button("+") { value = plus(value) })
+        plusPlus?.let { row.addChild(Button("++") { value = it(value) }) }
 
         this.addChild(row)
-    }
-
-    private fun generateButton(text: String,function: (T) -> T): TextBox {
-        return TextBox(text).also { box ->
-            box.addAttribute(Touchable::class.java, Touchable())
-            box.addAttribute(Pressable::class.java, SimplePressable(onPress = { value = function(value) }))
-        }
     }
 
 }
