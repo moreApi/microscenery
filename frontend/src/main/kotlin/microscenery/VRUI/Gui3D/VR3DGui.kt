@@ -26,7 +26,18 @@ class VR3DGui(
     val ui: Column,
 ) : DragBehaviour {
 
-    class VR3DGuiRootNode(val owner:VR3DGui): RichNode("VRUi3D")
+    class VR3DGuiRootNode(val owner:VR3DGui): RichNode("VRUi3D") {
+        val grabDummy = RichNode()
+        init{
+            grabDummy.update += {
+                grabDummy.spatial{
+                    owner.offset += position
+                    if (owner.trackingMode == WheelMenu.TrackingMode.START) /*rootNode.*/spatial().position += position
+                    position = Vector3f()
+                }
+            }
+        }
+    }
 
     val root = VR3DGuiRootNode(this)
     val longPressTime = 5000
@@ -54,7 +65,7 @@ class VR3DGui(
      * This function is called by the framework. Usually you don't need to call this.
      */
     override fun drag(x: Int, y: Int) {
-        if (startPressTime + longPressTime < System.currentTimeMillis()){
+        if (root.parent != null && startPressTime + longPressTime < System.currentTimeMillis()){
             offset = Vector3f()
             root.spatial().position = controller.worldPosition() + offset
         }

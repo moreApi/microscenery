@@ -1,11 +1,9 @@
 package microscenery.VRUI.Gui3D
 
-import fromScenery.utils.extensions.minus
-import fromScenery.utils.extensions.plus
 import graphics.scenery.attribute.geometry.HasGeometry
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.controls.behaviours.Grabable
-import org.joml.Vector3f
+import microscenery.detach
 
 /**
  * REMEMBER TO [initGrabable]
@@ -26,20 +24,16 @@ interface Gui3DElement: HasSpatial {
      */
     fun initGrabable(node: HasGeometry){
         var grab: Grabable? = null
-        var start = Vector3f()
         grab = Grabable(onGrab = {
             var cur = node.parent
             while (cur != null && cur !is VR3DGui.VR3DGuiRootNode) cur = cur.parent
             if (cur is VR3DGui.VR3DGuiRootNode){
-                grab?.target = {cur}
-                cur.ifSpatial {
-                    start = position
-                }
+                grab?.target = {cur.grabDummy}
+                cur.addChild(cur.grabDummy)
             }
         }, onRelease = {
             val rn = grab?.target?.let { it() as? VR3DGui.VR3DGuiRootNode} ?: return@Grabable
-            val diff = rn.spatial().position - start
-            rn.owner.offset += diff
+            rn.grabDummy.detach()
         }, lockRotation = true)
         node.addAttribute(Grabable::class.java,grab)
     }
