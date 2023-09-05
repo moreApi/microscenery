@@ -128,7 +128,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }),
         StageUICommand("openEditors", "T", object : ClickBehaviour {
             override fun click(x: Int, y: Int) {
-                TransferFunctionEditor.showTFFrame(stageSpaceManager.sliceManager.transferFunctionManager)
+                TransferFunctionEditor.showTFFrame(stageSpaceManager.sliceManager.transferFunctionManager, "Transfer Function")
                 SettingsEditor(MicroscenerySettings)
             }
         }),
