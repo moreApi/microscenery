@@ -21,14 +21,15 @@ class LocalZenSceneVR : DefaultVRScene() {
         super.init()
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
+        MicroscenerySettings.set(Settings.Ablation.Enabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
 
 
-        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
+//        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
         //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
         //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
-        //val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
+        val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConNamedPipeConnector = Mockito.mock(SysConNamedPipeConnector::class.java)

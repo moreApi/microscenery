@@ -19,7 +19,7 @@ class Column(vararg elements: Gui3DElement, val margin: Float = 0.2f, var middle
         elements.forEach { this.addChild(it) }
         postUpdate += {
             val uiChildren = children.filterIsInstance(Gui3DElement::class.java).reversed()
-            val currentHeight = uiChildren.sumOf { 1.0 }.toFloat() + (uiChildren.size-1)*margin
+            val currentHeight = uiChildren.sumOf { it.height.toDouble() }.toFloat() + (uiChildren.size-1)*margin
             if (currentHeight != height){
                 height = currentHeight
                 var indexHeight = 0f
@@ -28,15 +28,14 @@ class Column(vararg elements: Gui3DElement, val margin: Float = 0.2f, var middle
                         position.y = indexHeight
                         needsUpdate = true
                     }
-                    indexHeight += 1f + margin
+                    indexHeight += it.height + margin
                 }
-                if (middleAlign){
-                    indexHeight -= margin
-                    spatial {
-                        position.y = indexHeight * -0.5f
-                        needsUpdate = true
-                    }
+
+                spatial {
+                    position.y = if (middleAlign) (indexHeight-margin) * -0.5f else 0f
+                    needsUpdate = true
                 }
+
                 width = uiChildren.maxOf { it.width }
             }
         }
