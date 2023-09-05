@@ -51,11 +51,11 @@ class Toolbox(
         }
 
         addIfEnabled(Settings.VRToolbox.SlicingEnabled, "slicing tool") { device ->
-            target()?.let {
-                if (it !is Volume) return@let
+            stageSpaceManager?.sliceManager?.stacks?.firstOrNull()?.let {
+                val vol = it.volume
                 scene.addChild(croppingTool)
                 croppingTool.spatial().position = device.worldPosition()
-                croppingTool.activate(it)
+                croppingTool.activate(vol)
             }
         }
         addIfEnabled(Settings.VRToolbox.DrawPointsEnabled, "point") { device ->

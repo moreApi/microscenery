@@ -24,6 +24,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.Ablation.Enabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
 
 
 //        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
