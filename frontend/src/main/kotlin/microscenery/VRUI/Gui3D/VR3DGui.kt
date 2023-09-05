@@ -8,7 +8,7 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerInput
 import graphics.scenery.controls.TrackerRole
-import graphics.scenery.controls.behaviours.WheelMenu
+import microscenery.VRUI.fromScenery.WheelMenu
 import microscenery.detach
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -31,7 +31,6 @@ class VR3DGui(
         init{
             grabDummy.update += {
                 grabDummy.spatial{
-                    position.div(scale)
                     owner.offset += position
                     if (owner.trackingMode == WheelMenu.TrackingMode.START) /*rootNode.*/spatial().position += position
                     position = Vector3f()
@@ -41,11 +40,12 @@ class VR3DGui(
     }
 
     val root = VR3DGuiRootNode(this)
+    val scalePivot = RichNode().apply { root.addChild(this) }
     val longPressTime = 5000
     var startPressTime = 0L
 
     init {
-        root.addChild(ui)
+        scalePivot.addChild(ui)
         root.update.add {
             if (trackingMode == WheelMenu.TrackingMode.LIVE) {
                 ui.spatial().rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
@@ -84,7 +84,7 @@ class VR3DGui(
             if (trackingMode == WheelMenu.TrackingMode.START) {
                 ui.spatial().rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
             }
-            root.spatial().scale = Vector3f(scale)
+            scalePivot.spatial().scale = Vector3f(scale)
 
             scene.addChild(root)
         } else {
