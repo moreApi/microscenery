@@ -15,6 +15,7 @@ import microscenery.VRUI.Gui3D.*
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
+import microscenery.VRUI.fromScenery.WheelMenu
 import org.joml.Vector3f
 
 class VRUIManager {

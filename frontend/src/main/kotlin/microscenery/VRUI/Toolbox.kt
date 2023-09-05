@@ -8,13 +8,13 @@ import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
-import graphics.scenery.controls.behaviours.VRFastSelectionWheel
-import graphics.scenery.controls.behaviours.VRFastSelectionWheel.Companion.toActions
-import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
 import microscenery.MicroscenerySettings
 import microscenery.Settings
+import microscenery.VRUI.fromScenery.VRFastSelectionWheel
+import microscenery.VRUI.fromScenery.VRFastSelectionWheel.Companion.toActions
+import microscenery.VRUI.fromScenery.WheelMenu
 import microscenery.stageSpace.StageSpaceManager
 import org.scijava.ui.behaviour.DragBehaviour
 

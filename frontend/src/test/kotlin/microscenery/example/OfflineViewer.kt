@@ -4,7 +4,6 @@ import bvv.core.VolumeViewerOptions
 import graphics.scenery.Hub
 import graphics.scenery.Origin
 import graphics.scenery.controls.behaviours.Switch
-import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
@@ -12,6 +11,7 @@ import graphics.scenery.volumes.Volume
 import microscenery.DefaultScene
 import microscenery.DefaultVRScene
 import microscenery.VRUI.VRUIManager
+import microscenery.VRUI.fromScenery.WheelMenu
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.concurrent.thread

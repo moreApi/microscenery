@@ -1,11 +1,11 @@
 package microscenery.example
 
-import graphics.scenery.controls.behaviours.WheelMenu
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
 import microscenery.VRUI.VRUIManager
+import microscenery.VRUI.fromScenery.WheelMenu
 import org.joml.Vector3f
 import kotlin.io.path.Path
 

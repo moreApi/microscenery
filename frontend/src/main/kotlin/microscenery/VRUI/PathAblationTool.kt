@@ -9,6 +9,7 @@ import graphics.scenery.controls.behaviours.*
 import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.Wiggler
 import microscenery.UP
+import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.detach
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf

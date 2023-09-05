@@ -9,6 +9,7 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.utils.Wiggler
 import microscenery.*
+import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.primitives.Pyramid
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
