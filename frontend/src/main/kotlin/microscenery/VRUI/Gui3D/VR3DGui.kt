@@ -29,6 +29,8 @@ class VR3DGui(
     class VR3DGuiRootNode(val owner:VR3DGui): RichNode("VRUi3D")
 
     val root = VR3DGuiRootNode(this)
+    val longPressTime = 5000
+    var startPressTime = 0L
 
     init {
         root.addChild(ui)
@@ -45,30 +47,37 @@ class VR3DGui(
      * This function is called by the framework. Usually you don't need to call this.
      */
     override fun init(x: Int, y: Int) {
-        if (root.parent == null){
-            root.spatial().position = controller.worldPosition() + offset
-
-            if (trackingMode == WheelMenu.TrackingMode.START) {
-                ui.spatial().rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
-            }
-             ui.spatial().scale = Vector3f(scale)
-
-            scene.addChild(root)
-        } else {
-            root.detach()
-        }
+        startPressTime = System.currentTimeMillis()
     }
 
     /**
      * This function is called by the framework. Usually you don't need to call this.
      */
     override fun drag(x: Int, y: Int) {
+        if (startPressTime + longPressTime < System.currentTimeMillis()){
+            offset = Vector3f()
+            root.spatial().position = controller.worldPosition() + offset
+        }
     }
 
     /**
      * This function is called by the framework. Usually you don't need to call this.
      */
     override fun end(x: Int, y: Int) {
+        if (startPressTime + longPressTime < System.currentTimeMillis()) return // long press happend
+
+        if (root.parent == null){
+            root.spatial().position = controller.worldPosition() + offset
+
+            if (trackingMode == WheelMenu.TrackingMode.START) {
+                ui.spatial().rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
+            }
+            ui.spatial().scale = Vector3f(scale)
+
+            scene.addChild(root)
+        } else {
+            root.detach()
+        }
     }
 
     /**
