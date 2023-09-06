@@ -100,7 +100,7 @@ fun Settings.setVector3fIfUnset(baseName: String, v: Vector3f){
     this.setIfUnset(baseName+"Z", v.z)
 }
 
-fun Settings.setVector3(baseName: String, v: Vector3f){
+fun Settings.setVector3f(baseName: String, v: Vector3f){
     this.set(baseName+"X", v.x)
     this.set(baseName+"Y", v.y)
     this.set(baseName+"Z", v.z)

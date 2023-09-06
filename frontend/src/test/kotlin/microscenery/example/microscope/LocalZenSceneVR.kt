@@ -6,7 +6,7 @@ import microscenery.Settings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
-import microscenery.setVector3
+import microscenery.setVector3f
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenMicroscope
@@ -26,7 +26,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
-        MicroscenerySettings.setVector3(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
+        MicroscenerySettings.setVector3f(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
 
 
 //        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""

@@ -16,7 +16,7 @@ class DemoHWSceneVR : DefaultVRScene() {
 
         MicroscenerySettings.set("Stage.precisionXY", 1f)
         MicroscenerySettings.set("Stage.precisionZ", 1f)
-        MicroscenerySettings.setVector3("Ablation.PointCloud.MinDistUm", Vector3f(1f))
+        MicroscenerySettings.setVector3f("Ablation.PointCloud.MinDistUm", Vector3f(1f))
 
         MicroscenerySettings.set(Settings.Ablation.Enabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
