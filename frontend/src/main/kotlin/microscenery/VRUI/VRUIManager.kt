@@ -5,7 +5,10 @@ import graphics.scenery.Scene
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
-import graphics.scenery.controls.behaviours.*
+import graphics.scenery.controls.behaviours.Touch
+import graphics.scenery.controls.behaviours.VRGrab
+import graphics.scenery.controls.behaviours.VRPress
+import graphics.scenery.controls.behaviours.VRTouch
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.UI.StageSpaceUI
@@ -14,6 +17,8 @@ import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
 import microscenery.VRUI.fromScenery.WheelMenu
+import org.joml.Quaternionf
+import org.joml.Vector3f
 
 class VRUIManager {
 
@@ -43,16 +48,8 @@ class VRUIManager {
                     hmd,
                     OpenVRHMD.OpenVRButton.Side,
                     scene,
-                    rotationLocked = false,
                     stageSpaceManager = stageSpaceUI?.stageSpaceManager
                 )
-
-            val scalingLockToggle = Switch(
-                "lock scaling", false
-            ) { vr2HandSpatialManipulation.getNow(null)?.scaleLocked = it }
-            val customActionsPlusScaleSwitch =
-                WheelMenu(hmd, (customActions?.actions ?: emptyList()) + scalingLockToggle, true)
-
             VRGrab.createAndSet(
                 scene,
                 hmd,
@@ -67,48 +64,64 @@ class VRUIManager {
                 listOf(OpenVRHMD.OpenVRButton.Trigger, OpenVRHMD.OpenVRButton.A, OpenVRHMD.OpenVRButton.Menu),
                 listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
             )
+
+
+            // ----------------- Menus -----------------
             Toolbox(
                 scene,
                 hmd,
                 listOf(MENU_BUTTON),
                 listOf(TrackerRole.RightHand),
-                customActionsPlusScaleSwitch,
+                customActions?.let { WheelMenu(hmd, it.actions, true) },
                 stageSpaceUI?.stageSpaceManager
             ) { touch.get()?.selected?.isEmpty() ?: true }
 
-            if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
-//                VRFastSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
-//                    listOf(TrackerRole.LeftHand),
-//                    listOf(
-//                    "plan ablation" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.composeAblation()},
-//                    "remove plan" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.scrapAblation() },
-//                    "ablate path" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.executeAblation() },
-//                    )
-//                )
-                val tf = stageSpaceUI?.stageSpaceManager?.sliceManager?.transferFunctionManager ?: return
-                VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
-                    listOf(TrackerRole.LeftHand),
-                    WheelMenu.TrackingMode.LIVE,
-                    ui = TabbedMenu(
-                        "Displ Rng" to Column(
-                            Row(TextBox("Display Range", height = 0.8f)),
-                            ValueEdit(tf.maxDisplayRange,{tf.maxDisplayRange+=10f;tf.maxDisplayRange},{tf.maxDisplayRange-=10f;tf.maxDisplayRange},{tf.maxDisplayRange+=100f;tf.maxDisplayRange},{tf.maxDisplayRange-=100f;tf.maxDisplayRange}),
-                            ValueEdit(tf.minDisplayRange,{tf.minDisplayRange+=10f;tf.minDisplayRange},{tf.minDisplayRange-=10f;tf.minDisplayRange},{tf.minDisplayRange+=100f;tf.minDisplayRange},{tf.minDisplayRange-=100f;tf.minDisplayRange}),
-                        ),
-                        "Ablation" to Column(
-                            Row(TextBox("lasor bower", height = 0.8f)),
-                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
-                            Row(TextBox("step size", height = 0.8f)),
-                            ValueEdit(500,{it+10},{it-10},{it+100},{it-100}),
-                            Row(TextBox("repetitions", height = 0.8f)),
-                            ValueEdit(1,{it+1},{it-1},{it+10},{it-10}),
-                            Row(Button("ablate"){
-                                println(" ablating!!!!")
-                            })
-                        ),
-                    )
+
+            val leftHandMenu = mutableListOf<Pair<String, Column>>()
+            stageSpaceUI?.stageSpaceManager?.sliceManager?.transferFunctionManager?.let { tf ->
+                leftHandMenu += "Displ Rng" to Column(
+                    Row(TextBox("Display Range", height = 0.8f)),
+                    ValueEdit(tf.minDisplayRange,{tf.minDisplayRange+=10f;tf.minDisplayRange},{tf.minDisplayRange-=10f;tf.minDisplayRange},{tf.minDisplayRange+=100f;tf.minDisplayRange},{tf.minDisplayRange-=100f;tf.minDisplayRange}),
+                    ValueEdit(tf.maxDisplayRange,{tf.maxDisplayRange+=10f;tf.maxDisplayRange},{tf.maxDisplayRange-=10f;tf.maxDisplayRange},{tf.maxDisplayRange+=100f;tf.maxDisplayRange},{tf.maxDisplayRange-=100f;tf.maxDisplayRange}),
                 )
-            } else {
+            }
+
+            if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
+                leftHandMenu +=
+                    "Ablation" to Column(
+                        Row(TextBox("lasor bower", height = 0.8f)),
+                        ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
+                        Row(TextBox("step size", height = 0.8f)),
+                        ValueEdit(500,{it+10},{it-10},{it+100},{it-100}),
+                        Row(TextBox("repetitions", height = 0.8f)),
+                        ValueEdit(1,{it+1},{it-1},{it+10},{it-10}),
+                        Row(Button("ablate"){
+                            println(" ablating!!!!")
+                        })
+                    )
+            }
+            leftHandMenu += "Options" to Column(
+                Switch("lock scaling", false, true)
+                { vr2HandSpatialManipulation.getNow(null)?.scaleLocked = it },
+                Switch("lock rotation", false, true)
+                { vr2HandSpatialManipulation.getNow(null)?.rotationLocked = it },
+                Button("reset") {
+                    scene.activeObserver?.spatial {
+                        position = Vector3f(0.0f, 0.0f, 5.0f)
+                    }
+                    stageSpaceUI?.stageSpaceManager?.scaleAndRotationPivot?.spatial {
+                        rotation = Quaternionf()
+                        scale = Vector3f(1f)
+                        position = Vector3f()
+                    }
+                }
+            )
+            VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+                listOf(TrackerRole.LeftHand),
+                WheelMenu.TrackingMode.LIVE,
+                ui = TabbedMenu(*leftHandMenu.toTypedArray())
+            )
+            /* TODO: build this in again
                 stageSpaceUI?.let { ssui ->
                     VRFastSelectionWheel.createAndSet(
                         scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
@@ -116,7 +129,7 @@ class VRUIManager {
                         ssui.vrMenuActions()
                     )
                 }
-            }
+             */
         }
 
         private fun InputHandler.initStickMovement(hmd: OpenVRHMD) {
