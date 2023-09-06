@@ -53,9 +53,13 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
 
                     //Create aim balls on top of controllers
                     val indicator = Sphere(0.015f, 10)
-                    indicator.name = "collider"
+                    indicator.name = "indicator"
                     indicator.material().diffuse = Vector3f(1f)
                     controller.addChild(indicator)
+
+                    val collider = Box(Vector3f(.00001f))
+                    collider.name = "collider"
+                    controller.addChild(collider)
                 }
             }
         }
