@@ -80,6 +80,8 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
             light
         }.forEach { scene.addChild(it) }
 
+        scene.addChild(AmbientLight(intensity = 0.05f))
+
         hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         hullbox.name = "hullbox"
         hullbox.material {
