@@ -5,6 +5,7 @@ import graphics.scenery.RichNode
 import graphics.scenery.controls.behaviours.Pressable
 import graphics.scenery.controls.behaviours.SimplePressable
 import graphics.scenery.controls.behaviours.Touchable
+import microscenery.changeColorWithTouchable
 import org.joml.Vector3f
 
 class Switch(label: String, value:Boolean, middleAlign:Boolean = false,  onChange: (Boolean) -> Unit)
@@ -44,14 +45,7 @@ class Switch(label: String, value:Boolean, middleAlign:Boolean = false,  onChang
 
             knob.addAttribute(Pressable::class.java, SimplePressable(onRelease = {
                 val newColor = if (toggle()) onColor else offColor
-                val touch = knob.getAttribute(Touchable::class.java)
-                if (touch.originalDiffuse != null){
-                    // this might screw with [VRTouch]s coloring, but it's not too bad as the menu is rebuild
-                    // for every opening anew
-                    touch.originalDiffuse = newColor
-                } else {
-                    knob.material().diffuse = newColor
-                }
+                knob.changeColorWithTouchable(newColor)
 
                 knob.spatial().position.x = bg.sizes.x * 0.25f * if (value) 1 else -1
                 knob.spatial().needsUpdate = true
