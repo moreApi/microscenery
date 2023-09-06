@@ -7,6 +7,7 @@ import microscenery.detach
 
 /**
  * REMEMBER TO [initGrabable]
+ * Anchor point is usually front bottom left corner for elements and front bottom middle for collections
  */
 interface Gui3DElement: HasSpatial {
     /**
