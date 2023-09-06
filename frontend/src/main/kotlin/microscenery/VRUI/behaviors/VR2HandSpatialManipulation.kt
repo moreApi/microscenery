@@ -7,8 +7,11 @@ import graphics.scenery.controls.behaviours.VRScale
 import graphics.scenery.controls.behaviours.VRTwoHandDragBehavior
 import graphics.scenery.controls.behaviours.VRTwoHandDragOffhand
 import graphics.scenery.utils.extensions.minus
+import graphics.scenery.utils.extensions.plusAssign
 import graphics.scenery.utils.extensions.times
 import microscenery.UP
+import microscenery.stageSpace.StageSpaceManager
+import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.concurrent.CompletableFuture
@@ -21,7 +24,7 @@ class VR2HandSpatialManipulation(
     val scene: Scene,
     var scaleLocked: Boolean = false,
     var rotationLocked: Boolean = false,
-    val target: () -> Spatial?
+    val stageSpaceManager: StageSpaceManager?
 ) : VRTwoHandDragBehavior(name, controller, offhand) {
 
 
@@ -41,12 +44,27 @@ class VR2HandSpatialManipulation(
 
         val newReinRotation = Quaternionf().lookAlong(newRein, UP)
         val oldReinRotation = Quaternionf().lookAlong(oldRein, UP)
-        val diff = oldReinRotation.mul(newReinRotation.invert())
+        val diffRotation = oldReinRotation.mul(newReinRotation.invert())
 
-        target()?.apply {
-            if (!rotationLocked) this.rotation.mul(diff)
-            if (!scaleLocked) this.scale *= Vector3f(scaleDelta)
-            this.needsUpdate = true
+        stageSpaceManager?.let {
+            val target = stageSpaceManager.scaleAndRotationPivot.spatial()
+            val pivot =
+                stageSpaceManager.sliceManager.stacks.firstOrNull()?.volume?.spatial()?.worldPosition() ?: return@let
+
+            if (!rotationLocked) { //this.rotation.mul(diff)
+                val rot = Matrix4f().translate(pivot).rotate(diffRotation).translate(pivot.times(-1f))
+                target.position += rot.getTranslation(Vector3f())
+                target.rotation.mul(rot.getNormalizedRotation(Quaternionf()))
+            }
+            if (!scaleLocked) {
+                // pivot and target are in same space
+                for (i in 0..2) {
+                    target.position.setComponent(i, (target.position[i] + pivot[i] * (scaleDelta - 1)))
+                }
+                target.scale *= scaleDelta
+            }
+
+            target.needsUpdate = true
         }
     }
 
@@ -60,7 +78,7 @@ class VR2HandSpatialManipulation(
             scene: Scene,
             scaleLocked: Boolean = false,
             rotationLocked: Boolean = false,
-            target: () -> Spatial?
+            stageSpaceManager: StageSpaceManager?,
         ): CompletableFuture<VR2HandSpatialManipulation> {
             @Suppress("UNCHECKED_CAST") return createAndSet(
                 hmd, button
@@ -72,7 +90,7 @@ class VR2HandSpatialManipulation(
                     scene,
                     scaleLocked,
                     rotationLocked,
-                    target = target
+                    stageSpaceManager
                 )
             } as CompletableFuture<VR2HandSpatialManipulation>
         }

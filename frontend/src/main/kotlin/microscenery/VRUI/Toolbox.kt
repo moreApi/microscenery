@@ -1,6 +1,5 @@
 package microscenery.VRUI
 
-import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
@@ -9,7 +8,6 @@ import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.volumes.Colormap
-import graphics.scenery.volumes.Volume
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel
@@ -25,8 +23,7 @@ class Toolbox(
     controllerSide: List<TrackerRole>,
     customMenu: WheelMenu? = null,
     stageSpaceManager: StageSpaceManager? = null,
-    enabled: () -> Boolean = {true},
-    target: () -> Node?
+    enabled: () -> Boolean = {true}
 ) {
     val pointTool = PointEntityTool()
     val lineTool = LineEntityTool()
@@ -91,8 +88,8 @@ class Toolbox(
             scene.addChild(m)
         }
         addIfEnabled(Settings.VRToolbox.ColorChooserEnabled, "color") {
-            target()?.let { volume ->
-                if (volume !is Volume) return@let
+            stageSpaceManager?.sliceManager?.stacks?.firstOrNull()?.let { stack ->
+                val volume = stack.volume
                 val m = WheelMenu(hmd, Colormap.list().map {
                     Action(it) { volume.colormap = Colormap.get(it) }
                 }.toList(), true)

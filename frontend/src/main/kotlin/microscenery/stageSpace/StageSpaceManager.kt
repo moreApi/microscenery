@@ -35,6 +35,8 @@ class StageSpaceManager(
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val stageRoot = RichNode("stage root")
+    val scaleAndRotationPivot = RichNode("scaleAndRotationPivot")
+
     val focus: Frame
     var focusTarget: FrameGizmo? = null
 
@@ -56,7 +58,9 @@ class StageSpaceManager(
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
         MicroscenerySettings.setIfUnset("Stage.NextStackLive", false)
 
-        scene.addChild(stageRoot)
+
+        scene.addChild(scaleAndRotationPivot)
+        scaleAndRotationPivot.addChild(stageRoot)
 
         stageAreaBorders = Box(Vector3f(1f), insideNormals = true)
         stageAreaBorders.name = "stageAreaBorders"

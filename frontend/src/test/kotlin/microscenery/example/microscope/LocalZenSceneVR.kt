@@ -41,7 +41,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         stageSpaceManager.focus.visible = false
 
         thread {
-            Thread.sleep(2000)
+            Thread.sleep(100)
 
             zenMicroscope.debugStack(id)
         }
@@ -63,10 +63,8 @@ class LocalZenSceneVR : DefaultVRScene() {
 
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
-            stageSpaceUI = ssUI
-        ) {
-            stageSpaceManager.stageRoot
-        }
+            stageSpaceUI = ssUI,
+        )
     }
 
     companion object {

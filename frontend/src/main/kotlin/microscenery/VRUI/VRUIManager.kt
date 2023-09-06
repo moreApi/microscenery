@@ -27,7 +27,7 @@ class VRUIManager {
             inputHandler: InputHandler?,
             customActions: WheelMenu? = null,
             stageSpaceUI: StageSpaceUI? = null,
-            target: () -> Node?,
+            target: () -> Node? = {null}, //TODO unused
         ) {
             initControllerIndicator(hmd)
 
@@ -41,8 +41,16 @@ class VRUIManager {
 
             inputHandler?.initStickMovement(hmd)
 
+
             val vr2HandSpatialManipulation =
-                VR2HandSpatialManipulation.createAndSet(hmd, OpenVRHMD.OpenVRButton.Side, scene, rotationLocked = true){target()?.spatialOrNull()}
+                VR2HandSpatialManipulation.createAndSet(
+                    hmd,
+                    OpenVRHMD.OpenVRButton.Side,
+                    scene,
+                    rotationLocked = false,
+                    stageSpaceManager = stageSpaceUI?.stageSpaceManager
+                )
+
             val scalingLockToggle = Switch(
                 "lock scaling", false
             ) { vr2HandSpatialManipulation.getNow(null)?.scaleLocked = it }
@@ -70,8 +78,7 @@ class VRUIManager {
                 listOf(TrackerRole.RightHand),
                 customActionsPlusScaleSwitch,
                 stageSpaceUI?.stageSpaceManager,
-                {touch.get()?.selected?.isEmpty() ?: true},
-                target
+                {touch.get()?.selected?.isEmpty() ?: true}
             )
             if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
 //                VRFastSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
