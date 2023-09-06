@@ -48,8 +48,7 @@ class VR2HandSpatialManipulation(
 
         stageSpaceManager?.let {
             val target = stageSpaceManager.scaleAndRotationPivot.spatial()
-            val pivot =
-                stageSpaceManager.sliceManager.stacks.firstOrNull()?.volume?.spatial()?.worldPosition() ?: return@let
+            val pivot = stageSpaceManager.stageRoot.spatial().worldPosition(stageSpaceManager.stageAreaCenter)
 
             if (!rotationLocked) { //this.rotation.mul(diff)
                 val rot = Matrix4f().translate(pivot).rotate(diffRotation).translate(pivot.times(-1f))
