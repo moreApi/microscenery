@@ -20,7 +20,7 @@ dependencies {
     // - branch-of-jan
     // - LineColorFix
     // TODO WIP WIP evrything is broken and temp
-    implementation("graphics.scenery:scenery:f6cca76")
+    implementation("graphics.scenery:scenery:082677f")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 

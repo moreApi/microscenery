@@ -7,7 +7,6 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.numerics.Random
 import org.joml.Vector3f
-import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
 /**
@@ -29,7 +28,7 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
         hmd = OpenVRHMD(useCompositor = true)
 
         if (!hmd.initializedAndWorking()) {
-            logger.error("This demo is intended to show the use of OpenVR, but no OpenVR-compatible HMD could be initialized.")
+            logger.error("This is intended to use OpenVR, but no OpenVR-compatible HMD could be initialized.")
             exitProcess(1)
         }
         hub.add(SceneryElement.HMDInput, hmd)
@@ -44,19 +43,19 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
         cam.perspectiveCamera(50.0f, windowWidth, windowHeight)
         scene.addChild(cam)
 
-        thread {
-            while (!running) {
-                Thread.sleep(200)
-            }
+        hmd.events.onDeviceConnect.add { hmd, device, timestamp ->
+            if (device.type == TrackedDeviceType.Controller) {
+                logger.info("Got device ${device.name} at $timestamp")
+                device.model?.let { controller ->
+                    // This attaches the model of the controller to the controller's transforms
+                    // from the OpenVR/SteamVR system.
+                    hmd.attachToNode(device, controller, cam)
 
-            hmd.events.onDeviceConnect.add { hmd, device, timestamp ->
-                if (device.type == TrackedDeviceType.Controller) {
-                    logger.info("Got device ${device.name} at $timestamp")
-                    device.model?.let { controller ->
-                        // This attaches the model of the controller to the controller's transforms
-                        // from the OpenVR/SteamVR system.
-                        hmd.attachToNode(device, controller, cam)
-                    }
+                    //Create aim balls on top of controllers
+                    val indicator = Sphere(0.015f, 10)
+                    indicator.name = "collider"
+                    indicator.material().diffuse = Vector3f(1f)
+                    controller.addChild(indicator)
                 }
             }
         }

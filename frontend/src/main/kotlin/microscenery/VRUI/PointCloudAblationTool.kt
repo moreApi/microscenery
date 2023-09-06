@@ -36,7 +36,7 @@ class PointCloudAblationTool(
     private var menu: VRFastSelectionWheel? = null
 
     init {
-        MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(100f))
+        MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(1f))
 
         val tipLength = 0.06f
         tip = Pyramid(0.03f,0.03f,tipLength)

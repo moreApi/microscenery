@@ -2,10 +2,8 @@ package microscenery.VRUI
 
 import graphics.scenery.Node
 import graphics.scenery.Scene
-import graphics.scenery.Sphere
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
-import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.*
 import microscenery.MicroscenerySettings
@@ -16,7 +14,6 @@ import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
 import microscenery.VRUI.fromScenery.WheelMenu
-import org.joml.Vector3f
 
 class VRUIManager {
 
@@ -29,7 +26,6 @@ class VRUIManager {
             stageSpaceUI: StageSpaceUI? = null,
             target: () -> Node? = {null}, //TODO unused
         ) {
-            initControllerIndicator(hmd)
 
             VRGrabTheWorldSelfMove.createAndSet(
                 scene, hmd, listOf(OpenVRHMD.OpenVRButton.Down), listOf(TrackerRole.RightHand)
@@ -77,9 +73,9 @@ class VRUIManager {
                 listOf(MENU_BUTTON),
                 listOf(TrackerRole.RightHand),
                 customActionsPlusScaleSwitch,
-                stageSpaceUI?.stageSpaceManager,
-                {touch.get()?.selected?.isEmpty() ?: true}
-            )
+                stageSpaceUI?.stageSpaceManager
+            ) { touch.get()?.selected?.isEmpty() ?: true }
+
             if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
 //                VRFastSelectionWheel.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
 //                    listOf(TrackerRole.LeftHand),
@@ -135,22 +131,6 @@ class VRUIManager {
                 getBehaviour(name)?.let { b ->
                     hmd.addBehaviour(name, b)
                     hmd.addKeyBinding(name, key)
-                }
-            }
-        }
-
-        /**
-         * Create aim balls on top of controllers
-         */
-        private fun initControllerIndicator(hmd: OpenVRHMD) {
-            hmd.events.onDeviceConnect.add { _, device, _ ->
-                if (device.type == TrackedDeviceType.Controller) {
-                    device.model?.let { controller ->
-                        val indicator = Sphere(0.015f, 10)
-                        indicator.name = "collider"
-                        indicator.material().diffuse = Vector3f(1f)
-                        controller.addChild(indicator)
-                    }
                 }
             }
         }
