@@ -6,6 +6,7 @@ import microscenery.Settings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
+import microscenery.setVector3
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenMicroscope
@@ -25,12 +26,13 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
+        MicroscenerySettings.setVector3(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
 
 
 //        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
         //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
-        //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
-        val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
+        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
+        //val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConNamedPipeConnector = Mockito.mock(SysConNamedPipeConnector::class.java)

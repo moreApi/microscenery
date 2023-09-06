@@ -3,7 +3,9 @@ package microscenery.VRUI.Gui3D
 import graphics.scenery.RichNode
 import graphics.scenery.utils.lazyLogger
 
-
+/**
+ * Elements can be changed via scene graph at runtime.
+ */
 open class Row(vararg elements: Gui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
     : RichNode("UI Row"), Gui3DElement {
     override val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -15,32 +17,31 @@ open class Row(vararg elements: Gui3DElement, val margin: Float = 0.5f, var midd
 
     init {
         elements.forEach { this.addChild(it) }
-        postUpdate += {
-            val uiChildren = children.filterIsInstance(Gui3DElement::class.java)
-            val currentWidth = uiChildren.sumOf { it.width.toDouble() }.toFloat() + (uiChildren.size-1)*margin
-            if (currentWidth != width){
-                width = currentWidth
-                var indexWidth = 0f
-                uiChildren.forEach {
-                    it.spatial(){
-                        position.x = indexWidth
-                        needsUpdate = true
-                    }
-                    indexWidth += it.width + margin
-                }
-                if (middleAlign){
-                    indexWidth -= margin
-                    spatial {
-                        position.x = indexWidth * -0.5f
-                        needsUpdate = true
-                    }
-                }
-                height = uiChildren.maxOf { it.height }
-            }
-        }
+        pack()
+        postUpdate += {pack()}
     }
 
-    fun forceUpdate() {
-        width = -1f
+    fun pack() {
+        val uiChildren = children.filterIsInstance(Gui3DElement::class.java)
+        val currentWidth = uiChildren.sumOf { it.width.toDouble() }.toFloat() + (uiChildren.size-1)*margin
+        if (currentWidth != width && uiChildren.isNotEmpty()){
+            width = currentWidth
+            var indexWidth = 0f
+            uiChildren.forEach {
+                it.spatial(){
+                    position.x = indexWidth
+                    needsUpdate = true
+                }
+                indexWidth += it.width + margin
+            }
+            if (middleAlign){
+                indexWidth -= margin
+                spatial {
+                    position.x = indexWidth * -0.5f
+                    needsUpdate = true
+                }
+            }
+            height = uiChildren.maxOf { it.height }
+        }
     }
 }

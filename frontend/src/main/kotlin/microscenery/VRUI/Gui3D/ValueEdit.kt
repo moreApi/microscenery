@@ -28,6 +28,7 @@ class ValueEdit<T>(start:T,
         addChild(valueText)
         addChild(Button("+") { value = plus(value) })
         plusPlus?.let { addChild(Button("++") { value = it(value) }) }
+        pack()
     }
 
 }

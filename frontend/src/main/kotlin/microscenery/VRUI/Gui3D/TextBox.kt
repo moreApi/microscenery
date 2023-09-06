@@ -43,31 +43,35 @@ open class TextBox(
         this.addChild(box)
 
         var textGeom = board.geometry().vertices
-        this.update +=
-            {
-                if (textGeom != board.geometry().vertices) {
-                    val bv = board.geometry().vertices.duplicate().clear()
-                    var maxX = minSize
-                    while (bv.hasRemaining()) {
-                        maxX = java.lang.Float.max(bv.get(), maxX)
-                        bv.get()
-                        bv.get()
-                    }
-                    maxX *= board.spatial().scale.x
 
-                    box.spatial {
-                        scale.x = maxX + padding
-                        position = Vector3f(
-                            maxX / 2f,
-                            0.43f,
-                            box.sizes.z * -0.5f - 0.05f
-                        )
-                        needsUpdate = true
-                    }
-                    width = maxX
-                    textGeom = board.geometry().vertices
+        fun updateSize() {
+            if (textGeom != board.geometry().vertices) {
+                val bv = board.geometry().vertices.duplicate().clear()
+                var maxX = minSize
+                while (bv.hasRemaining()) {
+                    maxX = java.lang.Float.max(bv.get(), maxX)
+                    bv.get()
+                    bv.get()
                 }
+                maxX *= board.spatial().scale.x
+
+                box.spatial {
+                    scale.x = maxX + padding
+                    position = Vector3f(
+                        maxX / 2f,
+                        0.43f,
+                        box.sizes.z * -0.5f - 0.05f
+                    )
+                    needsUpdate = true
+                }
+                width = maxX
+                textGeom = board.geometry().vertices
             }
+        }
+
+        updateSize()
+        this.update += { updateSize() }
+
         initGrabable(box)
     }
 }

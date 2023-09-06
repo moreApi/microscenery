@@ -89,31 +89,28 @@ class VRUIManager {
 //                    "ablate path" to { stageSpaceUI?.stageSpaceManager?.ablationManager?.executeAblation() },
 //                    )
 //                )
-//                VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
-//                    listOf(TrackerRole.LeftHand),
-//                    WheelMenu.TrackingMode.LIVE,
-//                    ui = Column(
-//                        Row(TextBox("lasor bower", height = 0.8f)),
-//                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
-//                        Row(TextBox("step size", height = 0.8f)),
-//                            ValueEdit(500,{it+10},{it-10},{it+100},{it-100}),
-//                        Row(TextBox("repetitions", height = 0.8f)),
-//                            ValueEdit(1,{it+1},{it-1},{it+10},{it-10}),
-//                        Row(Button("ablate"){
-//                            println(" ablating!!!!")
-//                        },
-//                        middleAlign = true)
-//                    )
-//                )
                 val tf = stageSpaceUI?.stageSpaceManager?.sliceManager?.transferFunctionManager ?: return
                 VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
                     listOf(TrackerRole.LeftHand),
                     WheelMenu.TrackingMode.LIVE,
-                    ui = Column(
-                        Row(TextBox("Display Range", height = 0.8f)),
-                        ValueEdit(tf.minDisplayRange,{tf.minDisplayRange+=10f;tf.minDisplayRange},{tf.minDisplayRange-=10f;tf.minDisplayRange},{tf.minDisplayRange+=100f;tf.minDisplayRange},{tf.minDisplayRange-=100f;tf.minDisplayRange}),
-                        ValueEdit(tf.maxDisplayRange,{tf.maxDisplayRange+=10f;tf.maxDisplayRange},{tf.maxDisplayRange-=10f;tf.maxDisplayRange},{tf.maxDisplayRange+=100f;tf.maxDisplayRange},{tf.maxDisplayRange-=100f;tf.maxDisplayRange}),
-                        middleAlign = false)
+                    ui = TabbedMenu(
+                        "Displ Rng" to Column(
+                            Row(TextBox("Display Range", height = 0.8f)),
+                            ValueEdit(tf.maxDisplayRange,{tf.maxDisplayRange+=10f;tf.maxDisplayRange},{tf.maxDisplayRange-=10f;tf.maxDisplayRange},{tf.maxDisplayRange+=100f;tf.maxDisplayRange},{tf.maxDisplayRange-=100f;tf.maxDisplayRange}),
+                            ValueEdit(tf.minDisplayRange,{tf.minDisplayRange+=10f;tf.minDisplayRange},{tf.minDisplayRange-=10f;tf.minDisplayRange},{tf.minDisplayRange+=100f;tf.minDisplayRange},{tf.minDisplayRange-=100f;tf.minDisplayRange}),
+                        ),
+                        "Ablation" to Column(
+                            Row(TextBox("lasor bower", height = 0.8f)),
+                            ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
+                            Row(TextBox("step size", height = 0.8f)),
+                            ValueEdit(500,{it+10},{it-10},{it+100},{it-100}),
+                            Row(TextBox("repetitions", height = 0.8f)),
+                            ValueEdit(1,{it+1},{it-1},{it+10},{it-10}),
+                            Row(Button("ablate"){
+                                println(" ablating!!!!")
+                            })
+                        ),
+                    )
                 )
             } else {
                 stageSpaceUI?.let { ssui ->
