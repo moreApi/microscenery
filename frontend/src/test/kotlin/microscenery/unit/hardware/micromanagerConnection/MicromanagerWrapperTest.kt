@@ -129,9 +129,9 @@ internal class MicromanagerWrapperTest {
         val mmWrapper = MicromanagerWrapper(mmCoreConnector, disableStagePosUpdates = true)
         mmWrapper.output.pollForSignal<MicroscopeStatus>()//wait for start up to finish
 
-        MicroscenerySettings.set("Ablation.dryRun", true)
+        MicroscenerySettings.set(Settings.Ablation.DryRun, true)
         // with very coarse precision no points in-between should be generated
-        MicroscenerySettings.setVector3f("Ablation.precision", Vector3f(1000f))
+        MicroscenerySettings.setVector3f(Settings.Ablation.Precision, Vector3f(1000f))
         val positions = listOf(Vector3f(), Vector3f(200f),Vector3f(50f))
         mmWrapper.ablatePoints(buildLaserPath(positions))
         mmWrapper.output.pollForSignal<AblationResults>()

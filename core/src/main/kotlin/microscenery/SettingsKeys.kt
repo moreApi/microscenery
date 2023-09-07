@@ -17,8 +17,17 @@ object Settings {
             const val MinDistUm = "Ablation.PointTool.MinDistUm"
         }
 
-        const val Enabled = "Ablation.Enabled"
-        const val Precision = "Ablation.precision" //Vec3f
-        const val Size = "Ablation.Size" //Vec3f
+        /** bool */ const val Enabled = "Ablation.Enabled"
+        /** Vec3f */ const val Precision = "Ablation.precision"
+        /** Vec3f */ const val Size = "Ablation.Size" 
+
+        /** long */ const val DwellTimeMillis: String = "Ablation.dwellTimeMillis"
+        /** float */ const val LaserPower: String = "Ablation.laserPower"
+        /** bool, count time it takes to move towards next point to that points dwell time */
+        const val CountMoveTime: String = "Ablation.countMoveTime"
+        /** bool */ const val PauseLaserOnMove: String = "Ablation.pauseLaserOnMove"
+        /** bool */ const val DryRun: String = "Ablation.dryRun"
+        /** int */ const val Repetitions: String = "Ablation.repetitions"
+        /** bool */ const val StartAcquisitionAfter: String = "Ablation.startAcquisitionAfter"
     }
 }
