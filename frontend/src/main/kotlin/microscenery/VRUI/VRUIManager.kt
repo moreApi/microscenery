@@ -77,30 +77,32 @@ class VRUIManager {
             ) { touch.get()?.selected?.isEmpty() ?: true }
 
 
-            val leftHandMenu = mutableListOf<Pair<String, Column>>()
+            val leftHandMenu = mutableListOf<TabbedMenu.MenuTab>()
             stageSpaceUI?.stageSpaceManager?.sliceManager?.transferFunctionManager?.let { tf ->
-                leftHandMenu += "Displ Rng" to Column(
+                leftHandMenu += TabbedMenu.MenuTab("Displ Rng", Column(
                     Row(TextBox("Display Range", height = 0.8f)),
                     ValueEdit(tf.minDisplayRange,{tf.minDisplayRange+=10f;tf.minDisplayRange},{tf.minDisplayRange-=10f;tf.minDisplayRange},{tf.minDisplayRange+=100f;tf.minDisplayRange},{tf.minDisplayRange-=100f;tf.minDisplayRange}),
                     ValueEdit(tf.maxDisplayRange,{tf.maxDisplayRange+=10f;tf.maxDisplayRange},{tf.maxDisplayRange-=10f;tf.maxDisplayRange},{tf.maxDisplayRange+=100f;tf.maxDisplayRange},{tf.maxDisplayRange-=100f;tf.maxDisplayRange}),
                 )
+                )
             }
-
-            if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)){
-                leftHandMenu +=
-                    "Ablation" to Column(
-                        Row(TextBox("lasor bower", height = 0.8f)),
+            val ablm = stageSpaceUI?.stageSpaceManager?.ablationManager
+            if (MicroscenerySettings.get(Settings.Ablation.Enabled, false) && ablm != null){
+                leftHandMenu +=TabbedMenu.MenuTab(
+                    "Ablation" , Column(
+                        Row(TextBox("laser power", height = 0.8f)),
                         ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
                         Row(TextBox("step size", height = 0.8f)),
                         ValueEdit(500,{it+10},{it-10},{it+100},{it-100}),
                         Row(TextBox("repetitions", height = 0.8f)),
                         ValueEdit(1,{it+1},{it-1},{it+10},{it-10}),
                         Row(Button("ablate"){
-                            println(" ablating!!!!")
+                            ablm.executeAblation()
                         })
-                    )
+                    ),ablm::composeAblation, ablm::scrapAblation
+                )
             }
-            leftHandMenu += "Options" to Column(
+            leftHandMenu += TabbedMenu.MenuTab("Options", Column(
                 Switch("lock scaling", false, true)
                 { vr2HandSpatialManipulation.getNow(null)?.scaleLocked = it },
                 Switch("lock rotation", false, true)
@@ -115,11 +117,11 @@ class VRUIManager {
                         position = Vector3f()
                     }
                 }
-            )
+            ))
             VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
                 listOf(TrackerRole.LeftHand),
                 WheelMenu.TrackingMode.LIVE,
-                ui = TabbedMenu(*leftHandMenu.toTypedArray())
+                ui = TabbedMenu(leftHandMenu)
             )
             /* TODO: build this in again
                 stageSpaceUI?.let { ssui ->

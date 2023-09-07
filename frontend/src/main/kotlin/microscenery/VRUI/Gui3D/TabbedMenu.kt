@@ -3,42 +3,49 @@ package microscenery.VRUI.Gui3D
 import microscenery.detach
 
 
-class TabbedMenu(vararg tabs: Pair<String,Column>) : Column(invertedYOrder = false){
-    val buttons: Array<Button>
-    val subMenus: Array<Column>
+class TabbedMenu(val tabs: List<MenuTab>) : Column(invertedYOrder = false){
+
+    private var openTab: MenuTab? = null
 
     init {
         if(tabs.isEmpty()) throw IllegalArgumentException("Tabbed Menu needs at least one sub menu.")
         name = "TabbedMenu"
 
 
-        this.subMenus = tabs.map {it.second }.toTypedArray()
-        this.subMenus.forEach {
-            it.middleAlign = false
+        tabs.forEach { tab ->
+            tab.menu.middleAlign = false
+            tab.button = Button(tab.name) {
+                openMenu(tab)
+            }.apply {
+                stayPressed = true
+            }
         }
 
-        buttons = tabs.mapIndexed { index, pair -> toButton(index,pair.first) }.toTypedArray()
+        this.addChild(Row(*tabs.map { it.button!! }.toTypedArray()))
 
-        this.addChild(Row(*buttons))
+        openMenu(tabs.first())
 
-        addChild(this.subMenus[0])
-        buttons[0].pressed = true
         this.pack()
     }
 
-    private fun toButton(index: Int, name:String): Button{
-        return Button(name){
-            subMenus.forEach {
-                it.detach()
-            }
-            addChild(subMenus[index])
+    private fun openMenu(tab: MenuTab){
+        if (openTab == tab) return
 
-            buttons.forEach { it.pressed = false }
-            buttons[index].pressed = true
-
-            this.pack()
-        }.apply {
-            this.stayPressed = true
+        openTab?.let { toBeClosedTab ->
+            toBeClosedTab.menu.detach()
+            toBeClosedTab.button?.pressed = false
+            tab.onDeactivate()
+            openTab = null
         }
+
+        addChild(tab.menu)
+        tab.button?.pressed = true
+        tab.onActivate()
+        openTab = tab
+        this.pack()
+    }
+
+    class MenuTab(val name: String, val menu: Column, val onActivate: () -> Unit = {}, val onDeactivate: () -> Unit = {}, ) {
+        internal var button: Button? = null
     }
 }

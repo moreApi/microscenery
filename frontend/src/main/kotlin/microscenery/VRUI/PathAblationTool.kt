@@ -105,7 +105,7 @@ class PathAblationTool(
     private fun placeInk() {
         val ink = preparedInk ?: return
         val posInStageSpace = stageSpaceManager.worldToStageSpace(ink.spatial().worldPosition())
-        val coerced = stageSpaceManager.hardware.hardwareDimensions().coercePosition(posInStageSpace, null)
+        val coerced = stageSpaceManager.hardware.hardwareDimensions().coercePosition(posInStageSpace, null,true)
 
         if (posInStageSpace != coerced) {
             //ink is out of stage space bounds
@@ -120,7 +120,6 @@ class PathAblationTool(
         stageSpaceManager.worldToStageSpace(ink.spatial())
         ink.parent?.removeChild(ink)
         stageSpaceManager.stageRoot.addChild(ink)
-        //getScene()?.addChild(ink)
         ink.addLine() //workaround
 
         lastInk = ink
