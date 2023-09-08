@@ -1,5 +1,7 @@
 package microscenery.VRUI.Gui3D
 
+import microscenery.MicroscenerySettings
+
 class ValueEdit<T>(start:T,
                    plus: (T) -> T,
                    minus: (T) -> T,
@@ -30,5 +32,39 @@ class ValueEdit<T>(start:T,
         plusPlus?.let { addChild(Button("++") { value = it(value) }) }
         pack()
     }
+    companion object{
+        fun forFloatSetting(setting: String, factor: Float = 1f, withPlusPlus: Boolean = true): ValueEdit<Float>{
+            val start = MicroscenerySettings.get(setting,0f)
+            fun changeAndSave(value:Float, change: Float): Float{
+                val t = value + change * factor
+                MicroscenerySettings.set(setting,t)
+                return t
+            }
 
+            return ValueEdit(
+                start,
+                { changeAndSave(it, 1f)},
+                { changeAndSave(it, -1f)},
+                if (withPlusPlus){ {changeAndSave(it, 10f)}} else null,
+                if (withPlusPlus){ {changeAndSave(it, -10f)}} else null,
+            )
+        }
+
+        fun forIntSetting(setting: String, factor: Int = 1, plusPlusButtons: Boolean = true): ValueEdit<Int>{
+            val start = MicroscenerySettings.get(setting,0)
+            fun changeAndSave(value:Int, change: Int): Int{
+                val t = value + change * factor
+                MicroscenerySettings.set(setting,t)
+                return t
+            }
+
+            return ValueEdit(
+                start,
+                { changeAndSave(it, 1)},
+                { changeAndSave(it, -1)},
+                if (plusPlusButtons){ {changeAndSave(it, 10)}} else null,
+                if (plusPlusButtons){ {changeAndSave(it, -10)}} else null,
+            )
+        }
+    }
 }

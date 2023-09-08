@@ -29,5 +29,6 @@ object Settings {
         /** bool */ const val DryRun: String = "Ablation.dryRun"
         /** int */ const val Repetitions: String = "Ablation.repetitions"
         /** bool */ const val StartAcquisitionAfter: String = "Ablation.startAcquisitionAfter"
+        /** float */ const val StepSizeUm: String = "Ablation.stepSize"
     }
 }

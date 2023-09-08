@@ -91,11 +91,11 @@ class VRUIManager {
                 leftHandMenu +=TabbedMenu.MenuTab(
                     "Ablation" , Column(
                         Row(TextBox("laser power", height = 0.8f)),
-                        ValueEdit(0,{it+1},{it-1},{it+10},{it-10}),
+                        ValueEdit.forFloatSetting(Settings.Ablation.LaserPower,0.1f),
                         Row(TextBox("step size", height = 0.8f)),
-                        ValueEdit(500,{it+10},{it-10},{it+100},{it-100}),
+                        ValueEdit.forFloatSetting(Settings.Ablation.StepSizeUm,10f),
                         Row(TextBox("repetitions", height = 0.8f)),
-                        ValueEdit(1,{it+1},{it-1},{it+10},{it-10}),
+                        ValueEdit.forIntSetting(Settings.Ablation.Repetitions, plusPlusButtons = false),
                         Row(Button("ablate"){
                             ablm.executeAblation()
                         })
