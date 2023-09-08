@@ -30,5 +30,8 @@ object Settings {
         /** int */ const val Repetitions: String = "Ablation.repetitions"
         /** bool */ const val StartAcquisitionAfter: String = "Ablation.startAcquisitionAfter"
         /** float */ const val StepSizeUm: String = "Ablation.stepSize"
+        object Rapp {
+            /** bool */ const val ScanModeFast = "Ablation.Rapp.scanModeFast"
+        }
     }
 }
