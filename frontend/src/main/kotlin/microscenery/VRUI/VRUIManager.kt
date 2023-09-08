@@ -93,7 +93,7 @@ class VRUIManager {
                         Row(TextBox("laser power", height = 0.8f)),
                         ValueEdit.forFloatSetting(Settings.Ablation.LaserPower,0.1f),
                         Row(TextBox("step size", height = 0.8f)),
-                        ValueEdit.forFloatSetting(Settings.Ablation.StepSizeUm,10f),
+                        ValueEdit.forIntSetting(Settings.Ablation.StepSizeUm,10),
                         Row(TextBox("repetitions", height = 0.8f)),
                         ValueEdit.forIntSetting(Settings.Ablation.Repetitions, plusPlusButtons = false),
                         Row(Button("ablate"){
