@@ -34,4 +34,8 @@ object Settings {
             /** bool */ const val ScanModeFast = "Ablation.Rapp.scanModeFast"
         }
     }
+
+    object ZenMicroscope {
+        /** bool */ const val MockSysCon = "ZenMicroscope.mockSysCon"
+    }
 }

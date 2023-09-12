@@ -9,7 +9,7 @@ import microscenery.stageSpace.StageSpaceManager
 import org.zeromq.ZContext
 
 
-class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
+class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = false) {
     val stageSpaceManager: StageSpaceManager
 
     init {
