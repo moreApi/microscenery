@@ -1,12 +1,12 @@
 package microscenery.example.network
 
-import microscenery.DefaultVRScene
+import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
-import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
 import microscenery.stageSpace.StageSpaceManager
+import org.joml.Vector3f
 import org.zeromq.ZContext
 
 
@@ -14,6 +14,12 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
     val stageSpaceManager: StageSpaceManager
 
     init {
+        MicroscenerySettings.set(Settings.Ablation.Enabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
+        MicroscenerySettings.setVector3f(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
+
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
         stageSpaceManager = StageSpaceManager(
