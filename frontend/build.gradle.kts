@@ -18,9 +18,8 @@ dependencies {
     // This should point to the most recent commit of scenery:jans-dirtier-branch
     // At the moment scenery:jans-dirtier-branch should be a merge of:
     // - branch-of-jan
-    // - LineColorFix
-    // TODO WIP WIP evrything is broken and temp
-    implementation("graphics.scenery:scenery:082677f")
+    // (- LineColorFix)
+    implementation("graphics.scenery:scenery:99a471")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
