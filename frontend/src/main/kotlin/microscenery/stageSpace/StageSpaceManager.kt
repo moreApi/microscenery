@@ -29,7 +29,7 @@ class StageSpaceManager(
     val hardware: MicroscopeHardware,
     val scene: Scene,
     val hub: Hub,
-    addFocusFrame: Boolean = true,
+    addFocusFrame: Boolean = !MicroscenerySettings.get(microscenery.Settings.StageSpace.HideFocusTargetFrame,false),
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -78,6 +78,7 @@ class StageSpaceManager(
         focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
             spatial().position = hardware.stagePosition.copy()
             stageRoot.addChild(this)
+            visible = !MicroscenerySettings.get(microscenery.Settings.StageSpace.HideFocusFrame,false)
         }
 
         if (addFocusFrame)

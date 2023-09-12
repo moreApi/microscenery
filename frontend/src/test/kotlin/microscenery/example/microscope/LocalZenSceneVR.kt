@@ -19,9 +19,12 @@ class LocalZenSceneVR : DefaultVRScene() {
     lateinit var  stageSpaceManager: StageSpaceManager
 
     override fun init() {
+
         super.init()
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
+        MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
+        MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
         MicroscenerySettings.set(Settings.Ablation.Enabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
@@ -39,8 +42,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         val zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
-        stageSpaceManager = StageSpaceManager(hardware, scene, hub, addFocusFrame = false)
-        stageSpaceManager.focus.visible = false
+        stageSpaceManager = StageSpaceManager(hardware, scene, hub)
 
         thread {
             Thread.sleep(100)

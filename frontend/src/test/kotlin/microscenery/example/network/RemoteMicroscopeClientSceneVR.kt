@@ -14,6 +14,8 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
     val stageSpaceManager: StageSpaceManager
 
     init {
+        MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
+        MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
         MicroscenerySettings.set(Settings.Ablation.Enabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)

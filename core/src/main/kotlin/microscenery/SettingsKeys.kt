@@ -35,6 +35,11 @@ object Settings {
         }
     }
 
+    object StageSpace{
+        /** bool */ const val HideFocusFrame = "StageSpace.hideFocusFrame"
+        /** bool */ const val HideFocusTargetFrame = "StageSpace.hideFocusTargetFrame"
+    }
+
     object ZenMicroscope {
         /** bool */ const val MockSysCon = "ZenMicroscope.mockSysCon"
     }
