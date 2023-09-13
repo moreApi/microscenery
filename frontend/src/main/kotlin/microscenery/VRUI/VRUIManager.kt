@@ -71,7 +71,7 @@ class VRUIManager {
             Toolbox(
                 scene,
                 hmd,
-                listOf(MENU_BUTTON),
+                listOf(MENU_BUTTON,OpenVRHMD.OpenVRButton.A),
                 listOf(TrackerRole.RightHand),
                 customActions?.let { WheelMenu(hmd, it.actions, true) },
                 stageSpaceUI?.stageSpaceManager
@@ -121,7 +121,7 @@ class VRUIManager {
                     }
                 }
             ))
-            VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu),
+            VR3DGui.createAndSet(scene,hmd, listOf(OpenVRHMD.OpenVRButton.Menu,OpenVRHMD.OpenVRButton.A),
                 listOf(TrackerRole.LeftHand),
                 WheelMenu.TrackingMode.LIVE,
                 ui = TabbedMenu(leftHandMenu)
