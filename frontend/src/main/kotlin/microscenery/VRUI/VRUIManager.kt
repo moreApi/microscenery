@@ -57,7 +57,8 @@ class VRUIManager {
                 listOf(TrackerRole.RightHand, TrackerRole.LeftHand),
                 holdToDrag = false,
                 onGrab = { node, device -> (hmd as? OpenVRHMD)?.vibrate(device); Touch.unapplySelectionColor(node) })
-            val touch = VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand, TrackerRole.LeftHand), false)
+            val touchRightHand = VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand), false)
+            VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.LeftHand), false)
             VRPress.createAndSet(
                 scene,
                 hmd,
@@ -74,7 +75,7 @@ class VRUIManager {
                 listOf(TrackerRole.RightHand),
                 customActions?.let { WheelMenu(hmd, it.actions, true) },
                 stageSpaceUI?.stageSpaceManager
-            ) { touch.get()?.selected?.isEmpty() ?: true }
+            ) { touchRightHand.get()?.selected?.isEmpty() ?: true }
 
 
             val leftHandMenu = mutableListOf<TabbedMenu.MenuTab>()
