@@ -3,7 +3,6 @@ package microscenery.UI
 import fromScenery.SettingsEditor
 import graphics.scenery.Box
 import graphics.scenery.Camera
-import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.utils.lazyLogger
@@ -143,12 +142,8 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
 
     val vrCommands = listOf(comGoLive,comSteering,comStackAcq,comSearchCube,comClearStage,comStop)
 
-    fun vrMenuActions(): List<Pair<String, (Spatial) -> Unit>> = vrCommands.map {
-            it.name to {_ -> it.command?.click(0,0)}
-        }
-
-    fun stageSwingUI(panel: JPanel) {
-        desktopCommands.forEach {
+    fun stageSwingUI(panel: JPanel, customCommands: List<StageUICommand>) {
+        (desktopCommands + customCommands).forEach {
             val name = it.name
             val key = it.key
             val command = it.command
@@ -216,8 +211,8 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }
     }
 
-    fun stageUI(base: DefaultScene, inputHandler: InputHandler?) {
-        base.extraPanel?.let { stageSwingUI(it) }
+    fun stageUI(base: DefaultScene, inputHandler: InputHandler?, customCommands: List<StageUICommand> = emptyList()) {
+        base.extraPanel?.let { stageSwingUI(it,customCommands)}
         base.mainFrame?.pack()
 
         inputHandler?.let {

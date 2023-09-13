@@ -18,7 +18,6 @@ import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 
 class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, val scene: Scene) {
@@ -29,6 +28,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
 
     internal val sortedSlices = ArrayList<SliceRenderNode>()
     internal var stacks = emptyList<StackContainer>()
+    internal var selectedStack: StackContainer? = null
 
     val transferFunctionManager = TransferFunctionManager(this)
 
@@ -122,7 +122,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
 
     fun handleStackSignal(stackSignal: Stack, hub: Hub) {
         val stack = stackSignal
-        if (stacks.any { it.meta.Id == stack.Id }) return //stack is already know TODO: update metadata?
 
         val x = hardware.hardwareDimensions().imageSize.x
         val y = hardware.hardwareDimensions().imageSize.y
@@ -131,53 +130,65 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         val buffer = MemoryUtil.memAlloc(
             x * y * z * hardware.hardwareDimensions().numericType.bytes
         )
-        val volume = when (hardware.hardwareDimensions().numericType) {
-            NumericType.INT8 -> Volume.fromBuffer(
-                listOf(BufferedVolume.Timepoint("0", buffer)),
-                x,
-                y,
-                z,
-                UnsignedByteType(),
-                hub,
-                Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
-            )
-            NumericType.INT16 -> Volume.fromBuffer(
-                listOf(BufferedVolume.Timepoint("0", buffer)),
-                x,
-                y,
-                z,
-                UnsignedShortType(),
-                hub,
-                Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
-            )
-        }
-        volume.goToLastTimepoint()
-        volume.transferFunction = transferFunctionManager.transferFunction
-        volume.name = "Stack ${stackSignal.Id}"
-        volume.origin = Origin.Center
-        volume.spatial {
-            position = (stackSignal.from + stackSignal.to).mul(0.5f)
-            scale = Vector3f(1f, -1f, sliceThickness)
-            scale *= Vector3f(
-                hardware.hardwareDimensions().vertexDiameter,
-                hardware.hardwareDimensions().vertexDiameter,
-                1f
-            )
-            scale *= flipVector
-        }
-        volume.pixelToWorldRatio = 1f // conversion is done by stage root
-        volume.setTransferFunctionRange(
-            transferFunctionManager.minDisplayRange,
-            transferFunctionManager.maxDisplayRange
-        )
 
-        stageRoot.addChild(volume)
+        // if there is an stack with the same Id add this one as a new timepoint to it, otherwise create a new stack.
+        val existingStack = stacks.firstOrNull() { it.meta.Id == stack.Id }
+        if (existingStack != null) {
+            val volume = existingStack.volume
+            volume.addTimepoint(stack.created.toString(),buffer)
+            existingStack.currentBuffer = buffer
+            volume.goToLastTimepoint()
+        } else {
+            val volume = when (hardware.hardwareDimensions().numericType) {
+                NumericType.INT8 -> Volume.fromBuffer(
+                    listOf(BufferedVolume.Timepoint(stack.created.toString(), buffer)),
+                    x,
+                    y,
+                    z,
+                    UnsignedByteType(),
+                    hub,
+                    Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
+                )
+                NumericType.INT16 -> Volume.fromBuffer(
+                    listOf(BufferedVolume.Timepoint(stack.created.toString(), buffer)),
+                    x,
+                    y,
+                    z,
+                    UnsignedShortType(),
+                    hub,
+                    Vector3f(1f, 1f, sliceThickness).toFloatArray()// conversion is done by stage root
+                )
+            }
+            volume.goToLastTimepoint()
+            volume.transferFunction = transferFunctionManager.transferFunction
+            volume.name = "Stack ${stackSignal.Id}"
+            volume.origin = Origin.Center
+            volume.spatial {
+                position = (stackSignal.from + stackSignal.to).mul(0.5f)
+                scale = Vector3f(1f, -1f, sliceThickness)
+                scale *= Vector3f(
+                    hardware.hardwareDimensions().vertexDiameter,
+                    hardware.hardwareDimensions().vertexDiameter,
+                    1f
+                )
+                scale *= flipVector
+            }
+            volume.pixelToWorldRatio = 1f // conversion is done by stage root
+            volume.setTransferFunctionRange(
+                transferFunctionManager.minDisplayRange,
+                transferFunctionManager.maxDisplayRange
+            )
 
-        BoundingGrid().apply {
-            this.node = volume
-            //volume.metadata["BoundingGrid"] = this
+            stageRoot.addChild(volume)
+
+            BoundingGrid().apply {
+                this.node = volume
+                //volume.metadata["BoundingGrid"] = this
+            }
+            stacks = stacks + StackContainer(stack, volume, buffer)
+            // todo: make stack selection smarter
+            selectedStack = stacks.last()
         }
-        stacks = stacks + StackContainer(stack, volume, buffer)
     }
 
     private fun handleStackSlice(slice: Slice) {
@@ -191,11 +202,11 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             return
         }
 
-
-        stack.buffer.position(slice.size * sliceIndex)
-        stack.buffer.put(slice.data)
-        stack.buffer.rewind()
-        stack.volume.goToNewTimepoint(stack.buffer)
+        val buf = stack.currentBuffer.duplicate()
+        buf.position(slice.size * sliceIndex)
+        buf.put(slice.data)
+        buf.rewind()
+        stack.volume.goToLastTimepoint()
     }
 
     private fun handleSingleSlice(signal: Slice, layout: MicroscopeLayout) {
@@ -230,21 +241,13 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         stacks = emptyList()
         tmp.forEach {
             it.volume.parent?.removeChild(it.volume)
-            MemoryUtil.memFree(it.buffer)
+            MemoryUtil.memFree(it.currentBuffer)
         }
     }
 
 
-    internal class StackContainer(val meta: Stack, val volume: BufferedVolume, val buffer: ByteBuffer)
-    companion object {
-        private fun BufferedVolume.goToNewTimepoint(buffer: ByteBuffer) {
-            val volume = this
-            volume.lock.withLock {
-                val count = volume.timepoints?.lastOrNull()?.name?.toIntOrNull() ?: 0
-                volume.addTimepoint("${count + 1}", buffer)
-                //logger.info("going to Timepoint ${volume.goToLastTimepoint()}")
-                volume.purgeFirst(3, 3)
-            }
-        }
-    }
+    /**
+     * @param currentBuffer points to the buffer of the most recent timepoint. It might be not completly filled
+     */
+    internal class StackContainer(val meta: Stack, val volume: BufferedVolume, var currentBuffer: ByteBuffer)
 }

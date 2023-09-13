@@ -33,8 +33,9 @@ class LocalZenSceneVR : DefaultVRScene() {
 
 
 //        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
-        //val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
-        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
+        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
+        val id2 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring2.czi"""
+//        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
         //val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
@@ -48,6 +49,9 @@ class LocalZenSceneVR : DefaultVRScene() {
             Thread.sleep(100)
 
             zenMicroscope.debugStack(id)
+
+            Thread.sleep(3000)
+            zenMicroscope.debugStack(id2)
         }
         thread {
             while (true){

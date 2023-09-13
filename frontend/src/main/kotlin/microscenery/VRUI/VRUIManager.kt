@@ -4,6 +4,7 @@ import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
+import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Touch
 import graphics.scenery.controls.behaviours.VRGrab
@@ -17,8 +18,11 @@ import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
 import microscenery.VRUI.fromScenery.WheelMenu
+import microscenery.showMessage2
+import microscenery.wrapForAnalogInputIfNeeded
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import org.scijava.ui.behaviour.DragBehaviour
 
 class VRUIManager {
 
@@ -135,6 +139,47 @@ class VRUIManager {
                     )
                 }
              */
+
+            // ----------- volume timepoint scrolling -----------------
+            val controllerSide = listOf(TrackerRole.RightHand)
+            hmd.events.onDeviceConnect.add { _, device, _ ->
+                if (device.type == TrackedDeviceType.Controller) {
+                    device.model?.let { controller ->
+                        if (controllerSide.contains(device.role)) {
+                            run{
+                                val name = "Volume scrolling prev"
+                                val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Left,object:DragBehaviour{
+                                    override fun init(x: Int, y: Int) {
+                                        stageSpaceUI?.stageSpaceManager?.sliceManager?.selectedStack?.volume?.let { vol ->
+                                            val goto = vol.previousTimepoint()
+                                            scene.findObserver()?.showMessage2("Timepoint $goto")
+                                        }
+                                    }
+                                    override fun drag(x: Int, y: Int) {}
+                                    override fun end(x: Int, y: Int) {}
+                                })
+                                hmd.addBehaviour(name, behavior)
+                                hmd.addKeyBinding(name, device.role, OpenVRHMD.OpenVRButton.Left)
+                            }
+                            run{
+                                val name = "Volume scrolling next"
+                                val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Right,object:DragBehaviour{
+                                    override fun init(x: Int, y: Int) {
+                                        stageSpaceUI?.stageSpaceManager?.sliceManager?.selectedStack?.volume?.let { vol ->
+                                            val goto = vol.nextTimepoint()
+                                            scene.findObserver()?.showMessage2("Timepoint $goto")
+                                        }
+                                    }
+                                    override fun drag(x: Int, y: Int) {}
+                                    override fun end(x: Int, y: Int) {}
+                                })
+                                hmd.addBehaviour(name, behavior)
+                                hmd.addKeyBinding(name, device.role, OpenVRHMD.OpenVRButton.Right)
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private fun InputHandler.initStickMovement(hmd: OpenVRHMD) {
