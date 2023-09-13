@@ -39,6 +39,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:4.8.0")
     testImplementation("org.mockito:mockito-inline:4.8.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
+    testImplementation("org.lwjgl:lwjgl-jawt:3.3.1")
     testImplementation(kotlin("test"))
     //testImplementation(kotlin("test-junit"))
 }
