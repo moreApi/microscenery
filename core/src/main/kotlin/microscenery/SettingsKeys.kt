@@ -18,7 +18,7 @@ object Settings {
         }
 
         /** bool */ const val Enabled = "Ablation.Enabled"
-        /** Vec3f */ const val Precision = "Ablation.precision"
+        /** Vec3f UM*/ const val PrecisionUM = "Ablation.precisionUM"
         /** Vec3f */ const val Size = "Ablation.Size" 
 
         /** long */ const val DwellTimeMillis: String = "Ablation.dwellTimeMillis"

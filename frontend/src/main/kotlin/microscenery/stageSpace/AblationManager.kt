@@ -24,7 +24,7 @@ class AblationManager(val hardware: MicroscopeHardware, val stageSpaceManager: S
                         listOf(ink.spatial().position)
                     }
                     is PathAblationTool.InkLine -> {
-                        val precision = MicroscenerySettings.getVector3(Settings.Ablation.Precision) ?: Vector3f(1f)
+                        val precision = MicroscenerySettings.getVector3(Settings.Ablation.PrecisionUM) ?: Vector3f(1f)
                         val path = mutableListOf<Vector3f>()
                         path += ink.spatial().position
                         if (ink.previous != null) {
