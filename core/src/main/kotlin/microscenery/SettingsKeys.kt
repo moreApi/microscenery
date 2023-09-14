@@ -30,8 +30,10 @@ object Settings {
         /** int */ const val Repetitions: String = "Ablation.repetitions"
         /** bool */ const val StartAcquisitionAfter: String = "Ablation.startAcquisitionAfter"
         /** int */ const val StepSizeUm: String = "Ablation.stepSize"
-        object Rapp {
-            /** bool */ const val ScanModeFast = "Ablation.Rapp.scanModeFast"
+        object SysCon {
+            /** bool */ const val ScanModeFast = "Ablation.SysCon.scanModeFast"
+            /** string */ const val LightSourceId = "Ablation.SysCon.lightSourceId"
+            /** string */ const val TriggerPort = "Ablation.SysCon.triggerPort"
         }
     }
 
