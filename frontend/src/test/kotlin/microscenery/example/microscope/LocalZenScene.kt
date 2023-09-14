@@ -10,7 +10,7 @@ import microscenery.showMessage2
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenMicroscope
-import microscenery.zenSysConCon.sysCon.SysConNamedPipeConnector
+import microscenery.zenSysConCon.sysCon.SysConConnection
 import org.joml.Vector3f
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
@@ -32,7 +32,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
         //val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
-        val sysCon: SysConNamedPipeConnector = Mockito.mock(SysConNamedPipeConnector::class.java)
+        val sysCon: SysConConnection = Mockito.mock(SysConConnection::class.java)
         whenever(zenBlue.getCurrentDocument()).thenReturn(id)
         val zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
