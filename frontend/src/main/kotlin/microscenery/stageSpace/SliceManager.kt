@@ -207,6 +207,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         buf.put(slice.data)
         buf.rewind()
         stack.volume.goToLastTimepoint()
+        stack.volume.volumeManager.notifyUpdate(stack.volume)
     }
 
     private fun handleSingleSlice(signal: Slice, layout: MicroscopeLayout) {
