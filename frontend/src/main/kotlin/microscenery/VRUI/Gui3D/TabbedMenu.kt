@@ -3,7 +3,7 @@ package microscenery.VRUI.Gui3D
 import microscenery.detach
 
 
-class TabbedMenu(val tabs: List<MenuTab>) : Column(invertedYOrder = false){
+class TabbedMenu(tabs: List<MenuTab>) : Column(invertedYOrder = false){
 
     private var openTab: MenuTab? = null
 
@@ -34,7 +34,7 @@ class TabbedMenu(val tabs: List<MenuTab>) : Column(invertedYOrder = false){
         openTab?.let { toBeClosedTab ->
             toBeClosedTab.menu.detach()
             toBeClosedTab.button?.pressed = false
-            tab.onDeactivate()
+            toBeClosedTab.onDeactivate()
             openTab = null
         }
 
