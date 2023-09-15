@@ -71,6 +71,10 @@ class AblationManager(val hardware: MicroscopeHardware, val stageSpaceManager: S
         hideAllInk()
     }
 
+    fun hidePlan(hiding: Boolean){
+        planedPath.forEach { it.visible = !hiding }
+    }
+
     fun scrapAblation() {
         planedPath.forEach {
             it.detach()
