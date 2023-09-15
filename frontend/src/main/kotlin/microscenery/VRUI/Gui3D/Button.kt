@@ -6,7 +6,7 @@ import graphics.scenery.controls.behaviours.Touchable
 import microscenery.changeColorWithTouchable
 import org.joml.Vector3f
 
-class Button(text: String, command: () -> Unit): TextBox(text) {
+class Button(text: String, height: Float = 1f,command: () -> Unit): TextBox(text,height = height) {
     /** only visually */
     var pressed: Boolean = false
     set(value) {
