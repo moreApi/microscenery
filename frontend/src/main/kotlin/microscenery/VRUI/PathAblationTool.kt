@@ -8,6 +8,8 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.Wiggler
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UP
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.detach
@@ -35,6 +37,7 @@ class PathAblationTool(
     private var menu: VRFastSelectionWheel? = null
 
     init {
+        MicroscenerySettings.setIfUnset(Settings.Ablation.SizeUM,8f)
         val tipLength = 0.025f
         tip = Box(Vector3f(0.015f, tipLength, 0.015f))
         tip.spatial().position = Vector3f(0f, this.sizes.y / 2 + tipLength / 2, 0f)
@@ -42,6 +45,10 @@ class PathAblationTool(
         inkOutput = RichNode()
         inkOutput.spatial().position.y = tipLength / 2
         tip.addChild(inkOutput)
+        prepareInk()
+        update += {
+            preparedInk?.spatial()?.scale = stageSpaceManager.stageRoot.spatial().worldScale()
+        }
 
         this.addAttribute(Touchable::class.java, Touchable())
         this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))
@@ -85,7 +92,6 @@ class PathAblationTool(
                 )
             )
         )
-        prepareInk()
     }
 
     /**
@@ -93,7 +99,8 @@ class PathAblationTool(
      */
     private fun prepareInk() {
         if (preparedInk != null) logger.warn("Someone has left some old ink and ordered new ink.")
-        val ink = InkLine(lastInk, 0.015f)
+        val ink = InkLine(lastInk, MicroscenerySettings.get(Settings.Ablation.SizeUM,8f)*0.5f)
+        ink.spatial().scale = stageSpaceManager.stageRoot.spatial().worldScale()
         ink.material().diffuse = lineColor
         ink.material().metallic = 0.0f
         ink.material().roughness = 1.0f
@@ -112,18 +119,20 @@ class PathAblationTool(
             Wiggler(ink, range = 0.01f, lifeTimeMillis = 300)
             return
         }
+        // we are sure we will place this ink. Set preparedInk to null so the update function won't interfere.
+        preparedInk = null
 
         ink.getAttributeOrNull(Wiggler::class.java)?.deativate()?.join() // avoids a bug where a point is moved after placing
 
         ink.spatial().position = ink.spatial().worldPosition()
-
         stageSpaceManager.worldToStageSpace(ink.spatial())
+        ink.spatial().scale = Vector3f(1f)
+
         ink.parent?.removeChild(ink)
         stageSpaceManager.stageRoot.addChild(ink)
         ink.addLine() //workaround
 
         lastInk = ink
-        preparedInk = null
         prepareInk()
     }
 
@@ -152,7 +161,7 @@ class PathAblationTool(
 
     internal class InkLine(val previous: InkLine? = null, radius: Float = 0.015f) :
         Sphere(radius, segments = 16) {
-        val line: Cylinder = Cylinder(0.005f, 1f, 20)
+        val line: Cylinder = Cylinder(MicroscenerySettings.get(Settings.Ablation.SizeUM,8f)*0.25f, 1f, 20)
 
         init {
             this.addAttribute(Touchable::class.java, Touchable())

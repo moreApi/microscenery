@@ -36,7 +36,7 @@ class PointCloudAblationTool(
     private var menu: VRFastSelectionWheel? = null
 
     init {
-        MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(1f))
+        MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(0.1f))
 
         val tipLength = 0.06f
         tip = Pyramid(0.03f,0.03f,tipLength)
@@ -46,6 +46,9 @@ class PointCloudAblationTool(
         inkOutput.spatial().position.y = tipLength
         tip.addChild(inkOutput)
         prepareInk()
+        update += {
+            preparedInk?.spatial()?.scale = stageSpaceManager.stageRoot.spatial().worldScale()
+        }
 
         eraserHead.spatial{
             position = Vector3f(0f,tipLength,0f)
@@ -125,13 +128,14 @@ class PointCloudAblationTool(
      */
     private fun prepareInk() {
         if (preparedInk != null) logger.warn("Someone has left some old ink and ordered new ink.")
-        val ink = Ink( 0.005f,pointColor,this)
+        val ink = Ink( MicroscenerySettings.get(Settings.Ablation.SizeUM,8f)*0.5f,pointColor,this)
+        ink.spatial().scale = stageSpaceManager.stageRoot.spatial().worldScale()
         inkOutput.addChild(ink)
         preparedInk = ink
     }
 
     private fun placeInk() {
-        val minDistance = MicroscenerySettings.getVector3(Settings.Ablation.PointTool.MinDistUm) ?: return
+        val minDistance = MicroscenerySettings.getVector3(Settings.Ablation.PrecisionUM) ?: Vector3f(1f)
 
         val ink = preparedInk ?: return
         val posInStageSpace = stageSpaceManager.worldToStageSpace(ink.spatial().worldPosition())
@@ -147,17 +151,19 @@ class PointCloudAblationTool(
         ){
             return //point is to close to another one
         }
+        // we are sure we will place this ink. Set preparedInk to null so the update function won't interfere.
+        preparedInk = null
 
         ink.getAttributeOrNull(Wiggler::class.java)?.deativate()?.join() // avoids a bug where a point is moved after placing
 
         ink.spatial().position = ink.spatial().worldPosition()
-
         stageSpaceManager.worldToStageSpace(ink.spatial())
+        ink.spatial().scale = Vector3f(1f)
+
         ink.parent?.removeChild(ink)
         stageSpaceManager.stageRoot.addChild(ink)
         placedPoints = placedPoints + ink
 
-        preparedInk = null
         prepareInk()
     }
 
