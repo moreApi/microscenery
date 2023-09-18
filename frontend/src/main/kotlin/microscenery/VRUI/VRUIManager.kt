@@ -166,6 +166,9 @@ class VRUIManager {
             if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)) {
                 leftHandMenu += TabbedMenu.MenuTab(
                     "Ablation", Column(
+                        Row(Button("ablate", height = 1.3f) {
+                            ablm.executeAblation()
+                        }),
 //                        Row(TextBox("laser power", height = 0.8f)),
 //                        ValueEdit.forFloatSetting(Settings.Ablation.LaserPower, 0.1f),
 //                        Row(TextBox("step size", height = 0.8f)),
@@ -173,9 +176,6 @@ class VRUIManager {
                         Row(TextBox("repetitions", height = 0.8f)),
                         ValueEdit.forIntSetting(Settings.Ablation.Repetitions, plusPlusButtons = false),
                         Switch("hide plan",false, true, onChange = ablm::hidePlan),
-                        Row(Button("ablate", height = 1.3f) {
-                            ablm.executeAblation()
-                        })
                     ), ablm::composeAblation, ablm::scrapAblation
                 )
             }
