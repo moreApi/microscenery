@@ -50,11 +50,16 @@ class ValueEdit<T>(start:T,
             )
         }
 
-        fun forIntSetting(setting: String, factor: Int = 1, plusPlusButtons: Boolean = true): ValueEdit<Int>{
-            val start = MicroscenerySettings.get(setting,0)
-            fun changeAndSave(value:Int, change: Int): Int{
+        fun forIntSetting(
+            setting: String,
+            factor: Int = 1,
+            plusPlusButtons: Boolean = true,
+            toString: ((Int) -> String)? = null
+        ): ValueEdit<Int> {
+            val start = MicroscenerySettings.get(setting, 0)
+            fun changeAndSave(value: Int, change: Int): Int {
                 val t = value + change * factor
-                MicroscenerySettings.set(setting,t)
+                MicroscenerySettings.set(setting, t)
                 return t
             }
 
@@ -64,6 +69,7 @@ class ValueEdit<T>(start:T,
                 { changeAndSave(it, -1)},
                 if (plusPlusButtons){ {changeAndSave(it, 10)}} else null,
                 if (plusPlusButtons){ {changeAndSave(it, -10)}} else null,
+                toString
             )
         }
     }

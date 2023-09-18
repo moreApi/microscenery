@@ -25,7 +25,7 @@ object Settings {
         /** Vec3f UM*/ const val PrecisionUM = "Ablation.precisionUM"
         /** Float */ const val SizeUM = "Ablation.SizeUM"
 
-        /** long */ const val DwellTimeMillis: String = "Ablation.dwellTimeMillis"
+        /** long */ const val DwellTimeMicroS: String = "Ablation.dwellTimeMicroS"
         /** float */ const val LaserPower: String = "Ablation.laserPower"
         /** bool, count time it takes to move towards next point to that points dwell time */
         const val CountMoveTime: String = "Ablation.countMoveTime"

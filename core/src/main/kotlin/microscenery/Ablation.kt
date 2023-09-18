@@ -60,8 +60,8 @@ fun sampleLineSmooth(p1: Vector3f, p2: Vector3f, precision: Vector3f): List<Vect
 }
 
 fun initAblationSettings(){
-    MicroscenerySettings.setVector3fIfUnset("Ablation.precision", Vector3f(1f))
-    MicroscenerySettings.set(Settings.Ablation.DwellTimeMillis, 0L)
+    MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PrecisionUM, Vector3f(2f))
+    MicroscenerySettings.set(Settings.Ablation.DwellTimeMicroS, 1000L)
     MicroscenerySettings.set(Settings.Ablation.LaserPower, 0f)
     // count time it takes to move towards next point to that points dwell time
     MicroscenerySettings.set(Settings.Ablation.CountMoveTime, true)
@@ -75,7 +75,7 @@ fun initAblationSettings(){
  * Uses [MicroscenerySettings] to map [points] to [ClientSignal.AblationPoints]
  */
 fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
-    val dwellTime = MicroscenerySettings.get(Settings.Ablation.DwellTimeMillis, 0L)
+    val dwellTime = MicroscenerySettings.get(Settings.Ablation.DwellTimeMicroS, 0L)
     val laserPower = MicroscenerySettings.get(Settings.Ablation.LaserPower, 0f)
     // count time it takes to move towards next point to that points dwell time
     val countMoveTime = MicroscenerySettings.get(Settings.Ablation.CountMoveTime, true)
@@ -85,7 +85,7 @@ fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
     return ClientSignal.AblationPoints(points.mapIndexed { index, vector3f ->
         ClientSignal.AblationPoint(
             vector3f,
-            dwellTime.millisToNanos(),
+            dwellTime,
             (index == 0 || pauseLaserOnMove) && !dryRun,
             (index == points.size -1 || pauseLaserOnMove) && !dryRun,
             if (dryRun) 0f else laserPower,
