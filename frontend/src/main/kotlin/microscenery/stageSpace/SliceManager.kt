@@ -186,6 +186,17 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
                 //volume.metadata["BoundingGrid"] = this
             }
             stacks = stacks + StackContainer(stack, volume, buffer)
+
+
+            // todo handle old stacks better
+            selectedStack?.let {
+                if (it.meta.Id != stack.Id) {
+                    it.volume.volumeManager.remove(it.volume)
+                    stacks = stacks - it
+                    MemoryUtil.memFree(it.currentBuffer)
+                    selectedStack = null
+                }
+            }
             // todo: make stack selection smarter
             selectedStack = stacks.last()
         }

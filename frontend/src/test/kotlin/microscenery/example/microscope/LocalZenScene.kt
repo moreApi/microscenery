@@ -22,6 +22,11 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     val zenMicroscope: ZenMicroscope
     val crovWithoutHoles = """C:\Users\JanCasus\volumes\Zeiss\20230915_488_corvoria_without_holes.czi"""
     val crovHoles = """C:\Users\JanCasus\volumes\Zeiss\20230915_488_corvoria_with_holes.czi"""
+    val experiment19 = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
+    val squareRing = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
+    val squareRing2 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring2.czi"""
+    val squareRing3 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
+    val sd3Fly = """C:\Users\JanCasus\volumes\Zeiss\marina-sd3-drosophila1.czi"""
 
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
@@ -29,16 +34,11 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
 
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
-//        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
-        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
-        val id2 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring2.czi"""
-//        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
-        //val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
 
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConConnection = Mockito.mock(SysConConnection::class.java)
-        whenever(zenBlue.getCurrentDocument()).thenReturn(id)
+        whenever(zenBlue.getCurrentDocument()).thenReturn(squareRing)
         zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
@@ -48,11 +48,12 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
             Thread.sleep(100)
             val l1 = crovWithoutHoles
             logger.info("init $l1")
-            //zenMicroscope.debugStack(l1)
+            zenMicroscope.debugStack(l1)
 
             Thread.sleep(3000)
-            logger.info("init $id2")
-//            zenMicroscope.debugStack(id2)
+            val l2 = sd3Fly
+            logger.info("init $l2")
+            //zenMicroscope.debugStack(l2)
         }
         thread {
             while (true){
@@ -83,7 +84,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
                 zenMicroscope.debugStack(this.crovWithoutHoles)
             },
             StageUICommand("load Stack 2",null){_,_ ->
-                zenMicroscope.debugStack(this.crovHoles)
+                zenMicroscope.debugStack(this.sd3Fly)
             }
         ))
     }
