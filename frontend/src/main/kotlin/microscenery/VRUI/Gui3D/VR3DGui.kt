@@ -15,8 +15,6 @@ import microscenery.detach
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 
 class VR3DGui(
     val controller: Spatial,
@@ -116,13 +114,12 @@ class VR3DGui(
             offset: Vector3f = Vector3f(0.15f,0f,0.1f),
             scale: Float = 0.05f,
             ui: Column,
-        ): Future<VR3DGui> {
-            val future = CompletableFuture<VR3DGui>()
+        ): List<VR3DGui> {
+            val future = mutableListOf<VR3DGui>()
             hmd.events.onDeviceConnect.add { _, device, _ ->
                 if (device.type == TrackedDeviceType.Controller) {
                     device.model?.let { controller ->
                         if (controllerSide.contains(device.role)) {
-                            val name = "Ui3DWindow:${hmd.trackingSystemName}:${device.role}:$button"
                             val behavior = VR3DGui(
                                 controller.children.first().spatialOrNull()
                                     ?: throw IllegalArgumentException("The target controller needs a spatial."),
@@ -133,11 +130,12 @@ class VR3DGui(
                                 scale,
                                 ui
                             )
-                            hmd.addBehaviour(name, behavior)
-                            button.forEach {
-                                hmd.addKeyBinding(name, device.role, it)
+                            button.forEach { button ->
+                                val name = "Ui3DWindow:${hmd.trackingSystemName}:${device.role}:$button"
+                                hmd.addBehaviour(name, behavior)
+                                hmd.addKeyBinding(name, device.role, button)
+                                future.add(behavior)
                             }
-                            future.complete(behavior)
                         }
                     }
                 }

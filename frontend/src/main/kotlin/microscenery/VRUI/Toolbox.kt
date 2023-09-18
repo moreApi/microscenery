@@ -19,7 +19,7 @@ import org.scijava.ui.behaviour.DragBehaviour
 class Toolbox(
     val scene: Scene,
     hmd: OpenVRHMD,
-    button: List<OpenVRHMD.OpenVRButton>,
+    buttons: List<OpenVRHMD.OpenVRButton>,
     controllerSide: List<TrackerRole>,
     customMenu: WheelMenu? = null,
     stageSpaceManager: StageSpaceManager? = null,
@@ -132,7 +132,6 @@ class Toolbox(
             if (device.type == TrackedDeviceType.Controller) {
                 device.model?.let { controller ->
                     if (controllerSide.contains(device.role)) {
-                        val name = "ToolBoxWheelMenu:${hmd.trackingSystemName}:${device.role}:$button"
                         val vrToolSelector = EnableableDragBehaviorWrapper(
                             enabled,
                             VRFastSelectionWheel(
@@ -147,9 +146,10 @@ class Toolbox(
                                 )
                             )
                         )
-                        hmd.addBehaviour(name, vrToolSelector)
-                        button.forEach {
-                            hmd.addKeyBinding(name, device.role, it)
+                        buttons.forEach { button ->
+                            val name = "ToolBoxWheelMenu:${hmd.trackingSystemName}:${device.role}:$button"
+                            hmd.addBehaviour(name, vrToolSelector)
+                            hmd.addKeyBinding(name, device.role, button)
                         }
                     }
                 }

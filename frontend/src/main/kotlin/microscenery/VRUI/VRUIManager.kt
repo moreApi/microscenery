@@ -75,7 +75,7 @@ class VRUIManager {
             Toolbox(
                 scene,
                 hmd,
-                listOf(MENU_BUTTON,OpenVRHMD.OpenVRButton.A),
+                MENU_BUTTON,
                 listOf(TrackerRole.RightHand),
                 customActions?.let { WheelMenu(hmd, it.actions, true) },
                 stageSpaceUI?.stageSpaceManager
@@ -98,7 +98,7 @@ class VRUIManager {
             val controllerSide = listOf(TrackerRole.RightHand)
             hmd.events.onDeviceConnect.add { _, device, _ ->
                 if (device.type == TrackedDeviceType.Controller) {
-                    device.model?.let { controller ->
+                    device.model?.let { _ ->
                         if (controllerSide.contains(device.role)) {
                             run{
                                 val name = "Volume scrolling prev"
@@ -195,7 +195,7 @@ class VRUIManager {
                 }
             ))
             VR3DGui.createAndSet(
-                scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu, OpenVRHMD.OpenVRButton.A),
+                scene, hmd, MENU_BUTTON,
                 listOf(TrackerRole.LeftHand),
                 ui = TabbedMenu(leftHandMenuTabs)
             )

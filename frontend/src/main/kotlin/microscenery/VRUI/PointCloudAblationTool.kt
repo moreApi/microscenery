@@ -75,8 +75,9 @@ class PointCloudAblationTool(
                                 inkTouchingEraser = emptyList()
                             }
                         }
-                    ),
-                    MENU_BUTTON to SimplePressable(
+                    )
+                ).plus( MENU_BUTTON.map {
+                    it to SimplePressable(
                         onPress = {
                             val scene = getScene() ?: return@SimplePressable
                             val m = VRFastSelectionWheel(
@@ -101,7 +102,7 @@ class PointCloudAblationTool(
                             menu?.end(0, 0)
                         }
                     )
-                )
+                })
             )
         )
     }

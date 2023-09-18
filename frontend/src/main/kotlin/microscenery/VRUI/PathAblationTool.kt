@@ -37,7 +37,7 @@ class PathAblationTool(
     private var menu: VRFastSelectionWheel? = null
 
     init {
-        MicroscenerySettings.setIfUnset(Settings.Ablation.SizeUM,8f)
+        MicroscenerySettings.setIfUnset(Settings.Ablation.SizeUM, 8f)
         val tipLength = 0.025f
         tip = Box(Vector3f(0.015f, tipLength, 0.015f))
         tip.spatial().position = Vector3f(0f, this.sizes.y / 2 + tipLength / 2, 0f)
@@ -63,8 +63,9 @@ class PathAblationTool(
                                 placeInk()
                             }
                         }
-                    ),
-                    MENU_BUTTON to SimplePressable(
+                    )
+                ).plus(MENU_BUTTON.map {
+                    it to SimplePressable(
                         onPress = {
                             val scene = getScene() ?: return@SimplePressable
                             val m = VRFastSelectionWheel(
@@ -89,7 +90,7 @@ class PathAblationTool(
                             menu?.end(0, 0)
                         }
                     )
-                )
+                })
             )
         )
     }
@@ -99,7 +100,7 @@ class PathAblationTool(
      */
     private fun prepareInk() {
         if (preparedInk != null) logger.warn("Someone has left some old ink and ordered new ink.")
-        val ink = InkLine(lastInk, MicroscenerySettings.get(Settings.Ablation.SizeUM,8f)*0.5f)
+        val ink = InkLine(lastInk, MicroscenerySettings.get(Settings.Ablation.SizeUM, 8f) * 0.5f)
         ink.spatial().scale = stageSpaceManager.stageRoot.spatial().worldScale()
         ink.material().diffuse = lineColor
         ink.material().metallic = 0.0f
@@ -112,7 +113,7 @@ class PathAblationTool(
     private fun placeInk() {
         val ink = preparedInk ?: return
         val posInStageSpace = stageSpaceManager.worldToStageSpace(ink.spatial().worldPosition())
-        val coerced = stageSpaceManager.hardware.hardwareDimensions().coercePosition(posInStageSpace, null,true)
+        val coerced = stageSpaceManager.hardware.hardwareDimensions().coercePosition(posInStageSpace, null, true)
 
         if (posInStageSpace != coerced) {
             //ink is out of stage space bounds
@@ -122,7 +123,8 @@ class PathAblationTool(
         // we are sure we will place this ink. Set preparedInk to null so the update function won't interfere.
         preparedInk = null
 
-        ink.getAttributeOrNull(Wiggler::class.java)?.deativate()?.join() // avoids a bug where a point is moved after placing
+        ink.getAttributeOrNull(Wiggler::class.java)?.deativate()
+            ?.join() // avoids a bug where a point is moved after placing
 
         ink.spatial().position = ink.spatial().worldPosition()
         stageSpaceManager.worldToStageSpace(ink.spatial())
@@ -161,7 +163,7 @@ class PathAblationTool(
 
     internal class InkLine(val previous: InkLine? = null, radius: Float = 0.015f) :
         Sphere(radius, segments = 16) {
-        val line: Cylinder = Cylinder(MicroscenerySettings.get(Settings.Ablation.SizeUM,8f)*0.25f, 1f, 20)
+        val line: Cylinder = Cylinder(MicroscenerySettings.get(Settings.Ablation.SizeUM, 8f) * 0.25f, 1f, 20)
 
         init {
             this.addAttribute(Touchable::class.java, Touchable())
