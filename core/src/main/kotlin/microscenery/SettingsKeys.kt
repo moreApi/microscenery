@@ -12,6 +12,10 @@ object Settings {
         const val ColorChooserEnabled: String = "VRToolBox.ColorChooserEnabled"
     }
 
+    object VRUI {
+        const val LeftHandMenuFixedPosition: String = "VRUI.leftHandMenuFixedPosition"
+    }
+
     object Ablation {
         object PointTool {
             const val MinDistUm = "Ablation.PointTool.MinDistUm"

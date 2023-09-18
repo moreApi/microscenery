@@ -5,15 +5,16 @@ import graphics.scenery.RichNode
 import graphics.scenery.controls.behaviours.Pressable
 import graphics.scenery.controls.behaviours.SimplePressable
 import graphics.scenery.controls.behaviours.Touchable
+import microscenery.MicroscenerySettings
 import microscenery.changeColorWithTouchable
 import org.joml.Vector3f
 
-class Switch(label: String, value:Boolean, middleAlign:Boolean = false,  onChange: (Boolean) -> Unit)
+class Switch(label: String, start:Boolean, middleAlign:Boolean = false, onChange: (Boolean) -> Unit)
     : Row(margin = 0.2f, middleAlign = middleAlign) {
     init {
         name = "Switch $label"
 
-        this.addChild(Knob(value,onChange = onChange))
+        this.addChild(Knob(start,onChange = onChange))
         this.addChild(TextBox(label))
     }
 
@@ -58,6 +59,16 @@ class Switch(label: String, value:Boolean, middleAlign:Boolean = false,  onChang
             value = !value
             onChange(value)
             return value
+        }
+    }
+
+    companion object {
+        fun forBoolSetting(label: String?,setting: String, middleAlign: Boolean, default: Boolean =  false): Switch {
+            val start = MicroscenerySettings.get(setting,default)
+
+            return Switch(label?:setting,start,middleAlign){
+                MicroscenerySettings.set(setting, it)
+            }
         }
     }
 

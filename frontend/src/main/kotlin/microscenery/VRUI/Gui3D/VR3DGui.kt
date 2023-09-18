@@ -8,6 +8,8 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerInput
 import graphics.scenery.controls.TrackerRole
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.VRUI.fromScenery.WheelMenu
 import microscenery.detach
 import org.joml.Quaternionf
@@ -45,11 +47,16 @@ class VR3DGui(
     var startPressTime = 0L
 
     init {
+        MicroscenerySettings.addUpdateRoutine(Settings.VRUI.LeftHandMenuFixedPosition){
+            trackingMode = if (MicroscenerySettings.get(Settings.VRUI.LeftHandMenuFixedPosition, false)) WheelMenu.TrackingMode.START else WheelMenu.TrackingMode.LIVE
+        }
         scalePivot.addChild(ui)
         root.update.add {
             if (trackingMode == WheelMenu.TrackingMode.LIVE) {
                 ui.spatial().rotation = Quaternionf(hmd.getOrientation()).conjugate().normalize()
                 root.spatial().position = controller.worldPosition() + offset
+            } else {
+                offset = Vector3f()
             }
         }
     }
@@ -105,7 +112,7 @@ class VR3DGui(
             hmd: OpenVRHMD,
             button: List<OpenVRHMD.OpenVRButton>,
             controllerSide: List<TrackerRole>,
-            trackingMode: WheelMenu.TrackingMode = WheelMenu.TrackingMode.LIVE,
+            trackingMode: WheelMenu.TrackingMode = if (MicroscenerySettings.get(Settings.VRUI.LeftHandMenuFixedPosition, false)) WheelMenu.TrackingMode.START else WheelMenu.TrackingMode.LIVE,
             offset: Vector3f = Vector3f(0.15f,0f,0.1f),
             scale: Float = 0.05f,
             ui: Column,
