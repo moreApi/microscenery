@@ -38,9 +38,7 @@ class T1HeadVR : DefaultVRScene(T1HeadVR::class.java.simpleName) {
 
                 )
             )
-        ) {
-            scene.findByClassname(Volume::class.simpleName!!).first() as Volume
-        }
+        )
     }
 
     companion object {

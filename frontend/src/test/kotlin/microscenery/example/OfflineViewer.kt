@@ -211,13 +211,12 @@ class OfflineViewerVR() : DefaultVRScene("Embo Scene") {
     override fun inputSetup() {
         super.inputSetup()
 
-        VRUIManager.initBehavior(scene, hmd, inputHandler, customActions =
-        WheelMenu(hmd, listOf(Switch("freeze blocks",false){
-            vol.volumeManager.freezeRequiredBlocks = it
-        }), false)
-        ) {
-            scene.findByClassname(Volume::class.simpleName!!).first() as Volume
-        }
+        VRUIManager.initBehavior(
+            scene, hmd, inputHandler, customActions =
+            WheelMenu(hmd, listOf(Switch("freeze blocks",false){
+                vol.volumeManager.freezeRequiredBlocks = it
+            }), false)
+        )
     }
 
     companion object {

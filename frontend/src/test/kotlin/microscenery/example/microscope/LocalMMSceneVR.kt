@@ -51,9 +51,7 @@ class LocalMMSceneVR : DefaultVRScene() {
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
             stageSpaceUI = ssUI
-        ) {
-            stageSpaceManager.stageRoot
-        }
+        )
     }
 
     companion object {

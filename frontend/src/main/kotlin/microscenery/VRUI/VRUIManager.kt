@@ -1,6 +1,5 @@
 package microscenery.VRUI
 
-import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
@@ -35,7 +34,6 @@ class VRUIManager {
             inputHandler: InputHandler?,
             customActions: WheelMenu? = null,
             stageSpaceUI: StageSpaceUI? = null,
-            target: () -> Node? = {null}, //TODO unused
         ) {
 
             VRGrabTheWorldSelfMove.createAndSet(
@@ -144,9 +142,9 @@ class VRUIManager {
             scene: Scene,
             hmd: OpenVRHMD
         ) {
-            val leftHandMenu = mutableListOf<TabbedMenu.MenuTab>()
+            val leftHandMenuTabs = mutableListOf<TabbedMenu.MenuTab>()
             stageSpaceManager.sliceManager.transferFunctionManager.let { tf ->
-                leftHandMenu += TabbedMenu.MenuTab("Img", Column(
+                leftHandMenuTabs += TabbedMenu.MenuTab("Img", Column(
                     Row(TextBox("Display Range", height = 0.8f)),
                     ValueEdit(tf.minDisplayRange,
                         { tf.minDisplayRange += 10f;tf.minDisplayRange },
@@ -164,7 +162,7 @@ class VRUIManager {
             }
             val ablm = stageSpaceManager.ablationManager
             if (MicroscenerySettings.get(Settings.Ablation.Enabled, false)) {
-                leftHandMenu += TabbedMenu.MenuTab(
+                leftHandMenuTabs += TabbedMenu.MenuTab(
                     "Ablation", Column(
                         Row(Button("ablate", height = 1.3f) {
                             ablm.executeAblation()
@@ -179,7 +177,8 @@ class VRUIManager {
                     ), ablm::composeAblation, ablm::scrapAblation
                 )
             }
-            leftHandMenu += TabbedMenu.MenuTab("Options", Column(
+            leftHandMenuTabs += TabbedMenu.MenuTab("Options", Column(
+                Switch.forBoolSetting("fix Menu",Settings.VRUI.LeftHandMenuFixedPosition, true),
                 Switch("lock scaling", false, true)
                 { scalingAndRotating.getNow(null)?.scaleLocked = it },
                 Switch("lock rotation", false, true)
@@ -198,8 +197,7 @@ class VRUIManager {
             VR3DGui.createAndSet(
                 scene, hmd, listOf(OpenVRHMD.OpenVRButton.Menu, OpenVRHMD.OpenVRButton.A),
                 listOf(TrackerRole.LeftHand),
-                WheelMenu.TrackingMode.LIVE,
-                ui = TabbedMenu(leftHandMenu)
+                ui = TabbedMenu(leftHandMenuTabs)
             )
         }
 

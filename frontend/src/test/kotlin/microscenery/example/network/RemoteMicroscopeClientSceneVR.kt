@@ -40,9 +40,7 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
             stageSpaceUI = ssui
-        ) {
-            stageSpaceManager.stageRoot
-        }
+        )
 
     }
 
