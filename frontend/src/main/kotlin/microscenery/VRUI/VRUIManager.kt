@@ -9,6 +9,7 @@ import graphics.scenery.controls.behaviours.Touch
 import graphics.scenery.controls.behaviours.VRGrab
 import graphics.scenery.controls.behaviours.VRPress
 import graphics.scenery.controls.behaviours.VRTouch
+import graphics.scenery.volumes.Colormap
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.UI.StageSpaceUI
@@ -136,15 +137,27 @@ class VRUIManager {
             }
         }
 
-        private fun leftHandMenu(
+        fun leftHandMenu(
             stageSpaceManager: StageSpaceManager,
             scalingAndRotating: CompletableFuture<VR2HandSpatialManipulation>,
             scene: Scene,
             hmd: OpenVRHMD
         ) {
             val leftHandMenuTabs = mutableListOf<TabbedMenu.MenuTab>()
+
+
+            val colorButtons =  Colormap.list().map {
+                Button(it){ MicroscenerySettings.set(Settings.StageSpace.ColorMap,it)}
+            }
+            val colorButtonRows = colorButtons.mapIndexedNotNull { index, _ ->
+                if (index % 3 != 0) return@mapIndexedNotNull null
+                val endSubList = minOf(index +2, colorButtons.size)
+                Row(*colorButtons.subList(index,endSubList).toTypedArray())
+            }
+
             stageSpaceManager.sliceManager.transferFunctionManager.let { tf ->
                 leftHandMenuTabs += TabbedMenu.MenuTab("Img", Column(
+                    *colorButtonRows.toTypedArray(),
                     Row(TextBox("Display Range", height = 0.8f)),
                     ValueEdit(tf.minDisplayRange,
                         { tf.minDisplayRange += 10f;tf.minDisplayRange },

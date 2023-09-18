@@ -30,6 +30,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
         MicroscenerySettings.setVector3f(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
+        MicroscenerySettings.set(Settings.StageSpace.ColorMap, "plasma")
 
 
 //        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
@@ -51,7 +52,7 @@ class LocalZenSceneVR : DefaultVRScene() {
             zenMicroscope.debugStack(id)
 
             Thread.sleep(3000)
-            zenMicroscope.debugStack(id2)
+            //zenMicroscope.debugStack(id2)
         }
         thread {
             while (true){

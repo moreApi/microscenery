@@ -6,6 +6,7 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.toFloatArray
 import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.BufferedVolume
+import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
@@ -49,6 +50,11 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         MicroscenerySettings.addUpdateRoutine(
             "Stage.ToggleSliceBorder"
         ) { setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder")) }
+        MicroscenerySettings.addUpdateRoutine(microscenery.Settings.StageSpace.ColorMap){
+            val color = getColorMap() ?: return@addUpdateRoutine
+            stacks.forEach { it.volume.colormap = color }
+        }
+
 
         val cam = scene.findObserver()
         if (cam != null) {
@@ -60,6 +66,17 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
                     oldPos = cam.spatial().position
                 }
             }
+        }
+    }
+
+    private fun getColorMap(): Colormap? {
+        val colorName = MicroscenerySettings.getOrNull<String>(microscenery.Settings.StageSpace.ColorMap) ?: return null
+        return try {
+            Colormap.get(colorName)
+        } catch (t: Throwable){
+            logger.error("Could not find color $colorName")
+            logger.debug(t.toString())
+            null
         }
     }
 
@@ -161,6 +178,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             }
             volume.goToLastTimepoint()
             volume.transferFunction = transferFunctionManager.transferFunction
+            getColorMap()?.let { volume.colormap = it }
             volume.name = "Stack ${stackSignal.Id}"
             volume.origin = Origin.Center
             volume.spatial {

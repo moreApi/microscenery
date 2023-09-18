@@ -44,6 +44,7 @@ object Settings {
     object StageSpace{
         /** bool */ const val HideFocusFrame = "StageSpace.hideFocusFrame"
         /** bool */ const val HideFocusTargetFrame = "StageSpace.hideFocusTargetFrame"
+        /** string */ const val ColorMap = "StageSpace.colorMap"
     }
 
     object ZenMicroscope {

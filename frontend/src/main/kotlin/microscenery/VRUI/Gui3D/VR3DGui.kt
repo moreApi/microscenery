@@ -108,7 +108,7 @@ class VR3DGui(
         fun createAndSet(
             scene: Scene,
             hmd: OpenVRHMD,
-            button: List<OpenVRHMD.OpenVRButton>,
+            buttons: List<OpenVRHMD.OpenVRButton>,
             controllerSide: List<TrackerRole>,
             trackingMode: WheelMenu.TrackingMode = if (MicroscenerySettings.get(Settings.VRUI.LeftHandMenuFixedPosition, false)) WheelMenu.TrackingMode.START else WheelMenu.TrackingMode.LIVE,
             offset: Vector3f = Vector3f(0.15f,0f,0.1f),
@@ -130,7 +130,7 @@ class VR3DGui(
                                 scale,
                                 ui
                             )
-                            button.forEach { button ->
+                            buttons.forEach { button ->
                                 val name = "Ui3DWindow:${hmd.trackingSystemName}:${device.role}:$button"
                                 hmd.addBehaviour(name, behavior)
                                 hmd.addKeyBinding(name, device.role, button)
