@@ -28,6 +28,10 @@ class TabbedMenu(tabs: List<MenuTab>) : Column(invertedYOrder = false){
         this.pack()
     }
 
+    fun onActivate(){
+        openTab?.onActivate?.invoke()
+    }
+
     private fun openMenu(tab: MenuTab){
         if (openTab == tab) return
 

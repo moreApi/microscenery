@@ -92,6 +92,9 @@ class VR3DGui(
             scalePivot.spatial().scale = Vector3f(scale)
 
             scene.addChild(root)
+            if(ui is TabbedMenu){
+                ui.onActivate()
+            }
         } else {
             root.detach()
         }
