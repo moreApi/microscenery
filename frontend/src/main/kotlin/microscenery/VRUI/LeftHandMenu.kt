@@ -8,10 +8,13 @@ import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.VRUI.Gui3D.*
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
+import microscenery.getVector3
+import microscenery.setVector3f
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.concurrent.CompletableFuture
+import kotlin.math.roundToInt
 
 
 object LeftHandMenu {
@@ -30,7 +33,7 @@ object LeftHandMenu {
         val colorButtonRows = colorButtons.mapIndexedNotNull { index, _ ->
             if (index % 3 != 0) return@mapIndexedNotNull null
             val endSubList = minOf(index + 2, colorButtons.size)
-            Row(*colorButtons.subList(index, endSubList).toTypedArray())
+            Row(*colorButtons.subList(index, endSubList+1).toTypedArray())
         }
 
         stageSpaceManager.sliceManager.transferFunctionManager.let { tf ->
@@ -62,10 +65,10 @@ object LeftHandMenu {
                     }),
 //                        Row(TextBox("laser power", height = 0.8f)),
 //                        ValueEdit.forFloatSetting(Settings.Ablation.LaserPower, 0.1f),
-//                        Row(TextBox("step size", height = 0.8f)),
-//                        ValueEdit.forIntSetting(Settings.Ablation.StepSizeUm, 10),
                     Row(TextBox("dwell time", height = 0.8f)),
                     ValueEdit.forIntSetting(Settings.Ablation.DwellTimeMicroS, factor = 50, plusPlusButtons = true){"${it}us"},
+                    Row(TextBox("step size", height = 0.8f)),
+                    createStepSizeEdit(),
                     Switch("hide plan", false, true, onChange = ablm::hidePlan),
                 ), ablm::composeAblation, ablm::scrapAblation
             )
@@ -91,6 +94,28 @@ object LeftHandMenu {
             scene, hmd, MENU_BUTTON,
             listOf(TrackerRole.LeftHand),
             ui = TabbedMenu(leftHandMenuTabs)
+        )
+    }
+
+    private fun createStepSizeEdit(): Gui3DElement {
+        val factor = 0.1f
+        val setting = Settings.Ablation.PrecisionUM
+
+        fun getFloatStepSize(): Float {
+            val vec = MicroscenerySettings.getVector3(setting) ?: Vector3f(2f)
+            return vec.x
+        }
+        fun changeAndSave(value: Float, change: Float): Float {
+            val t = ((value + change * factor) * 10).roundToInt() * 0.1f
+            MicroscenerySettings.setVector3f(setting, Vector3f(t))
+            return t
+        }
+        return ValueEdit(getFloatStepSize(),
+            {changeAndSave(it,1f)},
+            {changeAndSave(it,-1f)},
+            {changeAndSave(it,10f)},
+            {changeAndSave(it,-10f)},
+            { "${"%.1f".format(it)}um"}
         )
     }
 }
