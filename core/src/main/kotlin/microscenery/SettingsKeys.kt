@@ -2,6 +2,7 @@ package microscenery
 
 object Settings {
     object VRToolbox {
+        const val AblationInkMoverEnabled: String = "VRToolBox.AblationInkMoverEnabled"
         const val SlicingEnabled: String = "VRToolBox.SlicingEnabled"
         const val DrawPointsEnabled: String = "DrawPointsEnabled"
         const val DrawLineEnabled: String = "VRToolBox.DrawLineEnabled"

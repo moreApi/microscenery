@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE")
+
 package microscenery.example.microscope
 
 import microscenery.DefaultVRScene
@@ -28,6 +30,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.Ablation.Enabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.AblationInkMoverEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
         MicroscenerySettings.setVector3f(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
         MicroscenerySettings.set(Settings.StageSpace.ColorMap, "plasma")

@@ -220,8 +220,8 @@ class StageSpaceManager(
         s.scale *= getInverseWorldScale()
     }
 
-    fun worldToStageSpace(v: Vector3f): Vector3f =
-        Matrix4f(stageRoot.spatial().world).invertAffine().transform(Vector4f().set(v, 1.0f)).xyz()
+    fun worldToStageSpace(v: Vector3f,isPosition: Boolean = true): Vector3f =
+        Matrix4f(stageRoot.spatial().world).invertAffine().transform(Vector4f().set(v, if(isPosition) 1f else 0f)).xyz()
 
     fun getInverseWorldScale(): Vector3f = Matrix4f(stageRoot.spatial().world).invertAffine().getScale(Vector3f())
 }

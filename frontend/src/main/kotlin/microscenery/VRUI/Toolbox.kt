@@ -30,6 +30,7 @@ class Toolbox(
     val croppingTool = CroppingTool()
     val pathAblationTool = stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd) }
     val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd) }
+    val ablationInkMoveTool = stageSpaceManager?.let { AblationInkMoveTool(stageSpaceManager)}
     val bubblesTool = BubblesTool()
 
     init {
@@ -65,18 +66,26 @@ class Toolbox(
             lineTool.visible = true
             lineTool.spatial().position = device.worldPosition()
         }
-        if (pathAblationTool != null)
+        pathAblationTool?.let{
             addIfEnabled(Settings.VRToolbox.PathAblationEnabled, "path ablation") { device ->
                 scene.addChild(pathAblationTool)
                 pathAblationTool.visible = true
                 pathAblationTool.spatial().position = device.worldPosition()
-            }
-        if (pointCloudAblationTool != null)
+            }}
+        pointCloudAblationTool?.let{
             addIfEnabled(Settings.VRToolbox.PointAblationEnabled, "point ablation") { device ->
                 scene.addChild(pointCloudAblationTool)
                 pointCloudAblationTool.visible = true
                 pointCloudAblationTool.spatial().position = device.worldPosition()
-            }
+            }}
+        ablationInkMoveTool?.let{
+            addIfEnabled(Settings.VRToolbox.AblationInkMoverEnabled, "mover"){ device ->
+                scene.addChild(ablationInkMoveTool)
+                ablationInkMoveTool.visible = true
+                ablationInkMoveTool.spatial().position = device.worldPosition()
+            }}
+
+
         addIfEnabled(Settings.VRToolbox.BubblesEnabled, "bubbles") { device ->
             scene.addChild(bubblesTool)
             bubblesTool.visible = true
