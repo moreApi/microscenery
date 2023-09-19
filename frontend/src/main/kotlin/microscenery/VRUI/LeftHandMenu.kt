@@ -32,7 +32,7 @@ object LeftHandMenu {
         }
         val colorButtonRows = colorButtons.mapIndexedNotNull { index, _ ->
             if (index % 3 != 0) return@mapIndexedNotNull null
-            val endSubList = minOf(index + 2, colorButtons.size)
+            val endSubList = minOf(index + 2, colorButtons.size-1)
             Row(*colorButtons.subList(index, endSubList+1).toTypedArray())
         }
 
