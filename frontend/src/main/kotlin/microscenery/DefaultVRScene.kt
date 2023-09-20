@@ -79,7 +79,6 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
                 position = it
             }
             light.intensity = 1.0f
-
             light
         }.forEach { scene.addChild(it) }
 
@@ -93,6 +92,7 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
             specular = Vector3f(0.0f, 0.0f, 0.0f)
             cullingMode = Material.CullingMode.Front
         }
+        hullbox.spatial().position = Vector3f(0f,5f,0f )
         scene.addChild(hullbox)
     }
 

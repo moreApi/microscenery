@@ -66,7 +66,7 @@ object LeftHandMenu {
 //                        Row(TextBox("laser power", height = 0.8f)),
 //                        ValueEdit.forFloatSetting(Settings.Ablation.LaserPower, 0.1f),
                     Row(TextBox("dwell time", height = 0.8f)),
-                    ValueEdit.forIntSetting(Settings.Ablation.DwellTimeMicroS, factor = 50, plusPlusButtons = true){"${it}us"},
+                    ValueEdit.forIntSetting(Settings.Ablation.Repetitions, factor = 1, plusPlusButtons = false),
                     Row(TextBox("step size", height = 0.8f)),
                     createStepSizeEdit(),
                     Switch("hide plan", false, true, onChange = ablm::hidePlan),

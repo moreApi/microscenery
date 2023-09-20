@@ -20,7 +20,7 @@ dependencies {
     // - branch-of-jan
     // - fix/objConventions
     // (- LineColorFix)
-    implementation("graphics.scenery:scenery:4ba7dce4")
+    implementation("graphics.scenery:scenery:0266531b")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 

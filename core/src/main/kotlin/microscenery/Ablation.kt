@@ -75,7 +75,7 @@ fun initAblationSettings(){
  * Uses [MicroscenerySettings] to map [points] to [ClientSignal.AblationPoints]
  */
 fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
-    val dwellTime = MicroscenerySettings.get(Settings.Ablation.DwellTimeMicroS, 0L)
+    val dwellTime = MicroscenerySettings.get(Settings.Ablation.Repetitions, 1L) //todo this is not correct but for zen studz workaround
     val laserPower = MicroscenerySettings.get(Settings.Ablation.LaserPower, 0f)
     // count time it takes to move towards next point to that points dwell time
     val countMoveTime = MicroscenerySettings.get(Settings.Ablation.CountMoveTime, true)
