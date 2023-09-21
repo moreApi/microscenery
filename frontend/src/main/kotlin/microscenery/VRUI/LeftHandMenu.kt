@@ -65,7 +65,7 @@ object LeftHandMenu {
                     }),
 //                        Row(TextBox("laser power", height = 0.8f)),
 //                        ValueEdit.forFloatSetting(Settings.Ablation.LaserPower, 0.1f),
-                    Row(TextBox("dwell time", height = 0.8f)),
+                    Row(TextBox("repetitions", height = 0.8f)),
                     ValueEdit.forIntSetting(Settings.Ablation.Repetitions, factor = 1, plusPlusButtons = false),
                     Row(TextBox("step size", height = 0.8f)),
                     createStepSizeEdit(),
@@ -98,7 +98,7 @@ object LeftHandMenu {
     }
 
     private fun createStepSizeEdit(): Gui3DElement {
-        val factor = 0.1f
+        val factor = 0.05f
         val setting = Settings.Ablation.PrecisionUM
 
         fun getFloatStepSize(): Float {
@@ -106,7 +106,7 @@ object LeftHandMenu {
             return vec.x
         }
         fun changeAndSave(value: Float, change: Float): Float {
-            val t = ((value + change * factor) * 10).roundToInt() * 0.1f
+            val t = ((value + change * factor) * 100).roundToInt() * 0.01f
             MicroscenerySettings.setVector3f(setting, Vector3f(t))
             return t
         }
@@ -115,7 +115,7 @@ object LeftHandMenu {
             {changeAndSave(it,-1f)},
             {changeAndSave(it,10f)},
             {changeAndSave(it,-10f)},
-            { "${"%.1f".format(it)}um"}
+            { "${"%.2f".format(it)}um"}
         )
     }
 }
