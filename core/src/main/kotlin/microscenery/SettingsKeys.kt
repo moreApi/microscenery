@@ -50,6 +50,7 @@ object Settings {
 
     object ZenMicroscope {
         /** bool */ const val MockSysCon = "ZenMicroscope.mockSysCon"
+        /** float */ const val exposureTime = "ZenMicroscope.exposureTime"
     }
 
     object Network {
