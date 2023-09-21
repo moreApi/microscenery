@@ -141,9 +141,10 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
      * @param[contents] Contents of the setting, can be anything.
      */
     fun <T : Any> setIfUnset(name: String, contents: T): T {
-        val current = get<T?>(name, null)
+        val current = settingsStore[name]
         if (current != null){
-            return current
+            @Suppress("UNCHECKED_CAST")
+            return current as T
         } else {
             set(name, contents)
             return contents
