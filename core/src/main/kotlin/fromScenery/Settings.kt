@@ -140,8 +140,14 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
      * @param[name] Name of the setting.
      * @param[contents] Contents of the setting, can be anything.
      */
-    fun setIfUnset(name: String, contents: Any): Any {
-        return settingsStore[name] ?: set(name, contents)
+    fun <T : Any> setIfUnset(name: String, contents: T): T {
+        val current = get<T?>(name, null)
+        if (current != null){
+            return current
+        } else {
+            set(name, contents)
+            return contents
+        }
     }
 
     /**

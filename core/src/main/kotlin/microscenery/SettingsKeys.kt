@@ -51,4 +51,8 @@ object Settings {
     object ZenMicroscope {
         /** bool */ const val MockSysCon = "ZenMicroscope.mockSysCon"
     }
+
+    object Network {
+        /** int */ const val sliceOffset = "Network.sliceOffset"
+    }
 }
