@@ -57,7 +57,7 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
                     indicator.material().diffuse = Vector3f(1f)
                     controller.addChild(indicator)
 
-                    val collider = Box(Vector3f(.005f))
+                    val collider = Box(Vector3f(.01f))
                     collider.name = "collider"
                     controller.addChild(collider)
                 }

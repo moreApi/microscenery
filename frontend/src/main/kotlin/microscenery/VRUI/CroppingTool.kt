@@ -7,7 +7,7 @@ import graphics.scenery.volumes.SlicingPlane
 import graphics.scenery.volumes.Volume
 import org.joml.Vector3f
 
-class CroppingTool : Box(Vector3f(0.2f, 0.01f, 0.2f)) {
+class CroppingTool : Box(Vector3f(0.2f, 0.02f, 0.2f)) {
     var volume: Volume? = null
     val croppingPlane = SlicingPlane()
 
