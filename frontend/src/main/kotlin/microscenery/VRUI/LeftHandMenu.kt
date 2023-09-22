@@ -13,6 +13,7 @@ import microscenery.setVector3f
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import java.lang.Float.max
 import java.util.concurrent.CompletableFuture
 import kotlin.math.roundToInt
 
@@ -66,7 +67,7 @@ object LeftHandMenu {
 //                        Row(TextBox("laser power", height = 0.8f)),
 //                        ValueEdit.forFloatSetting(Settings.Ablation.LaserPower, 0.1f),
                     Row(TextBox("repetitions", height = 0.8f)),
-                    ValueEdit.forIntSetting(Settings.Ablation.Repetitions, factor = 1, plusPlusButtons = false),
+                    ValueEdit.forIntSetting(Settings.Ablation.Repetitions, factor = 1,min = 0, plusPlusButtons = false),
                     Row(TextBox("step size", height = 0.8f)),
                     createStepSizeEdit(),
                     Switch("hide plan", false, true, onChange = ablm::hidePlan),
@@ -100,13 +101,14 @@ object LeftHandMenu {
     private fun createStepSizeEdit(): Gui3DElement {
         val factor = 0.05f
         val setting = Settings.Ablation.PrecisionUM
+        val min = 0.01f
 
         fun getFloatStepSize(): Float {
             val vec = MicroscenerySettings.getVector3(setting) ?: Vector3f(2f)
             return vec.x
         }
         fun changeAndSave(value: Float, change: Float): Float {
-            val t = ((value + change * factor) * 100).roundToInt() * 0.01f
+            val t = max(((value + change * factor) * 100).roundToInt() * 0.01f,min)
             MicroscenerySettings.setVector3f(setting, Vector3f(t))
             return t
         }

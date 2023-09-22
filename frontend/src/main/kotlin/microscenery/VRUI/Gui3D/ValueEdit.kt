@@ -1,6 +1,7 @@
 package microscenery.VRUI.Gui3D
 
 import microscenery.MicroscenerySettings
+import java.lang.Integer.max
 
 class ValueEdit<T>(start:T,
                    plus: (T) -> T,
@@ -54,11 +55,12 @@ class ValueEdit<T>(start:T,
             setting: String,
             factor: Int = 1,
             plusPlusButtons: Boolean = true,
+            min: Int? = null,
             toString: ((Int) -> String)? = null
         ): ValueEdit<Int> {
             val start = MicroscenerySettings.get(setting, 0)
             fun changeAndSave(value: Int, change: Int): Int {
-                val t = value + change * factor
+                val t = max(value + change * factor, min?: Int.MAX_VALUE)
                 MicroscenerySettings.set(setting, t)
                 return t
             }
