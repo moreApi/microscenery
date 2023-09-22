@@ -156,6 +156,14 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             existingStack.currentBuffer = buffer
             volume.goToLastTimepoint()
         } else {
+            // todo handle old stacks better
+            selectedStack?.let {
+                if (it.meta.Id != stack.Id) {
+                    clearSlices()
+                    selectedStack = null
+                }
+            }
+
             val volume = when (hardware.hardwareDimensions().numericType) {
                 NumericType.INT8 -> Volume.fromBuffer(
                     listOf(BufferedVolume.Timepoint(stack.created.toString(), buffer)),
@@ -206,15 +214,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             stacks = stacks + StackContainer(stack, volume, buffer)
 
 
-            // todo handle old stacks better
-            selectedStack?.let {
-                if (it.meta.Id != stack.Id) {
-                    it.volume.volumeManager.remove(it.volume)
-                    stacks = stacks - it
-                    MemoryUtil.memFree(it.currentBuffer)
-                    selectedStack = null
-                }
-            }
             // todo: make stack selection smarter
             selectedStack = stacks.last()
         }
@@ -271,6 +270,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         stacks = emptyList()
         tmp.forEach {
             it.volume.parent?.removeChild(it.volume)
+            it.volume.volumeManager.remove(it.volume)
             MemoryUtil.memFree(it.currentBuffer)
         }
     }
