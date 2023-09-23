@@ -3,6 +3,7 @@ package microscenery.stageSpace
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.attribute.spatial.Spatial
+import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
@@ -10,14 +11,13 @@ import graphics.scenery.utils.extensions.xyz
 import graphics.scenery.utils.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
+import microscenery.VRUI.Gui3D.Row
+import microscenery.VRUI.Gui3D.TextBox
 import microscenery.copy
 import microscenery.hardware.MicroscopeHardware
 import microscenery.setVector3fIfUnset
 import microscenery.signals.*
-import org.joml.Matrix4f
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -43,6 +43,8 @@ class StageSpaceManager(
     private val stageAreaBorders: Box
     var stageAreaCenter = Vector3f()
         private set
+
+    private val microscopeStatusLabel = TextBox("microscope status")
 
     val sliceManager = SliceManager(hardware, stageRoot, scene)
     val ablationManager = AblationManager(hardware,this,scene)
@@ -74,6 +76,23 @@ class StageSpaceManager(
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
 
+        val microscopeStatusLabelPivot = Row(microscopeStatusLabel)
+        microscopeStatusLabelPivot.spatial {
+            scale = Vector3f(0.3f)
+
+            fun updateMSLabelRotation(viewOrientation: Quaternionf){
+                rotation = Quaternionf(viewOrientation).conjugate().normalize()
+            }
+            val hmd = hub.get<OpenVRHMD>()
+            microscopeStatusLabelPivot.update += {
+                if (hmd != null) {
+                    updateMSLabelRotation(hmd.getOrientation())
+                } else {
+                    scene.activeObserver?.let { updateMSLabelRotation(it.spatial().rotation) }
+                }
+            }
+        }
+        scene.addChild(microscopeStatusLabelPivot)
 
         focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
             spatial().position = hardware.stagePosition.copy()
@@ -105,6 +124,7 @@ class StageSpaceManager(
             }
             is MicroscopeStatus -> {
                 focus.spatial().position = signal.stagePosition
+                updateMicroscopeStatusLabel(signal)
             }
             is Stack -> {
                 sliceManager.handleStackSignal(signal, hub)
@@ -116,6 +136,18 @@ class StageSpaceManager(
         }
     }
 
+    private fun updateMicroscopeStatusLabel(signal: MicroscopeStatus) {
+        microscopeStatusLabel.text = "Microscope: " + when(signal.state){
+            ServerState.LIVE -> "sending data"
+            ServerState.MANUAL -> "idle"
+            ServerState.SHUTTING_DOWN -> "shutting down"
+            ServerState.STACK -> "imaging"
+            ServerState.STARTUP -> "startup"
+            ServerState.ABLATION -> "ablating"
+        }
+        (microscopeStatusLabel.parent as? Row)?.pack()
+    }
+
     private fun handleHardwareDimensionsSignal(signal: HardwareDimensions) {
         stageAreaCenter = (signal.stageMax + signal.stageMin).times(0.5f)
 
@@ -124,6 +156,7 @@ class StageSpaceManager(
             val xSize = (signal.stageMax.x - signal.stageMin.x + signal.imageSize.x * signal.vertexDiameter)
             scale = Vector3f((1 / xSize) * 3)
             position = Vector3f(-1f) * stageAreaCenter * scale
+            updateWorld(true,false)
         }
         stageAreaBorders.spatial {
             position = stageAreaCenter
@@ -138,6 +171,10 @@ class StageSpaceManager(
                 this.add(imageSize)
                 this.mul(1.1f)
             }
+        }
+        microscopeStatusLabel.parent?.ifSpatial {
+            // move it on top of the stage space
+            position = stageRoot.spatial().worldPosition((Vector3f(stageAreaCenter.x, signal.stageMax.y + signal.imageSize.x * signal.vertexDiameter,stageAreaCenter.z)))
         }
 
         focusTarget?.applyHardwareDimensions(signal)
