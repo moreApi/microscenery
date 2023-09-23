@@ -1,6 +1,9 @@
 package microscenery.stageSpace
 
-import graphics.scenery.*
+import graphics.scenery.Hub
+import graphics.scenery.Origin
+import graphics.scenery.RichNode
+import graphics.scenery.Scene
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.toFloatArray
@@ -207,10 +210,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
 
             stageRoot.addChild(volume)
 
-            BoundingGrid().apply {
-                this.node = volume
-                //volume.metadata["BoundingGrid"] = this
-            }
             stacks = stacks + StackContainer(stack, volume, buffer)
 
 
