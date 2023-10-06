@@ -17,6 +17,7 @@ import org.joml.Vector3f
 import org.mockito.Mockito
 import kotlin.concurrent.thread
 
+@Suppress("unused")
 class LocalZenSceneVR : DefaultVRScene() {
     lateinit var  stageSpaceManager: StageSpaceManager
 
@@ -32,15 +33,16 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.AblationInkMoverEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
+        MicroscenerySettings.set(Settings.Ablation.SizeUM, 11f)
         MicroscenerySettings.setVector3f(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
         MicroscenerySettings.set(Settings.StageSpace.ColorMap, "plasma")
 
 
 //        val id = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
-        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
+//        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
         val id2 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring2.czi"""
 //        val id = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
-        //val id = """C:\Nextcloud\Zeiss\marina-sd3-drosophila2.czi"""
+        val id = """C:\Users\JanCasus\volumes\Zeiss\20230925_drosophila_niceSideCut1.czi"""
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConConnection = Mockito.mock(SysConConnection::class.java)

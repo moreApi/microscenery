@@ -1,5 +1,7 @@
 package microscenery.example.microscope
 
+import graphics.scenery.Light
+import graphics.scenery.volumes.Colormap
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
 import microscenery.Settings
@@ -16,6 +18,7 @@ import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 import kotlin.concurrent.thread
 
+@Suppress("unused")
 class LocalZenScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
 
@@ -27,6 +30,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     val squareRing2 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring2.czi"""
     val squareRing3 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
     val sd3Fly = """C:\Users\JanCasus\volumes\Zeiss\marina-sd3-drosophila1.czi"""
+    val niceCut1 = """C:\Users\JanCasus\volumes\Zeiss\20230925_drosophila_niceSideCut1.czi"""
 
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
@@ -44,9 +48,13 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
         val hardware: MicroscopeHardware = zenMicroscope
         stageSpaceManager = StageSpaceManager(hardware, scene, hub)
 
+        //for nice cut pictures
+        stageSpaceManager.scene.findByClassname("Light").forEach { (it as Light).intensity *= 0.25f }
+        stageSpaceManager.sliceManager.stacks.first().volume.colormap = Colormap.get("grays")
+
         thread {
             Thread.sleep(100)
-            val l1 = crovWithoutHoles
+            val l1 = niceCut1
             logger.info("init $l1")
             zenMicroscope.debugStack(l1)
 
