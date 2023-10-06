@@ -13,13 +13,16 @@ class AblationInkMoveTool(
     val stageSpaceManager: StageSpaceManager,
 ) : Sphere(0.025f,16) {
 
-    private val defaultColor = material().diffuse
+    private val defaultColor: Vector3f
 
     init {
         spatial {
             scale.y = 2f
             needsUpdate = true
         }
+
+        material().diffuse = Vector3f(1f)
+        defaultColor = material().diffuse
 
         this.addAttribute(Touchable::class.java, Touchable())
         this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))

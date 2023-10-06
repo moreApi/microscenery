@@ -12,6 +12,8 @@ class CroppingTool : Box(Vector3f(0.2f, 0.02f, 0.2f)) {
     val croppingPlane = SlicingPlane()
 
     init {
+        material().diffuse = Vector3f(1f)
+
         this.addAttribute(Touchable::class.java, Touchable())
         this.addAttribute(Grabable::class.java, Grabable())
         this.addAttribute(

@@ -38,9 +38,12 @@ class PointCloudAblationTool(
     init {
         MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(0.1f))
 
+        material().diffuse = Vector3f(1f)
+
         val tipLength = 0.06f
         tip = Pyramid(0.03f,0.03f,tipLength)
         tip.spatial().position = Vector3f(0f, sizes.y/2, 0f)
+        tip.material().diffuse = Vector3f(1f)
         addChild(tip)
         inkOutput = RichNode()
         inkOutput.spatial().position.y = tipLength

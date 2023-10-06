@@ -38,9 +38,13 @@ class PathAblationTool(
 
     init {
         MicroscenerySettings.setIfUnset(Settings.Ablation.SizeUM, 8f)
+
+        material().diffuse = Vector3f(1f)
+
         val tipLength = 0.025f
         tip = Box(Vector3f(0.015f, tipLength, 0.015f))
         tip.spatial().position = Vector3f(0f, this.sizes.y / 2 + tipLength / 2, 0f)
+        tip.material().diffuse = Vector3f(1f)
         addChild(tip)
         inkOutput = RichNode()
         inkOutput.spatial().position.y = tipLength / 2
