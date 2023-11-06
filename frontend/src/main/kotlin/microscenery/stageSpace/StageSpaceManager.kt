@@ -29,7 +29,6 @@ class StageSpaceManager(
     val hardware: MicroscopeHardware,
     val scene: Scene,
     val hub: Hub,
-    addFocusFrame: Boolean = !MicroscenerySettings.get(microscenery.Settings.StageSpace.HideFocusTargetFrame,false),
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -59,7 +58,6 @@ class StageSpaceManager(
         MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolution", Vector3f(10f))
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
         MicroscenerySettings.setIfUnset("Stage.NextStackLive", false)
-
 
         scene.addChild(scaleAndRotationPivot)
         scaleAndRotationPivot.addChild(stageRoot)
@@ -100,7 +98,7 @@ class StageSpaceManager(
             visible = !MicroscenerySettings.get(microscenery.Settings.StageSpace.HideFocusFrame,false)
         }
 
-        if (addFocusFrame)
+        if (!MicroscenerySettings.get(microscenery.Settings.StageSpace.HideFocusTargetFrame,false))
             focusTarget = FrameGizmo(this, hardware.hardwareDimensions()).apply {
                 spatial().position = hardware.stagePosition.copy()
                 stageRoot.addChild(this)

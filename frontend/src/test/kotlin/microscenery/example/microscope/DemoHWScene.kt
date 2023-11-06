@@ -29,7 +29,6 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
             hw,
             scene,
             hub,
-            addFocusFrame = true,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
 //            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )
@@ -46,9 +45,9 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
             )
             //db.fixedStack(Vector3f(100f,100f,000f), Vector3f(100f, 100f,200f))
             //Thread.sleep(2500)
-            db.randomStatic()
+            //db.randomStatic()
             //db.fixed()
-            //db.fixedStack()
+            db.fixedStack()
 
             //stageSpaceManager.sampleStageSpace(Vector3f(25f), Vector3f(175f), Vector3f(30f, 30f, 50f))
         }

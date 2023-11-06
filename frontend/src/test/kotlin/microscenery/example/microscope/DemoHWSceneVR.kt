@@ -23,7 +23,7 @@ class DemoHWSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
 
         val hw = DemoMicroscopeHardware(dataSide = 100)
-        stageSpaceManager = StageSpaceManager(hw, scene, hub, addFocusFrame = true)
+        stageSpaceManager = StageSpaceManager(hw, scene, hub)
 
 
         thread {
