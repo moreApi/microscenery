@@ -26,7 +26,8 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
 
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
-        stageSpaceManager = StageSpaceManager(client, scene, hub)
+        val msHub = MicrosceneryHub(hub)
+        stageSpaceManager = StageSpaceManager(client, scene, msHub)
 
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }

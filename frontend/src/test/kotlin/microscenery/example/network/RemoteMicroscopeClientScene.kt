@@ -1,6 +1,7 @@
 package microscenery.example.network
 
 import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
 import microscenery.UI.StageSpaceUI
 import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
@@ -15,8 +16,9 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
     init {
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
+        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(
-            client, scene, hub,
+            client, scene, msHub,
             //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
             //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 90.0),
         )

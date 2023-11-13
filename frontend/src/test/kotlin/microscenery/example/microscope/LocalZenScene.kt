@@ -2,13 +2,10 @@ package microscenery.example.microscope
 
 import graphics.scenery.Light
 import graphics.scenery.volumes.Colormap
-import microscenery.DefaultScene
-import microscenery.MicroscenerySettings
-import microscenery.Settings
+import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.hardware.MicroscopeHardware
-import microscenery.showMessage2
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenMicroscope
@@ -46,7 +43,8 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
         zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
-        stageSpaceManager = StageSpaceManager(hardware, scene, hub)
+        val msHub = MicrosceneryHub(hub)
+        stageSpaceManager = StageSpaceManager(hardware, scene, msHub)
 
         //for nice cut pictures
         stageSpaceManager.scene.findByClassname("Light").forEach { (it as Light).intensity *= 0.25f }

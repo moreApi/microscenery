@@ -37,8 +37,9 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
 
         val hardware: MicroscopeHardware =
             MicromanagerWrapper(MMCoreConnector(initLocalMMCoreFake(SkewedC1HPO)).apply { moveStage(stageStart, false) })
+        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(
-            hardware, scene, hub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
+            hardware, scene, msHub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
         )
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }

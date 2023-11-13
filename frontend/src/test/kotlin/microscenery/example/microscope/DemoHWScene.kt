@@ -3,6 +3,7 @@ package microscenery.example.microscope
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
 import microscenery.DemoMicroscopeHardware
+import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI
 import microscenery.stageSpace.MicroscopeLayout
@@ -25,10 +26,11 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
 
 
         val hw = DemoMicroscopeHardware(binning = 1)
+        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(
             hw,
             scene,
-            hub,
+            msHub,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
 //            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )

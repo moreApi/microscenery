@@ -2,13 +2,10 @@
 
 package microscenery.example.microscope
 
-import microscenery.DefaultVRScene
-import microscenery.MicroscenerySettings
-import microscenery.Settings
+import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
-import microscenery.setVector3f
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenMicroscope
@@ -49,7 +46,8 @@ class LocalZenSceneVR : DefaultVRScene() {
         val zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
-        stageSpaceManager = StageSpaceManager(hardware, scene, hub)
+        val msHub = MicrosceneryHub(hub)
+        stageSpaceManager = StageSpaceManager(hardware, scene, msHub)
 
         thread {
             Thread.sleep(100)

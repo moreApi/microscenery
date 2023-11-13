@@ -2,6 +2,7 @@ package microscenery.example.microscope
 
 import graphics.scenery.AmbientLight
 import microscenery.DefaultVRScene
+import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
@@ -30,8 +31,9 @@ class LocalMMSceneVR : DefaultVRScene() {
 
         val hardware: MicroscopeHardware =
             MicromanagerWrapper(MMCoreConnector(LocalMMScene.initLocalMMCoreFake()).apply { moveStage(stageStart, false) })
+        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(
-            hardware, scene, hub, layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
+            hardware, scene, msHub, layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
 
         hullbox.visible = false
