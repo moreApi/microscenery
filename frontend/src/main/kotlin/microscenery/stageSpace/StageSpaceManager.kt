@@ -9,13 +9,10 @@ import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.xyz
 import graphics.scenery.utils.lazyLogger
-import microscenery.Agent
-import microscenery.MicroscenerySettings
+import microscenery.*
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
-import microscenery.copy
 import microscenery.hardware.MicroscopeHardware
-import microscenery.setVector3fIfUnset
 import microscenery.signals.*
 import org.joml.*
 import java.util.concurrent.TimeUnit
@@ -28,7 +25,7 @@ import java.util.concurrent.TimeUnit
 class StageSpaceManager(
     val hardware: MicroscopeHardware,
     val scene: Scene,
-    val hub: Hub,
+    val hub: MicrosceneryHub,
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -59,6 +56,13 @@ class StageSpaceManager(
         MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
         MicroscenerySettings.setIfUnset("Stage.NextStackLive", false)
 
+        //init hub TODO: move out of ssmanager
+        hub.addAttribute(Scene::class.java, scene)
+        hub.addAttribute(MicroscopeHardware::class.java,hardware)
+        hub.addAttribute(StageSpaceManager::class.java,this)
+        hub.addAttribute(SliceManager::class.java, sliceManager)
+        hub.addAttribute(AblationManager::class.java, ablationManager)
+
         scene.addChild(scaleAndRotationPivot)
         scaleAndRotationPivot.addChild(stageRoot)
 
@@ -81,7 +85,7 @@ class StageSpaceManager(
             fun updateMSLabelRotation(viewOrientation: Quaternionf){
                 rotation = Quaternionf(viewOrientation).conjugate().normalize()
             }
-            val hmd = hub.get<OpenVRHMD>()
+            val hmd = hub.getAttribute(Hub::class.java).get<OpenVRHMD>()
             microscopeStatusLabelPivot.update += {
                 if (hmd != null) {
                     updateMSLabelRotation(hmd.getOrientation())
@@ -125,7 +129,7 @@ class StageSpaceManager(
                 updateMicroscopeStatusLabel(signal)
             }
             is Stack -> {
-                sliceManager.handleStackSignal(signal, hub)
+                sliceManager.handleStackSignal(signal, hub.getAttribute(Hub::class.java))
             }
             is AblationResults -> {
                 logger.info("Ablation took ${signal.totalTimeMillis}ms for ${signal.perPointTime.size} points " +
