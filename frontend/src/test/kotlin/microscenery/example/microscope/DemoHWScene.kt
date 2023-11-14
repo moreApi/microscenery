@@ -1,11 +1,14 @@
 package microscenery.example.microscope
 
+import graphics.scenery.Node
 import graphics.scenery.utils.extensions.times
 import microscenery.DefaultScene
 import microscenery.DemoMicroscopeHardware
 import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
+import microscenery.UI.DesktopUI
 import microscenery.UI.StageSpaceUI
+import microscenery.UI.UIModel
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
@@ -14,6 +17,7 @@ import kotlin.concurrent.thread
 
 class DemoHWScene : DefaultScene(withSwingUI = true) {
     lateinit var stageSpaceManager: StageSpaceManager
+    val msHub = MicrosceneryHub(hub)
 
     override fun init() {
         super.init()
@@ -26,7 +30,6 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
 
 
         val hw = DemoMicroscopeHardware(binning = 1)
-        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(
             hw,
             scene,
@@ -65,6 +68,13 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
         super.inputSetup()
 
         StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler)
+        DesktopUI.initMouseSelection(inputHandler,msHub)
+
+        msHub.getAttribute(UIModel::class.java).changeEvents += {
+            when(it.kProperty){
+                UIModel::selected -> println("${(it.new as Node).name} selected")
+            }
+        }
     }
 
     companion object {

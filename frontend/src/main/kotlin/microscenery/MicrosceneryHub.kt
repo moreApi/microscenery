@@ -2,11 +2,13 @@ package microscenery
 
 import graphics.scenery.DefaultNode
 import graphics.scenery.Hub
+import microscenery.UI.UIModel
 
 
-class MicrosceneryHub(hub: Hub): DefaultNode("MicrosceneryHub") {
+class MicrosceneryHub(hub: Hub, uiModel: UIModel = UIModel()): DefaultNode("MicrosceneryHub") {
     init {
         addShort(hub)
+        addShort(uiModel)
     }
     // TODO move ms init into hub like this:
 //    var isInit = false
