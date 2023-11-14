@@ -18,6 +18,7 @@ import kotlin.concurrent.thread
 @Suppress("unused")
 class LocalZenScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
+    val msHub = MicrosceneryHub(hub)
 
     val zenMicroscope: ZenMicroscope
     val crovWithoutHoles = """C:\Users\JanCasus\volumes\Zeiss\20230915_488_corvoria_without_holes.czi"""
@@ -43,7 +44,6 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
         zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
-        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(hardware, scene, msHub)
 
         //for nice cut pictures
@@ -71,7 +71,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
 
     override fun inputSetup() {
         super.inputSetup()
-        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler, listOf(
+        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler, msHub, listOf(
             StageUICommand("next Vol",null){
                     _: Int, _: Int ->
                 stageSpaceManager.sliceManager.selectedStack?.volume?.let { vol ->

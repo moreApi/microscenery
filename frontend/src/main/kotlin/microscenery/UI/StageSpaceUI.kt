@@ -3,20 +3,21 @@ package microscenery.UI
 import fromScenery.SettingsEditor
 import graphics.scenery.Box
 import graphics.scenery.Camera
+import graphics.scenery.Node
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.initAblationSettings
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.StageSpaceManager
+import net.miginfocom.swing.MigLayout
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
-import javax.swing.JButton
-import javax.swing.JLabel
-import javax.swing.JPanel
+import javax.swing.*
 import kotlin.concurrent.thread
 
 /**
@@ -142,30 +143,46 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
 
     val vrCommands = listOf(comGoLive,comSteering,comStackAcq,comSearchCube,comClearStage,comStop)
 
-    fun stageSwingUI(panel: JPanel, customCommands: List<StageUICommand>) {
-        (desktopCommands + customCommands).forEach {
-            val name = it.name
-            val key = it.key
-            val command = it.command
+    fun stageSwingUI(panel: JPanel, customCommands: List<StageUICommand>, msHub: MicrosceneryHub) {
+        val infoPanel = JPanel(MigLayout())
+        infoPanel.border = BorderFactory.createTitledBorder("Inspector")
+        panel.add(infoPanel, "wrap")
 
-            when {
-                (command == null && key != null) -> {
-                    panel.add(JLabel(name))
-                    // two panels to be aligned with buttons
-                    panel.add(JLabel(" : $key"), "wrap")
-                }
-                (command != null) -> {
-                    val but = JButton(name)
-                    but.addActionListener { command.click(0, 0) }
-                    if (key == null) {
-                        panel.add(but, "wrap")
-                    } else {
-                        panel.add(but)
-                        panel.add(JLabel(" : $key"), "wrap")
+        val uiModel = msHub.getAttribute(UIModel::class.java)
+        uiModel.changeEvents += { event ->
+            when (event.kProperty) {
+                UIModel::selected -> {
+                    infoPanel.removeAll()
+                    (event.new as? Node)?.let { node ->
+                        infoPanel.add(JLabel("name: ${node.name}"), "wrap")
+                        infoPanel.add(JLabel("type: ${node.javaClass.name}", SwingConstants.RIGHT), "shrink,wrap")
                     }
+                    infoPanel.revalidate()
                 }
             }
         }
+
+        val commandPanel = JPanel(MigLayout())
+        commandPanel.border = BorderFactory.createTitledBorder("Commands")
+
+        (desktopCommands + customCommands).forEachIndexed {i,stageUICommand ->
+            val name = stageUICommand.name
+            val key = stageUICommand.key
+            val command = stageUICommand.command
+            val layoutConstrains = if (i%2==1)"wrap" else ""
+
+            when {
+                (command == null && key != null) -> {
+                    commandPanel.add(JLabel("$name : $key"), layoutConstrains)
+                }
+                (command != null) -> {
+                    val but = JButton(name+key?.let { " : $key" })
+                    but.addActionListener { command.click(0, 0) }
+                    commandPanel.add(but,layoutConstrains)
+                }
+            }
+        }
+        panel.add(commandPanel, "wrap")
     }
 
     fun stageKeyUI(inputHandler: InputHandler, cam: Camera) {
@@ -211,8 +228,8 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }
     }
 
-    fun stageUI(base: DefaultScene, inputHandler: InputHandler?, customCommands: List<StageUICommand> = emptyList()) {
-        base.extraPanel?.let { stageSwingUI(it,customCommands)}
+    fun stageUI(base: DefaultScene, inputHandler: InputHandler?,msHub: MicrosceneryHub, customCommands: List<StageUICommand> = emptyList()) {
+        base.extraPanel?.let { stageSwingUI(it,customCommands,msHub)}
         base.mainFrame?.pack()
 
         inputHandler?.let {

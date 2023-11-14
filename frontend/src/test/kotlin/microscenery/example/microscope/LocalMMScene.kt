@@ -14,6 +14,7 @@ import kotlin.concurrent.thread
 
 class LocalMMScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
+    val msHub = MicrosceneryHub(hub)
 
     init {
         cam.spatial().position = Vector3f(0f, 0f, 5f)
@@ -37,7 +38,6 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
 
         val hardware: MicroscopeHardware =
             MicromanagerWrapper(MMCoreConnector(initLocalMMCoreFake(SkewedC1HPO)).apply { moveStage(stageStart, false) })
-        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(
             hardware, scene, msHub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
         )
@@ -74,7 +74,7 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
 
     override fun inputSetup() {
         super.inputSetup()
-        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler)
+        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler, msHub)
     }
 
     companion object {

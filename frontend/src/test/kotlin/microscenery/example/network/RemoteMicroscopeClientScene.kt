@@ -12,11 +12,11 @@ import org.zeromq.ZContext
 
 class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
+    val msHub = MicrosceneryHub(hub)
 
     init {
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
-        val msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(
             client, scene, msHub,
             //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
@@ -51,7 +51,7 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
 
     override fun inputSetup() {
         super.inputSetup()
-        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler)
+        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler, msHub)
     }
 
     companion object {
