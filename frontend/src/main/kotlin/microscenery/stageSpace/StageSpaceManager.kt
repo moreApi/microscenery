@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 class StageSpaceManager(
     val hardware: MicroscopeHardware,
     val scene: Scene,
-    val hub: MicrosceneryHub,
+    val msHub: MicrosceneryHub,
     val layout: MicroscopeLayout = MicroscopeLayout.Default()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -57,11 +57,11 @@ class StageSpaceManager(
         MicroscenerySettings.setIfUnset("Stage.NextStackLive", false)
 
         //init hub TODO: move out of ssmanager
-        hub.addAttribute(Scene::class.java, scene)
-        hub.addAttribute(MicroscopeHardware::class.java,hardware)
-        hub.addAttribute(StageSpaceManager::class.java,this)
-        hub.addAttribute(SliceManager::class.java, sliceManager)
-        hub.addAttribute(AblationManager::class.java, ablationManager)
+        msHub.addAttribute(Scene::class.java, scene)
+        msHub.addAttribute(MicroscopeHardware::class.java,hardware)
+        msHub.addAttribute(StageSpaceManager::class.java,this)
+        msHub.addAttribute(SliceManager::class.java, sliceManager)
+        msHub.addAttribute(AblationManager::class.java, ablationManager)
 
         scene.addChild(scaleAndRotationPivot)
         scaleAndRotationPivot.addChild(stageRoot)
@@ -85,7 +85,7 @@ class StageSpaceManager(
             fun updateMSLabelRotation(viewOrientation: Quaternionf){
                 rotation = Quaternionf(viewOrientation).conjugate().normalize()
             }
-            val hmd = hub.getAttribute(Hub::class.java).get<OpenVRHMD>()
+            val hmd = msHub.getAttribute(Hub::class.java).get<OpenVRHMD>()
             microscopeStatusLabelPivot.update += {
                 if (hmd != null) {
                     updateMSLabelRotation(hmd.getOrientation())
@@ -129,7 +129,7 @@ class StageSpaceManager(
                 updateMicroscopeStatusLabel(signal)
             }
             is Stack -> {
-                sliceManager.handleStackSignal(signal, hub.getAttribute(Hub::class.java))
+                sliceManager.handleStackSignal(signal, msHub.getAttribute(Hub::class.java))
             }
             is AblationResults -> {
                 logger.info("Ablation took ${signal.totalTimeMillis}ms for ${signal.perPointTime.size} points " +
