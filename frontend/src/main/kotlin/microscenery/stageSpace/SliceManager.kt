@@ -12,6 +12,7 @@ import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
 import microscenery.MicroscenerySettings
+import microscenery.detach
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.NumericType
 import microscenery.signals.Slice
@@ -22,6 +23,7 @@ import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 
 class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, val scene: Scene) {
@@ -72,11 +74,35 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         }
     }
 
-    fun clearSlices() {
-        sortedSlices.forEach {
-            it.parent?.removeChild(it)
+    fun getStackMetadata(volume: Volume):Stack?{
+        return stacks.firstOrNull { it.volume == volume }?.meta
+    }
+
+    fun deleteStack(volume: Volume){
+        val stackContainer = stacks.firstOrNull { it.volume == volume }?:return
+        stacks = stacks - stackContainer
+        stackContainer.let {
+            it.volume.parent?.removeChild(it.volume)
+            it.volume.volumeManager.remove(it.volume)
+            MemoryUtil.memFree(it.currentBuffer)
         }
-        sortedSlices.clear()
+    }
+
+    fun deleteSlice(slice: SliceRenderNode){
+        sortingSlicesLock.withLock {
+            sortedSlices -= slice
+            slice.detach()
+        }
+    }
+
+    fun clearSlices() {
+        sortingSlicesLock.withLock {
+            sortedSlices.forEach {
+                it.parent?.removeChild(it)
+            }
+            sortedSlices.clear()
+        }
+
         val tmp = stacks
         stacks = emptyList()
         tmp.forEach {
