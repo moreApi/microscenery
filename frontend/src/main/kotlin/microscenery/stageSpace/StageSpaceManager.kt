@@ -2,6 +2,7 @@ package microscenery.stageSpace
 
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.utils.extensions.minus
@@ -10,9 +11,11 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.xyz
 import graphics.scenery.utils.lazyLogger
 import microscenery.*
+import microscenery.UI.UIModel
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.hardware.MicroscopeHardware
+import microscenery.primitives.Pyramid
 import microscenery.signals.*
 import org.joml.*
 import java.util.concurrent.TimeUnit
@@ -35,6 +38,7 @@ class StageSpaceManager(
 
     val focus: Frame
     var focusTarget: FrameGizmo? = null
+    val selectionIndicator: HasSpatial
 
     private val stageAreaBorders: Box
     var stageAreaCenter = Vector3f()
@@ -110,6 +114,33 @@ class StageSpaceManager(
 
         focusTarget?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
         focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
+
+        selectionIndicator = Pyramid().apply {
+            this.spatial().scale = Vector3f(0.1f,0.1f,0.1f)
+            this.name = "Selection Indicator"
+            this.material().diffuse = Vector3f(1f)
+            this.update += {
+                if (this.metadata["animated"] == true){
+                    this.spatial().rotation.rotateLocalY(0.01f)
+                    this.spatial().needsUpdate = true
+                }
+            }
+            this.metadata["animated"] = true
+        }
+        msHub.getAttribute(UIModel::class.java).changeEvents += { event ->
+            when (event.kProperty) {
+                UIModel::selected -> {
+                    selectionIndicator.detach()
+                    (event.new as? Node)?.let { node ->
+                        val bb = node.boundingBox ?: return@let
+                        val pos = Vector3f(bb.center)
+                        pos.y = bb.asWorld().max.y
+                        selectionIndicator.spatial().position = pos
+                        scene.addChild(selectionIndicator)
+                    }
+                }
+            }
+        }
 
         startAgent()
     }
