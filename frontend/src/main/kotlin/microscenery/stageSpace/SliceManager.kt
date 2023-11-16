@@ -72,61 +72,20 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         }
     }
 
-    private fun getColorMap(): Colormap? {
-        val colorName = MicroscenerySettings.getOrNull<String>(microscenery.Settings.StageSpace.ColorMap) ?: return null
-        return try {
-            Colormap.get(colorName)
-        } catch (t: Throwable){
-            logger.error("Could not find color $colorName")
-            logger.debug(t.toString())
-            null
-        }
-    }
-
-    /**
-     * Sets the slice border visibility according to [visibility]
-     */
-    private fun setSliceBorderVisibility(visibility: Boolean) {
+    fun clearSlices() {
         sortedSlices.forEach {
-            it.setBorderVisibility(visibility)
+            it.parent?.removeChild(it)
+        }
+        sortedSlices.clear()
+        val tmp = stacks
+        stacks = emptyList()
+        tmp.forEach {
+            it.volume.parent?.removeChild(it.volume)
+            it.volume.volumeManager.remove(it.volume)
+            MemoryUtil.memFree(it.currentBuffer)
         }
     }
 
-    private fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null) {
-        if (newSlice != null) {
-            sortingSlicesLock.lock()
-            // detect too close slices to replace them
-            stageRoot.children.filter {
-                it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
-                    newSlice.spatial().position, hardware.hardwareDimensions().vertexDiameter
-                ) ?: false
-            }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
-                .forEach {
-                    stageRoot.removeChild(it)
-                    sortedSlices.remove(it)
-                }
-
-            stageRoot.addChild(newSlice)
-            sortedSlices.add(newSlice)
-        }
-
-        // If I have this lock that means I just inserted a slice and need to sort it. Otherwise, I look if it is free.
-        // If yes I sort. If no I return because someone else is sorting (and inserting).
-        if (sortingSlicesLock.isHeldByCurrentThread || sortingSlicesLock.tryLock()) {
-            sortedSlices.forEach {
-                stageRoot.children.remove(it)
-            }
-
-            //Sorts the [sortedSlices] container using the distance between camera and slice in descending order (the furthest first)
-            sortedSlices.sortByDescending { it.spatial().worldPosition().distance(camPosition) }
-
-            sortedSlices.forEach {
-                stageRoot.children.add(it)
-            }
-            sortingSlicesLock.unlock()
-        }
-
-    }
 
     fun handleSliceSignal(sliceSignal: Slice, layout: MicroscopeLayout) {
         if (sliceSignal.data == null) return
@@ -218,6 +177,62 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         }
     }
 
+    private fun getColorMap(): Colormap? {
+        val colorName = MicroscenerySettings.getOrNull<String>(microscenery.Settings.StageSpace.ColorMap) ?: return null
+        return try {
+            Colormap.get(colorName)
+        } catch (t: Throwable){
+            logger.error("Could not find color $colorName")
+            logger.debug(t.toString())
+            null
+        }
+    }
+
+    /**
+     * Sets the slice border visibility according to [visibility]
+     */
+    private fun setSliceBorderVisibility(visibility: Boolean) {
+        sortedSlices.forEach {
+            it.setBorderVisibility(visibility)
+        }
+    }
+
+    private fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null) {
+        if (newSlice != null) {
+            sortingSlicesLock.lock()
+            // detect too close slices to replace them
+            stageRoot.children.filter {
+                it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
+                    newSlice.spatial().position, hardware.hardwareDimensions().vertexDiameter
+                ) ?: false
+            }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+                .forEach {
+                    stageRoot.removeChild(it)
+                    sortedSlices.remove(it)
+                }
+
+            stageRoot.addChild(newSlice)
+            sortedSlices.add(newSlice)
+        }
+
+        // If I have this lock that means I just inserted a slice and need to sort it. Otherwise, I look if it is free.
+        // If yes I sort. If no I return because someone else is sorting (and inserting).
+        if (sortingSlicesLock.isHeldByCurrentThread || sortingSlicesLock.tryLock()) {
+            sortedSlices.forEach {
+                stageRoot.children.remove(it)
+            }
+
+            //Sorts the [sortedSlices] container using the distance between camera and slice in descending order (the furthest first)
+            sortedSlices.sortByDescending { it.spatial().worldPosition().distance(camPosition) }
+
+            sortedSlices.forEach {
+                stageRoot.children.add(it)
+            }
+            sortingSlicesLock.unlock()
+        }
+
+    }
+
     private fun handleStackSlice(slice: Slice) {
         if (slice.data == null) return
         val stackId = slice.stackIdAndSliceIndex?.first ?: return
@@ -259,21 +274,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
 
         sortAndInsertSlices(scene.findObserver()?.spatial()?.position ?: Vector3f(), node)
     }
-
-    fun clearSlices() {
-        sortedSlices.forEach {
-            it.parent?.removeChild(it)
-        }
-        sortedSlices.clear()
-        val tmp = stacks
-        stacks = emptyList()
-        tmp.forEach {
-            it.volume.parent?.removeChild(it.volume)
-            it.volume.volumeManager.remove(it.volume)
-            MemoryUtil.memFree(it.currentBuffer)
-        }
-    }
-
 
     /**
      * @param currentBuffer points to the buffer of the most recent timepoint. It might be not completly filled
