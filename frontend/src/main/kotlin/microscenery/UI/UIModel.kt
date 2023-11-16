@@ -2,6 +2,7 @@ package microscenery.UI
 
 import graphics.scenery.DefaultNode
 import graphics.scenery.Node
+import microscenery.PropertyChangeObservable
 
 class UIModel: PropertyChangeObservable() {
     // nullable generics are hard :(
