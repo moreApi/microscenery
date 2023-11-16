@@ -141,8 +141,6 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }),
     )
 
-    val vrCommands = listOf(comGoLive,comSteering,comStackAcq,comSearchCube,comClearStage,comStop)
-
     fun stageSwingUI(panel: JPanel, customCommands: List<StageUICommand>, msHub: MicrosceneryHub) {
         val infoPanel = JPanel(MigLayout())
         infoPanel.border = BorderFactory.createTitledBorder("Inspector")
