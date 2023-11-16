@@ -19,7 +19,7 @@ object DesktopUI {
             override fun click(x: Int, y: Int) {
                 scene.activeObserver?.let { cam ->
                         val matches = cam.getNodesForScreenSpacePosition(x, y, { isValidSelectionTarget(it)} , false)
-                        uiModel.selected = matches.matches.firstOrNull()?.node ?: uiModel.NO_SELECTION
+                        uiModel.selected = matches.matches.firstOrNull()?.node ?: UIModel.NO_SELECTION
                     }
                 }
         })

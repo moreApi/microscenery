@@ -8,15 +8,20 @@ import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.TransferFunctionEditor
+import graphics.scenery.volumes.Volume
 import microscenery.DefaultScene
 import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.initAblationSettings
 import microscenery.stageSpace.FrameGizmo
+import microscenery.stageSpace.SliceManager
+import microscenery.stageSpace.SliceRenderNode
 import microscenery.stageSpace.StageSpaceManager
 import net.miginfocom.swing.MigLayout
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.swing.*
 import kotlin.concurrent.thread
 
@@ -153,7 +158,32 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                     infoPanel.removeAll()
                     (event.new as? Node)?.let { node ->
                         infoPanel.add(JLabel("name: ${node.name}"), "wrap")
-                        infoPanel.add(JLabel("type: ${node.javaClass.name}", SwingConstants.RIGHT), "shrink,wrap")
+                        val sliceManager = msHub.getAttribute(SliceManager::class.java)
+                        when(node){
+                            is Volume -> {
+                                val meta = sliceManager.getStackMetadata(node) ?: return@let
+                                val created = SimpleDateFormat("hh:mm:ss").format(Date(meta.created))
+                                infoPanel.add(JLabel("Created: $created"),"wrap")
+                                infoPanel.add(JLabel("Slices: ${meta.slicesCount}"),"wrap")
+                                infoPanel.add(JLabel("Live: ${meta.live}"),"wrap")
+                                infoPanel.add(JButton("Delete Volume").apply {
+                                    this.addActionListener {
+                                        sliceManager.deleteStack(node)
+                                        uiModel.selected = UIModel.NO_SELECTION
+                                    }
+                                },"wrap")
+                            }
+                            is SliceRenderNode -> {
+                                infoPanel.add(JButton("Delete Slice").apply {
+                                    this.addActionListener {
+                                        sliceManager.deleteSlice(node)
+                                        uiModel.selected = UIModel.NO_SELECTION
+                                    }
+                                },"wrap")
+                            }
+                            UIModel.NO_SELECTION -> {}
+                            else -> infoPanel.add(JLabel("type: ${node.javaClass.name}", SwingConstants.RIGHT), "shrink,wrap")
+                        }
                     }
                     infoPanel.revalidate()
                 }
