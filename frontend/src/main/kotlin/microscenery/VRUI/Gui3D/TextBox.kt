@@ -35,7 +35,7 @@ open class TextBox(
             position.y = 0.07f
         }
 
-        box.material().diffuse = Vector3f(1f)
+        box.material().diffuse = Vector3f(0.5f)
         box.spatial {
             position.z = box.sizes.z * -0.5f - 0.05f
         }

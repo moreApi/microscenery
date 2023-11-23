@@ -43,5 +43,9 @@ class Button(text: String, height: Float = 1f,command: () -> Unit): TextBox(text
                 pressed = false || stayPressed
             }
         ))
+
+
+        box.material().diffuse = Vector3f(1f)
+
     }
 }
