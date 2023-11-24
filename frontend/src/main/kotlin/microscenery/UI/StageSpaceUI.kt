@@ -166,6 +166,22 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                                 infoPanel.add(JLabel("Created: $created"),"wrap")
                                 infoPanel.add(JLabel("Slices: ${meta.slicesCount}"),"wrap")
                                 infoPanel.add(JLabel("Live: ${meta.live}"),"wrap")
+                                if (node.timepointCount > 1) {
+                                    infoPanel.add(
+                                        JLabel("Timestep: ${node.currentTimepoint + 1}/${node.timepointCount}"),
+                                        "wrap"
+                                    )
+                                    infoPanel.add(JButton("Previous Tp").apply {
+                                        this.addActionListener {
+                                            node.previousTimepoint()
+                                        }
+                                    },"")
+                                    infoPanel.add(JButton("Next Tp").apply {
+                                        this.addActionListener {
+                                            node.nextTimepoint()
+                                        }
+                                    },"wrap")
+                                }
                                 infoPanel.add(JButton("Delete Volume").apply {
                                     this.addActionListener {
                                         sliceManager.deleteStack(node)
@@ -259,6 +275,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     fun stageUI(base: DefaultScene, inputHandler: InputHandler?,msHub: MicrosceneryHub, customCommands: List<StageUICommand> = emptyList()) {
         base.extraPanel?.let { stageSwingUI(it,customCommands,msHub)}
         base.mainFrame?.pack()
+        DesktopUI.initMouseSelection(inputHandler,msHub)
 
         inputHandler?.let {
             stageKeyUI(it, base.cam)

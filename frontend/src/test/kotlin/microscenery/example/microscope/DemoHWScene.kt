@@ -6,7 +6,6 @@ import microscenery.DefaultScene
 import microscenery.DemoMicroscopeHardware
 import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
-import microscenery.UI.DesktopUI
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.UIModel
 import microscenery.stageSpace.MicroscopeLayout
@@ -68,7 +67,6 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
         super.inputSetup()
 
         StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler,msHub)
-        DesktopUI.initMouseSelection(inputHandler,msHub)
 
         msHub.getAttribute(UIModel::class.java).changeEvents += {
             when(it.kProperty){

@@ -72,20 +72,6 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     override fun inputSetup() {
         super.inputSetup()
         StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler, msHub, listOf(
-            StageUICommand("next Vol",null){
-                    _: Int, _: Int ->
-                stageSpaceManager.sliceManager.selectedStack?.volume?.let { vol ->
-                    val goto = vol.nextTimepoint()
-                    scene.findObserver()?.showMessage2("Timepoint $goto", duration = 1500)
-                }
-            },
-            StageUICommand("prev Vol",null){
-                    _: Int, _: Int ->
-                stageSpaceManager.sliceManager.selectedStack?.volume?.let { vol ->
-                    val goto = vol.previousTimepoint()
-                    scene.findObserver()?.showMessage2("Timepoint $goto", duration = 1500)
-                }
-            },
             StageUICommand("load Stack 1",null){_,_ ->
                 zenMicroscope.debugStack(this.crovWithoutHoles)
             },
