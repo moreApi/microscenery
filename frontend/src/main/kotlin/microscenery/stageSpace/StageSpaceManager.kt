@@ -82,23 +82,7 @@ class StageSpaceManager(
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
 
-        val microscopeStatusLabelPivot = Row(microscopeStatusLabel)
-        microscopeStatusLabelPivot.spatial {
-            scale = Vector3f(0.3f)
-
-            fun updateMSLabelRotation(viewOrientation: Quaternionf){
-                rotation = Quaternionf(viewOrientation).conjugate().normalize()
-            }
-            val hmd = msHub.getAttribute(Hub::class.java).get<OpenVRHMD>()
-            microscopeStatusLabelPivot.update += {
-                if (hmd != null) {
-                    updateMSLabelRotation(hmd.getOrientation())
-                } else {
-                    scene.activeObserver?.let { updateMSLabelRotation(it.spatial().rotation) }
-                }
-            }
-        }
-        scene.addChild(microscopeStatusLabelPivot)
+        initMicroscopeStatusLabel()
 
         focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
             spatial().position = hardware.stagePosition.copy()
@@ -169,6 +153,37 @@ class StageSpaceManager(
         }
     }
 
+    private fun initMicroscopeStatusLabel() {
+        val microscopeStatusLabelPivot = Row(microscopeStatusLabel)
+        microscopeStatusLabelPivot.spatial {
+            scale = Vector3f(0.3f)
+
+            fun updateMSLabelRotation(viewOrientation: Quaternionf) {
+                rotation = Quaternionf(viewOrientation).conjugate().normalize()
+            }
+
+            val hmd = msHub.getAttribute(Hub::class.java).get<OpenVRHMD>()
+            microscopeStatusLabelPivot.update += {
+                if (hmd != null) {
+                    updateMSLabelRotation(hmd.getOrientation())
+                } else {
+                    scene.activeObserver?.let { updateMSLabelRotation(it.spatial().rotation) }
+                }
+            }
+        }
+        scene.addChild(microscopeStatusLabelPivot)
+        microscopeStatusLabelPivot.pack()
+        microscopeStatusLabel.parent?.ifSpatial {
+            microscopeStatusLabel.parent!!.update += {
+                // move it on top of the stage space
+                val centerW = stageRoot.spatial().worldPosition(stageAreaCenter)
+                centerW.y = stageAreaBorders.generateBoundingBox()?.asWorld()?.max?.y ?: centerW.y
+                centerW.y += 0.2f
+                position = centerW
+            }
+        }
+    }
+
     private fun updateMicroscopeStatusLabel(signal: MicroscopeStatus) {
         microscopeStatusLabel.text = "Microscope: " + when(signal.state){
             ServerState.LIVE -> "sending data"
@@ -204,10 +219,6 @@ class StageSpaceManager(
                 this.add(imageSize)
                 this.mul(1.1f)
             }
-        }
-        microscopeStatusLabel.parent?.ifSpatial {
-            // move it on top of the stage space
-            position = stageRoot.spatial().worldPosition((Vector3f(stageAreaCenter.x, signal.stageMax.y + signal.imageSize.x * signal.vertexDiameter,stageAreaCenter.z)))
         }
 
         focusTarget?.applyHardwareDimensions(signal)
