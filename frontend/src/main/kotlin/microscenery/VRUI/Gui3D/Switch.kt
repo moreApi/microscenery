@@ -14,8 +14,9 @@ class Switch(label: String, start:Boolean, middleAlign:Boolean = false, onChange
     init {
         name = "Switch $label"
 
-        this.addChild(Knob(start,onChange = onChange))
-        this.addChild(TextBox(label))
+        val knob = Knob(start,onChange = onChange)
+        this.addChild(knob)
+        this.addChild(Button(label){knob.toggle()})
     }
 
     private class Knob(var value:Boolean,
