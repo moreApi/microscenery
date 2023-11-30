@@ -13,6 +13,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import microscenery.MicroscenerySettings
+import microscenery.Settings
+import microscenery.detach
 import microscenery.wrapForAnalogInputIfNeeded
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
@@ -38,10 +41,12 @@ class VRTeleport(
     }
 
     override fun init(x: Int, y: Int) {
+        if (!MicroscenerySettings.get(Settings.VRUI.TeleportEnabled,true)) return
         controllerHitbox.addChild(target)
     }
 
     override fun drag(x: Int, y: Int) {
+        if (target.parent == null) return //teleport is disabled
         val bodyCenter = hmd.getPosition() + cam.worldPosition()
         bodyCenter.y = 0f
         val controller = controllerSpatial.worldPosition()
@@ -52,6 +57,7 @@ class VRTeleport(
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun end(x: Int, y: Int) {
+        if (target.parent == null) return //teleport is disabled
         val targetPos = target.spatial().worldPosition()
         GlobalScope.launch {
             val fadeTime = 300L
@@ -60,7 +66,7 @@ class VRTeleport(
             cam.position = targetPos - hmd.getPosition()
             hmd.fateToClear(fadeTime * 0.001f)
         }
-        controllerHitbox.removeChild(target)
+        target.detach()
     }
 
     companion object {

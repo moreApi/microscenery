@@ -15,6 +15,7 @@ object Settings {
 
     object VRUI {
         const val LeftHandMenuFixedPosition: String = "VRUI.leftHandMenuFixedPosition"
+        const val TeleportEnabled = "VRUI.teleportEnabled"
     }
 
     object Ablation {
