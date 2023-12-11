@@ -9,6 +9,8 @@ import graphics.scenery.controls.behaviours.Touch
 import graphics.scenery.controls.behaviours.VRGrab
 import graphics.scenery.controls.behaviours.VRPress
 import graphics.scenery.controls.behaviours.VRTouch
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
@@ -130,6 +132,7 @@ class VRUIManager {
         }
 
         private fun InputHandler.initStickMovement(hmd: OpenVRHMD) {
+            val speed = MicroscenerySettings.setIfUnset(Settings.UI.FlySpeed,0.5f)
             // We first grab the default movement actions from scenery's input handler,
             // and re-bind them on the right-hand controller's trackpad or joystick.
             hashMapOf(
@@ -141,6 +144,12 @@ class VRUIManager {
                 getBehaviour(name)?.let { b ->
                     hmd.addBehaviour(name, b)
                     hmd.addKeyBinding(name, key)
+                    val moveCommand = (b as? graphics.scenery.controls.behaviours.MovementCommand) ?: return
+                    moveCommand.speed = speed
+                    MicroscenerySettings.addUpdateRoutine(Settings.UI.FlySpeed){
+                        val speed2 = MicroscenerySettings.get(Settings.UI.FlySpeed, 0.5f)
+                        moveCommand.speed = speed2
+                    }
                 }
             }
         }

@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty
 
 /**
  * Movement Command class. Moves a node in the given direction.
- *
+ * TODO: Figure out why there are two movementCommand one here and one in scenery
  *
  * @author Ulrik Günther <hello@ulrik.is>
  * @author Jan Tiemann

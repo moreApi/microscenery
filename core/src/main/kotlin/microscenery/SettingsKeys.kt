@@ -54,6 +54,10 @@ object Settings {
         /** float */ const val exposureTime = "ZenMicroscope.exposureTime"
     }
 
+    object UI {
+        const val FlySpeed = "UI.flySpeed"
+    }
+
     object Network {
         /** int */ const val sliceOffset = "Network.sliceOffset"
     }
