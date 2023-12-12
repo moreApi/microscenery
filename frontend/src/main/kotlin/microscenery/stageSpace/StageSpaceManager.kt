@@ -156,7 +156,7 @@ class StageSpaceManager(
     private fun initMicroscopeStatusLabel() {
         val microscopeStatusLabelPivot = Row(microscopeStatusLabel)
         microscopeStatusLabelPivot.spatial {
-            scale = Vector3f(0.3f)
+            scale = Vector3f(0.1f)
 
             fun updateMSLabelRotation(viewOrientation: Quaternionf) {
                 rotation = Quaternionf(viewOrientation).conjugate().normalize()
@@ -202,7 +202,7 @@ class StageSpaceManager(
         stageRoot.spatial {
             // scale the space in such a way that is initially always the same visual size and easy to handle by GUI
             val xSize = (signal.stageMax.x - signal.stageMin.x + signal.imageSize.x * signal.vertexDiameter)
-            scale = Vector3f((1 / xSize) * 3)
+            scale = Vector3f(1 / xSize)
             position = Vector3f(-1f) * stageAreaCenter * scale
             updateWorld(true,false)
         }

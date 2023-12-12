@@ -38,7 +38,7 @@ abstract class DefaultVRScene(name: String = "VR Scene") : SceneryBase(
 
         cam = DetachedHeadCamera(hmd)
         cam.spatial {
-            position = Vector3f(0.0f, 0.0f, 5.0f)
+            position = Vector3f(0.0f, 0.0f, 1.5f)
         }
         cam.perspectiveCamera(50.0f, windowWidth, windowHeight)
         scene.addChild(cam)
