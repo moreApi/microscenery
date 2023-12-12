@@ -28,6 +28,8 @@ class Switch(label: String, start:Boolean, middleAlign:Boolean = false, onChange
         //background
         val bg = Box(Vector3f(2f,1f,0.3f))
 
+        val knob = Box(Vector3f(bg.sizes.x * 0.4f))
+
         override val width: Float
             get() = bg.sizes.x
         override val height: Float
@@ -39,18 +41,13 @@ class Switch(label: String, start:Boolean, middleAlign:Boolean = false, onChange
             }
             bg.material().diffuse = Vector3f(1f)
             this.addChild(bg)
-            val knob = Box(Vector3f(bg.sizes.x * 0.4f))
             bg.addChild(knob)
 
             knob.spatial().position.x = bg.sizes.x * 0.25f * if (value) 1 else -1
             knob.material().diffuse = if (value) onColor else offColor
 
             knob.addAttribute(Pressable::class.java, SimplePressable(onRelease = {
-                val newColor = if (toggle()) onColor else offColor
-                knob.changeColorWithTouchable(newColor)
-
-                knob.spatial().position.x = bg.sizes.x * 0.25f * if (value) 1 else -1
-                knob.spatial().needsUpdate = true
+                toggle()
             }))
             // make it go red on touch
             knob.addAttribute(Touchable::class.java, Touchable())
@@ -59,6 +56,12 @@ class Switch(label: String, start:Boolean, middleAlign:Boolean = false, onChange
         fun toggle(): Boolean{
             value = !value
             onChange(value)
+
+            val newColor = if (value) onColor else offColor
+            knob.changeColorWithTouchable(newColor)
+
+            knob.spatial().position.x = bg.sizes.x * 0.25f * if (value) 1 else -1
+            knob.spatial().needsUpdate = true
             return value
         }
     }
