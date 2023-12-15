@@ -11,7 +11,9 @@ import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
+import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
+import microscenery.UI.UIModel
 import microscenery.detach
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.NumericType
@@ -26,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 
-class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, val scene: Scene) {
+class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, val scene: Scene, val msHub: MicrosceneryHub) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
@@ -143,6 +145,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             volume.addTimepoint(stack.created.toString(),buffer)
             existingStack.currentBuffer = buffer
             volume.goToLastTimepoint()
+            msHub.getAttributeOrNull(UIModel::class.java)?.updateSelected()
         } else {
             // todo handle old stacks better
             selectedStack?.let {
@@ -200,6 +203,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
 
             // todo: make stack selection smarter
             selectedStack = stacks.last()
+            msHub.getAttributeOrNull(UIModel::class.java)?.selected = stacks.last().volume
         }
     }
 

@@ -47,7 +47,7 @@ class StageSpaceManager(
 
     private val microscopeStatusLabel = TextBox("microscope status")
 
-    val sliceManager = SliceManager(hardware, stageRoot, scene)
+    val sliceManager = SliceManager(hardware, stageRoot, scene, msHub)
     val ablationManager = AblationManager(hardware,this,scene)
 
     var stagePosition: Vector3f
