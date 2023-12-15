@@ -9,14 +9,16 @@ import graphics.scenery.controls.behaviours.Touch
 import graphics.scenery.controls.behaviours.VRGrab
 import graphics.scenery.controls.behaviours.VRPress
 import graphics.scenery.controls.behaviours.VRTouch
+import graphics.scenery.volumes.Volume
+import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.UI.StageSpaceUI
+import microscenery.UI.UIModel
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.VRUI.behaviors.VRTeleport
 import microscenery.VRUI.fromScenery.WheelMenu
-import microscenery.showMessage2
 import microscenery.wrapForAnalogInputIfNeeded
 import org.scijava.ui.behaviour.DragBehaviour
 
@@ -29,6 +31,7 @@ class VRUIManager {
             inputHandler: InputHandler?,
             customActions: WheelMenu? = null,
             stageSpaceUI: StageSpaceUI? = null,
+            msHub: MicrosceneryHub? = null
         ) {
 
             VRGrabTheWorldSelfMove.createAndSet(
@@ -99,10 +102,12 @@ class VRUIManager {
                                 val name = "Volume scrolling prev"
                                 val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Left,object:DragBehaviour{
                                     override fun init(x: Int, y: Int) {
-                                        stageSpaceUI?.stageSpaceManager?.sliceManager?.selectedStack?.volume?.let { vol ->
-                                            val goto = vol.previousTimepoint()
-                                            scene.findObserver()?.showMessage2("Timepoint $goto")
-                                        }
+                                        val uiModel = msHub?.getAttributeOrNull(UIModel::class.java)?: return
+                                        val vol = uiModel.selected as? Volume ?: return
+                                        if (vol.currentTimepoint == 0) return
+
+                                        vol.previousTimepoint()
+                                        uiModel.updateSelected()
                                     }
                                     override fun drag(x: Int, y: Int) {}
                                     override fun end(x: Int, y: Int) {}
@@ -114,10 +119,12 @@ class VRUIManager {
                                 val name = "Volume scrolling next"
                                 val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Right,object:DragBehaviour{
                                     override fun init(x: Int, y: Int) {
-                                        stageSpaceUI?.stageSpaceManager?.sliceManager?.selectedStack?.volume?.let { vol ->
-                                            val goto = vol.nextTimepoint()
-                                            scene.findObserver()?.showMessage2("Timepoint $goto")
-                                        }
+                                        val uiModel = msHub?.getAttributeOrNull(UIModel::class.java)?: return
+                                        val vol = uiModel.selected as? Volume ?: return
+                                        if (vol.currentTimepoint +1 == vol.timepointCount) return
+
+                                        vol.nextTimepoint()
+                                        uiModel.updateSelected()
                                     }
                                     override fun drag(x: Int, y: Int) {}
                                     override fun end(x: Int, y: Int) {}
