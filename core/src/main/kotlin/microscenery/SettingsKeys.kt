@@ -56,6 +56,7 @@ object Settings {
 
     object UI {
         const val FlySpeed = "UI.flySpeed"
+        const val ShowSelectionIndicator = "UI.showSelectionIndicator"
     }
 
     object Network {

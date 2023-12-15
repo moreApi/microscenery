@@ -11,6 +11,7 @@ import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.xyz
 import graphics.scenery.utils.lazyLogger
 import microscenery.*
+import microscenery.Settings
 import microscenery.UI.UIModel
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
@@ -87,10 +88,10 @@ class StageSpaceManager(
         focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
             spatial().position = hardware.stagePosition.copy()
             stageRoot.addChild(this)
-            visible = !MicroscenerySettings.get(microscenery.Settings.StageSpace.HideFocusFrame,false)
+            visible = !MicroscenerySettings.get(Settings.StageSpace.HideFocusFrame,false)
         }
 
-        if (!MicroscenerySettings.get(microscenery.Settings.StageSpace.HideFocusTargetFrame,false))
+        if (!MicroscenerySettings.get(Settings.StageSpace.HideFocusTargetFrame,false))
             focusTarget = FrameGizmo(this, hardware.hardwareDimensions()).apply {
                 spatial().position = hardware.stagePosition.copy()
                 stageRoot.addChild(this)
@@ -110,6 +111,12 @@ class StageSpaceManager(
                 }
             }
             this.metadata["animated"] = true
+
+            this.visible = MicroscenerySettings.setIfUnset(Settings.UI.ShowSelectionIndicator, true)
+            MicroscenerySettings.addUpdateRoutine(Settings.UI.ShowSelectionIndicator){
+                this.visible = MicroscenerySettings.get(Settings.UI.ShowSelectionIndicator, true)
+            }
+
         }
         msHub.getAttribute(UIModel::class.java).changeEvents += { event ->
             when (event.kProperty) {
