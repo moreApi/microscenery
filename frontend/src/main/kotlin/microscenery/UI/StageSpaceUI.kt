@@ -173,12 +173,18 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                                     )
                                     infoPanel.add(JButton("Previous Tp").apply {
                                         this.addActionListener {
+                                            if (node.currentTimepoint == 0) return@addActionListener
+
                                             node.previousTimepoint()
+                                            uiModel.updateSelected()
                                         }
                                     },"")
                                     infoPanel.add(JButton("Next Tp").apply {
                                         this.addActionListener {
+                                            if (node.currentTimepoint +1 == node.timepointCount) return@addActionListener
+
                                             node.nextTimepoint()
+                                            uiModel.updateSelected()
                                         }
                                     },"wrap")
                                 }
