@@ -168,7 +168,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                                 infoPanel.add(JLabel("Live: ${meta.live}"),"wrap")
                                 if (node.timepointCount > 1) {
                                     infoPanel.add(
-                                        JLabel("Timestep: ${node.currentTimepoint + 1}/${node.timepointCount}"),
+                                        JLabel("Time Point: ${node.currentTimepoint + 1}/${node.timepointCount}"),
                                         "wrap"
                                     )
                                     infoPanel.add(JButton("Previous Tp").apply {

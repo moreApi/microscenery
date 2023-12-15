@@ -4,7 +4,6 @@ import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.attribute.spatial.Spatial
-import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
@@ -13,12 +12,14 @@ import graphics.scenery.utils.lazyLogger
 import microscenery.*
 import microscenery.Settings
 import microscenery.UI.UIModel
-import microscenery.VRUI.Gui3D.Row
-import microscenery.VRUI.Gui3D.TextBox
+import microscenery.VRUI.StageSpaceLabel
 import microscenery.hardware.MicroscopeHardware
 import microscenery.primitives.Pyramid
 import microscenery.signals.*
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.util.concurrent.TimeUnit
 
 /**
@@ -41,14 +42,14 @@ class StageSpaceManager(
     var focusTarget: FrameGizmo? = null
     val selectionIndicator: HasSpatial
 
-    private val stageAreaBorders: Box
+    internal val stageAreaBorders: Box
     var stageAreaCenter = Vector3f()
         private set
 
-    private val microscopeStatusLabel = TextBox("microscope status")
 
     val sliceManager = SliceManager(hardware, stageRoot, scene, msHub)
     val ablationManager = AblationManager(hardware,this,scene)
+    private val stageSpaceLabel: StageSpaceLabel
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
@@ -83,7 +84,7 @@ class StageSpaceManager(
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
 
-        initMicroscopeStatusLabel()
+        stageSpaceLabel = StageSpaceLabel(scene, msHub)
 
         focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
             spatial().position = hardware.stagePosition.copy()
@@ -148,7 +149,7 @@ class StageSpaceManager(
             }
             is MicroscopeStatus -> {
                 focus.spatial().position = signal.stagePosition
-                updateMicroscopeStatusLabel(signal)
+                stageSpaceLabel.updateMicroscopeStatusLabel(signal)
             }
             is Stack -> {
                 sliceManager.handleStackSignal(signal, msHub.getAttribute(Hub::class.java))
@@ -158,49 +159,6 @@ class StageSpaceManager(
                         "(${signal.mean()}ms mean)")
             }
         }
-    }
-
-    private fun initMicroscopeStatusLabel() {
-        val microscopeStatusLabelPivot = Row(microscopeStatusLabel)
-        microscopeStatusLabelPivot.spatial {
-            scale = Vector3f(0.1f)
-
-            fun updateMSLabelRotation(viewOrientation: Quaternionf) {
-                rotation = Quaternionf(viewOrientation).conjugate().normalize()
-            }
-
-            val hmd = msHub.getAttribute(Hub::class.java).get<OpenVRHMD>()
-            microscopeStatusLabelPivot.update += {
-                if (hmd != null) {
-                    updateMSLabelRotation(hmd.getOrientation())
-                } else {
-                    scene.activeObserver?.let { updateMSLabelRotation(it.spatial().rotation) }
-                }
-            }
-        }
-        scene.addChild(microscopeStatusLabelPivot)
-        microscopeStatusLabelPivot.pack()
-        microscopeStatusLabel.parent?.ifSpatial {
-            microscopeStatusLabel.parent!!.update += {
-                // move it on top of the stage space
-                val centerW = stageRoot.spatial().worldPosition(stageAreaCenter)
-                centerW.y = stageAreaBorders.generateBoundingBox()?.asWorld()?.max?.y ?: centerW.y
-                centerW.y += 0.2f
-                position = centerW
-            }
-        }
-    }
-
-    private fun updateMicroscopeStatusLabel(signal: MicroscopeStatus) {
-        microscopeStatusLabel.text = "Microscope: " + when(signal.state){
-            ServerState.LIVE -> "sending data"
-            ServerState.MANUAL -> "idle"
-            ServerState.SHUTTING_DOWN -> "shutting down"
-            ServerState.STACK -> "imaging"
-            ServerState.STARTUP -> "startup"
-            ServerState.ABLATION -> "ablating"
-        }
-        (microscopeStatusLabel.parent as? Row)?.pack()
     }
 
     private fun handleHardwareDimensionsSignal(signal: HardwareDimensions) {
