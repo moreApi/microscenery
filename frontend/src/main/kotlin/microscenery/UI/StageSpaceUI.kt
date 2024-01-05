@@ -191,7 +191,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                                 infoPanel.add(JButton("Delete Volume").apply {
                                     this.addActionListener {
                                         sliceManager.deleteStack(node)
-                                        uiModel.selected = UIModel.NO_SELECTION
+                                        uiModel.selected = null
                                     }
                                 },"wrap")
                             }
@@ -199,11 +199,10 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                                 infoPanel.add(JButton("Delete Slice").apply {
                                     this.addActionListener {
                                         sliceManager.deleteSlice(node)
-                                        uiModel.selected = UIModel.NO_SELECTION
+                                        uiModel.selected = null
                                     }
                                 },"wrap")
                             }
-                            UIModel.NO_SELECTION -> {}
                             else -> infoPanel.add(JLabel("type: ${node.javaClass.name}", SwingConstants.RIGHT), "shrink,wrap")
                         }
                     }
