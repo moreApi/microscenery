@@ -2,12 +2,16 @@ package microscenery.VRUI
 
 import graphics.scenery.Box
 import graphics.scenery.controls.OpenVRHMD
-import graphics.scenery.controls.behaviours.*
+import graphics.scenery.controls.behaviours.PerButtonPressable
+import graphics.scenery.controls.behaviours.SimplePressable
+import graphics.scenery.controls.behaviours.Touchable
 import graphics.scenery.volumes.SlicingPlane
 import graphics.scenery.volumes.Volume
+import microscenery.UI.UIModel
 import org.joml.Vector3f
 
-class CroppingTool : Box(Vector3f(0.2f, 0.02f, 0.2f)) {
+class CroppingTool(uiModel: UIModel)
+    : Box(Vector3f(0.2f, 0.02f, 0.2f)), VRHandTool {
     var volume: Volume? = null
     val croppingPlane = SlicingPlane()
 
@@ -15,11 +19,9 @@ class CroppingTool : Box(Vector3f(0.2f, 0.02f, 0.2f)) {
         material().diffuse = Vector3f(1f)
 
         this.addAttribute(Touchable::class.java, Touchable())
-        this.addAttribute(Grabable::class.java, Grabable())
-        this.addAttribute(
-            Pressable::class.java, PerButtonPressable(
+        this.initVRHandToolAndPressable(uiModel, PerButtonPressable(
                 mapOf(
-                    OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onPress = {
+                    OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onPress = { _,_ ->
                         volume?.let { volume ->
                             val current = volume.slicingMode.id
                             // toggle through slicing modes, skipping none-mode
@@ -27,7 +29,7 @@ class CroppingTool : Box(Vector3f(0.2f, 0.02f, 0.2f)) {
                             volume.slicingMode = Volume.SlicingMode.values()[next]
                         }
                     }),
-                    CLOSE_BUTTON to SimplePressable(onPress = {
+                    CLOSE_BUTTON to SimplePressable(onPress = { _,_ ->
                         volume?.let { deactivate(it) }
                     })
                 )

@@ -10,6 +10,7 @@ import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.Wiggler
 import microscenery.MicroscenerySettings
 import microscenery.Settings
+import microscenery.UI.UIModel
 import microscenery.UP
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.detach
@@ -26,8 +27,8 @@ class PathAblationTool(
     var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f),
     val stageSpaceManager: StageSpaceManager,
     hmd: OpenVRHMD,
-) :
-    Box(Vector3f(0.05f, 0.13f, 0.05f)) {
+    uiModel: UIModel
+) : Box(Vector3f(0.05f, 0.13f, 0.05f)), VRHandTool {
     private val tip: Box
     private val inkOutput: RichNode
 
@@ -55,12 +56,10 @@ class PathAblationTool(
         }
 
         this.addAttribute(Touchable::class.java, Touchable())
-        this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))
-        this.addAttribute(
-            Pressable::class.java, PerButtonPressable(
+        this.initVRHandToolAndPressable(uiModel, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onRelease = {
+                        onRelease = { _,_ ->
                             if (preparedInk == null) {
                                 prepareInk()
                             } else {
@@ -70,10 +69,10 @@ class PathAblationTool(
                     )
                 ).plus(MENU_BUTTON.map {
                     it to SimplePressable(
-                        onPress = {
+                        onPress = { controllerSpatial,_ ->
                             val scene = getScene() ?: return@SimplePressable
                             val m = VRFastSelectionWheel(
-                                it, scene, hmd, listOf(
+                                controllerSpatial, scene, hmd, listOf(
                                     Action("clear path") { clearInk() },
                                     Action("undo") { undoLastPoint() },
                                     Action("hide") {
@@ -86,11 +85,11 @@ class PathAblationTool(
                             menu = m
                         },
                         onHold =
-                        {
+                        { _,_ ->
                             menu?.drag(0, 0)
                         },
                         onRelease =
-                        {
+                        { _,_ ->
                             menu?.end(0, 0)
                         }
                     )

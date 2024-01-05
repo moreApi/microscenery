@@ -7,7 +7,6 @@ import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Touch
 import graphics.scenery.controls.behaviours.VRGrab
-import graphics.scenery.controls.behaviours.VRPress
 import graphics.scenery.controls.behaviours.VRTouch
 import graphics.scenery.volumes.Volume
 import microscenery.MicrosceneryHub
@@ -31,8 +30,22 @@ class VRUIManager {
             inputHandler: InputHandler?,
             customActions: WheelMenu? = null,
             stageSpaceUI: StageSpaceUI? = null,
-            msHub: MicrosceneryHub? = null
+            msHub: MicrosceneryHub
         ) {
+            val uiModel = msHub.getAttribute(UIModel::class.java)
+
+            // register controller objects in ui model once they show up
+            hmd.events.onDeviceConnect.add { _, device, _ ->
+                if (device.type == TrackedDeviceType.Controller) {
+                    device.model?.let {
+                        when(device.role){
+                            TrackerRole.Invalid -> {}
+                            TrackerRole.LeftHand -> uiModel.leftVRController = device
+                            TrackerRole.RightHand -> uiModel.rightVRController = device
+                        }
+                    }
+                }
+            }
 
             VRGrabTheWorldSelfMove.createAndSet(
                 scene, hmd, listOf(OpenVRHMD.OpenVRButton.Down), listOf(TrackerRole.RightHand)
@@ -44,7 +57,6 @@ class VRUIManager {
 
             inputHandler?.initStickMovement(hmd)
 
-
             val vr2HandSpatialManipulation =
                 VR2HandSpatialManipulation.createAndSet(
                     hmd,
@@ -52,6 +64,18 @@ class VRUIManager {
                     scene,
                     stageSpaceManager = stageSpaceUI?.stageSpaceManager
                 )
+
+            VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.LeftHand), false)
+
+            val pressButtons = listOf(
+                OpenVRHMD.OpenVRButton.Trigger,
+                OpenVRHMD.OpenVRButton.A,
+                OpenVRHMD.OpenVRButton.Menu,
+                OpenVRHMD.OpenVRButton.Side
+            )
+            InHandManager.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.LeftHand,pressButtons)
+            InHandManager.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.RightHand,pressButtons)
+
             VRGrab.createAndSet(
                 scene,
                 hmd,
@@ -60,13 +84,6 @@ class VRUIManager {
                 holdToDrag = false,
                 onGrab = { node, device -> (hmd as? OpenVRHMD)?.vibrate(device); Touch.unapplySelectionColor(node) })
             val touchRightHand = VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand), false)
-            VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.LeftHand), false)
-            VRPress.createAndSet(
-                scene,
-                hmd,
-                listOf(OpenVRHMD.OpenVRButton.Trigger, OpenVRHMD.OpenVRButton.A, OpenVRHMD.OpenVRButton.Menu),
-                listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
-            )
 
 
             // ----------------- Menus -----------------
@@ -76,7 +93,8 @@ class VRUIManager {
                 MENU_BUTTON,
                 listOf(TrackerRole.RightHand),
                 customActions?.let { WheelMenu(hmd, it.actions, true) },
-                stageSpaceUI?.stageSpaceManager
+                stageSpaceUI?.stageSpaceManager,
+                uiModel
             ) { touchRightHand.get()?.selected?.isEmpty() ?: true }
 
             stageSpaceUI?.stageSpaceManager?.let {
@@ -102,7 +120,6 @@ class VRUIManager {
                                 val name = "Volume scrolling prev"
                                 val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Left,object:DragBehaviour{
                                     override fun init(x: Int, y: Int) {
-                                        val uiModel = msHub?.getAttributeOrNull(UIModel::class.java)?: return
                                         val vol = uiModel.selected as? Volume ?: return
                                         if (vol.currentTimepoint == 0) return
 
@@ -119,7 +136,6 @@ class VRUIManager {
                                 val name = "Volume scrolling next"
                                 val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Right,object:DragBehaviour{
                                     override fun init(x: Int, y: Int) {
-                                        val uiModel = msHub?.getAttributeOrNull(UIModel::class.java)?: return
                                         val vol = uiModel.selected as? Volume ?: return
                                         if (vol.currentTimepoint +1 == vol.timepointCount) return
 
@@ -162,4 +178,5 @@ class VRUIManager {
         }
     }
 }
+
 

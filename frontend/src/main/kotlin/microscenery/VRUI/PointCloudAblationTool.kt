@@ -9,6 +9,7 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.utils.Wiggler
 import microscenery.*
+import microscenery.UI.UIModel
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.primitives.Pyramid
 import microscenery.stageSpace.StageSpaceManager
@@ -18,7 +19,8 @@ class PointCloudAblationTool(
     var pointColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f),
     val stageSpaceManager: StageSpaceManager,
     hmd: OpenVRHMD,
-) : Box(Vector3f(0.04f, 0.10f, 0.04f)) {
+    uiModel: UIModel
+) : Box(Vector3f(0.04f, 0.10f, 0.04f)), VRHandTool {
     private val tip: HasSpatial
     private val inkOutput: RichNode
     private var eraserHead: Box = Box(Vector3f(0.02f))
@@ -59,15 +61,14 @@ class PointCloudAblationTool(
         Touch("point ablation eraser", eraserHead,{placedPoints})
 
         this.addAttribute(Touchable::class.java, Touchable())
-        this.addAttribute(Grabable::class.java, Grabable(lockRotation = false))
 
         var timeOfLastInk = System.currentTimeMillis()
         val timeBetweenInks = 50
-        this.addAttribute(
-            Pressable::class.java, PerButtonPressable(
+
+        this.initVRHandToolAndPressable(uiModel, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onHold = {
+                        onHold = { _,_ ->
                             if (!eraserActive) {
                                 if (timeOfLastInk + timeBetweenInks < System.currentTimeMillis()) {
                                     placeInk()
@@ -81,10 +82,10 @@ class PointCloudAblationTool(
                     )
                 ).plus( MENU_BUTTON.map {
                     it to SimplePressable(
-                        onPress = {
+                        onPress = { controllerSpatial,_ ->
                             val scene = getScene() ?: return@SimplePressable
                             val m = VRFastSelectionWheel(
-                                it, scene, hmd, listOf(
+                                controllerSpatial, scene, hmd, listOf(
                                     Action("clear all") { clearInk() },
                                     Switch("eraser", eraserActive) { eraserActive = !eraserActive },
                                     Action("hide") {
@@ -97,11 +98,11 @@ class PointCloudAblationTool(
                             menu = m
                         },
                         onHold =
-                        {
+                        { _,_ ->
                             menu?.drag(0, 0)
                         },
                         onRelease =
-                        {
+                        { _,_ ->
                             menu?.end(0, 0)
                         }
                     )

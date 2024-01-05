@@ -10,6 +10,7 @@ import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.volumes.Colormap
 import microscenery.MicroscenerySettings
 import microscenery.Settings
+import microscenery.UI.UIModel
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel.Companion.toActions
 import microscenery.VRUI.fromScenery.WheelMenu
@@ -23,13 +24,14 @@ class Toolbox(
     controllerSide: List<TrackerRole>,
     customMenu: WheelMenu? = null,
     stageSpaceManager: StageSpaceManager? = null,
+    uiModel: UIModel,
     enabled: () -> Boolean = {true}
 ) {
     val pointTool = PointEntityTool()
     val lineTool = LineEntityTool()
-    val croppingTool = CroppingTool()
-    val pathAblationTool = stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd) }
-    val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd) }
+    val croppingTool = CroppingTool(uiModel)
+    val pathAblationTool = stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
+    val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
     val ablationInkMoveTool = stageSpaceManager?.let { AblationInkMoveTool(stageSpaceManager)}
     val bubblesTool = BubblesTool()
 
