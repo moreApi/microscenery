@@ -31,7 +31,7 @@ class FrameGizmo(
             beam.addAttribute(Touchable::class.java, Touchable())
             beam.addAttribute(
                 Pressable::class.java, PerButtonPressable(
-                    mapOf(OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onRelease = { stageSpaceManager.snapSlice() }))
+                    mapOf(OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onRelease = {  _,_ ->stageSpaceManager.snapSlice() }))
                 )
             )
         }

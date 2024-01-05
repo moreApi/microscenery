@@ -2,6 +2,7 @@ package microscenery.VRUI.behaviors
 
 import graphics.scenery.Node
 import graphics.scenery.attribute.spatial.Spatial
+import graphics.scenery.controls.TrackedDevice
 import graphics.scenery.controls.behaviours.Pressable
 import graphics.scenery.controls.behaviours.SimplePressable
 import graphics.scenery.utils.extensions.times
@@ -57,7 +58,7 @@ class VRScaleNode(
 
     class VRScalePressable(val main: VRScaleNode) : SimplePressable() {
         private var mainhand = false
-        override val onPress: ((Spatial) -> Unit) = {
+        override val onPress: ((Spatial, TrackedDevice) -> Unit) = { it,_ ->
             mainhand = synchronized(main.firstLock) {
                 if (main.first) {
                     main.first = false
@@ -72,9 +73,9 @@ class VRScaleNode(
             }
         }
 
-        override val onHold: ((Spatial) -> Unit) = { if (mainhand) main.drag() }
+        override val onHold: ((Spatial, TrackedDevice) -> Unit) = { _,_ -> if (mainhand) main.drag() }
 
-        override val onRelease: ((Spatial) -> Unit) = {
+        override val onRelease: ((Spatial, TrackedDevice) -> Unit) = { _,_ ->
             if (mainhand) {
                 synchronized(main.firstLock) {
                     main.first = true

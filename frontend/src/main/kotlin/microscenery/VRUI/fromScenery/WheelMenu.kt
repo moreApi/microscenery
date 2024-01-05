@@ -79,7 +79,7 @@ class WheelMenu(
                 is Action -> {
                     val s = Sphere(0.025f, 10)
                     s.material().diffuse = Vector3f(100f)
-                    s.addAttribute(Pressable::class.java, SimplePressable(onRelease = {
+                    s.addAttribute(Pressable::class.java, SimplePressable(onRelease = { _,_ ->
                         action.action()
                         if (action.closeMenu){this.closeWheel(true)}
                     }))
@@ -89,7 +89,7 @@ class WheelMenu(
                 }
                 is SubWheel -> {
                     val s = Box(Vector3f(0.05f))
-                    s.addAttribute(Pressable::class.java, SimplePressable(onRelease = {
+                    s.addAttribute(Pressable::class.java, SimplePressable(onRelease = { _,_ ->
                         val new = WheelMenu(hmd, action.actions, true)
                         new.openSubWheel(this, pos)
                     }))
@@ -104,7 +104,7 @@ class WheelMenu(
                     knob.spatial().position.x = 0.025f * if (action.state) 1 else -1
                     knob.material().diffuse = if (action.state) Vector3f(0f,1f,0f) else Vector3f(1f,0.5f,0f)
 
-                    knob.addAttribute(Pressable::class.java, SimplePressable(onRelease = {
+                    knob.addAttribute(Pressable::class.java, SimplePressable(onRelease = { _,_ ->
                         val newColor = if (action.toggle()) Vector3f(0f,1f,0f) else Vector3f(1f,0.5f,0f)
                         val touch = knob.getAttribute(Touchable::class.java)
                         if (touch.originalDiffuse != null){
@@ -144,7 +144,7 @@ class WheelMenu(
             // close/back button
             val close = Box(Vector3f(0.05f, 0.05f, 0.05f))
             close.spatial().rotation.rotateLocalZ((PI / 4).toFloat())
-            close.addAttribute(Pressable::class.java, SimplePressable(onRelease = {
+            close.addAttribute(Pressable::class.java, SimplePressable(onRelease = { _,_ ->
                 this.closeWheel()
             }))
             // make it go red on touch

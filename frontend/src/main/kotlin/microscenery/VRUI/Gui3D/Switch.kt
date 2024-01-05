@@ -46,7 +46,7 @@ class Switch(label: String, start:Boolean, middleAlign:Boolean = false, onChange
             knob.spatial().position.x = bg.sizes.x * 0.25f * if (value) 1 else -1
             knob.material().diffuse = if (value) onColor else offColor
 
-            knob.addAttribute(Pressable::class.java, SimplePressable(onRelease = {
+            knob.addAttribute(Pressable::class.java, SimplePressable(onRelease = { _,_ ->
                 toggle()
             }))
             // make it go red on touch

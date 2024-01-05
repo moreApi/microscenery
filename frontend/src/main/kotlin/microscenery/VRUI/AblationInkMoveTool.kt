@@ -36,7 +36,7 @@ class AblationInkMoveTool(
             Pressable::class.java, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onPress = {
+                        onPress = { _,_ ->
                             prevPosition = this.spatial().worldPosition()
                             inks = stageSpaceManager.stageRoot.children.filter { it is PointCloudAblationTool.Ink || it is PathAblationTool.InkLine }.mapNotNull{ it as? HasSpatial }
                             min = inks.fold(Vector3f(Float.MAX_VALUE)){vec, pos ->
@@ -48,7 +48,7 @@ class AblationInkMoveTool(
                             material().diffuse = Vector3f(0f,1f,0.1f)
 
                         },
-                        onHold = {
+                        onHold = { _,_ ->
                             val div =  this.spatial().worldPosition() - prevPosition
                             val divInStageSpace = stageSpaceManager.worldToStageSpace(div,false)
 
@@ -68,7 +68,7 @@ class AblationInkMoveTool(
                             max += divInStageSpace
                             prevPosition = this.spatial().worldPosition()
                         },
-                        onRelease = {
+                        onRelease = { _,_ ->
                             material().diffuse = defaultColor
                         }
                     )

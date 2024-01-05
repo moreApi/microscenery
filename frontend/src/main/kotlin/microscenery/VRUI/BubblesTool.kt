@@ -31,19 +31,19 @@ class BubblesTool() : Box(Vector3f(0.05f, 0.13f, 0.05f)) {
             Pressable::class.java, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onPress = {
+                        onPress = { _,_ ->
                             placePoint(inkOutput)
                         },
-                        onHold = {
+                        onHold = { _,_ ->
                              if (lastBubble + 50 < System.currentTimeMillis()){
                                  placePoint(inkOutput)
                                  lastBubble = System.currentTimeMillis()
                              }
                         },
-                        onRelease = {
+                        onRelease = { _,_ ->
                         }
                     ),
-                    CLOSE_BUTTON to SimplePressable(onPress = {
+                    CLOSE_BUTTON to SimplePressable(onPress = { _,_ ->
                         this.visible = false
                         parent?.removeChild(this)
                     })

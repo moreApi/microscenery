@@ -20,13 +20,13 @@ class PointEntityTool : Box(Vector3f(0.05f, 0.13f, 0.05f)) {
             Pressable::class.java, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onPress = {
+                        onPress = { _,_ ->
                             val ink = Sphere(0.03f)
                             ink.spatial().position = tip.spatial().worldPosition(Vector3f())
                             this.getScene()?.addChild(ink)
                         }
                     ),
-                    CLOSE_BUTTON to SimplePressable(onPress = {
+                    CLOSE_BUTTON to SimplePressable(onPress = { _,_ ->
                         this.visible = false
                         parent?.removeChild(this)
                     })

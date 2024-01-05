@@ -34,22 +34,22 @@ class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var d
             Pressable::class.java, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onPress = {
+                        onPress = { _,_ ->
                             placePoint(inkOutput)
                             lastInkTimepoint = System.currentTimeMillis()
                         },
-                        onHold = {
+                        onHold = { _,_ ->
                             if (System.currentTimeMillis() > lastInkTimepoint + drawFrequency) {
                                 placePoint(inkOutput)
                                 lastInkTimepoint = System.currentTimeMillis()
                             }
                         },
-                        onRelease = {
+                        onRelease = { _,_ ->
                             lastInkTimepoint = 0
                             lastPoint = null
                         }
                     ),
-                    CLOSE_BUTTON to SimplePressable(onPress = {
+                    CLOSE_BUTTON to SimplePressable(onPress = { _,_ ->
                         this.visible = false
                         parent?.removeChild(this)
                     })

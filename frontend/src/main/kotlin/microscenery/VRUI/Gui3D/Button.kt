@@ -35,11 +35,11 @@ class Button(text: String, height: Float = 1f,command: () -> Unit): TextBox(text
     init {
         box.addAttribute(Touchable::class.java, Touchable())
         box.addAttribute(Pressable::class.java, SimplePressable(
-            onPress = {
+            onPress = { _,_ ->
                 command()
                 pressed = true
             },
-            onRelease = {
+            onRelease = { _,_ ->
                 pressed = false || stayPressed
             }
         ))
