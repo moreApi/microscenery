@@ -52,7 +52,7 @@ class LocalMMSceneVR : DefaultVRScene() {
 
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
-            stageSpaceUI = ssUI
+            stageSpaceUI = ssUI, msHub = MicrosceneryHub(hub)
         )
     }
 

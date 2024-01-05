@@ -10,6 +10,7 @@ import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultScene
 import microscenery.DefaultVRScene
+import microscenery.MicrosceneryHub
 import microscenery.VRUI.VRUIManager
 import microscenery.VRUI.fromScenery.WheelMenu
 import org.joml.Quaternionf
@@ -215,7 +216,7 @@ class OfflineViewerVR() : DefaultVRScene("Embo Scene") {
             scene, hmd, inputHandler, customActions =
             WheelMenu(hmd, listOf(Switch("freeze blocks",false){
                 vol.volumeManager.freezeRequiredBlocks = it
-            }), false)
+            }), false,), msHub = MicrosceneryHub(hub)
         )
     }
 

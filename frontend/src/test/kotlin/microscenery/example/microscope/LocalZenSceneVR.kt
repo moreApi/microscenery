@@ -17,6 +17,7 @@ import kotlin.concurrent.thread
 @Suppress("unused")
 class LocalZenSceneVR : DefaultVRScene() {
     lateinit var  stageSpaceManager: StageSpaceManager
+    lateinit var  msHub: MicrosceneryHub
 
     override fun init() {
 
@@ -46,12 +47,14 @@ class LocalZenSceneVR : DefaultVRScene() {
         val zenMicroscope = ZenMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
-        val msHub = MicrosceneryHub(hub)
+        msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(hardware, scene, msHub)
 
         thread {
             Thread.sleep(100)
 
+            zenMicroscope.debugStack(id)
+            Thread.sleep(500)
             zenMicroscope.debugStack(id)
 
             Thread.sleep(3000)
@@ -76,6 +79,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
             stageSpaceUI = ssUI,
+            msHub = msHub
         )
     }
 

@@ -12,6 +12,7 @@ import org.zeromq.ZContext
 
 class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
     val stageSpaceManager: StageSpaceManager
+    lateinit var  msHub: MicrosceneryHub
 
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
@@ -28,7 +29,7 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
 
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
-        val msHub = MicrosceneryHub(hub)
+        msHub = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(client, scene, msHub)
 
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
@@ -44,7 +45,8 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
 
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
-            stageSpaceUI = ssui
+            stageSpaceUI = ssui,
+            msHub = msHub
         )
 
     }

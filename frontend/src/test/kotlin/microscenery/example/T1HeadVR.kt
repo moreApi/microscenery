@@ -4,6 +4,7 @@ import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
 import microscenery.DefaultVRScene
+import microscenery.MicrosceneryHub
 import microscenery.VRUI.VRUIManager
 import microscenery.VRUI.fromScenery.WheelMenu
 import org.joml.Vector3f
@@ -37,7 +38,7 @@ class T1HeadVR : DefaultVRScene(T1HeadVR::class.java.simpleName) {
                 hmd, listOf(
 
                 )
-            )
+            ), msHub = MicrosceneryHub(hub)
         )
     }
 
