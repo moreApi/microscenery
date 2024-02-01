@@ -20,15 +20,18 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
+    val volumesFolder = """D:\volumes"""
+    val zeissFolder = """D:\ViingsNextcloud\Zeiss"""
+
     val zenMicroscope: ZenMicroscope
-    val crovWithoutHoles = """C:\Users\JanCasus\volumes\Zeiss\20230915_488_corvoria_without_holes.czi"""
-    val crovHoles = """C:\Users\JanCasus\volumes\Zeiss\20230915_488_corvoria_with_holes.czi"""
-    val experiment19 = """C:\Users\JanCasus\Zeiss\Experiment-19.czi"""
-    val squareRing = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring.czi"""
-    val squareRing2 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring2.czi"""
-    val squareRing3 = """C:\Nextcloud\Zeiss\sd3\20230712_488_square_ring3.czi"""
-    val sd3Fly = """C:\Users\JanCasus\volumes\Zeiss\marina-sd3-drosophila1.czi"""
-    val niceCut1 = """C:\Users\JanCasus\volumes\Zeiss\20230925_drosophila_niceSideCut1.czi"""
+    val crovWithoutHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_without_holes.czi"""
+    val crovHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_with_holes.czi"""
+    val experiment19 = zeissFolder + """\Zeiss\Experiment-19.czi"""
+    val squareRing = zeissFolder + """\sd3\20230712_488_square_ring.czi"""
+    val squareRing2 = zeissFolder + """\sd3\20230712_488_square_ring2.czi"""
+    val squareRing3 = zeissFolder + """\sd3\20230712_488_square_ring3.czi"""
+    val sd3Fly = volumesFolder + """\Zeiss\marina-sd3-drosophila1.czi"""
+    val niceCut1 = volumesFolder + """\Zeiss\20230925_drosophila_niceSideCut1.czi"""
 
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
