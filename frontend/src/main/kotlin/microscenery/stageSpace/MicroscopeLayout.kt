@@ -21,8 +21,11 @@ sealed class MicroscopeLayout(val sheet: Axis) {
     class Scape(sheet: Axis, val camRotationRad: Float) : MicroscopeLayout(sheet) {
         override fun sheetRotation(): Quaternionf {
             val rot = Quaternionf()
-                .rotateLocalX(camRotationRad)
-                .rotateTo(Axis.Z.vector, sheet.vector)
+                .rotateLocalZ(1.57079633f)
+                .rotateLocalY(1.57079633f)
+                .rotateLocalX(Math.PI.toFloat())
+//                .rotateLocalX(camRotationRad)
+//                .rotateTo(Axis.Z.vector, sheet.vector)
 
 //            val rot = Quaternionf()
 //            when (sheet) {
