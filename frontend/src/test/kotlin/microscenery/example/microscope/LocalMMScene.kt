@@ -12,6 +12,9 @@ import mmcorej.CMMCore
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
+/**
+ * Working directory needs to be the MM dir.
+ */
 class LocalMMScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
