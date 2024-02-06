@@ -31,7 +31,8 @@ class StageSpaceManager(
     val hardware: MicroscopeHardware,
     val scene: Scene,
     val msHub: MicrosceneryHub,
-    val layout: MicroscopeLayout = MicroscopeLayout.Default()
+    val layout: MicroscopeLayout = MicroscopeLayout.Default(),
+    val viewMode: Boolean = MicroscenerySettings.get(Settings.StageSpace.viewMode,false)
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -79,7 +80,7 @@ class StageSpaceManager(
             diffuse = Vector3f(0.4f, 0.4f, 0.4f)
             diffuse = Vector3f(0.4f, 0.4f, 0.4f)
             specular = Vector3f(0.0f, 0.0f, 0.0f)
-            cullingMode = Material.CullingMode.Front
+            cullingMode = if (viewMode) Material.CullingMode.FrontAndBack else Material.CullingMode.Front
         }
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
