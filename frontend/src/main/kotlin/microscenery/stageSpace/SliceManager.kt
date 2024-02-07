@@ -61,19 +61,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             val color = getColorMap() ?: return@addUpdateRoutine
             stacks.forEach { it.volume.colormap = color }
         }
-
-
-        val cam = scene.findObserver()
-        if (cam != null) {
-            var oldPos = cam.spatial().position
-
-            cam.update += {
-                if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
-                    sortAndInsertSlices(cam.spatial().position)
-                    oldPos = cam.spatial().position
-                }
-            }
-        }
     }
 
     fun getStackMetadata(volume: Volume):Stack?{
@@ -227,7 +214,37 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         }
     }
 
+    private var camUpdateLambda: (() -> Unit)? = null
+
+    /**
+     * Set up the painters algorithm routine for the camera if not already setup.
+     * We cant do that at initialization because then the camera might not be initialized.
+     */
+    private fun setupCameraPainterAlgorithmUpdate(){
+        if (camUpdateLambda == null){
+            val cam = scene.findObserver()
+            if (cam == null) {
+                logger.warn("No cam found, cant setup painters algorithm for slices.")
+                return
+            }
+            var oldPos = cam.spatial().position
+            camUpdateLambda = {
+                if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
+                    sortAndInsertSlices(cam.spatial().position)
+                    oldPos = cam.spatial().position
+                }
+            }
+            cam.update.add(camUpdateLambda!!)
+        }
+    }
+
+    /**
+     * Sorts slices according to distance to the camera in the list of children of the scene.
+     * This causes the slices to be rendered in a back to front order so that their transparency is displayed correctly.
+     * Following the idea of the painters' algorithm.
+     */
     private fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null) {
+        setupCameraPainterAlgorithmUpdate()
         if (newSlice != null) {
             sortingSlicesLock.lock()
             // detect too close slices to replace them
@@ -254,7 +271,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
 
             //Sorts the [sortedSlices] container using the distance between camera and slice in descending order (the furthest first)
             sortedSlices.sortByDescending { it.spatial().worldPosition().distance(camPosition) }
-
             sortedSlices.forEach {
                 stageRoot.children.add(it)
             }
