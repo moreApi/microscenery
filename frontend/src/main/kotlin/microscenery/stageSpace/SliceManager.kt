@@ -13,6 +13,7 @@ import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
 import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.UIModel
 import microscenery.detach
 import microscenery.hardware.MicroscopeHardware
@@ -26,6 +27,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.random.Random
 
 
 class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, val scene: Scene, val msHub: MicrosceneryHub) {
@@ -57,7 +59,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         MicroscenerySettings.addUpdateRoutine(
             "Stage.ToggleSliceBorder"
         ) { setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder")) }
-        MicroscenerySettings.addUpdateRoutine(microscenery.Settings.StageSpace.ColorMap){
+        MicroscenerySettings.addUpdateRoutine(Settings.StageSpace.ColorMap){
             val color = getColorMap() ?: return@addUpdateRoutine
             stacks.forEach { it.volume.colormap = color }
         }
@@ -195,7 +197,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
     }
 
     private fun getColorMap(): Colormap? {
-        val colorName = MicroscenerySettings.getOrNull<String>(microscenery.Settings.StageSpace.ColorMap) ?: return null
+        val colorName = MicroscenerySettings.getOrNull<String>(Settings.StageSpace.ColorMap) ?: return null
         return try {
             Colormap.get(colorName)
         } catch (t: Throwable){
@@ -312,8 +314,10 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             transferFunctionManager.transferFunctionOffset,
             transferFunctionManager.transferFunctionScale
         )
+        // random offset might be set to avoid z-fighting for close slices
+        val randomOffset = MicroscenerySettings.getOrNull<Float>(Settings.StageSpace.RandomSliceOffset)
         node.spatial {
-            position = signal.stagePos
+            position = signal.stagePos + (randomOffset?.let { Vector3f(it*Random.nextFloat())} ?: Vector3f(0f))
             rotation = layout.sheetRotation()
             scale *= flipVector
         }

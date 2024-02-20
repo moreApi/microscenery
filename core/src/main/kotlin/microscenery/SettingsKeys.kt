@@ -44,6 +44,7 @@ object Settings {
     }
 
     object StageSpace{
+        /** float */const val RandomSliceOffset = "StageSpace.randomSliceOffset"
         /** bool */ const val viewMode = "StageSpace.viewMode"
         /** bool */ const val HideFocusFrame = "StageSpace.hideFocusFrame"
         /** bool */ const val HideFocusTargetFrame = "StageSpace.hideFocusTargetFrame"
