@@ -17,7 +17,7 @@ repositories {
 dependencies {
     // This should point to the most recent commit of scenery:jans-dirtier-branch
     // At the moment scenery:jans-dirtier-branch should be a merge of:
-    // - branch-of-jan
+    // - jans-branch
     // - volume-enhancements
     implementation("graphics.scenery:scenery:0133c94")
     // necessary for logging to work correctly
