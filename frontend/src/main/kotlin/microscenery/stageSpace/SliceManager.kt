@@ -226,11 +226,11 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
                 logger.warn("No cam found, cant setup painters algorithm for slices.")
                 return
             }
-            var oldPos = cam.spatial().position
+            var oldRotationHash = cam.spatial().rotation.hashCode()
             camUpdateLambda = {
-                if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
+                if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldRotationHash != cam.spatial().rotation.hashCode()) {
                     sortAndInsertSlices(cam)
-                    oldPos = cam.spatial().position
+                    oldRotationHash = cam.spatial().rotation.hashCode()
                 }
             }
             cam.update.add(camUpdateLambda!!)
@@ -265,7 +265,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         // If yes I sort. If no I return because someone else is sorting (and inserting).
         if (sortingSlicesLock.isHeldByCurrentThread || sortingSlicesLock.tryLock()) {
             if (sortedSlices.isEmpty()) return
-
             // Adjusted Painters algorithm for uniformly leaning planes
             // General Idea: sort the planes roughly along their normal
 
@@ -278,7 +277,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             val camAndNormalInSameDirection = normalDiff < sqrt(2f)
             val sliceNormalInv = sliceNormal * 100000f * if(camAndNormalInSameDirection) -1f else 1f
 
-
             // Sorts the [sortedSlices] container using the distance between "infinite normal point"
             // and slice in order (the clostest first).
             sortedSlices.sortBy { it.spatial().worldPosition().distance(sliceNormalInv) }
@@ -290,6 +288,8 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
                 stageRoot.children.add(it)
             }
             // Resulting in a back to front rendering
+            // Possible improvement: instead of using the distance to a point at infinite,
+            // project on a line spanned by the normal
             sortingSlicesLock.unlock()
         }
 
