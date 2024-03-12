@@ -1,9 +1,7 @@
 package microscenery.stageSpace
 
-import graphics.scenery.Hub
-import graphics.scenery.Origin
-import graphics.scenery.RichNode
-import graphics.scenery.Scene
+import fromScenery.utils.extensions.minus
+import graphics.scenery.*
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.extensions.toFloatArray
@@ -11,11 +9,9 @@ import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
-import microscenery.MicrosceneryHub
-import microscenery.MicroscenerySettings
+import microscenery.*
 import microscenery.Settings
 import microscenery.UI.UIModel
-import microscenery.detach
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.NumericType
 import microscenery.signals.Slice
@@ -27,6 +23,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 
@@ -232,7 +229,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             var oldPos = cam.spatial().position
             camUpdateLambda = {
                 if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldPos != cam.spatial().position) {
-                    sortAndInsertSlices(cam.spatial().position)
+                    sortAndInsertSlices(cam)
                     oldPos = cam.spatial().position
                 }
             }
@@ -245,7 +242,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
      * This causes the slices to be rendered in a back to front order so that their transparency is displayed correctly.
      * Following the idea of the painters' algorithm.
      */
-    private fun sortAndInsertSlices(camPosition: Vector3f, newSlice: SliceRenderNode? = null) {
+    private fun sortAndInsertSlices(cam: Camera, newSlice: SliceRenderNode? = null) {
         setupCameraPainterAlgorithmUpdate()
         if (newSlice != null) {
             sortingSlicesLock.lock()
@@ -267,15 +264,32 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         // If I have this lock that means I just inserted a slice and need to sort it. Otherwise, I look if it is free.
         // If yes I sort. If no I return because someone else is sorting (and inserting).
         if (sortingSlicesLock.isHeldByCurrentThread || sortingSlicesLock.tryLock()) {
+            if (sortedSlices.isEmpty()) return
+
+            // Adjusted Painters algorithm for uniformly leaning planes
+            // General Idea: sort the planes roughly along their normal
+
+            val sliceNormal = Vector3f(0f,0f,1f).rotate(sortedSlices[0].spatial().worldRotation())
+            val camNormal = Vector3f(0f,0f,1f).rotate(cam.spatial().worldRotation())
+
+            // multiply normal with a lage factor to serve as a point at "infinity" in world space.
+            // if the camera view direction aligns with the normal invert it
+            val normalDiff = (camNormal - sliceNormal).length()
+            val camAndNormalInSameDirection = normalDiff < sqrt(2f)
+            val sliceNormalInv = sliceNormal * 100000f * if(camAndNormalInSameDirection) -1f else 1f
+
+
+            // Sorts the [sortedSlices] container using the distance between "infinite normal point"
+            // and slice in order (the clostest first).
+            sortedSlices.sortBy { it.spatial().worldPosition().distance(sliceNormalInv) }
+            // remove and add in new order to get correct render ordering
             sortedSlices.forEach {
                 stageRoot.children.remove(it)
             }
-
-            //Sorts the [sortedSlices] container using the distance between camera and slice in descending order (the furthest first)
-            sortedSlices.sortByDescending { it.spatial().worldPosition().distance(camPosition) }
             sortedSlices.forEach {
                 stageRoot.children.add(it)
             }
+            // Resulting in a back to front rendering
             sortingSlicesLock.unlock()
         }
 
@@ -322,7 +336,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             scale *= flipVector
         }
 
-        sortAndInsertSlices(scene.findObserver()?.spatial()?.position ?: Vector3f(), node)
+        scene.findObserver()?.let { sortAndInsertSlices(it,node) }
     }
 
     /**
