@@ -50,7 +50,7 @@ class StageSpaceManager(
 
     val sliceManager = SliceManager(hardware, stageRoot, scene, msHub)
     val ablationManager = AblationManager(hardware,this,scene)
-    private val stageSpaceLabel: StageSpaceLabel
+    private val stageSpaceLabel: StageSpaceLabel?
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
@@ -85,7 +85,11 @@ class StageSpaceManager(
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
 
-        stageSpaceLabel = StageSpaceLabel(scene, msHub)
+        stageSpaceLabel = if (!MicroscenerySettings.get(Settings.StageSpace.HideStageSpaceLabel,false)){
+                StageSpaceLabel(scene, msHub)
+            } else {
+                null
+            }
 
         focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
             spatial().position = hardware.stagePosition.copy()
@@ -150,7 +154,7 @@ class StageSpaceManager(
             }
             is MicroscopeStatus -> {
                 focus.spatial().position = signal.stagePosition
-                stageSpaceLabel.updateMicroscopeStatusLabel(signal)
+                stageSpaceLabel?.updateMicroscopeStatusLabel(signal)
             }
             is Stack -> {
                 sliceManager.handleStackSignal(signal, msHub.getAttribute(Hub::class.java))

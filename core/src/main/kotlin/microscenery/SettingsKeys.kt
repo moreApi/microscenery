@@ -48,6 +48,7 @@ object Settings {
         /** bool */ const val viewMode = "StageSpace.viewMode"
         /** bool */ const val HideFocusFrame = "StageSpace.hideFocusFrame"
         /** bool */ const val HideFocusTargetFrame = "StageSpace.hideFocusTargetFrame"
+        /** bool */ const val HideStageSpaceLabel = "StageSpace.hideStageSpaceLabel"
         /** string */ const val ColorMap = "StageSpace.colorMap"
     }
 

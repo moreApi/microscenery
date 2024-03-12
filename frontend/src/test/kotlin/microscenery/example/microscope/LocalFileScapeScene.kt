@@ -30,6 +30,7 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = false) {
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,false)
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
+        MicroscenerySettings.set(Settings.StageSpace.HideStageSpaceLabel,true)
         MicroscenerySettings.set(Settings.StageSpace.RandomSliceOffset,0.1f)
 //        MicroscenerySettings.set("Stage.CameraDependendZSorting",false)
 
