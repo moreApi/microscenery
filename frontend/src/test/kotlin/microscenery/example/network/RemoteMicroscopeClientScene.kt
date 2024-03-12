@@ -1,11 +1,10 @@
 package microscenery.example.network
 
-import microscenery.DefaultScene
-import microscenery.MicrosceneryHub
+import microscenery.*
 import microscenery.UI.StageSpaceUI
-import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
+import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.zeromq.ZContext
 
@@ -15,12 +14,16 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
     val msHub = MicrosceneryHub(hub)
 
     init {
+        MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,false)
+        MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
+
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
         stageSpaceManager = StageSpaceManager(
             client, scene, msHub,
             //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
-            //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 90.0),
+            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 0.0),
+            viewMode = true
         )
 
         //stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)

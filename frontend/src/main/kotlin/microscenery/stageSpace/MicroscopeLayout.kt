@@ -18,11 +18,11 @@ sealed class MicroscopeLayout(val sheet: Axis) {
     /**
      * TODO: leaning of the sheet
      */
-    class Scape(sheet: Axis, val camRotationRad: Float) : MicroscopeLayout(sheet) {
+    class Scape(sheet: Axis, val leaningOfSheetDeg: Double) : MicroscopeLayout(sheet) {
         override fun sheetRotation(): Quaternionf {
             val rot = Quaternionf()
                 .rotateLocalZ(1.57079633f)
-                .rotateLocalY(1.57079633f)
+                .rotateLocalY((1.57079633f+ Math.toRadians( leaningOfSheetDeg)).toFloat())
                 .rotateLocalX(Math.PI.toFloat())
 //                .rotateLocalX(camRotationRad)
 //                .rotateTo(Axis.Z.vector, sheet.vector)

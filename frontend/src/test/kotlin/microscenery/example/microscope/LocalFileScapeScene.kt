@@ -30,12 +30,14 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = false) {
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,false)
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
+        MicroscenerySettings.set(Settings.StageSpace.RandomSliceOffset,0.1f)
+//        MicroscenerySettings.set("Stage.CameraDependendZSorting",false)
 
 
         val hardware = DataReaderMicroscope()
 
         stageSpaceManager = StageSpaceManager(
-            hardware, scene, msHub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f),viewMode = true
+            hardware, scene, msHub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -40.5),viewMode = true
         )
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
@@ -43,7 +45,7 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = false) {
 
 
         thread {
-            Thread.sleep(2000)
+            Thread.sleep(5000)
             hardware.readImages()
             while (true) {
                 Thread.sleep(200)
@@ -103,8 +105,6 @@ class DataReaderMicroscope :  MicroscopeHardwareAgent() {
             min = min.min(pos)
             max = max.max(pos)
 
-            val randomVec = Vector3f(rmd.nextFloat()*0.1f)
-
             val imageFile = File(pictureFolder,"Default").walk().first { it.extension == "tif" }
 
 
@@ -123,7 +123,7 @@ class DataReaderMicroscope :  MicroscopeHardwareAgent() {
 
             bb.asShortBuffer().put(sb);
 
-            externalSnap(randomVec+pos, bb)
+            externalSnap(pos, bb)
         }
 
         hardwareDimensions = hardwareDimensions.copy(stageMin = min, stageMax = max)
