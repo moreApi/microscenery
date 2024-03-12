@@ -229,7 +229,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             var oldRotationHash = cam.spatial().rotation.hashCode()
             camUpdateLambda = {
                 if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldRotationHash != cam.spatial().rotation.hashCode()) {
-                    sortAndInsertSlices(cam)
+                    sortSlices(cam)
                     oldRotationHash = cam.spatial().rotation.hashCode()
                 }
             }
@@ -237,29 +237,32 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         }
     }
 
-    /**
-     * Sorts slices according to distance to the camera in the list of children of the scene.
-     * This causes the slices to be rendered in a back to front order so that their transparency is displayed correctly.
-     * Following the idea of the painters' algorithm.
-     */
-    private fun sortAndInsertSlices(cam: Camera, newSlice: SliceRenderNode? = null) {
-        setupCameraPainterAlgorithmUpdate()
-        if (newSlice != null) {
-            sortingSlicesLock.lock()
-            // detect too close slices to replace them
-            stageRoot.children.filter {
-                it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
-                    newSlice.spatial().position, hardware.hardwareDimensions().vertexDiameter
-                ) ?: false
-            }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
-                .forEach {
-                    stageRoot.removeChild(it)
-                    sortedSlices.remove(it)
-                }
+    private fun sortAndInsertSlices(cam: Camera, newSlice: SliceRenderNode) {
+        sortingSlicesLock.lock()
+        // detect too close slices to replace them
+        stageRoot.children.filter {
+            it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
+                newSlice.spatial().position, hardware.hardwareDimensions().vertexDiameter
+            ) ?: false
+        }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+            .forEach {
+                stageRoot.removeChild(it)
+                sortedSlices.remove(it)
+            }
 
-            stageRoot.addChild(newSlice)
-            sortedSlices.add(newSlice)
-        }
+        stageRoot.addChild(newSlice)
+        sortedSlices.add(newSlice)
+        sortingSlicesLock.unlock()
+
+        sortSlices(cam)
+    }
+
+    /**
+     * Sorts slices with an adjusted painters algorithm.
+     * This causes the slices to be rendered in a back to front order so that their transparency is displayed correctly.
+     */
+    private fun sortSlices(cam: Camera) {
+        setupCameraPainterAlgorithmUpdate()
 
         // If I have this lock that means I just inserted a slice and need to sort it. Otherwise, I look if it is free.
         // If yes I sort. If no I return because someone else is sorting (and inserting).
