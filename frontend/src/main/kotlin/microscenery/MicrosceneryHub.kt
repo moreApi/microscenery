@@ -4,7 +4,9 @@ import graphics.scenery.DefaultNode
 import graphics.scenery.Hub
 import microscenery.UI.UIModel
 
-
+/**
+ * Currently most of this is initialized in the StageSpaceManager
+ */
 class MicrosceneryHub(hub: Hub, uiModel: UIModel = UIModel()): DefaultNode("MicrosceneryHub") {
     init {
         addShort(hub)

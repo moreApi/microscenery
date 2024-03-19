@@ -9,10 +9,7 @@ import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
-import microscenery.DefaultScene
-import microscenery.MicrosceneryHub
-import microscenery.MicroscenerySettings
-import microscenery.initAblationSettings
+import microscenery.*
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.SliceManager
 import microscenery.stageSpace.SliceRenderNode
@@ -196,6 +193,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                                 },"wrap")
                             }
                             is SliceRenderNode -> {
+                                infoPanel.add(JLabel("Position: ${node.spatial().position.toReadableString()}"),"wrap")
                                 infoPanel.add(JButton("Delete Slice").apply {
                                     this.addActionListener {
                                         sliceManager.deleteSlice(node)
