@@ -60,6 +60,7 @@ object Settings {
     object UI {
         const val FlySpeed = "UI.flySpeed"
         const val ShowSelectionIndicator = "UI.showSelectionIndicator"
+        /** bool */ const val ShowBorderOfSelected = "StageSpace.showBorderOfSelected"
     }
 
     object Network {

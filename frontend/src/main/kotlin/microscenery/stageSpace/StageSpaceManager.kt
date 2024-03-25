@@ -134,6 +134,11 @@ class StageSpaceManager(
                         pos.y = bb.asWorld().max.y
                         selectionIndicator.spatial().position = pos
                         scene.addChild(selectionIndicator)
+
+                        if (MicroscenerySettings.get(Settings.UI.ShowBorderOfSelected,false)){
+                            (event.new as? SliceRenderNode)?.setBorderVisibility(true)
+                            (event.old as? SliceRenderNode)?.setBorderVisibility(false)
+                        }
                     }
                 }
             }

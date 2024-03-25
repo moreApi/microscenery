@@ -33,6 +33,8 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = true) {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame, true)
         MicroscenerySettings.set(Settings.StageSpace.HideStageSpaceLabel, true)
         MicroscenerySettings.set(Settings.StageSpace.RandomSliceOffset, 0.1f)
+        MicroscenerySettings.set(Settings.UI.ShowBorderOfSelected,true)
+        MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator,false)
 //        MicroscenerySettings.set("Stage.CameraDependendZSorting",false)
 
 
@@ -114,7 +116,6 @@ class DataReaderMicroscope : MicroscopeHardwareAgent() {
         val baseDir = File(basePath)
         var min = Vector3f(Float.MAX_VALUE)
         var max = Vector3f(Float.MIN_VALUE)
-        val rmd = Random()
         baseDir.listFiles()?.forEach { pictureFolder ->
             if (!pictureFolder.isDirectory) return@forEach
             val split = pictureFolder.name.split("-", limit = 2)
@@ -139,7 +140,7 @@ class DataReaderMicroscope : MicroscopeHardwareAgent() {
             val sb = ShortBuffer.wrap((img.raster.dataBuffer as DataBufferUShort).data)
             val bb = MemoryUtil.memAlloc(sb.capacity() * 2)
 
-            bb.asShortBuffer().put(sb);
+            bb.asShortBuffer().put(sb)
 
             externalSnap(pos, bb)
         }
