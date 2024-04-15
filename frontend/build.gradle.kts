@@ -19,7 +19,7 @@ dependencies {
     // At the moment scenery:jans-dirtier-branch should be a merge of:
     // - jans-branch
     // - volume-enhancements
-    implementation("graphics.scenery:scenery:0133c94")
+    implementation("com.github.scenerygraphics:scenery:6f353f3d97784cd403ab9ca556e49854037d85a9")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 

@@ -112,7 +112,7 @@ class DataReaderMicroscope : MicroscopeHardwareAgent() {
         //no need to start the agent
     }
 
-    fun readImages(basePath: String = """D:\volumes\20240201_corvoria_samples""") {
+    fun readImages(basePath: String = """/data/volumes/20240201_corvoria_samples""") {
         val baseDir = File(basePath)
         var min = Vector3f(Float.MAX_VALUE)
         var max = Vector3f(Float.MIN_VALUE)
