@@ -15,7 +15,7 @@ repositories {
 }
 
 val lwjglVersion = "3.3.1"
-val lwjglNatives = "natives-windows"
+val lwjglNatives = listOf("natives-linux","natives-windows")
 
 dependencies {
     implementation(kotlin("reflect"))
@@ -33,10 +33,9 @@ dependencies {
 
     implementation(files("manualLib/MMCoreJ.jar"))
 
-    implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
-
     implementation("org.lwjgl", "lwjgl")
-    runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
+    implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
+    lwjglNatives.forEach { runtimeOnly("org.lwjgl", "lwjgl", classifier = it) }
 }
 
 java.sourceSets["main"].java {
