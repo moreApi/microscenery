@@ -37,7 +37,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
     internal var stacks = emptyList<StackContainer>()
     internal var selectedStack: StackContainer? = null
 
-    val transferFunctionManager = TransferFunctionManager(this)
+    val transferFunctionManager = TransferFunctionManager(this, msHub)
 
     private val flipVector: Vector3f
         get() {return Vector3f(

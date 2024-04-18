@@ -277,12 +277,14 @@ class SliceRenderNode(
      */
     fun generateHistogram(volumeHistogramData: SimpleHistogramDataset, renderer: Renderer): Int? {
 
+        val buf = slice.duplicate().rewind()
+
         return VolumeHistogramComputeNode.generateHistogram(
             minDisplayRange to maxDisplayRange,
             Vector3i(width, height, 1),
             bytesPerValue,
             this.getScene()!!,
-            slice,
+            buf,
             renderer,
             volumeHistogramData
         )

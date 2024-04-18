@@ -1,11 +1,17 @@
 package microscenery.stageSpace
 
+import graphics.scenery.Hub
+import graphics.scenery.SceneryElement
+import graphics.scenery.backends.Renderer
+import graphics.scenery.volumes.HasHistogram
 import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
+import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.signals.NumericType
+import org.jfree.data.statistics.SimpleHistogramDataset
 
-class TransferFunctionManager(val sliceManager: SliceManager) : HasTransferFunction {
+class TransferFunctionManager(val sliceManager: SliceManager, val msHub: MicrosceneryHub) : HasTransferFunction, HasHistogram {
 
     override var minDisplayRange: Float = MicroscenerySettings.get("TransferFunction.DisplayRangeMin",0f)
         set(value) {
@@ -44,5 +50,10 @@ class TransferFunctionManager(val sliceManager: SliceManager) : HasTransferFunct
             it.volume.minDisplayRange = minDisplayRange
             it.volume.maxDisplayRange = maxDisplayRange
         }
+    }
+
+    override fun generateHistogram(volumeHistogramData: SimpleHistogramDataset): Int? {
+        val render = msHub.getAttribute(Hub::class.java).get<Renderer>(SceneryElement.Renderer) ?: return null
+        return sliceManager.sortedSlices.first.generateHistogram(volumeHistogramData,render)
     }
 }

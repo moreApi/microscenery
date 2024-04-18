@@ -23,7 +23,7 @@ import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 
 
-class LocalFileScapeScene : DefaultScene(withSwingUI = true) {
+class LocalFileScapeScene : DefaultScene(withSwingUI = false) {
     val stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
