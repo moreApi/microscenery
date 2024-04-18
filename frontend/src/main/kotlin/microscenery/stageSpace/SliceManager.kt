@@ -295,7 +295,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             // project on a line spanned by the normal
             sortingSlicesLock.unlock()
         }
-
     }
 
     private fun handleStackSlice(slice: Slice) {
@@ -328,8 +327,8 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             hwd.vertexDiameter,
             hwd.numericType.bytes,
             transferFunctionManager.transferFunction,
-            transferFunctionManager.transferFunctionOffset,
-            transferFunctionManager.transferFunctionScale
+            transferFunctionManager.minDisplayRange,
+            transferFunctionManager.maxDisplayRange
         )
         // random offset might be set to avoid z-fighting for close slices
         val randomOffset = MicroscenerySettings.getOrNull<Float>(Settings.StageSpace.RandomSliceOffset)

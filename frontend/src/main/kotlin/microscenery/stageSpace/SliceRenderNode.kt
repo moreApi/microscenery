@@ -1,22 +1,22 @@
 package microscenery.stageSpace
 
-import graphics.scenery.Blending
-import graphics.scenery.BufferUtils
-import graphics.scenery.DefaultNode
-import graphics.scenery.ShaderMaterial
+import graphics.scenery.*
 import graphics.scenery.attribute.geometry.HasGeometry
 import graphics.scenery.attribute.material.HasCustomMaterial
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.attribute.renderable.HasRenderable
 import graphics.scenery.attribute.spatial.HasSpatial
+import graphics.scenery.backends.Renderer
 import graphics.scenery.backends.Shaders
 import graphics.scenery.primitives.Line
 import graphics.scenery.textures.Texture
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
+import graphics.scenery.volumes.VolumeHistogramComputeNode
 import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import net.imglib2.type.numeric.real.FloatType
+import org.jfree.data.statistics.SimpleHistogramDataset
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.joml.Vector4f
@@ -26,8 +26,8 @@ import java.nio.ByteBuffer
  * Modified Plane to display ByteBuffers
  */
 class SliceRenderNode(
-    slice: ByteBuffer, width: Int, height: Int, scale: Float = 1f, var bytesPerValue: Int = 1,
-    transferFunction: TransferFunction, tfOffset: Float = 0.0f, tfScale: Float? = null
+    val slice: ByteBuffer, val width: Int,val height: Int, scale: Float = 1f, var bytesPerValue: Int = 1,
+    transferFunction: TransferFunction, minDisplayRange: Float? = null, maxDisplayRange: Float? = null
 ) : DefaultNode("SliceRenderNode"),
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {
@@ -39,16 +39,40 @@ class SliceRenderNode(
             transferFunctionTexture = generateTFTexture()
             material().textures["specular"] = transferFunctionTexture
         }
-    var transferFunctionOffset : Float = tfOffset
+
+    var minDisplayRange: Float = minDisplayRange ?:0f
         set(value) {
             field = value
-            material().metallic = field
+            calculateOffsetAndScale()
         }
-    var transferFunctionScale : Float = 0.0f
+    var maxDisplayRange: Float = maxDisplayRange ?: when(bytesPerValue)  {
+        1 -> 255f
+        2 -> 65535f
+        else -> throw IllegalArgumentException()
+    }
         set(value) {
             field = value
-            material().roughness = field
+            calculateOffsetAndScale()
         }
+
+    /**
+     * This normally happens inside the converter of a volume.
+     * Converts the minDisplayRange and maxDisplayRange values into an offset and scale used inside the shader
+     */
+    private fun calculateOffsetAndScale() {
+        // Rangescale is either 255 or 65535
+        val rangeScale = when(bytesPerValue)  {
+            1 -> 255
+            2 -> 65535
+            else -> throw IllegalArgumentException()
+        }
+        val fmin = minDisplayRange / rangeScale
+        val fmax = maxDisplayRange / rangeScale
+        val transferFunctionScale = 1.0f / (fmax - fmin)
+        material().roughness = transferFunctionScale
+        val transferFunctionOffset = -fmin * transferFunctionScale
+        material().metallic = transferFunctionOffset
+    }
 
     init {
         val sizes = Vector3f(width * scale, height * scale, 1f)
@@ -61,12 +85,6 @@ class SliceRenderNode(
         spatial {
             this.scale = sizes
         }
-        transferFunctionScale = tfScale
-            ?: when (bytesPerValue) {
-                1 -> 0.255f
-                2 -> 65.5f
-                else -> throw IllegalArgumentException("bytesPerValue: $bytesPerValue not valid")
-            }
         transferFunctionTexture = generateTFTexture()
 
         val side = 1.0f
@@ -150,8 +168,7 @@ class SliceRenderNode(
                 maxFilter = Texture.FilteringMode.NearestNeighbour,
                 usageType = hashSetOf(Texture.UsageType.Texture)
             )
-            metallic = transferFunctionOffset
-            roughness = transferFunctionScale
+            calculateOffsetAndScale()
 
             blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
             blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
@@ -236,5 +253,38 @@ class SliceRenderNode(
         }
 
         return newMaterial
+    }
+
+    /*
+    // inverse of [TransferFunctionManager.calculateOffsetAndScale()]
+    private fun calculateDisplayRange() {
+        // Rangescale is either 255 or 65535
+        val rangeScale = when(bytesPerValue)  {
+            1 -> 255
+            2 -> 65535
+            else -> throw IllegalArgumentException()
+        }
+        //val fmin = minDisplayRange / rangeScale
+        //val fmax = maxDisplayRange / rangeScale
+        val fmin = -1* transferFunctionOffset / transferFunctionScale
+        val fmax = (1f - transferFunctionScale * fmin) / transferFunctionScale
+        displayRangeMin = fmin * rangeScale
+        displayRangeMax = fmax * rangeScale
+    }*/
+
+    /**
+     * Generates a histogram using GPU acceleration via [VolumeHistogramComputeNode].
+     */
+    fun generateHistogram(volumeHistogramData: SimpleHistogramDataset, renderer: Renderer): Int? {
+
+        return VolumeHistogramComputeNode.generateHistogram(
+            minDisplayRange to maxDisplayRange,
+            Vector3i(width, height, 1),
+            bytesPerValue,
+            this.getScene()!!,
+            slice,
+            renderer,
+            volumeHistogramData
+        )
     }
 }

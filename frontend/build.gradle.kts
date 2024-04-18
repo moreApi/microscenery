@@ -18,8 +18,7 @@ dependencies {
     // This should point to the most recent commit of scenery:jans-dirtier-branch
     // At the moment scenery:jans-dirtier-branch should be a merge of:
     // - jans-branch
-    // - volume-enhancements
-    implementation("com.github.scenerygraphics:scenery:6f353f3d97784cd403ab9ca556e49854037d85a9")
+    implementation("com.github.scenerygraphics:scenery:82e618fb710de08652660ab065c74aa1b7c663bd")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
