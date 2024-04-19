@@ -1,7 +1,6 @@
 package microscenery.VRUI.Gui3D
 
 import graphics.scenery.RichNode
-import graphics.scenery.utils.lazyLogger
 
 /**
  * Rows cousin. Anchor is bottom middle. Elements can be changed via scene graph at runtime.
@@ -11,7 +10,6 @@ import graphics.scenery.utils.lazyLogger
  */
 open class Column(vararg elements: Gui3DElement, val margin: Float = 0.2f, var middleAlign: Boolean = false, val invertedYOrder: Boolean = true)
 : RichNode("UI Column"), Gui3DElement {
-    override val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     final override var width = 0f
         private set

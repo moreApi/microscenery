@@ -1,14 +1,12 @@
 package microscenery.VRUI.Gui3D
 
 import graphics.scenery.RichNode
-import graphics.scenery.utils.lazyLogger
 
 /**
  * Elements can be changed via scene graph at runtime.
  */
 open class Row(vararg elements: Gui3DElement, val margin: Float = 0.5f, var middleAlign: Boolean = true)
     : RichNode("UI Row"), Gui3DElement {
-    override val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     final override var width = 0f
         private set
