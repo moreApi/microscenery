@@ -16,12 +16,12 @@ import org.mockito.kotlin.whenever
 import kotlin.concurrent.thread
 
 @Suppress("unused")
-class LocalZenScene : DefaultScene(withSwingUI = true) {
+class LocalZenScene : DefaultScene(withSwingUI = false) {
     val stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
-    val volumesFolder = """D:\volumes"""
-    val zeissFolder = """D:\ViingsNextcloud\Zeiss"""
+    val volumesFolder = """E:\volumes"""
+    val zeissFolder = """E:\ViingsNextcloud\Zeiss"""
 
     val zenMicroscope: ZenMicroscope
     val crovWithoutHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_without_holes.czi"""
