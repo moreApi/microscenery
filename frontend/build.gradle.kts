@@ -19,7 +19,9 @@ dependencies {
     // At the moment scenery:jans-dirtier-branch should be a merge of:
     // - jans-branch
     // - fix/16bit-histogram
-    implementation("com.github.scenerygraphics:scenery:4b0ea44b36192317e01bb7f833e8fc2f819d3a84")
+    // - split-histogram-checkbox
+//    implementation("com.github.scenerygraphics:scenery:4b0ea44b36192317e01bb7f833e8fc2f819d3a84")
+    implementation("com.github.scenerygraphics:scenery:d8eacd74035095c14ae164e374f4247b192a4da6")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 

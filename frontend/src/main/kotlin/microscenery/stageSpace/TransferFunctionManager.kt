@@ -6,9 +6,10 @@ import graphics.scenery.backends.Renderer
 import graphics.scenery.volumes.HasHistogram
 import graphics.scenery.volumes.HasTransferFunction
 import graphics.scenery.volumes.TransferFunction
+import graphics.scenery.volumes.Volume
 import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
-import microscenery.signals.NumericType
+import microscenery.UI.UIModel
 import org.jfree.data.statistics.SimpleHistogramDataset
 
 class TransferFunctionManager(val sliceManager: SliceManager, val msHub: MicrosceneryHub) : HasTransferFunction, HasHistogram {
@@ -53,7 +54,12 @@ class TransferFunctionManager(val sliceManager: SliceManager, val msHub: Microsc
     }
 
     override fun generateHistogram(volumeHistogramData: SimpleHistogramDataset): Int? {
+        val uiModel = msHub.getAttributeOrNull(UIModel::class.java)
         val render = msHub.getAttribute(Hub::class.java).get<Renderer>(SceneryElement.Renderer) ?: return null
-        return sliceManager.sortedSlices.first.generateHistogram(volumeHistogramData,render)
+
+        val vol = uiModel?.selected as? Volume ?: sliceManager.stacks.firstOrNull()?.volume
+        val slice = uiModel?.selected as? SliceRenderNode ?: sliceManager.sortedSlices.firstOrNull()
+
+        return vol?.generateHistogram(volumeHistogramData) ?: slice?.generateHistogram(volumeHistogramData,render)
     }
 }
