@@ -58,6 +58,7 @@ class SliceRenderNode(
     /**
      * This normally happens inside the converter of a volume.
      * Converts the minDisplayRange and maxDisplayRange values into an offset and scale used inside the shader
+     * and saves it to material properties
      */
     private fun calculateOffsetAndScale() {
         // Rangescale is either 255 or 65535
@@ -276,15 +277,14 @@ class SliceRenderNode(
      * Generates a histogram using GPU acceleration via [VolumeHistogramComputeNode].
      */
     fun generateHistogram(volumeHistogramData: SimpleHistogramDataset, renderer: Renderer): Int? {
+        slice.rewind()
 
-        val buf = slice.duplicate().rewind()
-
-        return VolumeHistogramComputeNode.generateHistogram(
+        return  VolumeHistogramComputeNode.generateHistogram(
             minDisplayRange to maxDisplayRange,
-            Vector3i(width, height, 1),
+            Vector3i(width, height/2, 2), //VolumeHistogramComputeNode cant handle z=1 therefor we cheat a bit with the dimensions
             bytesPerValue,
             this.getScene()!!,
-            buf,
+            slice,
             renderer,
             volumeHistogramData
         )
