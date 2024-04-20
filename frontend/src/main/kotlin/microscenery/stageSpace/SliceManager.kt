@@ -163,6 +163,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             }
             volume.goToLastTimepoint()
             volume.transferFunction = transferFunctionManager.transferFunction
+            volume.colormap = transferFunctionManager.colormap
             getColorMap()?.let { volume.colormap = it }
             volume.name = "Stack ${stackSignal.Id}"
             volume.origin = Origin.Center
@@ -328,7 +329,8 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             hwd.numericType.bytes,
             transferFunctionManager.transferFunction,
             transferFunctionManager.minDisplayRange,
-            transferFunctionManager.maxDisplayRange
+            transferFunctionManager.maxDisplayRange,
+            transferFunctionManager.colormap
         )
         // random offset might be set to avoid z-fighting for close slices
         val randomOffset = MicroscenerySettings.getOrNull<Float>(Settings.StageSpace.RandomSliceOffset)

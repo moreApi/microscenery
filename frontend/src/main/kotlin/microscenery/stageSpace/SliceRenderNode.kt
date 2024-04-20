@@ -27,7 +27,8 @@ import java.nio.ByteBuffer
  */
 class SliceRenderNode(
     val slice: ByteBuffer, val width: Int,val height: Int, scale: Float = 1f, var bytesPerValue: Int = 1,
-    transferFunction: TransferFunction, minDisplayRange: Float? = null, maxDisplayRange: Float? = null
+    transferFunction: TransferFunction, minDisplayRange: Float? = null, maxDisplayRange: Float? = null,
+    colormap: Colormap? = null
 ) : DefaultNode("SliceRenderNode"),
     HasSpatial, HasRenderable,
     HasCustomMaterial<ShaderMaterial>, HasGeometry {
@@ -53,6 +54,12 @@ class SliceRenderNode(
         set(value) {
             field = value
             calculateOffsetAndScale()
+        }
+
+    var colormap = colormap ?: Colormap.get("hot")
+        set(value) {
+            field = value
+            updateColorMapTexture()
         }
 
     /**
@@ -132,7 +139,7 @@ class SliceRenderNode(
 
         this.material().cullingMode = Material.CullingMode.None
 
-        val colorMap = Colormap.get("hot")
+
 
         this.material {
             // data
@@ -156,19 +163,7 @@ class SliceRenderNode(
             // transfer function
             textures["specular"] = transferFunctionTexture
             // color map
-            textures["ambient"] = Texture(
-                dimensions = Vector3i(colorMap.width, colorMap.height, 1),
-                channels = 4,
-                type = UnsignedByteType(),
-                contents = colorMap.buffer,
-                repeatUVW = Texture.RepeatMode.ClampToBorder.all(),
-                borderColor = Texture.BorderColor.TransparentBlack,
-                normalized = true,
-                mipmap = false,
-                minFilter = Texture.FilteringMode.NearestNeighbour,
-                maxFilter = Texture.FilteringMode.NearestNeighbour,
-                usageType = hashSetOf(Texture.UsageType.Texture)
-            )
+            updateColorMapTexture()
             calculateOffsetAndScale()
 
             blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
@@ -178,6 +173,22 @@ class SliceRenderNode(
             blending.destinationAlphaBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
             blending.alphaBlending = Blending.BlendOp.add
         }
+    }
+
+    private fun updateColorMapTexture() {
+        material().textures["ambient"] = Texture(
+            dimensions = Vector3i(colormap.width, colormap.height, 1),
+            channels = 4,
+            type = UnsignedByteType(),
+            contents = colormap.buffer,
+            repeatUVW = Texture.RepeatMode.ClampToBorder.all(),
+            borderColor = Texture.BorderColor.TransparentBlack,
+            normalized = true,
+            mipmap = false,
+            minFilter = Texture.FilteringMode.NearestNeighbour,
+            maxFilter = Texture.FilteringMode.NearestNeighbour,
+            usageType = hashSetOf(Texture.UsageType.Texture)
+        )
     }
 
     /**

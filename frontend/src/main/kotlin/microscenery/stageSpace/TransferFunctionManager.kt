@@ -3,16 +3,13 @@ package microscenery.stageSpace
 import graphics.scenery.Hub
 import graphics.scenery.SceneryElement
 import graphics.scenery.backends.Renderer
-import graphics.scenery.volumes.HasHistogram
-import graphics.scenery.volumes.HasTransferFunction
-import graphics.scenery.volumes.TransferFunction
-import graphics.scenery.volumes.Volume
+import graphics.scenery.volumes.*
 import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.UI.UIModel
 import org.jfree.data.statistics.SimpleHistogramDataset
 
-class TransferFunctionManager(val sliceManager: SliceManager, val msHub: MicrosceneryHub) : HasTransferFunction, HasHistogram {
+class TransferFunctionManager(val sliceManager: SliceManager, val msHub: MicrosceneryHub) : HasTransferFunction, HasHistogram, HasColormap {
 
     override var minDisplayRange: Float = MicroscenerySettings.get("TransferFunction.DisplayRangeMin",0f)
         set(value) {
@@ -30,17 +27,24 @@ class TransferFunctionManager(val sliceManager: SliceManager, val msHub: Microsc
             updateTransferFunction()
         }
 
+    override var colormap = Colormap.get("hot")
+        set(value) {
+            field = value
+            updateColorMap()
+        }
+
     override var range: Pair<Float, Float> = 0.0f to 10000f
 
     init {
         updateTransferFunction()
+        updateColorMap()
     }
 
     /**
      * Iterates over all slices and stacks and updates their transferFunction, offset and scale values according
      * to the currently set values of this manager
      */
-    internal fun updateTransferFunction() {
+    private fun updateTransferFunction() {
         sliceManager.sortedSlices.forEach {
             it.transferFunction = transferFunction
             it.minDisplayRange = minDisplayRange
@@ -50,6 +54,15 @@ class TransferFunctionManager(val sliceManager: SliceManager, val msHub: Microsc
             it.volume.transferFunction = transferFunction
             it.volume.minDisplayRange = minDisplayRange
             it.volume.maxDisplayRange = maxDisplayRange
+        }
+    }
+
+    private fun updateColorMap() {
+        sliceManager.sortedSlices.forEach {
+            it.colormap = colormap
+        }
+        sliceManager.stacks.forEach {
+            it.volume.colormap = colormap
         }
     }
 
