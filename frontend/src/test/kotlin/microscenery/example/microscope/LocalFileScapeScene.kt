@@ -18,12 +18,11 @@ import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
-import java.util.*
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 
 
-class LocalFileScapeScene : DefaultScene(withSwingUI = false) {
+class LocalFileScapeScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 

@@ -16,7 +16,7 @@ import org.mockito.kotlin.whenever
 import kotlin.concurrent.thread
 
 @Suppress("unused")
-class LocalZenScene : DefaultScene(withSwingUI = false) {
+class LocalZenScene : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 

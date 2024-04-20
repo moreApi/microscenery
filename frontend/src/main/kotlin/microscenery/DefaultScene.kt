@@ -2,12 +2,11 @@ package microscenery
 
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
-import graphics.scenery.utils.SceneryJPanel
 import graphics.scenery.utils.extensions.times
 import net.miginfocom.swing.MigLayout
 import org.joml.Vector3f
 import java.awt.BorderLayout
-import java.awt.Dimension
+import java.awt.Point
 import javax.swing.JFrame
 import javax.swing.JPanel
 
@@ -21,29 +20,20 @@ open class DefaultScene(
 
     override fun init() {
         if (withSwingUI) {
-            mainFrame = JFrame(applicationName)
-            mainFrame?.minimumSize = Dimension(windowWidth, windowHeight)
+            mainFrame = JFrame("$applicationName Controls")
             mainFrame?.layout = BorderLayout()
 
-            val sceneryPanel = SceneryJPanel()
-            mainFrame?.add(sceneryPanel, BorderLayout.CENTER)
             mainFrame?.isVisible = true
 
-            renderer = hub.add(
-                SceneryElement.Renderer,
-                Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight, embedIn = sceneryPanel)
-            )
-            renderer?.pushMode = true
-
             extraPanel = JPanel(MigLayout())
-            mainFrame?.add(extraPanel!!, BorderLayout.EAST)
+            mainFrame?.add(extraPanel!!)
             mainFrame?.pack()
-        } else {
-            renderer = hub.add(
-                SceneryElement.Renderer,
-                Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
-            )
+            mainFrame?.location = Point((windowWidth*1.2).toInt(), 50)
         }
+        renderer = hub.add(
+            SceneryElement.Renderer,
+            Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
+        )
 
         val light = PointLight(radius = 15.0f)
         light.spatial().position = Vector3f(2.0f, 1.0f, 2.0f) * 2f

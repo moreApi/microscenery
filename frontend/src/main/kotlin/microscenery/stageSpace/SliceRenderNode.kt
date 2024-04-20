@@ -287,7 +287,7 @@ class SliceRenderNode(
     /**
      * Generates a histogram using GPU acceleration via [VolumeHistogramComputeNode].
      */
-    fun generateHistogram(volumeHistogramData: SimpleHistogramDataset, renderer: Renderer): Int? {
+    fun generateHistogram(volumeHistogramData: SimpleHistogramDataset, renderer: Renderer): Int {
         slice.rewind()
 
         return  VolumeHistogramComputeNode.generateHistogram(
