@@ -136,7 +136,7 @@ class MicromanagerWrapper(
     }
 
     /**
-     * Sets the stage position to [pos] in memory but does now issue commands to the hardware.
+     * Sets the stage position to [pos] in memory but does not issue commands to the hardware.
      * Used for updates from the hardware cause by manual movement by the user.
      */
     @Suppress("unused")
