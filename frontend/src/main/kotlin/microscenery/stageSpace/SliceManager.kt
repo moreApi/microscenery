@@ -55,7 +55,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
         MicroscenerySettings.setIfUnset("Stage.ToggleSliceBorder", false)
         MicroscenerySettings.addUpdateRoutine(
             "Stage.ToggleSliceBorder"
-        ) { setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder")) }
+        ) { setSliceBorderVisibility(MicroscenerySettings.get("Stage.ToggleSliceBorder",false)) }
         MicroscenerySettings.addUpdateRoutine(Settings.StageSpace.ColorMap){
             val color = getColorMap() ?: return@addUpdateRoutine
             stacks.forEach { it.volume.colormap = color }
@@ -229,7 +229,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             }
             var oldRotationHash = cam.spatial().rotation.hashCode()
             camUpdateLambda = {
-                if (MicroscenerySettings.get("Stage.CameraDependendZSorting") && oldRotationHash != cam.spatial().rotation.hashCode()) {
+                if (MicroscenerySettings.get("Stage.CameraDependendZSorting",true) && oldRotationHash != cam.spatial().rotation.hashCode()) {
                     sortSlices(cam)
                     oldRotationHash = cam.spatial().rotation.hashCode()
                 }
