@@ -29,7 +29,7 @@ import kotlin.io.path.Path
 val openSpimScale3 = Vector3f(.225f, .225f, 3.348f)
 val openSpimScale15 = Vector3f(.225f, .225f, 1.524f)
 
-fun currentVolume(hub: Hub) = lund(hub)
+fun currentVolume(hub: Hub) = mohammadMouseBrain(hub)
 
 fun lund(hub: Hub): Volume {
     //val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\embo\MariaPlant\export.xml""",hub, VolumeViewerOptions())
