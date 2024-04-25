@@ -226,10 +226,9 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
 
         private fun makeVector(value : String) : Any {
             val snippets = value.trim().split(",".toRegex()).toTypedArray()
-    
-            var allFloats = true
+
             snippets.forEachIndexed { i, it ->
-                allFloats = allFloats && checkType(parseType(it), listOf("Float", "Double", "Integer", "Long"))
+                val allFloats = checkType(parseType(it), listOf("Float", "Double", "Integer", "Long"))
                 if(!allFloats)
                     throw NumberFormatException("Wrong type inserted at index $i")
             }
