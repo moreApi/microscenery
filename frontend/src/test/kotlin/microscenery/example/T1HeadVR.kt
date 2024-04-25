@@ -1,12 +1,20 @@
 package microscenery.example
 
+import bdv.util.AxisOrder
+import bvv.core.VolumeViewerOptions
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
+import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
+import ij.IJ
+import ij.ImagePlus
 import microscenery.DefaultVRScene
 import microscenery.MicrosceneryHub
 import microscenery.VRUI.VRUIManager
 import microscenery.VRUI.fromScenery.WheelMenu
+import net.imglib2.img.Img
+import net.imglib2.img.display.imagej.ImageJFunctions
+import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
 import kotlin.io.path.Path
 
@@ -21,12 +29,15 @@ class T1HeadVR : DefaultVRScene(T1HeadVR::class.java.simpleName) {
 
         cam.spatial().position = Vector3f(0f, -5f, 5f)
 
+        val imp: ImagePlus = IJ.openImage("""E:\volumes\t1-head.tif""")
+        val img: Img<UnsignedShortType> = ImageJFunctions.wrapShort(imp)
 
-        val volume = Volume.fromPath(Path("""C:\Users\JanCasus\volumes\t1-head.tif"""), hub)
-        scene.addChild(volume)
+        val volume = Volume.fromRAI(img, UnsignedShortType(), AxisOrder.DEFAULT, "T1 head", hub, VolumeViewerOptions())
+
 //        volume.spatial().scale= Vector3f(0.1f,0.1f,0.4f)
         volume.colormap = Colormap.get("plasma")
-        volume.transferFunction = TransferFunction.ramp(0.0017f, 1f, 0.01f)
+        volume.transferFunction = TransferFunction.ramp(0.0017f, 1f, 0.5f)
+        scene.addChild(volume)
 
     }
 
