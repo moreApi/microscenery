@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit
  *
  */
 class RemoteMicroscopeClient(
-    basePort: Int = MicroscenerySettings.get("Network.basePort"),
-    host: String = MicroscenerySettings.get("Network.host"),
+    basePort: Int = MicroscenerySettings.get("Network.basePort",4000),
+    host: String = MicroscenerySettings.get("Network.host","localhost"),
     val zContext: ZContext
 ) : MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))

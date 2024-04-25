@@ -14,7 +14,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val microscope: MicroscopeHardware,
     private val zContext: ZContext,
     val storage: SliceStorage = SliceStorage(),
-    val basePort: Int = MicroscenerySettings.get("Network.basePort"),
+    val basePort: Int = MicroscenerySettings.get("Network.basePort",4000),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))

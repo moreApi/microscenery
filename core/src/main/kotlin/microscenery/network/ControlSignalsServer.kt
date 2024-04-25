@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
  * Server shuts down when a signal with shutdown status has been send.
  */
 class ControlSignalsServer(
-    zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort"),
+    zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort",4000),
     listeners: List<(microscenery.signals.ClientSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))

@@ -78,7 +78,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
      * @param[name] The name of the setting
      * @return The setting as type T
      */
-    fun <T> get(name: String, default: T? = null): T {
+    fun <T> get(name: String, default: T?): T {
         if(!settingsStore.containsKey(name)) {
             if(default == null) {
                 logger.warn("Settings don't contain '$name'")

@@ -194,8 +194,8 @@ class SettingsEditor @JvmOverloads constructor(var settings : Settings, private 
         {
             @Suppress("RemoveSingleExpressionStringTemplate")
             // Casting to string does not work otherwise. There seems to be some wonky behavior with the casting
-            var entry = "${settings.get<String>(key)}"
-            val value = settings.get<Any>(key)
+            var entry = "${settings.get<String>(key,null)}"
+            val value = settings.get<Any>(key,null)
             when(value::class.java.typeName) {
                 Vector2f::class.java.typeName ->
                 {
