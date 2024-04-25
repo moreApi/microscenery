@@ -86,11 +86,11 @@ fun Vector3f.isFullyLessThan(to: Vector3f): Boolean {
     return this.x < to.x && this.y < to.y && this.z < to.z
 }
 
-fun Settings.getVector3(baseName: String): Vector3f?{
+fun Settings.getVector3(baseName: String, default: Vector3f? = null): Vector3f?{
     return Vector3f(
-        getOrNull(baseName+"X") ?: return null,
-        getOrNull(baseName+"Y") ?: return null,
-        getOrNull(baseName+"Z") ?: return null
+        getOrNull(baseName+"X") ?: return default,
+        getOrNull(baseName+"Y") ?: return default,
+        getOrNull(baseName+"Z") ?: return default
     )
 }
 

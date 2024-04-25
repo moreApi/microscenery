@@ -28,7 +28,7 @@ import kotlin.system.measureNanoTime
 class MicromanagerWrapper(
     private val mmCoreConnector: MMCoreConnector,
     private val mmStudioConnector: MMStudioConnector = DummyMMStudioConnector(),
-    var timeBetweenUpdates: Int = MicroscenerySettings.get("MMConnection.TimeBetweenStackAcquisition", 1000),
+    var timeBetweenUpdates: Int = MicroscenerySettings.get(Settings.MMMicroscope.TimeBetweenStackAcquisition, 1000),
     val disableStagePosUpdates: Boolean = false
 ) : MicroscopeHardwareAgent() {
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -43,24 +43,23 @@ class MicromanagerWrapper(
     // for Slices and stacks
     private var idCounter = 0
     var lastSnap = 0L
-    var vertexDiameter = MicroscenerySettings.get("MMConnection.vertexDiameter", mmCoreConnector.pixelSizeUm)
+    var vertexDiameter = MicroscenerySettings.get(Settings.MMMicroscope.VertexDiameter, mmCoreConnector.pixelSizeUm)
         set(value) {
             field = value
             updateHardwareDimensions()
         }
 
     init {
-        MicroscenerySettings.setVector3fIfUnset("Stage.min", mmCoreConnector.stagePosition)
-        MicroscenerySettings.setVector3fIfUnset("Stage.max", mmCoreConnector.stagePosition)
-        MicroscenerySettings.setIfUnset("MMConnection.useStudioAPI",mmStudioConnector !is DummyMMStudioConnector )
-
+        MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Min, mmCoreConnector.stagePosition)
+        MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Max, mmCoreConnector.stagePosition)
+        MicroscenerySettings.setIfUnset(Settings.MMMicroscope.UseStudioAPI,mmStudioConnector !is DummyMMStudioConnector )
 
         updateHardwareDimensions()
 
         if (hardwareDimensions.coercePosition(mmCoreConnector.stagePosition, null) != mmCoreConnector.stagePosition){
             val msg = "Stage ${mmCoreConnector.stagePosition.toReadableString()} not in allowed area " +
-                    "from ${MicroscenerySettings.getVector3("Stage.min")?.toReadableString()}" +
-                    "to ${MicroscenerySettings.getVector3("Stage.max")?.toReadableString()}. Aborting!" +
+                    "from ${MicroscenerySettings.getVector3(Settings.Stage.Limits.Min)?.toReadableString()}" +
+                    "to ${MicroscenerySettings.getVector3(Settings.Stage.Limits.Max)?.toReadableString()}. Aborting!" +
                     "Adjust stage position or properties file."
             logger.error(msg)
             throw IllegalStateException(msg)
@@ -178,7 +177,7 @@ class MicromanagerWrapper(
                 executeSnapImage(hwCommand)
             }
             is HardwareCommand.Stop -> {
-                if(MicroscenerySettings.get("MMConnection.useStudioAPI",false)) {
+                if(MicroscenerySettings.get(Settings.MMMicroscope.UseStudioAPI,false)) {
                     mmStudioConnector.live(false)
                 }
                 status = status.copy(state = ServerState.MANUAL)
@@ -194,7 +193,7 @@ class MicromanagerWrapper(
     }
 
     private fun executeSnapImage(hwCommand: HardwareCommand.SnapImage) {
-        if(hwCommand.live && MicroscenerySettings.get("MMConnection.useStudioAPI",false)) {
+        if(hwCommand.live && MicroscenerySettings.get(Settings.MMMicroscope.UseStudioAPI,false)) {
             mmStudioConnector.live(true)
             return
         }
@@ -210,7 +209,7 @@ class MicromanagerWrapper(
             }
         }
 
-        if (MicroscenerySettings.get("MMConnection.useStudioAPI",false)) {
+        if (MicroscenerySettings.get(Settings.MMMicroscope.UseStudioAPI,false)) {
             //TODO handle stack slices
             mmStudioConnector.snap()
         } else {
@@ -341,10 +340,10 @@ class MicromanagerWrapper(
         if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
 
         // precision check, if movement below stage precision, skip
-        val overXYPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionXY")?.let {
+        val overXYPrecision = MicroscenerySettings.getOrNull<Float>(Settings.Stage.PrecisionXY)?.let {
             !stagePosition.xy().equals(target.xy(), it)
         } ?: true
-        val overZPrecision = MicroscenerySettings.getOrNull<Float>("Stage.precisionZ")?.let { precision ->
+        val overZPrecision = MicroscenerySettings.getOrNull<Float>(Settings.Stage.PrecisionZ)?.let { precision ->
             val from = stagePosition.z
             val to = target.z
             to < from - precision || from + precision < to
@@ -358,9 +357,9 @@ class MicromanagerWrapper(
         }
 
 
-        if (MicroscenerySettings.get("MMConnection.OriginMoveProtection", true)
+        if (MicroscenerySettings.get(Settings.Stage.Limits.OriginMoveProtection, true)
             && target == Vector3f(0f)){//( target.x == 0f || target.y == 0f || target.z == 0f)){
-            logger.warn("Ignoring stage move command because MMConnection.OriginMoveProtection is true")
+            logger.warn("Ignoring stage move command because Settings.Stage.Limits.OriginMoveProtection is true")
             return
         }
 
@@ -385,16 +384,8 @@ class MicromanagerWrapper(
 
 
     private fun stageMinMax(): Pair<Vector3f, Vector3f> {
-        val min = Vector3f(
-            MicroscenerySettings.get("Stage.minX", stagePosition.x),
-            MicroscenerySettings.get("Stage.minY", stagePosition.y),
-            MicroscenerySettings.get("Stage.minZ", stagePosition.z)
-        )
-        val max = Vector3f(
-            MicroscenerySettings.get("Stage.maxX", stagePosition.x),
-            MicroscenerySettings.get("Stage.maxY", stagePosition.y),
-            MicroscenerySettings.get("Stage.maxZ", stagePosition.z)
-        )
+        val min = MicroscenerySettings.getVector3(Settings.Stage.Limits.Min, stagePosition)!!
+        val max = MicroscenerySettings.getVector3(Settings.Stage.Limits.Max, stagePosition)!!
         if (min.x > max.x || min.y > max.y || min.z > max.z) {
             throw IllegalArgumentException("Min allowed stage area parameters need to be smaller than max values")
         }

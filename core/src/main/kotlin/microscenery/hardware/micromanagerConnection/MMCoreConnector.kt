@@ -3,6 +3,7 @@ package microscenery.hardware.micromanagerConnection
 
 import fromScenery.lazyLogger
 import microscenery.MicroscenerySettings
+import microscenery.Settings
 import mmcorej.CMMCore
 import org.joml.Vector3f
 import java.awt.Rectangle
@@ -47,7 +48,7 @@ class MMCoreConnector(
         )
 
     init {
-        MicroscenerySettings.setIfUnset("MMConnection.OriginMoveProtection", true)
+        MicroscenerySettings.setIfUnset(Settings.Stage.Limits.OriginMoveProtection, true)
 
         logger.info(core.versionInfo)
         logger.info(core.apiVersionInfo)
@@ -94,11 +95,10 @@ class MMCoreConnector(
             core.waitForDevice(core.xyStageDevice)
             core.waitForDevice(core.focusDevice)
         }
-
     }
 
     fun ablationShutter(open: Boolean, wait: Boolean){
-        val shutterName = MicroscenerySettings.get("Ablation.Shutter",core.shutterDevice)
+        val shutterName = MicroscenerySettings.get(Settings.Ablation.MM.Shutter,core.shutterDevice)
         core.setShutterOpen(shutterName, open)
 
         if (wait)

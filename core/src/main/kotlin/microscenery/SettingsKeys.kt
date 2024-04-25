@@ -41,6 +41,9 @@ object Settings {
             /** string */ const val LightSourceId = "Ablation.SysCon.lightSourceId"
             /** string */ const val TriggerPort = "Ablation.SysCon.triggerPort"
         }
+        object MM {
+            /** string */ const val Shutter: String = "Ablation.Shutter" //todo rename
+        }
     }
 
     object StageSpace{
@@ -50,6 +53,18 @@ object Settings {
         /** bool */ const val HideFocusTargetFrame = "StageSpace.hideFocusTargetFrame"
         /** bool */ const val HideStageSpaceLabel = "StageSpace.hideStageSpaceLabel"
         /** string */ const val ColorMap = "StageSpace.colorMap"
+    }
+
+    object Stage{
+
+        val PrecisionXY: String = "Stage.precisionXY"
+        val PrecisionZ: String = "Stage.precisionZ"
+
+        object Limits{
+            val OriginMoveProtection: String = "MMConnection.OriginMoveProtection"  //todo rename
+            /** vec3f */ const val Min = "Stage.min" //todo rename
+            /** vec3f */ const val Max = "Stage.max" //todo rename
+        }
     }
 
     object ZenMicroscope {
@@ -65,5 +80,12 @@ object Settings {
 
     object Network {
         /** int */ const val sliceOffset = "Network.sliceOffset"
+    }
+
+    object MMMicroscope {
+
+        /** int */ const val TimeBetweenStackAcquisition: String = "MMConnection.TimeBetweenStackAcquisition"  //todo rename
+        /** bool */ const val UseStudioAPI = "MMConnection.useStudioAPI" //todo rename
+        /** float*/ const val VertexDiameter: String = "MMConnection.vertexDiameter" //todo rename
     }
 }
