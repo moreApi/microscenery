@@ -92,5 +92,6 @@ object Settings {
         /** bool */ const val UseStudioAPI = "MMConnection.useStudioAPI" //todo rename
         /** float*/ const val VertexDiameter: String = "MMConnection.vertexDiameter" //todo rename
         /** int */ const val PollStagePositionFrequencyMS = "MMMicroscope.PollStagePositionFrequencyMS"
+        /** bool */ const val IsMicromanagerMicroscope = "MMMicroscope.IsMicromanagerMicroscope"
     }
 }

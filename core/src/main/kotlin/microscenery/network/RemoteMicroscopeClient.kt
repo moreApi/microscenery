@@ -77,6 +77,10 @@ class RemoteMicroscopeClient(
         controlConnection.sendSignal(ClientSignal.Stop)
     }
 
+    override fun deviceSpecificCommands(data: ByteArray) {
+        controlConnection.sendSignal(ClientSignal.DeviceSpecific(data))
+    }
+
     /**
      * Executed by the network thread of [ControlSignalsClient]
      */

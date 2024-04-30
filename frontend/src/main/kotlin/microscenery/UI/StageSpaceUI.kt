@@ -10,6 +10,7 @@ import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
 import microscenery.*
+import microscenery.hardware.micromanagerConnection.MicroManagerUtil
 import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.SliceManager
 import microscenery.stageSpace.SliceRenderNode
@@ -144,11 +145,12 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     )
 
     fun stageSwingUI(panel: JPanel, customCommands: List<StageUICommand>, msHub: MicrosceneryHub) {
+        val uiModel = msHub.getAttribute(UIModel::class.java)
+
         val infoPanel = JPanel(MigLayout())
         infoPanel.border = BorderFactory.createTitledBorder("Inspector")
         panel.add(infoPanel, "wrap")
 
-        val uiModel = msHub.getAttribute(UIModel::class.java)
         uiModel.changeEvents += { event ->
             when (event.kProperty) {
                 UIModel::selected -> {
@@ -194,6 +196,21 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                             }
                             is SliceRenderNode -> {
                                 infoPanel.add(JLabel("Position: ${node.spatial().position.toReadableString()}"),"wrap")
+                                if (MicroscenerySettings.get(Settings.MMMicroscope.IsMicromanagerMicroscope,false)){
+                                    infoPanel.add(JButton("Add to position list").apply {
+                                        this.addActionListener{
+                                            MicroManagerUtil.addPositionToPositionList(
+                                                stageSpaceManager.hardware,
+                                                node.name,
+                                                node.spatial().position)
+                                        }
+                                    })
+                                }
+                                infoPanel.add(JButton("Go to").apply {
+                                    this.addActionListener {
+                                        stageSpaceManager.stagePosition = node.spatial().position
+                                    }
+                                },"wrap")
                                 infoPanel.add(JButton("Delete Slice").apply {
                                     this.addActionListener {
                                         sliceManager.deleteSlice(node)

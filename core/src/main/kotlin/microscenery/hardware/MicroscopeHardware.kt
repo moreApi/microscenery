@@ -25,6 +25,8 @@ interface MicroscopeHardware {
     fun ablatePoints(signal: ClientSignal.AblationPoints)
     fun startAcquisition()
 
+    fun deviceSpecificCommands(data: ByteArray){}
+
     val output: BlockingQueue<MicroscopeSignal>
 }
 

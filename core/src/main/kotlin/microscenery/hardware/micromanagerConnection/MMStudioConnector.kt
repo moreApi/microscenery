@@ -1,10 +1,13 @@
 package microscenery.hardware.micromanagerConnection
 
+import org.joml.Vector3f
+
 interface MMStudioConnector {
     fun snap()
     fun startAcquisition()
     fun live(enabled: Boolean)
     fun alertUser(title:String, message:String)
+    fun addPositionToPositionList(label: String, position: Vector3f)
 }
 
 class DummyMMStudioConnector : MMStudioConnector{
@@ -22,5 +25,9 @@ class DummyMMStudioConnector : MMStudioConnector{
 
     override fun alertUser(title: String, message: String) {
         println("Dummy Alert User $title: $message")
+    }
+
+    override fun addPositionToPositionList(label: String, position: Vector3f) {
+        println("Dummy Add Position $label: $position")
     }
 }

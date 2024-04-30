@@ -1,10 +1,12 @@
 package microscenery.hardware.micromanagerConnection
 
+import com.google.protobuf.InvalidProtocolBufferException
 import fromScenery.lazyLogger
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import fromScenery.utils.extensions.xy
+import me.jancasus.microscenery.network.v2.MicroManagerSignal
 import microscenery.*
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
@@ -158,6 +160,23 @@ class MicromanagerWrapper(
 
     override fun startAcquisition() {
         hardwareCommandsQueue.add(HardwareCommand.StartAcquisition)
+    }
+
+    override fun deviceSpecificCommands(data: ByteArray) {
+        val signal = try {
+            MicroManagerSignal.parseFrom(data)
+        } catch (e: InvalidProtocolBufferException){
+            logger.error("Could not parse deviceSpecificCommands: $data")
+            return
+        }
+        when(signal.signalCase?: throw IllegalArgumentException("Illegal payload")){
+            MicroManagerSignal.SignalCase.SIGNAL_NOT_SET ->
+                throw IllegalArgumentException("Signal is not set in Client signal message")
+            MicroManagerSignal.SignalCase.ADDTOPOSITIONLIST -> {
+                val pos = signal.addToPositionList
+                mmStudioConnector.addPositionToPositionList(pos.label,pos.pos.toPoko())
+            }
+        }
     }
 
     /**
