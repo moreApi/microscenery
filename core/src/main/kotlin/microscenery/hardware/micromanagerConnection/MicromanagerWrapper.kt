@@ -38,6 +38,7 @@ class MicromanagerWrapper(
     private val stopLock = Any()
 
     private var ablationThread: Thread? = null
+    private var stagePositionPollingThread: Thread? = null
 
     // for Slices and stacks
     private var idCounter = 0
@@ -53,6 +54,14 @@ class MicromanagerWrapper(
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Min, mmCoreConnector.stagePosition)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Max, mmCoreConnector.stagePosition)
         MicroscenerySettings.setIfUnset(Settings.MMMicroscope.UseStudioAPI,mmStudioConnector !is DummyMMStudioConnector )
+        MicroscenerySettings.addUpdateRoutine(Settings.MMMicroscope.PollStagePositionFrequencyMS){
+            val freq = MicroscenerySettings.get(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
+            if (freq == 0){
+                stagePositionPollingThread?.interrupt()
+            } else {
+                initStagePositionPollingThread(freq)
+            }
+        }
 
         updateHardwareDimensions()
 
@@ -68,6 +77,18 @@ class MicromanagerWrapper(
 
         startAgent()
         status = status.copy(stagePosition = mmCoreConnector.stagePosition, state = ServerState.MANUAL)
+    }
+
+    private fun initStagePositionPollingThread(freq: Int) {
+        stagePositionPollingThread = thread(isDaemon = true, name = "MicromanagerWrapperStagePositionPoller") {
+            while(!Thread.currentThread().isInterrupted){
+                val newPos = mmCoreConnector.stagePosition
+                if (newPos != stagePosition){
+                    updateStagePositionNoMovement(newPos)
+                }
+                Thread.sleep(freq.toLong())
+            }
+        }
     }
 
     /**
