@@ -54,6 +54,9 @@ class MicromanagerWrapper(
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Min, mmCoreConnector.stagePosition)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Max, mmCoreConnector.stagePosition)
         MicroscenerySettings.setIfUnset(Settings.MMMicroscope.UseStudioAPI,mmStudioConnector !is DummyMMStudioConnector )
+        MicroscenerySettings.setIfUnset(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
+        MicroscenerySettings.setIfUnset(Settings.Stage.Limits.AutoGrowStageLimits,true)
+
         MicroscenerySettings.addUpdateRoutine(Settings.MMMicroscope.PollStagePositionFrequencyMS){
             val freq = MicroscenerySettings.get(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
             if (freq == 0){
