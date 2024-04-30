@@ -4,6 +4,7 @@ interface MMStudioConnector {
     fun snap()
     fun startAcquisition()
     fun live(enabled: Boolean)
+    fun alertUser(title:String, message:String)
 }
 
 class DummyMMStudioConnector : MMStudioConnector{
@@ -17,5 +18,9 @@ class DummyMMStudioConnector : MMStudioConnector{
 
     override fun live(enabled: Boolean) {
         println("Dummy live to $enabled")
+    }
+
+    override fun alertUser(title: String, message: String) {
+        println("Dummy Alert User $title: $message")
     }
 }

@@ -12,11 +12,6 @@ import java.nio.ShortBuffer
 
 /**
  * Connection to MicroManger Core. Does the imaging.
- *
- * RelevantProperties:
- * MMConnection.core.configuration
- * MMConnection.core.settingsGroupName
- * MMConnection.core.presetName
  */
 class MMCoreConnector(
     private val core: CMMCore
@@ -48,7 +43,6 @@ class MMCoreConnector(
         )
 
     init {
-        MicroscenerySettings.setIfUnset(Settings.Stage.Limits.OriginMoveProtection, true)
 
         logger.info(core.versionInfo)
         logger.info(core.apiVersionInfo)

@@ -62,6 +62,10 @@ object Settings {
 
         object Limits{
             val OriginMoveProtection: String = "MMConnection.OriginMoveProtection"  //todo rename
+            /** bool
+             * Grow stage limits if stage is moved past it, using direct control or mm.
+             * */
+            const val AutoGrowStageLimits = "Stage.Limits.AutoGrowStageLimits"
             /** vec3f */ const val Min = "Stage.min" //todo rename
             /** vec3f */ const val Max = "Stage.max" //todo rename
         }

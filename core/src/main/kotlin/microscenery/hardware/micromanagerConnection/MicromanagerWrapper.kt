@@ -16,22 +16,21 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.system.measureNanoTime
 
 /**
  * Wrapper of a [MMCoreConnector] to fit the MicroscopeHardware interface.
  * Queues incoming commands
- *
- * @param disableStagePosUpdates if true the position of the stage is only updated on move commands. Makes status updates more deterministic for tests.
  */
 class MicromanagerWrapper(
     private val mmCoreConnector: MMCoreConnector,
     private val mmStudioConnector: MMStudioConnector = DummyMMStudioConnector(),
-    var timeBetweenUpdates: Int = MicroscenerySettings.get(Settings.MMMicroscope.TimeBetweenStackAcquisition, 1000),
-    val disableStagePosUpdates: Boolean = false
+    var timeBetweenUpdates: Int = MicroscenerySettings.get(Settings.MMMicroscope.TimeBetweenStackAcquisition, 1000)
 ) : MicroscopeHardwareAgent() {
-    protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val hardwareCommandsQueue = ArrayBlockingQueue<HardwareCommand>(5000)
 
@@ -50,6 +49,7 @@ class MicromanagerWrapper(
         }
 
     init {
+        MicroscenerySettings.setIfUnset(Settings.Stage.Limits.OriginMoveProtection, true)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Min, mmCoreConnector.stagePosition)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Max, mmCoreConnector.stagePosition)
         MicroscenerySettings.setIfUnset(Settings.MMMicroscope.UseStudioAPI,mmStudioConnector !is DummyMMStudioConnector )
@@ -60,8 +60,9 @@ class MicromanagerWrapper(
             val msg = "Stage ${mmCoreConnector.stagePosition.toReadableString()} not in allowed area " +
                     "from ${MicroscenerySettings.getVector3(Settings.Stage.Limits.Min)?.toReadableString()}" +
                     "to ${MicroscenerySettings.getVector3(Settings.Stage.Limits.Max)?.toReadableString()}. Aborting!" +
-                    "Adjust stage position or properties file."
+                    "Adjust stage position manually or stage limits in properties file."
             logger.error(msg)
+            mmStudioConnector.alertUser("Crushing Risk!",msg)
             throw IllegalStateException(msg)
         }
 
@@ -141,8 +142,25 @@ class MicromanagerWrapper(
      */
     @Suppress("unused")
     fun updateStagePositionNoMovement(pos: Vector3f){
-        if (status.state != ServerState.STARTUP && !disableStagePosUpdates) {
+        if (status.state != ServerState.STARTUP) {
             status = status.copy(stagePosition = pos)
+
+            if (MicroscenerySettings.get(Settings.Stage.Limits.AutoGrowStageLimits, true)){
+
+                val min = hardwareDimensions.stageMin
+                val max = hardwareDimensions.stageMax
+
+                val newMin = Vector3f(min)
+                val newMax = Vector3f(max)
+
+                for (i in 0..2) {
+                    newMin.setComponent(i, min(pos[i], min[i]))
+                    newMax.setComponent(i, max(pos[i], max[i]))
+                }
+                if (min != newMin || max != newMax){
+                    hardwareDimensions = hardwareDimensions.copy(stageMin = newMin, stageMax = newMax)
+                }
+            }
         }
     }
 

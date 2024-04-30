@@ -156,8 +156,8 @@ class DemoMicroscopeHardware(
         status = status.copy(state = ServerState.STACK)
         thread {
 
-            val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
-            val end = hardwareDimensions.coercePosition(meta.endPosition, logger)
+            val start = meta.startPosition
+            val end = meta.endPosition
             val dist = end - start
             val steps = (dist.length() / meta.stepSize).roundToInt()
             val step = dist * (1f / steps)

@@ -14,6 +14,55 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 internal class MicromanagerWrapperTest {
+
+
+    @Test
+    fun autoGrowStageLimits() {
+        MicroscenerySettings.set(Settings.Stage.Limits.AutoGrowStageLimits,true)
+        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
+        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f())
+
+        val wrapper = MicromanagerWrapper(mmCoreConnector)
+        wrapper.output.pollForSignal<MicroscopeStatus>()
+
+        //start testing
+        wrapper.updateStagePositionNoMovement(Vector3f(1f))
+        wrapper.updateStagePositionNoMovement(Vector3f(0f,0f,-2f))
+        wrapper.updateStagePositionNoMovement(Vector3f(0f,-3f,0f))
+
+        assertEquals(Vector3f(1f), wrapper.hardwareDimensions().stageMax)
+        assertEquals(Vector3f(0f,-3f,-2f), wrapper.hardwareDimensions().stageMin)
+
+    }
+
+    @Test
+    fun autoGrowStageLimitsPlusBoundaryCheck() {
+        MicroscenerySettings.set(Settings.Stage.Limits.AutoGrowStageLimits,true)
+
+        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
+        whenever(mmCoreConnector.width).thenReturn(200)
+        whenever(mmCoreConnector.height).thenReturn(200)
+        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f())
+
+        val wrapper = MicromanagerWrapper(mmCoreConnector)
+        wrapper.output.pollForSignal<MicroscopeStatus>()
+
+        //start testing
+        wrapper.updateStagePositionNoMovement(Vector3f(1f))
+        wrapper.stagePosition = Vector3f(2f)
+
+        wrapper.output.pollForSignal<MicroscopeStatus>()
+        wrapper.output.pollForSignal<MicroscopeStatus>()
+        verify(mmCoreConnector).moveStage(Vector3f(1f), true)
+
+        wrapper.updateStagePositionNoMovement(Vector3f(3f))
+        wrapper.stagePosition = Vector3f(2f)
+
+        wrapper.output.pollForSignal<MicroscopeStatus>()
+        wrapper.output.pollForSignal<MicroscopeStatus>()
+        verify(mmCoreConnector).moveStage(Vector3f(2f), true)
+    }
+
     @Test
     fun outOfBoundsRequest() {
 
@@ -31,7 +80,7 @@ internal class MicromanagerWrapperTest {
         whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f())
 
 
-        val wrapper = MicromanagerWrapper(mmCoreConnector, disableStagePosUpdates = true)
+        val wrapper = MicromanagerWrapper(mmCoreConnector)
         wrapper.output.pollForSignal<MicroscopeStatus>()
 
         //start testing
@@ -44,6 +93,7 @@ internal class MicromanagerWrapperTest {
         verify(mmCoreConnector).moveStage(Vector3f(100f), true)
 
     }
+
 
     @Test
     fun rangeCheckAtStartup() {
@@ -126,7 +176,7 @@ internal class MicromanagerWrapperTest {
         whenever(mmCoreConnector.width).thenReturn(200)
         whenever(mmCoreConnector.height).thenReturn(200)
         whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f())
-        val mmWrapper = MicromanagerWrapper(mmCoreConnector, disableStagePosUpdates = true)
+        val mmWrapper = MicromanagerWrapper(mmCoreConnector)
         mmWrapper.output.pollForSignal<MicroscopeStatus>()//wait for start up to finish
 
         MicroscenerySettings.set(Settings.Ablation.DryRun, true)
