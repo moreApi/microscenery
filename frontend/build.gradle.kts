@@ -35,7 +35,7 @@ dependencies {
 
     testImplementation("net.imagej:imagej:latest.release")
     testImplementation("net.imagej:ij:latest.release")
-    testImplementation("net.imglib2:imglib2-ij:latest.release")
+    testImplementation("net.imglib2:imglib2-ij:2.0.0-beta-46")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.mockito:mockito-core:5.10.0")
