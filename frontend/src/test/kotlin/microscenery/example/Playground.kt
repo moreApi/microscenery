@@ -1,8 +1,16 @@
 package microscenery.example
 
+import graphics.scenery.controls.TrackedDevice
+import graphics.scenery.controls.TrackedDeviceType
+import graphics.scenery.controls.behaviours.PerButtonPressable
+import graphics.scenery.controls.behaviours.Pressable
+import graphics.scenery.controls.behaviours.SimplePressable
 import microscenery.DefaultScene
 import microscenery.Settings
 import microscenery.VRUI.Gui3D.*
+import org.joml.Matrix4f
+import org.scijava.ui.behaviour.ClickBehaviour
+import org.scijava.ui.behaviour.DragBehaviour
 import kotlin.concurrent.thread
 
 class Playground() : DefaultScene() {
@@ -25,6 +33,32 @@ class Playground() : DefaultScene() {
         thread {
             menu
         }
+    }
+
+    override fun inputSetup() {
+        super.inputSetup()
+        inputHandler?.addBehaviour("debug3dClick", object : DragBehaviour {
+            var pressable: SimplePressable? = null
+            val controllerDevice = TrackedDevice(TrackedDeviceType.Generic,"dummy", Matrix4f().identity(),System.nanoTime())
+
+            override fun init(p0: Int, p1: Int) {
+                pressable = cam.getNodesForScreenSpacePosition(p0,p1).matches
+                    .firstNotNullOfOrNull { it.node.getAttributeOrNull(Pressable::class.java) as? SimplePressable }
+                pressable?.onPress?.invoke(cam.spatial(),controllerDevice)
+
+            }
+            override fun drag(p0: Int, p1: Int) {
+                pressable?.onHold?.invoke(cam.spatial(),controllerDevice)
+            }
+
+            override fun end(p0: Int, p1: Int) {
+                pressable?.onRelease?.invoke(cam.spatial(), controllerDevice)
+                pressable = null
+            }
+        })
+        inputHandler?.addKeyBinding("debug3dClick","1")
+
+
     }
 
     companion object {
