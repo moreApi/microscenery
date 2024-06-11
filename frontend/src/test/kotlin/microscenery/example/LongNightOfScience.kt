@@ -1,6 +1,8 @@
 package microscenery.example
 
 import fromScenery.utils.extensions.plus
+import graphics.scenery.controls.OpenVRHMD
+import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.proteins.Protein
@@ -19,44 +21,24 @@ import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
 
-/*fun emdProtein(hub: Hub): Volume {
-    //val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\embo\MariaPlant\export.xml""",hub, VolumeViewerOptions())
-    val imp: ImagePlus = IJ.openImage("""C:\Users\JanCasus\Downloads\LNDW_VR\emd_3743Stright.tif kept stack.tif""")
-    val img: Img<UnsignedShortType> = ImageJFunctions.wrap(imp)
-
-
-    val volume = Volume.fromRAI(
-        img,
-        UnsignedShortType(),
-        AxisOrder.DEFAULT,
-        "Volume loaded with IJ",
-        hub,
-        VolumeViewerOptions()
-    )
-    volume.spatial() {
-        scale = Vector3f(5f)
-    }
-    volume.origin = Origin.FrontBottomLeft
-    volume.transferFunction = TransferFunction.ramp(0f, 0.8f, 1f)
-    volume.colormap = Colormap.get("hot")
-    volume.setTransferFunctionRange(0f, 65000f)
-
-    val protein = Protein.fromFile("""C:\Users\JanCasus\Downloads\LNDW_VR\5o3tStright.pdb""")
-
-    val ribbon = RibbonDiagram(protein)
-
-    ribbon.spatial().position = Vector3f(133f,140f,35f)
-
-    volume.addChild(ribbon)
-
-    return volume
-}*/
-
-
 class LongNightOfScience2D : DefaultScene() {
+
+    class ProteinFiles(val name: String, val tif: String?, val pdb: String, val pdbOffset: Vector3f)
+
+    val pFiles = listOf(
+        ProteinFiles("Straigt",
+            """C:\Users\JanCasus\Downloads\LNDW_VR\emd_3743Stright.tif kept stack.tif""",
+            """C:\Users\JanCasus\Downloads\LNDW_VR\5o3tStright.pdb""",
+            Vector3f(0f,0f,25f)),
+        ProteinFiles("Paired",
+            """C:\Users\JanCasus\Downloads\LNDW_VR\emd_3741Paired.tif kept stack.tif""",
+            """C:\Users\JanCasus\Downloads\LNDW_VR\5o3lPaired.pdb""",
+            Vector3f(0f,0f,25f)),
+    )
 
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
+    val microscope = FileMicroscopeHardware(pFiles.first().tif!!)
 
     override fun init() {
         super.init()
@@ -75,54 +57,59 @@ class LongNightOfScience2D : DefaultScene() {
         )
         viewSettings.forEach { MicroscenerySettings.set(it, true) }
 
-        val hw = FileMicroscopeHardware("""C:\Users\JanCasus\Downloads\LNDW_VR\emd_3743Stright.tif kept stack.tif""")
         stageSpaceManager = StageSpaceManager(
-            hw,
+            microscope,
             scene,
             msHub,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
 //            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )
 
-        stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
-
         stageSpaceManager.sliceManager.transferFunctionManager.maxDisplayRange = 65000f
 
 
-        val protein = Protein.fromFile("""C:\Users\JanCasus\Downloads\LNDW_VR\5o3tStright.pdb""")
+//        thread {
+//            Thread.sleep(5000)
+//            val cuttingPlane = SlicingPlane()
+//            cuttingPlane.spatial().rotation = cuttingPlane.spatial().rotation.rotateLocalX(Math.PI.toFloat()/2)
+//            scene.findByClassname("Volume").firstOrNull()?.let{
+//                println("found vol")
+//                if (it !is Volume) return@let
+//                it.addChild(cuttingPlane)
+//                cuttingPlane.addTargetVolume(it)
+//                it.slicingMode = Volume.SlicingMode.Cropping
+//            }
+//            while (true){
+//                Thread.sleep(50)
+//                val diff = stageSpaceManager.hardware.hardwareDimensions().stageMax
+//                cuttingPlane.spatial().position = diff.times(1f-(System.currentTimeMillis() % 5000) / 5000f)
+//            }
+//        }
+    }
+
+    private fun setProteinActive(index: Int){
+        val p = pFiles.getOrNull(index) ?: return
+
+        stageSpaceManager.clearStage()
+        p.tif?.let { microscope.loadImg(it) }
+        stageSpaceManager.stack(Vector3f(), Vector3f())
+
+
+        scene.findByClassname("RibbonDiagram").firstOrNull()?.detach()
+        val protein = Protein.fromFile(pFiles.first().pdb)
         val ribbon = RibbonDiagram(protein)
-        ribbon.spatial().position = Vector3f(0f,0f,25f)
-
+        ribbon.spatial().position = p.pdbOffset
         stageSpaceManager.stageRoot.addChild(ribbon)
+    }
 
-        thread {
-            while (true) {
-                Thread.sleep(500)
-                stageSpaceManager
-            }
-        }
-
-        thread {
-            Thread.sleep(1000)
-            stageSpaceManager.stack(Vector3f(), Vector3f())
-        }
-
-        thread {
-            Thread.sleep(5000)
-            val cuttingPlane = SlicingPlane()
-            cuttingPlane.spatial().rotation = cuttingPlane.spatial().rotation.rotateLocalX(Math.PI.toFloat()/2)
-            scene.findByClassname("Volume").firstOrNull()?.let{
-                println("found vol")
-                if (it !is Volume) return@let
-                it.addChild(cuttingPlane)
-                cuttingPlane.addTargetVolume(it)
-                it.slicingMode = Volume.SlicingMode.Cropping
-            }
-            while (true){
-                Thread.sleep(50)
-                val diff = stageSpaceManager.hardware.hardwareDimensions().stageMax
-                cuttingPlane.spatial().position = diff.times(1f-(System.currentTimeMillis() % 5000) / 5000f)
-            }
+    override fun inputSetup() {
+        super.inputSetup()
+        pFiles.forEachIndexed { index, pf ->
+            val name = "activate${pf.name}"
+            inputHandler?.addBehaviour(name, ClickBehaviour { _, _ ->
+                setProteinActive(index)
+            })
+            inputHandler?.addKeyBinding(name, (index+1).toString())
         }
     }
 
@@ -183,11 +170,42 @@ class OfflineViewerVRlnos() : DefaultVRScene("Embo Scene") {
             }), false,), msHub = mshub
         )
 
-        inputHandler?.addBehaviour("cropasd",ClickBehaviour{_,_ ->
-            scene.addChild(croppingTool)
-            croppingTool.spatial().position = cam.spatial().worldPosition() + Vector3f(-0.4f, 0f, 0f)
+        val disabled: MutableList<Pair<String,String>> = mutableListOf()
+        inputHandler?.addBehaviour("toggleVrControl",ClickBehaviour{_,_ ->
+
+            if (disabled.isEmpty()) {
+                val buttons = listOf(
+                    OpenVRHMD.OpenVRButton.System,
+                    OpenVRHMD.OpenVRButton.Menu,
+                    OpenVRHMD.OpenVRButton.A,
+                    OpenVRHMD.OpenVRButton.Side,
+                    OpenVRHMD.OpenVRButton.Trigger
+                )
+                inputHandler?.getAllBindings()?.forEach { t, u ->
+                    buttons.flatMap {
+                        listOf(TrackerRole.LeftHand to it, TrackerRole.RightHand to it)
+                    }.map {
+                        OpenVRHMD.keyBinding(it.first, it.second)
+                    }.forEach { bindingName ->
+                        if (bindingName == t.toString()) {
+                            u.forEach {
+                                disabled.add(bindingName to it)
+                                inputHandler?.removeKeyBinding(it)
+                                logger.info("disabled $it :$bindingName")
+                            }
+                        }
+                    }
+                }
+            } else {
+                disabled.forEach {
+                    inputHandler?.addKeyBinding(it.second,it.first)
+                    logger.info("activated $it")
+                }
+                disabled.clear()
+            }
+
         })
-        inputHandler?.addKeyBinding("cropasd","P")
+        inputHandler?.addKeyBinding("toggleVrControl","P")
 
     }
 
