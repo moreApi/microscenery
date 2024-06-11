@@ -2,7 +2,6 @@ package microscenery
 
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.lazyLogger
-import graphics.scenery.volumes.Volume
 import ij.IJ
 import ij.ImagePlus
 import microscenery.hardware.MicroscopeHardwareAgent
@@ -21,7 +20,7 @@ import java.util.concurrent.BlockingQueue
 import kotlin.concurrent.thread
 
 /**
- * Dummy microscope hardware implementation that reads an volume from file.
+ * Dummy microscope hardware implementation that reads a volume from file.
  */
 class FileMicroscopeHardware(
     file: String,
@@ -29,8 +28,8 @@ class FileMicroscopeHardware(
 ) : MicroscopeHardwareAgent() {
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    val imp: ImagePlus = IJ.openImage(file)
-    val img: Img<UnsignedShortType> = ImageJFunctions.wrap(imp)
+    lateinit var imp: ImagePlus
+    lateinit var img: Img<UnsignedShortType>
 
     val dimensions: Vector3i
         get() {
@@ -44,7 +43,17 @@ class FileMicroscopeHardware(
     var currentStack: Stack? = null
     var stackSliceCounter: Int = 0
 
-    init {
+    override var stagePosition = stagePosition
+        set(target) {
+            val safeTarget = hardwareDimensions.coercePosition(target, logger)
+            field = safeTarget
+            status = status.copy(stagePosition = safeTarget)
+        }
+
+
+    fun loadImg(file:String){
+        imp = IJ.openImage(file)
+        img = ImageJFunctions.wrap(imp)
 
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
@@ -58,17 +67,13 @@ class FileMicroscopeHardware(
             stagePosition,
             false
         )
+    }
+
+    init {
+        loadImg(file)
 
         //no need to start the agent
     }
-
-
-    override var stagePosition = stagePosition
-        set(target) {
-            val safeTarget = hardwareDimensions.coercePosition(target, logger)
-            field = safeTarget
-            status = status.copy(stagePosition = safeTarget)
-        }
 
     override fun snapSlice() {
         val imgX = hardwareDimensions.imageSize.x
