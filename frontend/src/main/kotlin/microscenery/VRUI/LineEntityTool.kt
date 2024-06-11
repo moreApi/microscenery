@@ -8,7 +8,6 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.primitives.Cylinder
 import graphics.scenery.utils.extensions.minus
-import microscenery.DefaultScene
 import microscenery.UP
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -90,28 +89,5 @@ class LineEntityTool(var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f), var d
 
         lastPoint = newPoint
 
-    }
-
-    companion object {
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val base = DefaultScene({ scene, _ ->
-                val b1 = Sphere(0.03f)
-                b1.spatial().position = Vector3f(1f, 01f, 01f)
-                scene.addChild(b1)
-                val b2 = Sphere(0.03f)
-                b2.spatial().position = Vector3f(-1f, -01f, -01f)
-                scene.addChild(b2)
-
-                val tool = LineEntityTool()
-                scene.addChild(tool)
-
-                tool.drawLine(b1)
-                tool.drawLine(b2)
-
-            })
-            base.main()
-        }
     }
 }

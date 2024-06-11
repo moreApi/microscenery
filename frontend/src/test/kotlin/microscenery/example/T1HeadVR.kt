@@ -4,7 +4,6 @@ import bdv.util.AxisOrder
 import bvv.core.VolumeViewerOptions
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
-import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
 import ij.IJ
 import ij.ImagePlus
@@ -16,7 +15,6 @@ import net.imglib2.img.Img
 import net.imglib2.img.display.imagej.ImageJFunctions
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector3f
-import kotlin.io.path.Path
 
 /**
  * VR, mmConnection local or controlled Stream remote
@@ -25,7 +23,6 @@ class T1HeadVR : DefaultVRScene(T1HeadVR::class.java.simpleName) {
 
 
     override fun init() {
-        prepareVRScene()
 
         cam.spatial().position = Vector3f(0f, -5f, 5f)
 
