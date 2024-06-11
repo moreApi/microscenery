@@ -7,8 +7,8 @@ import graphics.scenery.controls.behaviours.Action
 import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.proteins.Protein
 import graphics.scenery.proteins.RibbonDiagram
-import graphics.scenery.utils.extensions.times
-import graphics.scenery.volumes.*
+import graphics.scenery.volumes.TransferFunctionEditor
+import graphics.scenery.volumes.Volume
 import microscenery.*
 import microscenery.UI.UIModel
 import microscenery.VRUI.CroppingTool
@@ -21,19 +21,35 @@ import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
 
-class LongNightOfScience2D : DefaultScene() {
+class LongNightOfScience2D : DefaultScene("Loooooooong night of science") {
 
     class ProteinFiles(val name: String, val tif: String?, val pdb: String, val pdbOffset: Vector3f)
 
     val pFiles = listOf(
-        ProteinFiles("Straigt",
+        ProteinFiles(
+            "5o3tStright",
             """C:\Users\JanCasus\Downloads\LNDW_VR\emd_3743Stright.tif kept stack.tif""",
             """C:\Users\JanCasus\Downloads\LNDW_VR\5o3tStright.pdb""",
-            Vector3f(0f,0f,25f)),
-        ProteinFiles("Paired",
+            Vector3f(0f, 0f, 25f)
+        ),
+        ProteinFiles(
+            "5o3lPaired",
             """C:\Users\JanCasus\Downloads\LNDW_VR\emd_3741Paired.tif kept stack.tif""",
             """C:\Users\JanCasus\Downloads\LNDW_VR\5o3lPaired.pdb""",
-            Vector3f(0f,0f,25f)),
+            Vector3f(0f, 0f, 45f)
+        ),
+        ProteinFiles(
+            "6qi6 beta lactoglobulin",
+            null,
+            """C:\Users\JanCasus\Downloads\LNDW_VR\6qi6_beta_lactoglobulin.pdb""",
+            Vector3f(0f, 0f, 0f)
+        ),
+        ProteinFiles(
+            "AF-P02666 beta casein",
+            null,
+            """C:\Users\JanCasus\Downloads\LNDW_VR\AF-P02666_beta_casein.pdb""",
+            Vector3f(0f, 0f, 0f)
+        ),
     )
 
     lateinit var stageSpaceManager: StageSpaceManager
@@ -43,11 +59,7 @@ class LongNightOfScience2D : DefaultScene() {
     override fun init() {
         super.init()
 
-        cam.spatial().position = Vector3f(0f, 0f, 5f)
-
-
-        MicroscenerySettings.set("Stage.precisionXY", 1f)
-        MicroscenerySettings.set("Stage.precisionZ", 1f)
+        cam.spatial().position = Vector3f(0f, 0f, 2f)
 
         val viewSettings = listOf(
             Settings.StageSpace.viewMode,
@@ -67,6 +79,7 @@ class LongNightOfScience2D : DefaultScene() {
 
         stageSpaceManager.sliceManager.transferFunctionManager.maxDisplayRange = 65000f
 
+        setProteinActive(0)
 
 //        thread {
 //            Thread.sleep(5000)
@@ -87,29 +100,34 @@ class LongNightOfScience2D : DefaultScene() {
 //        }
     }
 
-    private fun setProteinActive(index: Int){
+    private fun setProteinActive(index: Int) {
         val p = pFiles.getOrNull(index) ?: return
 
-        stageSpaceManager.clearStage()
-        p.tif?.let { microscope.loadImg(it) }
-        stageSpaceManager.stack(Vector3f(), Vector3f())
+        cam.showMessage2("loading ${p.name}")
 
+        stageSpaceManager.clearStage()
+        p.tif?.let {
+            microscope.loadImg(it)
+            stageSpaceManager.stack(Vector3f(), Vector3f())
+        }
 
         scene.findByClassname("RibbonDiagram").firstOrNull()?.detach()
-        val protein = Protein.fromFile(pFiles.first().pdb)
+        val protein = Protein.fromFile(p.pdb)
         val ribbon = RibbonDiagram(protein)
         ribbon.spatial().position = p.pdbOffset
         stageSpaceManager.stageRoot.addChild(ribbon)
+
     }
 
     override fun inputSetup() {
         super.inputSetup()
+        // protein selectors
         pFiles.forEachIndexed { index, pf ->
             val name = "activate${pf.name}"
             inputHandler?.addBehaviour(name, ClickBehaviour { _, _ ->
                 setProteinActive(index)
             })
-            inputHandler?.addKeyBinding(name, (index+1).toString())
+            inputHandler?.addKeyBinding(name, (index + 1).toString())
         }
     }
 
@@ -122,7 +140,7 @@ class LongNightOfScience2D : DefaultScene() {
 }
 
 
-class OfflineViewerVRlnos() : DefaultVRScene("Embo Scene") {
+class OfflineViewerVRlnos : DefaultVRScene("Embo Scene") {
 
     lateinit var vol: Volume
 
@@ -146,7 +164,7 @@ class OfflineViewerVRlnos() : DefaultVRScene("Embo Scene") {
             // debug loop
             //while (true) {
             //    Thread.sleep(500)
-             //   val s = vol
+            //   val s = vol
             //}
         }
     }
@@ -161,17 +179,21 @@ class OfflineViewerVRlnos() : DefaultVRScene("Embo Scene") {
 
         VRUIManager.initBehavior(
             scene, hmd, inputHandler, customActions =
-            WheelMenu(hmd, listOf(Switch("freeze blocks",false){
-                vol.volumeManager.freezeRequiredBlocks = it
-            },Action("freeze blocks"){
-                scene.addChild(croppingTool)
-                croppingTool.spatial().position = cam.spatial().worldPosition() + Vector3f(-0.4f, 0f, 0f)
-                //croppingTool.activate(vol)
-            }), false,), msHub = mshub
+            WheelMenu(
+                hmd,
+                listOf(Switch("freeze blocks", false) {
+                    vol.volumeManager.freezeRequiredBlocks = it
+                }, Action("freeze blocks") {
+                    scene.addChild(croppingTool)
+                    croppingTool.spatial().position = cam.spatial().worldPosition() + Vector3f(-0.4f, 0f, 0f)
+                    //croppingTool.activate(vol)
+                }),
+                false,
+            ), msHub = mshub
         )
 
-        val disabled: MutableList<Pair<String,String>> = mutableListOf()
-        inputHandler?.addBehaviour("toggleVrControl",ClickBehaviour{_,_ ->
+        val disabled: MutableList<Pair<String, String>> = mutableListOf()
+        inputHandler?.addBehaviour("toggleVrControl", ClickBehaviour { _, _ ->
 
             if (disabled.isEmpty()) {
                 val buttons = listOf(
@@ -198,14 +220,14 @@ class OfflineViewerVRlnos() : DefaultVRScene("Embo Scene") {
                 }
             } else {
                 disabled.forEach {
-                    inputHandler?.addKeyBinding(it.second,it.first)
+                    inputHandler?.addKeyBinding(it.second, it.first)
                     logger.info("activated $it")
                 }
                 disabled.clear()
             }
 
         })
-        inputHandler?.addKeyBinding("toggleVrControl","P")
+        inputHandler?.addKeyBinding("toggleVrControl", "P")
 
     }
 
