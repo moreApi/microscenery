@@ -1,25 +1,23 @@
 package microscenery.example
 
-import fromScenery.utils.extensions.plus
+import graphics.scenery.Hub
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
-import graphics.scenery.controls.behaviours.Action
-import graphics.scenery.controls.behaviours.Switch
 import graphics.scenery.proteins.Protein
 import graphics.scenery.proteins.RibbonDiagram
-import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
 import microscenery.*
 import microscenery.UI.StageSpaceUI
-import microscenery.UI.UIModel
 import microscenery.VRUI.CroppingTool
+import microscenery.VRUI.Gui3D.Column
+import microscenery.VRUI.Gui3D.Row
+import microscenery.VRUI.Gui3D.TextBox
 import microscenery.VRUI.VRUIManager
-import microscenery.VRUI.fromScenery.WheelMenu
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
-import kotlin.concurrent.thread
 
 
 class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = true) {
@@ -31,13 +29,13 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
             "5o3tStright",
             """C:\Users\JanCasus\Downloads\LNDW_VR\emd_3743Stright.tif kept stack.tif""",
             """C:\Users\JanCasus\Downloads\LNDW_VR\5o3tStright.pdb""",
-            Vector3f(0f, 0f, 25f)
+            Vector3f(0f, 5f, 25f)
         ),
         ProteinFiles(
             "5o3lPaired",
             """C:\Users\JanCasus\Downloads\LNDW_VR\emd_3741Paired.tif kept stack.tif""",
             """C:\Users\JanCasus\Downloads\LNDW_VR\5o3lPaired.pdb""",
-            Vector3f(0f, 0f, 45f)
+            Vector3f(20f, 0f, 37f)
         ),
         ProteinFiles(
             "6qi6 beta lactoglobulin",
@@ -56,6 +54,8 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
     val microscope = FileMicroscopeHardware(pFiles.first().tif!!)
+
+    val mainLabel = TextBox("A Protein")
 
     override fun init() {
         super.init()
@@ -79,6 +79,38 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
         )
 
         stageSpaceManager.sliceManager.transferFunctionManager.maxDisplayRange = 65000f
+
+
+        val column = Column(
+            Row(mainLabel)
+        )
+
+        column.spatial {
+            scale = Vector3f(0.1f)
+
+            // follow head/cam rotation
+            fun updateMSLabelRotation(viewOrientation: Quaternionf) {
+                rotation = Quaternionf(viewOrientation).conjugate().normalize()
+            }
+            val hmd = msHub.getAttribute(Hub::class.java).get<OpenVRHMD>()
+
+            column.update += {
+                if (hmd != null) {
+                    updateMSLabelRotation(hmd.getOrientation())
+                } else {
+                    scene.activeObserver?.let { updateMSLabelRotation(it.spatial().rotation) }
+                }
+
+                // move it on top of the stage space
+                val centerW = stageSpaceManager.stageRoot.spatial().worldPosition(stageSpaceManager.stageAreaCenter)
+                centerW.y = stageSpaceManager.stageAreaBorders.generateBoundingBox()?.asWorld()?.max?.y ?: centerW.y
+                centerW.y += 0.1f
+                position = centerW
+            }
+        }
+        scene.addChild(column)
+        column.pack()
+
 
         setProteinActive(0)
 
@@ -110,6 +142,12 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
         p.tif?.let {
             microscope.loadImg(it)
             stageSpaceManager.stack(Vector3f(), Vector3f())
+            // workaround activate cropping tool for new volume
+            val cp = scene.findByClassname(CroppingTool::class.simpleName!!).firstOrNull() as? CroppingTool
+            val vol = scene.findByClassname("Volume").firstOrNull() as? Volume
+            if (cp != null && vol != null) {
+                cp.activate(vol)
+            }
         }
 
         scene.findByClassname("RibbonDiagram").firstOrNull()?.detach()
@@ -118,6 +156,7 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
         ribbon.spatial().position = p.pdbOffset
         stageSpaceManager.stageRoot.addChild(ribbon)
 
+        mainLabel.text = p.name
     }
 
     override fun inputSetup() {
@@ -143,6 +182,43 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
                 stageSpaceUI = ssUI, msHub = msHub
             )
         }
+
+        val disabled: MutableList<Pair<String, String>> = mutableListOf()
+        inputHandler?.addBehaviour("toggleVrControl", ClickBehaviour { _, _ ->
+
+            if (disabled.isEmpty()) {
+                val buttons = listOf(
+                    OpenVRHMD.OpenVRButton.System,
+                    OpenVRHMD.OpenVRButton.Menu,
+                    OpenVRHMD.OpenVRButton.A,
+                    //OpenVRHMD.OpenVRButton.Side,
+                    OpenVRHMD.OpenVRButton.Trigger
+                )
+                hmd.getAllBindings().forEach { (inputTrigger, behaviors) ->
+                    buttons.flatMap {
+                        listOf(TrackerRole.LeftHand to it, TrackerRole.RightHand to it)
+                    }.map {
+                        OpenVRHMD.keyBinding(it.first, it.second)
+                    }.forEach { buttonToDisable ->
+                        if (buttonToDisable == inputTrigger.toString()) {
+                            behaviors.forEach {
+                                disabled.add(buttonToDisable to it)
+                                hmd.removeKeyBinding2(it)
+                                logger.info("disabled $it :$buttonToDisable")
+                            }
+                        }
+                    }
+                }
+            } else {
+                disabled.forEach {
+                    hmd.addKeyBinding(it.second, it.first)
+                    logger.info("activated $it")
+                }
+                disabled.clear()
+            }
+
+        })
+        inputHandler?.addKeyBinding("toggleVrControl", "O")
     }
 
     companion object {
@@ -154,101 +230,5 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
 }
 
 
-class OfflineViewerVRlnos : DefaultVRScene("Embo Scene") {
-
-    lateinit var vol: Volume
-
-    val mshub = MicrosceneryHub(hub)
-    val croppingTool = CroppingTool(mshub.getAttribute(UIModel::class.java))
-
-    override fun init() {
-        super.init()
 
 
-        thread {
-            //delay volume loading to not crash VR...
-            Thread.sleep(1000)
-            croppingTool.volume = vol
-            //vol.slicingMode = Volume.SlicingMode.Slicing
-            scene.addChild(vol)
-            TransferFunctionEditor.showTFFrame(vol)
-        }
-
-        thread {
-            // debug loop
-            //while (true) {
-            //    Thread.sleep(500)
-            //   val s = vol
-            //}
-        }
-    }
-
-    override fun inputSetup() {
-        super.inputSetup()
-
-        //mshub.getAttribute(UIModel::class.java).selected = vol
-        val mshub = MicrosceneryHub(hub)
-        val croppingTool = CroppingTool(mshub.getAttribute(UIModel::class.java))
-
-
-        VRUIManager.initBehavior(
-            scene, hmd, inputHandler, customActions =
-            WheelMenu(
-                hmd,
-                listOf(Switch("freeze blocks", false) {
-                    vol.volumeManager.freezeRequiredBlocks = it
-                }, Action("freeze blocks") {
-                    scene.addChild(croppingTool)
-                    croppingTool.spatial().position = cam.spatial().worldPosition() + Vector3f(-0.4f, 0f, 0f)
-                    //croppingTool.activate(vol)
-                }),
-                false,
-            ), msHub = mshub
-        )
-
-        val disabled: MutableList<Pair<String, String>> = mutableListOf()
-        inputHandler?.addBehaviour("toggleVrControl", ClickBehaviour { _, _ ->
-
-            if (disabled.isEmpty()) {
-                val buttons = listOf(
-                    OpenVRHMD.OpenVRButton.System,
-                    OpenVRHMD.OpenVRButton.Menu,
-                    OpenVRHMD.OpenVRButton.A,
-                    OpenVRHMD.OpenVRButton.Side,
-                    OpenVRHMD.OpenVRButton.Trigger
-                )
-                inputHandler?.getAllBindings()?.forEach { t, u ->
-                    buttons.flatMap {
-                        listOf(TrackerRole.LeftHand to it, TrackerRole.RightHand to it)
-                    }.map {
-                        OpenVRHMD.keyBinding(it.first, it.second)
-                    }.forEach { bindingName ->
-                        if (bindingName == t.toString()) {
-                            u.forEach {
-                                disabled.add(bindingName to it)
-                                inputHandler?.removeKeyBinding(it)
-                                logger.info("disabled $it :$bindingName")
-                            }
-                        }
-                    }
-                }
-            } else {
-                disabled.forEach {
-                    inputHandler?.addKeyBinding(it.second, it.first)
-                    logger.info("activated $it")
-                }
-                disabled.clear()
-            }
-
-        })
-        inputHandler?.addKeyBinding("toggleVrControl", "P")
-
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            OfflineViewerVRlnos().main()
-        }
-    }
-}

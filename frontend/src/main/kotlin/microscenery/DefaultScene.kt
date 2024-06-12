@@ -9,6 +9,7 @@ import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
 import net.miginfocom.swing.MigLayout
 import org.joml.Vector3f
+import org.scijava.ui.behaviour.InputTrigger
 import java.awt.BorderLayout
 import java.awt.Point
 import javax.swing.JFrame
@@ -25,12 +26,12 @@ abstract class DefaultScene(
     var extraPanel: JPanel? = null
 
     lateinit var cam: Camera
-    protected lateinit var hmd: OpenVRHMD
+    protected lateinit var hmd: InputManagerVRHMD
     protected lateinit var hullbox: Box
 
     override fun init() {
         if (VR) {
-            hmd = OpenVRHMD(useCompositor = true)
+            hmd = InputManagerVRHMD()
 
             if (!hmd.initializedAndWorking()) {
                 logger.error("This is intended to use OpenVR, but no OpenVR-compatible HMD could be initialized.")
@@ -161,3 +162,26 @@ abstract class DefaultVRScene(
 ) : DefaultScene(
     name, width = 1920, height = 1080, VR = true, withSwingUI = withSwingUI
 )
+
+class InputManagerVRHMD : OpenVRHMD(){
+    /**
+     * Returns *a copy of* all the currently set key bindings
+     *
+     * @return Map of all currently configured key bindings.
+     */
+    fun getAllBindings(): Map<InputTrigger, Set<String>> {
+        return inputMap.allBindings
+    }
+
+    /**
+     * Removes a key binding for a given behaviour
+     *
+     * @param[behaviourName] The behaviour to remove the key binding for.
+     */
+    fun removeKeyBinding2(behaviourName: String) {
+        config.getInputs(behaviourName, "all").forEach { inputTrigger ->
+            inputMap.remove(inputTrigger, behaviourName)
+            config.remove(inputTrigger, behaviourName, "all")
+        }
+    }
+}
