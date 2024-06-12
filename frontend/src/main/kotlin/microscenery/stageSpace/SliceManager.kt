@@ -239,22 +239,21 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
     }
 
     private fun sortAndInsertSlices(cam: Camera, newSlice: SliceRenderNode) {
-        sortingSlicesLock.lock()
-        // detect too close slices to replace them
-        stageRoot.children.filter {
-            it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
-                newSlice.spatial().position, hardware.hardwareDimensions().vertexDiameter
-            ) ?: false
-        }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
-            .forEach {
-                stageRoot.removeChild(it)
-                sortedSlices.remove(it)
-            }
+        sortingSlicesLock.withLock {
+            // detect too close slices to replace them
+            stageRoot.children.filter {
+                it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
+                    newSlice.spatial().position, hardware.hardwareDimensions().vertexDiameter
+                ) ?: false
+            }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
+                .forEach {
+                    stageRoot.removeChild(it)
+                    sortedSlices.remove(it)
+                }
 
-        stageRoot.addChild(newSlice)
-        sortedSlices.add(newSlice)
-        sortingSlicesLock.unlock()
-
+            stageRoot.addChild(newSlice)
+            sortedSlices.add(newSlice)
+        }
         sortSlices(cam)
     }
 
@@ -265,9 +264,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
     private fun sortSlices(cam: Camera) {
         setupCameraPainterAlgorithmUpdate()
 
-        // If I have this lock that means I just inserted a slice and need to sort it. Otherwise, I look if it is free.
-        // If yes I sort. If no I return because someone else is sorting (and inserting).
-        if (sortingSlicesLock.isHeldByCurrentThread || sortingSlicesLock.tryLock()) {
+        sortingSlicesLock.withLock {
             if (sortedSlices.isEmpty()) return
             // Adjusted Painters algorithm for uniformly leaning planes
             // General Idea: sort the planes roughly along their normal
@@ -294,7 +291,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             // Resulting in a back to front rendering
             // Possible improvement: instead of using the distance to a point at infinite,
             // project on a line spanned by the normal
-            sortingSlicesLock.unlock()
         }
     }
 
