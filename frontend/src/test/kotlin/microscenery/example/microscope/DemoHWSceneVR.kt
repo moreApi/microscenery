@@ -10,6 +10,7 @@ import kotlin.concurrent.thread
 class DemoHWSceneVR : DefaultVRScene() {
 
     lateinit var stageSpaceManager: StageSpaceManager
+    val msHub  = MicrosceneryHub(hub)
 
     override fun init() {
         super.init()
@@ -23,7 +24,6 @@ class DemoHWSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
 
         val hw = DemoMicroscopeHardware(dataSide = 100)
-        val msHub  = MicrosceneryHub(hub)
         stageSpaceManager = StageSpaceManager(hw, scene, msHub)
 
 
@@ -45,7 +45,7 @@ class DemoHWSceneVR : DefaultVRScene() {
 
         VRUIManager.initBehavior(
             scene, hmd, inputHandler,
-            stageSpaceUI = ssUI, msHub = MicrosceneryHub(hub)
+            stageSpaceUI = ssUI, msHub = msHub
         )
     }
 

@@ -10,6 +10,7 @@ import graphics.scenery.proteins.RibbonDiagram
 import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
 import microscenery.*
+import microscenery.UI.StageSpaceUI
 import microscenery.UI.UIModel
 import microscenery.VRUI.CroppingTool
 import microscenery.VRUI.VRUIManager
@@ -21,7 +22,7 @@ import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
 
-class LongNightOfScience2D : DefaultScene("Loooooooong night of science") {
+class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = true) {
 
     class ProteinFiles(val name: String, val tif: String?, val pdb: String, val pdbOffset: Vector3f)
 
@@ -128,6 +129,19 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science") {
                 setProteinActive(index)
             })
             inputHandler?.addKeyBinding(name, (index + 1).toString())
+        }
+
+        val ssUI = StageSpaceUI(stageSpaceManager)
+
+        inputHandler?.let {
+            ssUI.stageKeyUI(it, cam)
+        }
+
+        if (VR) {
+            VRUIManager.initBehavior(
+                scene, hmd, inputHandler,
+                stageSpaceUI = ssUI, msHub = msHub
+            )
         }
     }
 
