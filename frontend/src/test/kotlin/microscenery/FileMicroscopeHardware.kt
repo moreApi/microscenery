@@ -165,7 +165,7 @@ class FileMicroscopeHardware(
     }
 
     override fun moveStage(target: Vector3f) {
-        throw NotImplementedError("demo does not use MicroscopeAgents stage handling")
+        logger.warn("File Microscope does not support stage handling")
     }
 
     override fun startAcquisition() {
