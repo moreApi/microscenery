@@ -1,5 +1,6 @@
 package microscenery.example
 
+import graphics.scenery.AmbientLight
 import graphics.scenery.Hub
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
@@ -18,6 +19,7 @@ import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
+import kotlin.concurrent.thread
 
 
 class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = true) {
@@ -51,6 +53,8 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
         ),
     )
 
+    var mainProtein: RibbonDiagram? = null
+
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
     val microscope = FileMicroscopeHardware(pFiles.first().tif!!)
@@ -60,6 +64,8 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
     override fun init() {
         super.init()
 
+        val ambient = AmbientLight(intensity = 0.5f)
+        //scene.addChild(ambient)
         cam.spatial().position = Vector3f(0f, 0f, 2f)
 
         val viewSettings = listOf(
@@ -113,6 +119,14 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
 
 
         setProteinActive(0)
+        setupSecondaryProteins()
+
+        thread {
+            while (true) {
+                Thread.sleep(200)
+                stageSpaceManager
+            }
+        }
 
 //        thread {
 //            Thread.sleep(5000)
@@ -133,6 +147,46 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
 //        }
     }
 
+    private fun setupSecondaryProteins() {
+        val p1 = RibbonDiagram(Protein.fromFile(pFiles[2].pdb))
+        val p2 = RibbonDiagram(Protein.fromFile(pFiles[3].pdb))
+        val p1Label = TextBox(pFiles[2].name)
+        val p2Label = TextBox(pFiles[3].name)
+        p1.spatial {
+            scale = Vector3f(0.04f)
+            position = Vector3f(2f, 0f, 2f)
+        }
+        scene.addChild(p1)
+        p1Label.spatial{
+            scale = Vector3f(0.1f)
+            rotation = Quaternionf().rotateY(-Math.PI.toFloat()/2)
+            position = Vector3f(2f, 0.5f, 1.75f)
+        }
+        scene.addChild(p1Label)
+        p2.spatial {
+            scale = Vector3f(0.01f)
+            position = Vector3f(-2f, 0f, 2f)
+        }
+        scene.addChild(p2)
+        p2Label.spatial{
+            scale = Vector3f(0.1f)
+            rotation = Quaternionf().rotateY(Math.PI.toFloat()/2)
+            position = Vector3f(-2f, 0.5f, 2.25f)
+        }
+        scene.addChild(p2Label)
+
+        listOf(p1, p2).forEach {
+            val lastUpdate = System.currentTimeMillis()
+            val rotationMS = 20000
+            it.postUpdate += {
+                val now = System.currentTimeMillis()
+                val delta = now - lastUpdate
+                it.spatial().rotation.rotationY((2 * Math.PI * (delta % rotationMS / rotationMS.toFloat())).toFloat())
+                it.spatial().needsUpdate = true
+            }
+        }
+    }
+
     private fun setProteinActive(index: Int) {
         val p = pFiles.getOrNull(index) ?: return
 
@@ -150,11 +204,11 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
             }
         }
 
-        scene.findByClassname("RibbonDiagram").firstOrNull()?.detach()
+        mainProtein?.detach()
         val protein = Protein.fromFile(p.pdb)
-        val ribbon = RibbonDiagram(protein)
-        ribbon.spatial().position = p.pdbOffset
-        stageSpaceManager.stageRoot.addChild(ribbon)
+        mainProtein = RibbonDiagram(protein)
+        mainProtein!!.spatial().position = p.pdbOffset
+        stageSpaceManager.stageRoot.addChild(mainProtein!!)
 
         mainLabel.text = p.name
     }
