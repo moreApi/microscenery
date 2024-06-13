@@ -1,9 +1,11 @@
 package microscenery.example
 
-import graphics.scenery.AmbientLight
+import graphics.scenery.Box
 import graphics.scenery.Hub
+import graphics.scenery.attribute.material.Material
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
+import graphics.scenery.primitives.Atmosphere
 import graphics.scenery.proteins.Protein
 import graphics.scenery.proteins.RibbonDiagram
 import graphics.scenery.volumes.Volume
@@ -22,7 +24,20 @@ import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
 
-class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = true) {
+class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = false, width = 840, height = 840) {
+
+    val atmosphere = false
+
+    init {
+        val viewSettings = listOf(
+            Settings.StageSpace.viewMode,
+            Settings.StageSpace.HideFocusFrame,
+            Settings.StageSpace.HideFocusTargetFrame,
+            Settings.StageSpace.HideStageSpaceLabel
+        )
+        viewSettings.forEach { MicroscenerySettings.set(it, true) }
+        MicroscenerySettings.set(Settings.StageSpace.ShowHullbox, !atmosphere)
+    }
 
     class ProteinFiles(val name: String, val tif: String?, val pdb: String, val pdbOffset: Vector3f)
 
@@ -64,17 +79,21 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
     override fun init() {
         super.init()
 
-        val ambient = AmbientLight(intensity = 0.5f)
-        //scene.addChild(ambient)
-        cam.spatial().position = Vector3f(0f, 0f, 2f)
+        if (atmosphere) {
+            val atmos = Atmosphere(emissionStrength = 0.3f, initSunDirection = Vector3f(-0.75f, 0.1f, -1.0f))
+            scene.addChild(atmos)
 
-        val viewSettings = listOf(
-            Settings.StageSpace.viewMode,
-            Settings.StageSpace.HideFocusFrame,
-            Settings.StageSpace.HideFocusTargetFrame,
-            Settings.StageSpace.HideStageSpaceLabel
-        )
-        viewSettings.forEach { MicroscenerySettings.set(it, true) }
+            val floor = Box(Vector3f(6.0f, 0.30f, 5.0f), insideNormals = true)
+            floor.material {
+                ambient = Vector3f(0.6f, 0.6f, 0.6f)
+                diffuse = Vector3f(0.4f, 0.4f, 0.4f)
+                specular = Vector3f(0.0f, 0.0f, 0.0f)
+                cullingMode = Material.CullingMode.Front
+            }
+            floor.spatial { position = Vector3f(0f, -1f, 1.25f) }
+            scene.addChild(floor)
+        }
+        cam.spatial().position = Vector3f(0f, if (VR) -1f else 0f, 2f)
 
         stageSpaceManager = StageSpaceManager(
             microscope,
