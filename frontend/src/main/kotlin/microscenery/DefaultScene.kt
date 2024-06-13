@@ -21,7 +21,7 @@ abstract class DefaultScene(
     width: Int = 600, height: Int = 600,
     val withSwingUI: Boolean = false,
     val VR: Boolean = false
-) : SceneryBase(name, wantREPL = false, windowWidth = width, windowHeight = height) {
+) : SceneryBase(name, wantREPL = false, windowWidth = if (VR) 1920 else width, windowHeight = if (VR) 1080 else height) {
     var mainFrame: JFrame? = null
     var extraPanel: JPanel? = null
 
@@ -85,6 +85,19 @@ abstract class DefaultScene(
             }
         }
 
+        if (MicroscenerySettings.get(Settings.StageSpace.ShowHullbox,VR)){
+            hullbox = Box(Vector3f(10.0f, 10.0f, 10.0f), insideNormals = true)
+            hullbox.name = "hullbox"
+            hullbox.material {
+                ambient = Vector3f(0.6f, 0.6f, 0.6f)
+                diffuse = Vector3f(0.4f, 0.4f, 0.4f)
+                specular = Vector3f(0.0f, 0.0f, 0.0f)
+                cullingMode = Material.CullingMode.Front
+            }
+            hullbox.spatial().position = Vector3f(0f, 2.5f, 0f)
+            scene.addChild(hullbox)
+        }
+
         if (withSwingUI) {
             mainFrame = JFrame("$applicationName Controls")
             mainFrame?.layout = BorderLayout()
@@ -96,19 +109,7 @@ abstract class DefaultScene(
             mainFrame?.pack()
             mainFrame?.location = Point((windowWidth * 1.2).toInt(), 50)
         }
-
         initLight()
-
-        hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
-        hullbox.name = "hullbox"
-        hullbox.material {
-            ambient = Vector3f(0.6f, 0.6f, 0.6f)
-            diffuse = Vector3f(0.4f, 0.4f, 0.4f)
-            specular = Vector3f(0.0f, 0.0f, 0.0f)
-            cullingMode = Material.CullingMode.Front
-        }
-        hullbox.spatial().position = Vector3f(0f, 5f, 0f)
-        scene.addChild(hullbox)
     }
 
     private fun initLight() {
@@ -131,7 +132,7 @@ abstract class DefaultScene(
                 light
             }.forEach { scene.addChild(it) }
 
-            scene.addChild(AmbientLight(intensity = 0.05f))
+            scene.addChild(AmbientLight(intensity = 0.1f))
         } else {
 
             val light = PointLight(radius = 15.0f)
