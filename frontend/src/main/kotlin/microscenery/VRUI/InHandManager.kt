@@ -40,7 +40,7 @@ class InHandManager(val side: TrackerRole, val button: OpenVRHMD.OpenVRButton, v
         if (inHand != null) {
             pressBehavior.endFor(inHand)
         } else {
-            pressBehavior.drag(0, 0)
+            pressBehavior.end(0, 0)
         }
     }
 

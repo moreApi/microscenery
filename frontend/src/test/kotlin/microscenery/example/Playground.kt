@@ -2,7 +2,6 @@ package microscenery.example
 
 import graphics.scenery.controls.TrackedDevice
 import graphics.scenery.controls.TrackedDeviceType
-import graphics.scenery.controls.behaviours.PerButtonPressable
 import graphics.scenery.controls.behaviours.Pressable
 import graphics.scenery.controls.behaviours.SimplePressable
 import microscenery.DefaultScene
