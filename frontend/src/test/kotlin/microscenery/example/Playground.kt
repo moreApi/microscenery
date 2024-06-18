@@ -9,7 +9,7 @@ import microscenery.DefaultScene
 import microscenery.Settings
 import microscenery.VRUI.Gui3D.*
 import org.joml.Matrix4f
-import org.scijava.ui.behaviour.ClickBehaviour
+import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
 import kotlin.concurrent.thread
 
@@ -17,6 +17,7 @@ class Playground() : DefaultScene() {
     override fun init() {
         super.init()
 
+        cam.spatial().position = Vector3f(0f,0f,10f)
 
         val menu = Column(
             Row(TextBox("laser power", height = 0.8f)),

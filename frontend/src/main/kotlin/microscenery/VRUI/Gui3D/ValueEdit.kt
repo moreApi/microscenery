@@ -60,7 +60,7 @@ class ValueEdit<T>(start:T,
         ): ValueEdit<Int> {
             val start = MicroscenerySettings.get(setting, 0)
             fun changeAndSave(value: Int, change: Int): Int {
-                val t = max(value + change * factor, min?: Int.MAX_VALUE)
+                val t = max(value + change * factor, min?: Int.MIN_VALUE)
                 MicroscenerySettings.set(setting, t)
                 return t
             }
