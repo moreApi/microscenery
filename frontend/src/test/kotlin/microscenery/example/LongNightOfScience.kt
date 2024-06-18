@@ -8,6 +8,7 @@ import graphics.scenery.controls.TrackerRole
 import graphics.scenery.primitives.Atmosphere
 import graphics.scenery.proteins.Protein
 import graphics.scenery.proteins.RibbonDiagram
+import graphics.scenery.utils.extensions.times
 import graphics.scenery.volumes.Volume
 import microscenery.*
 import microscenery.UI.StageSpaceUI
@@ -24,7 +25,7 @@ import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
 
-class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = false, width = 840, height = 840) {
+class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = true, width = 840, height = 840) {
 
     val atmosphere = false
 
@@ -93,7 +94,7 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = f
             floor.spatial { position = Vector3f(0f, -1f, 1.25f) }
             scene.addChild(floor)
         }
-        cam.spatial().position = Vector3f(0f, if (VR) -1f else 0f, 2f)
+        cam.spatial().position = Vector3f(0f, if (VR) -1f else 0f, 1f)
 
         stageSpaceManager = StageSpaceManager(
             microscope,
@@ -173,24 +174,24 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = f
         val p2Label = TextBox(pFiles[3].name)
         p1.spatial {
             scale = Vector3f(0.04f)
-            position = Vector3f(2f, 0f, 2f)
+            position = Vector3f(1f, 0f, 1f)
         }
         scene.addChild(p1)
         p1Label.spatial{
             scale = Vector3f(0.1f)
             rotation = Quaternionf().rotateY(-Math.PI.toFloat()/2)
-            position = Vector3f(2f, 0.5f, 1.75f)
+            position = Vector3f(1f, 0.5f, 1.75f/2f)
         }
         scene.addChild(p1Label)
         p2.spatial {
             scale = Vector3f(0.01f)
-            position = Vector3f(-2f, 0f, 2f)
+            position = Vector3f(-2f, 0f, 2f).times(0.5f)
         }
         scene.addChild(p2)
         p2Label.spatial{
             scale = Vector3f(0.1f)
             rotation = Quaternionf().rotateY(Math.PI.toFloat()/2)
-            position = Vector3f(-2f, 0.5f, 2.25f)
+            position = Vector3f(-2f/2, 0.5f, 2.25f/2)
         }
         scene.addChild(p2Label)
 
@@ -264,8 +265,12 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = f
                     OpenVRHMD.OpenVRButton.System,
                     OpenVRHMD.OpenVRButton.Menu,
                     OpenVRHMD.OpenVRButton.A,
-                    //OpenVRHMD.OpenVRButton.Side,
-                    OpenVRHMD.OpenVRButton.Trigger
+                    OpenVRHMD.OpenVRButton.Side,
+                    OpenVRHMD.OpenVRButton.Trigger,
+                    OpenVRHMD.OpenVRButton.Up,
+                    OpenVRHMD.OpenVRButton.Left,
+                    OpenVRHMD.OpenVRButton.Right,
+                    OpenVRHMD.OpenVRButton.Down,
                 )
                 hmd.getAllBindings().forEach { (inputTrigger, behaviors) ->
                     buttons.flatMap {

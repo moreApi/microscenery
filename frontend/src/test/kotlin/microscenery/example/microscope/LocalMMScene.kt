@@ -16,10 +16,11 @@ import kotlin.concurrent.thread
  * Working directory needs to be the MM dir.
  */
 class LocalMMScene : DefaultScene(withSwingUI = true) {
-    val stageSpaceManager: StageSpaceManager
+    lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
-    init {
+    override fun init() {
+        super.init()
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
 //        MicroscenerySettings.set("Stage.minX", 40000f)

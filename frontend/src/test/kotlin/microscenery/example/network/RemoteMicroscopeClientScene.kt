@@ -15,7 +15,7 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
 
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,false)
-        MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
+        MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,false)
         MicroscenerySettings.set(Settings.MMMicroscope.IsMicromanagerMicroscope,true)
 
         val zContext = ZContext()

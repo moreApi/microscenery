@@ -94,5 +94,6 @@ object Settings {
         /** float*/ const val VertexDiameter: String = "MMConnection.vertexDiameter" //todo rename
         /** int */ const val PollStagePositionFrequencyMS = "MMMicroscope.PollStagePositionFrequencyMS"
         /** bool */ const val IsMicromanagerMicroscope = "MMMicroscope.IsMicromanagerMicroscope"
+        /** bool */ const val UseImageMetadataPosition = "MMMicroscope.useImageMetadataPosition"
     }
 }
