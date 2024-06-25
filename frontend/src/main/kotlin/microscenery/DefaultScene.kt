@@ -30,6 +30,11 @@ abstract class DefaultScene(
     protected lateinit var hullbox: Box
 
     override fun init() {
+
+        renderer = hub.add(
+            SceneryElement.Renderer,
+            Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
+        )
         if (VR) {
             hmd = InputManagerVRHMD()
 
@@ -39,7 +44,6 @@ abstract class DefaultScene(
             }
             hub.add(SceneryElement.HMDInput, hmd)
 
-            renderer = hub.add(Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight))
             renderer?.toggleVR()
 
             cam = DetachedHeadCamera(hmd).apply {
@@ -71,10 +75,6 @@ abstract class DefaultScene(
                 }
             }
         } else {
-            renderer = hub.add(
-                SceneryElement.Renderer,
-                Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
-            )
 
             cam = DetachedHeadCamera().apply {
                 spatial {
@@ -161,7 +161,7 @@ abstract class DefaultScene(
 abstract class DefaultVRScene(
     name: String = "VR Scene", withSwingUI: Boolean = false
 ) : DefaultScene(
-    name, width = 1920, height = 1080, VR = true, withSwingUI = withSwingUI
+    name, VR = true, withSwingUI = withSwingUI
 )
 
 class InputManagerVRHMD : OpenVRHMD(){

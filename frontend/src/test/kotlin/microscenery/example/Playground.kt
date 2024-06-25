@@ -5,6 +5,7 @@ import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.controls.behaviours.Pressable
 import graphics.scenery.controls.behaviours.SimplePressable
 import microscenery.DefaultScene
+import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.VRUI.Gui3D.*
 import org.joml.Matrix4f
@@ -12,7 +13,10 @@ import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
 import kotlin.concurrent.thread
 
-class Playground() : DefaultScene() {
+class Playground() : DefaultScene(VR = false) {
+    init {
+        MicroscenerySettings.set(Settings.StageSpace.ShowHullbox,true)
+    }
     override fun init() {
         super.init()
 
@@ -37,6 +41,7 @@ class Playground() : DefaultScene() {
 
     override fun inputSetup() {
         super.inputSetup()
+        // debug: select 3dGUI menu entries with mouse
         inputHandler?.addBehaviour("debug3dClick", object : DragBehaviour {
             var pressable: SimplePressable? = null
             val controllerDevice = TrackedDevice(TrackedDeviceType.Generic,"dummy", Matrix4f().identity(),System.nanoTime())

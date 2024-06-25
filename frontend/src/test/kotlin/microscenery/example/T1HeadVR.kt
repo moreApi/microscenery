@@ -23,6 +23,7 @@ class T1HeadVR : DefaultVRScene(T1HeadVR::class.java.simpleName) {
 
 
     override fun init() {
+        super.init()
 
         cam.spatial().position = Vector3f(0f, -5f, 5f)
 
