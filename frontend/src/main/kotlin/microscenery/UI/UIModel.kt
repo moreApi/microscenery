@@ -5,12 +5,15 @@ import graphics.scenery.controls.TrackedDevice
 import graphics.scenery.controls.TrackerRole
 import microscenery.PropertyChangeObservable
 import microscenery.VRUI.VRHandTool
+import microscenery.signals.HardwareDimensions
 
 class UIModel : PropertyChangeObservable() {
     var selected: Node? by propertyObservable(null)
     fun updateSelected() {
         selected = selected
     }
+
+    var hardwareDimensions: HardwareDimensions by propertyObservable(HardwareDimensions.EMPTY)
 
 
     var inLeftHand: VRHandTool? by propertyObservable(null)

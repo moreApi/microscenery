@@ -6,14 +6,17 @@ import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.MicroscenerySettings
+import microscenery.UI.UIModel
 import microscenery.nowMillis
-import microscenery.signals.HardwareDimensions
 import org.joml.Vector3f
 
+/**
+ * Tool visualizing the desired target position of the stage/focus. In VR it can also be pressed to trigger a snap command.
+ */
 class FrameGizmo(
     val stageSpaceManager: StageSpaceManager,
-    hwd: HardwareDimensions,
-) : Frame(hwd) {
+    uiModel: UIModel,
+) : Frame(uiModel) {
 
     var mode = Mode.PASSIVE
         set(value) {

@@ -6,13 +6,17 @@ import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import microscenery.UI.UIModel
 import microscenery.signals.HardwareDimensions
 import microscenery.toReadableString
 import org.joml.Vector3f
 import org.joml.Vector4f
 
+/**
+ * A frame that can be scaled according to the image size
+ */
 open class Frame(
-    hwd: HardwareDimensions,
+    uiModel: UIModel,
     color: Vector3f? = null
 ) : RichNode("focus") {
 
@@ -63,12 +67,22 @@ open class Frame(
             positionLabel.text = spatial().position.toReadableString()
         }
 
-        applyHardwareDimensions(hwd)
+        applyHardwareDimensions(uiModel.hardwareDimensions)
+//        uiModel.changeEvents += { event ->
+//            when (event.kProperty) {
+//                UIModel::hardwareDimensions -> {
+//                    applyHardwareDimensions(event.new as HardwareDimensions)
+//                }
+//            }
+//        }
+        uiModel.registerListener<HardwareDimensions>(UIModel::hardwareDimensions) { _, new ->
+            new?.let { applyHardwareDimensions(new) }
+        }
     }
 
 
-    fun applyHardwareDimensions(hwd: HardwareDimensions) {
+    private fun applyHardwareDimensions(hwd: HardwareDimensions) {
         pivot.spatialOrNull()?.scale =
-            Vector3f(hwd.imageSize.x.toFloat()*hwd.vertexDiameter, hwd.imageSize.y.toFloat()*hwd.vertexDiameter, 1f)
+            Vector3f(hwd.imageSize.x.toFloat() * hwd.vertexDiameter, hwd.imageSize.y.toFloat() * hwd.vertexDiameter, 1f)
     }
 }

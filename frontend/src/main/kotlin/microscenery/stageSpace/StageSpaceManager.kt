@@ -51,6 +51,7 @@ class StageSpaceManager(
     val sliceManager = SliceManager(hardware, stageRoot, scene, msHub)
     val ablationManager = AblationManager(hardware,this,scene)
     private val stageSpaceLabel: StageSpaceLabel?
+    val uiModel = msHub.getAttribute(UIModel::class.java)
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
@@ -91,14 +92,14 @@ class StageSpaceManager(
                 null
             }
 
-        focus = Frame(hardware.hardwareDimensions(), Vector3f(0.4f, 0.4f, 1f)).apply {
+        focus = Frame(uiModel, Vector3f(0.4f, 0.4f, 1f)).apply {
             spatial().position = hardware.stagePosition.copy()
             stageRoot.addChild(this)
             visible = !MicroscenerySettings.get(Settings.StageSpace.HideFocusFrame,false)
         }
 
         if (!MicroscenerySettings.get(Settings.StageSpace.HideFocusTargetFrame,false))
-            focusTarget = FrameGizmo(this, hardware.hardwareDimensions()).apply {
+            focusTarget = FrameGizmo(this, uiModel).apply {
                 spatial().position = hardware.stagePosition.copy()
                 stageRoot.addChild(this)
             }
@@ -124,7 +125,8 @@ class StageSpaceManager(
             }
 
         }
-        msHub.getAttribute(UIModel::class.java).changeEvents += { event ->
+        // update position or visibility of selection indicator on change
+        uiModel.changeEvents += { event ->
             when (event.kProperty) {
                 UIModel::selected -> {
                     selectionIndicator.detach()
@@ -196,8 +198,7 @@ class StageSpaceManager(
             }
         }
 
-        focusTarget?.applyHardwareDimensions(signal)
-        focus.applyHardwareDimensions(signal)
+        uiModel.hardwareDimensions = signal
     }
 
     fun stack(from: Vector3f, to: Vector3f, live: Boolean = MicroscenerySettings.get("Stage.NextStackLive", false)) {

@@ -70,7 +70,7 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
 
         msHub.getAttribute(UIModel::class.java).changeEvents += {
             when(it.kProperty){
-                UIModel::selected -> println("${(it.new as Node).name} selected")
+                UIModel::selected -> println("${(it.new as? Node)?.name ?: "none"} selected")
             }
         }
     }
