@@ -5,6 +5,8 @@ import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import graphics.scenery.Scene
 import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UP
 import microscenery.stageSpace.SliceRenderNode
 import microscenery.stageSpace.StageSpaceManager
@@ -53,6 +55,17 @@ class ScapeViewerUI(val msHub: MicrosceneryHub) {
         cam.spatial {
             position = Vector3f(0.0f, 1.5f, 1.5f)
             rotation = Quaternionf().lookAlong(Vector3f(0.0f, -1.5f, -1.5f), UP)
+        }
+    }
+
+    companion object{
+        fun scapeViewerSettings(){
+            MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame, false)
+            MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame, false)
+            MicroscenerySettings.set(Settings.StageSpace.HideStageSpaceLabel, true)
+            MicroscenerySettings.set(Settings.StageSpace.RandomSliceOffset, 0.1f)
+            MicroscenerySettings.set(Settings.UI.ShowBorderOfSelected,true)
+            MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator,false)
         }
     }
 }

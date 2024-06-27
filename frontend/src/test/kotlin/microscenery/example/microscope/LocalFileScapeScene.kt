@@ -28,13 +28,7 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = true) {
 
 
     init {
-        MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame, false)
-        MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame, true)
-        MicroscenerySettings.set(Settings.StageSpace.HideStageSpaceLabel, true)
-        MicroscenerySettings.set(Settings.StageSpace.RandomSliceOffset, 0.1f)
-        MicroscenerySettings.set(Settings.UI.ShowBorderOfSelected,true)
-        MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator,false)
-//        MicroscenerySettings.set("Stage.CameraDependendZSorting",false)
+        ScapeViewerUI.scapeViewerSettings()
 
 
         val hardware = DataReaderMicroscope()
