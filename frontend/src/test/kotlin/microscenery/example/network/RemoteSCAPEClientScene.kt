@@ -36,7 +36,6 @@ class RemoteSCAPEClientScene : DefaultScene(withSwingUI = true) {
 
     override fun inputSetup() {
         super.inputSetup()
-        StageSpaceUI(stageSpaceManager).stageUI(this,inputHandler, msHub)
 
         val scapeUI = ScapeViewerUI(msHub)
         scapeUI.resetView()

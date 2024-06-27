@@ -44,7 +44,6 @@ class MicromanagerWrapper(
 
     // for Slices and stacks
     private var idCounter = 0
-    var lastSnap = 0L
     var vertexDiameter = MicroscenerySettings.get(Settings.MMMicroscope.VertexDiameter, mmCoreConnector.pixelSizeUm)
         set(value) {
             field = value
@@ -55,7 +54,6 @@ class MicromanagerWrapper(
         MicroscenerySettings.setIfUnset(Settings.Stage.Limits.OriginMoveProtection, true)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Min, mmCoreConnector.stagePosition)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Max, mmCoreConnector.stagePosition)
-        MicroscenerySettings.setIfUnset(Settings.MMMicroscope.UseStudioAPI,mmStudioConnector !is DummyMMStudioConnector )
         MicroscenerySettings.setIfUnset(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
         MicroscenerySettings.setIfUnset(Settings.Stage.Limits.AutoGrowStageLimits,true)
 
@@ -238,9 +236,7 @@ class MicromanagerWrapper(
                 executeSnapImage(hwCommand)
             }
             is HardwareCommand.Stop -> {
-                if(MicroscenerySettings.get(Settings.MMMicroscope.UseStudioAPI,false)) {
-                    mmStudioConnector.live(false)
-                }
+                mmStudioConnector.live(false)
                 status = status.copy(state = ServerState.MANUAL)
             }
             is HardwareCommand.Shutdown -> {
@@ -254,46 +250,8 @@ class MicromanagerWrapper(
     }
 
     private fun executeSnapImage(hwCommand: HardwareCommand.SnapImage) {
-        if(hwCommand.live && MicroscenerySettings.get(Settings.MMMicroscope.UseStudioAPI,false)) {
+        if(hwCommand.live) {
             mmStudioConnector.live(true)
-            return
-        }
-
-        if (hwCommand.live && lastSnap + timeBetweenUpdates > System.currentTimeMillis()) {
-            if (hardwareCommandsQueue.isEmpty()) {
-                Thread.sleep(
-                    (lastSnap + timeBetweenUpdates - System.currentTimeMillis()).coerceAtLeast(0)
-                )
-            } else {
-                hardwareCommandsQueue.add(hwCommand)
-                return
-            }
-        }
-
-        if (MicroscenerySettings.get(Settings.MMMicroscope.UseStudioAPI,false)) {
-            //TODO handle stack slices
-            mmStudioConnector.snap()
-        } else {
-            val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
-            (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
-            try {
-                mmCoreConnector.snapSlice(buf.asShortBuffer())
-            } catch (t: Throwable) {
-                logger.warn("Failed snap command", t)
-                return
-            }
-            val sliceSignal = Slice(
-                idCounter++,
-                System.currentTimeMillis(),
-                mmCoreConnector.stagePosition,
-                hardwareDimensions.byteSize,
-                hwCommand.stackIdAndSliceIndex,
-                buf
-            )
-            output.put(sliceSignal)
-        }
-        lastSnap = System.currentTimeMillis()
-        if (hwCommand.live) {
             when (status.state) {
                 ServerState.LIVE -> {}
                 ServerState.MANUAL -> status = status.copy(state = ServerState.LIVE)
@@ -302,8 +260,26 @@ class MicromanagerWrapper(
                     throw IllegalStateException("Want to go live but server is ${status.state}. Stopping.")
                 }
             }
-            addToCommandQueueIfNotStopped(hwCommand)
+            return
         }
+
+        val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
+        (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
+        try {
+            mmCoreConnector.snapSlice(buf.asShortBuffer())
+        } catch (t: Throwable) {
+            logger.warn("Failed snap command", t)
+            return
+        }
+        val sliceSignal = Slice(
+            idCounter++,
+            System.currentTimeMillis(),
+            mmCoreConnector.stagePosition,
+            hardwareDimensions.byteSize,
+            hwCommand.stackIdAndSliceIndex,
+            buf
+        )
+        output.put(sliceSignal)
     }
 
     private fun executeGenerateStackCommands(hwCommand: HardwareCommand.GenerateStackCommands) {
