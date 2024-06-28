@@ -35,8 +35,8 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
 
     protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
         HardwareDimensions.EMPTY.copy(stageMin = Vector3f(-45f))
-    ) { _, _, _ ->
-        output.put(hardwareDimensions)
+    ) { _, old, new ->
+        if (old != new) output.put(hardwareDimensions)
     }
 
     override fun status(): MicroscopeStatus = status
