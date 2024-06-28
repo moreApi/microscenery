@@ -20,7 +20,6 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
     override val output: BlockingQueue<MicroscopeSignal> = ArrayBlockingQueue(50)
 
 
-    @Suppress("BlockingMethodInNonBlockingContext")
     protected var status: MicroscopeStatus by Delegates.observable(
         MicroscopeStatus(ServerState.STARTUP, Vector3f(), false)
     ) { _, _, _ ->

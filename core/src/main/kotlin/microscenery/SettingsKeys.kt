@@ -88,8 +88,6 @@ object Settings {
     }
 
     object MMMicroscope {
-
-        /** int */ const val TimeBetweenStackAcquisition: String = "MMConnection.TimeBetweenStackAcquisition"  //todo rename
         /** float*/ const val VertexDiameter: String = "MMConnection.vertexDiameter" //todo rename
         /** int */ const val PollStagePositionFrequencyMS = "MMMicroscope.PollStagePositionFrequencyMS"
         /** bool */ const val IsMicromanagerMicroscope = "MMMicroscope.IsMicromanagerMicroscope"

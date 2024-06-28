@@ -30,7 +30,6 @@ import kotlin.system.measureNanoTime
 class MicromanagerWrapper(
     private val mmCoreConnector: MMCoreConnector,
     private val mmStudioConnector: MMStudioConnector = DummyMMStudioConnector(),
-    var timeBetweenUpdates: Int = MicroscenerySettings.get(Settings.MMMicroscope.TimeBetweenStackAcquisition, 1000)
 ) : MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -83,6 +82,8 @@ class MicromanagerWrapper(
     }
 
     private fun initStagePositionPollingThread(freq: Int) {
+        stagePositionPollingThread?.interrupt()
+        stagePositionPollingThread?.join()
         stagePositionPollingThread = thread(isDaemon = true, name = "MicromanagerWrapperStagePositionPoller") {
             while(!Thread.currentThread().isInterrupted){
                 val newPos = mmCoreConnector.stagePosition
@@ -211,6 +212,7 @@ class MicromanagerWrapper(
      */
     @Suppress("unused")
     fun externalSnap(position: Vector3f, data: ByteBuffer){
+        updateHardwareDimensions()
         val sliceSignal = Slice(
             idCounter++,
             System.currentTimeMillis(),
@@ -263,14 +265,31 @@ class MicromanagerWrapper(
             return
         }
 
-        val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
-        (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
-        try {
-            mmCoreConnector.snapSlice(buf.asShortBuffer())
-        } catch (t: Throwable) {
-            logger.warn("Failed snap command", t)
-            return
+        fun takeImage():ByteBuffer {
+            val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
+            (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
+            try {
+                mmCoreConnector.snapSlice(buf.asShortBuffer())
+            } catch (t: Throwable) {
+                MemoryUtil.memFree(buf)
+                throw t
+            }
+            return buf
         }
+
+        val buf = try {
+            takeImage()
+        } catch (t: Throwable) {
+            //image size might has be changed by ROI selection -> retry
+            updateHardwareDimensions()
+            try {
+                takeImage()
+            } catch (t: Throwable) {
+                logger.warn("Failed snap command", t)
+                throw t
+            }
+        }
+
         val sliceSignal = Slice(
             idCounter++,
             System.currentTimeMillis(),
