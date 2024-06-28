@@ -192,13 +192,16 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
 
     /**
      * Adds an update routine lambda to a specific setting [setting], which is called when the setting changes inside the [settingsStore]
+     *
+     * @param runNow execute [update] now
      */
-    fun addUpdateRoutine(setting : String, update: () -> Unit) {
+    fun addUpdateRoutine(setting : String, runNow: Boolean = false, update: () -> Unit) {
         if(!settingsUpdateRoutines.containsKey(setting)) {
             settingsUpdateRoutines[setting] = arrayListOf(update)
         } else {
             settingsUpdateRoutines[setting]!! += update
         }
+        if (runNow) update()
     }
 
     /**

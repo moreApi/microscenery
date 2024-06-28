@@ -56,13 +56,8 @@ class MicromanagerWrapper(
         MicroscenerySettings.setIfUnset(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
         MicroscenerySettings.setIfUnset(Settings.Stage.Limits.AutoGrowStageLimits,true)
 
-        MicroscenerySettings.addUpdateRoutine(Settings.MMMicroscope.PollStagePositionFrequencyMS){
-            val freq = MicroscenerySettings.get(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
-            if (freq == 0){
-                stagePositionPollingThread?.interrupt()
-            } else {
-                initStagePositionPollingThread(freq)
-            }
+        MicroscenerySettings.addUpdateRoutine(Settings.MMMicroscope.PollStagePositionFrequencyMS, true){
+            updateStagePositionPollingThread()
         }
 
         updateHardwareDimensions()
@@ -81,16 +76,21 @@ class MicromanagerWrapper(
         status = status.copy(stagePosition = mmCoreConnector.stagePosition, state = ServerState.MANUAL)
     }
 
-    private fun initStagePositionPollingThread(freq: Int) {
-        stagePositionPollingThread?.interrupt()
-        stagePositionPollingThread?.join()
-        stagePositionPollingThread = thread(isDaemon = true, name = "MicromanagerWrapperStagePositionPoller") {
-            while(!Thread.currentThread().isInterrupted){
-                val newPos = mmCoreConnector.stagePosition
-                if (newPos != stagePosition){
-                    updateStagePositionNoMovement(newPos)
+    private fun updateStagePositionPollingThread() {
+        val freq = MicroscenerySettings.get(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
+        if (freq == 0){
+            stagePositionPollingThread?.interrupt()
+        } else {
+            stagePositionPollingThread?.interrupt()
+            stagePositionPollingThread?.join()
+            stagePositionPollingThread = thread(isDaemon = true, name = "MicromanagerWrapperStagePositionPoller") {
+                while(!Thread.currentThread().isInterrupted){
+                    val newPos = mmCoreConnector.stagePosition
+                    if (newPos != stagePosition){
+                        updateStagePositionNoMovement(newPos)
+                    }
+                    Thread.sleep(freq.toLong())
                 }
-                Thread.sleep(freq.toLong())
             }
         }
     }
