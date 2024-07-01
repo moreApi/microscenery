@@ -7,10 +7,16 @@ interface MMStudioConnector {
     fun startAcquisition()
     fun live(enabled: Boolean)
     fun alertUser(title:String, message:String)
+    fun askForStageLimitErrorResolve(): StageLimitErrorResolves?
     fun addPositionToPositionList(label: String, position: Vector3f)
+
+    enum class StageLimitErrorResolves{
+        RESET_LIMITS,MOVE_STAGE,IGNORE
+    }
 }
 
 class DummyMMStudioConnector : MMStudioConnector{
+
     override fun snap() {
         println("Dummy Snap")
     }
@@ -23,6 +29,10 @@ class DummyMMStudioConnector : MMStudioConnector{
         println("Dummy live to $enabled")
     }
 
+    override fun askForStageLimitErrorResolve(): MMStudioConnector.StageLimitErrorResolves {
+        println("Dummy live to stage limit error resolve")
+        return MMStudioConnector.StageLimitErrorResolves.IGNORE
+    }
     override fun alertUser(title: String, message: String) {
         println("Dummy Alert User $title: $message")
     }
@@ -30,4 +40,5 @@ class DummyMMStudioConnector : MMStudioConnector{
     override fun addPositionToPositionList(label: String, position: Vector3f) {
         println("Dummy Add Position $label: $position")
     }
+
 }

@@ -53,23 +53,35 @@ class MicromanagerWrapper(
         MicroscenerySettings.setIfUnset(Settings.Stage.Limits.OriginMoveProtection, true)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Min, mmCoreConnector.stagePosition)
         MicroscenerySettings.setVector3fIfUnset(Settings.Stage.Limits.Max, mmCoreConnector.stagePosition)
-        MicroscenerySettings.setIfUnset(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
-        MicroscenerySettings.setIfUnset(Settings.Stage.Limits.AutoGrowStageLimits,true)
+        MicroscenerySettings.setIfUnset(Settings.MMMicroscope.PollStagePositionFrequencyMS, 0)
+        MicroscenerySettings.setIfUnset(Settings.Stage.Limits.AutoGrowStageLimits, true)
 
-        MicroscenerySettings.addUpdateRoutine(Settings.MMMicroscope.PollStagePositionFrequencyMS, true){
+        MicroscenerySettings.addUpdateRoutine(Settings.MMMicroscope.PollStagePositionFrequencyMS, true) {
             updateStagePositionPollingThread()
         }
 
         updateHardwareDimensions()
 
-        if (hardwareDimensions.coercePosition(mmCoreConnector.stagePosition, null) != mmCoreConnector.stagePosition){
-            val msg = "Stage ${mmCoreConnector.stagePosition.toReadableString()} not in allowed area " +
-                    "from ${MicroscenerySettings.getVector3(Settings.Stage.Limits.Min)?.toReadableString()}" +
-                    "to ${MicroscenerySettings.getVector3(Settings.Stage.Limits.Max)?.toReadableString()}. Aborting!" +
-                    "Adjust stage position manually or stage limits in properties file."
-            logger.error(msg)
-            mmStudioConnector.alertUser("Crushing Risk!",msg)
-            throw IllegalStateException(msg)
+        if (hardwareDimensions.coercePosition(mmCoreConnector.stagePosition, null) != mmCoreConnector.stagePosition) {
+            when (mmStudioConnector.askForStageLimitErrorResolve()) {
+                MMStudioConnector.StageLimitErrorResolves.RESET_LIMITS -> {
+                    hardwareDimensions = hardwareDimensions.copy(
+                        stageMin = stagePosition,
+                        stageMax = stagePosition,
+                    )
+                    MicroscenerySettings.setVector3f(Settings.Stage.Limits.Max, stagePosition)
+                    MicroscenerySettings.setVector3f(Settings.Stage.Limits.Min, stagePosition)
+                }
+
+                MMStudioConnector.StageLimitErrorResolves.MOVE_STAGE -> stagePosition =
+                    (hardwareDimensions().stageMin + hardwareDimensions().stageMax).times(0.5f)
+
+                MMStudioConnector.StageLimitErrorResolves.IGNORE -> {}
+                null -> throw IllegalArgumentException(
+                    "Stage out of bounds. Select resolve in error dialog or" +
+                            "delete stage limits in properties. Aborting here to not crush equipment."
+                )
+            }
         }
 
         startAgent()
@@ -77,16 +89,16 @@ class MicromanagerWrapper(
     }
 
     private fun updateStagePositionPollingThread() {
-        val freq = MicroscenerySettings.get(Settings.MMMicroscope.PollStagePositionFrequencyMS,0)
-        if (freq == 0){
+        val freq = MicroscenerySettings.get(Settings.MMMicroscope.PollStagePositionFrequencyMS, 0)
+        if (freq == 0) {
             stagePositionPollingThread?.interrupt()
         } else {
             stagePositionPollingThread?.interrupt()
             stagePositionPollingThread?.join()
             stagePositionPollingThread = thread(isDaemon = true, name = "MicromanagerWrapperStagePositionPoller") {
-                while(!Thread.currentThread().isInterrupted){
+                while (!Thread.currentThread().isInterrupted) {
                     val newPos = mmCoreConnector.stagePosition
-                    if (newPos != stagePosition){
+                    if (newPos != stagePosition) {
                         updateStagePositionNoMovement(newPos)
                     }
                     Thread.sleep(freq.toLong())
@@ -164,16 +176,17 @@ class MicromanagerWrapper(
     override fun deviceSpecificCommands(data: ByteArray) {
         val signal = try {
             MicroManagerSignal.parseFrom(data)
-        } catch (e: InvalidProtocolBufferException){
+        } catch (e: InvalidProtocolBufferException) {
             logger.error("Could not parse deviceSpecificCommands: $data")
             return
         }
-        when(signal.signalCase?: throw IllegalArgumentException("Illegal payload")){
+        when (signal.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
             MicroManagerSignal.SignalCase.SIGNAL_NOT_SET ->
                 throw IllegalArgumentException("Signal is not set in Client signal message")
+
             MicroManagerSignal.SignalCase.ADDTOPOSITIONLIST -> {
                 val pos = signal.addToPositionList
-                mmStudioConnector.addPositionToPositionList(pos.label,pos.pos.toPoko())
+                mmStudioConnector.addPositionToPositionList(pos.label, pos.pos.toPoko())
             }
         }
     }
@@ -183,11 +196,11 @@ class MicromanagerWrapper(
      * Used for updates from the hardware cause by manual movement by the user.
      */
     @Suppress("unused")
-    fun updateStagePositionNoMovement(pos: Vector3f){
+    fun updateStagePositionNoMovement(pos: Vector3f) {
         if (status.state != ServerState.STARTUP) {
             status = status.copy(stagePosition = pos)
 
-            if (MicroscenerySettings.get(Settings.Stage.Limits.AutoGrowStageLimits, true)){
+            if (MicroscenerySettings.get(Settings.Stage.Limits.AutoGrowStageLimits, true)) {
 
                 val min = hardwareDimensions.stageMin
                 val max = hardwareDimensions.stageMax
@@ -199,7 +212,7 @@ class MicromanagerWrapper(
                     newMin.setComponent(i, min(pos[i], min[i]))
                     newMax.setComponent(i, max(pos[i], max[i]))
                 }
-                if (min != newMin || max != newMax){
+                if (min != newMin || max != newMax) {
                     hardwareDimensions = hardwareDimensions.copy(stageMin = newMin, stageMax = newMax)
                 }
             }
@@ -211,7 +224,7 @@ class MicromanagerWrapper(
      * Used for data acquired by use of the traditional micromanager interface.
      */
     @Suppress("unused")
-    fun externalSnap(position: Vector3f, data: ByteBuffer){
+    fun externalSnap(position: Vector3f, data: ByteBuffer) {
         updateHardwareDimensions()
         val sliceSignal = Slice(
             idCounter++,
@@ -231,28 +244,34 @@ class MicromanagerWrapper(
             is HardwareCommand.GenerateStackCommands -> {
                 executeGenerateStackCommands(hwCommand)
             }
+
             is HardwareCommand.MoveStage -> {
                 executeMoveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
             }
+
             is HardwareCommand.SnapImage -> {
                 executeSnapImage(hwCommand)
             }
+
             is HardwareCommand.Stop -> {
                 mmStudioConnector.live(false)
                 status = status.copy(state = ServerState.MANUAL)
             }
+
             is HardwareCommand.Shutdown -> {
                 this.close()
             }
+
             is HardwareCommand.AblatePoints -> {
                 executeAblatePoints(hwCommand)
             }
+
             HardwareCommand.StartAcquisition -> mmStudioConnector.startAcquisition()
         }
     }
 
     private fun executeSnapImage(hwCommand: HardwareCommand.SnapImage) {
-        if(hwCommand.live) {
+        if (hwCommand.live) {
             mmStudioConnector.live(true)
             when (status.state) {
                 ServerState.LIVE -> {}
@@ -265,7 +284,7 @@ class MicromanagerWrapper(
             return
         }
 
-        fun takeImage():ByteBuffer {
+        fun takeImage(): ByteBuffer {
             val buf = MemoryUtil.memAlloc(hardwareDimensions.byteSize)
             (buf as Buffer).clear() // this cast has to be done to be compatible with JDK 8
             try {
@@ -333,8 +352,11 @@ class MicromanagerWrapper(
         }
 
         if (hwCommand.signal.live) {
-            addToCommandQueueIfNotStopped(HardwareCommand.GenerateStackCommands(
-                signal = meta.copy(id = currentStack.Id)))
+            addToCommandQueueIfNotStopped(
+                HardwareCommand.GenerateStackCommands(
+                    signal = meta.copy(id = currentStack.Id)
+                )
+            )
         }
     }
 
@@ -342,7 +364,7 @@ class MicromanagerWrapper(
         //this is a thread so it can be interrupted asynchronously
         var totalTime = 0
         val perPointTime = mutableListOf<Int>()
-        val debug = MicroscenerySettings.get("debug",false)
+        val debug = MicroscenerySettings.get("debug", false)
         ablationThread = thread(isDaemon = true) {
             status = status.copy(state = ServerState.ABLATION)
             mmCoreConnector.ablationShutter(true, true)
@@ -355,8 +377,8 @@ class MicromanagerWrapper(
                         logger.info("Executing $point")
                         val startAblation = System.nanoTime()
                         val moveTime = measureNanoTime {
-                            if (debug){
-                                executeMoveStage(point.position,true)
+                            if (debug) {
+                                executeMoveStage(point.position, true)
                             } else {
                                 mmCoreConnector.moveStage(point.position, true)
                             }
@@ -414,7 +436,8 @@ class MicromanagerWrapper(
 
 
         if (MicroscenerySettings.get(Settings.Stage.Limits.OriginMoveProtection, true)
-            && target == Vector3f(0f)){//( target.x == 0f || target.y == 0f || target.z == 0f)){
+            && target == Vector3f(0f)
+        ) {//( target.x == 0f || target.y == 0f || target.z == 0f)){
             logger.warn("Ignoring stage move command because Settings.Stage.Limits.OriginMoveProtection is true")
             return
         }

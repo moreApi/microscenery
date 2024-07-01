@@ -195,6 +195,7 @@ class Settings(val prefix : String = "scenery.", inputPropertiesStream : InputSt
      *
      * @param runNow execute [update] now
      */
+    @JvmOverloads
     fun addUpdateRoutine(setting : String, runNow: Boolean = false, update: () -> Unit) {
         if(!settingsUpdateRoutines.containsKey(setting)) {
             settingsUpdateRoutines[setting] = arrayListOf(update)
