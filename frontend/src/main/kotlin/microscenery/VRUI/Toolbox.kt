@@ -33,6 +33,7 @@ class Toolbox(
     val pathAblationTool = stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
     val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
     val ablationInkMoveTool = stageSpaceManager?.let { AblationInkMoveTool(stageSpaceManager)}
+    val measureTool = stageSpaceManager?.let { MeasureTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
     val bubblesTool = BubblesTool()
 
     init {
@@ -47,6 +48,16 @@ class Toolbox(
         fun addIfEnabled(key: String, name: String, command: (Spatial) -> Unit) {
             if (MicroscenerySettings.get(key, false)) {
                 defaultMenu = defaultMenu + (name to command)
+            }
+        }
+
+        MicroscenerySettings.set("todo",true)
+        measureTool?.let {
+            addIfEnabled("todo", "measure tool") { device ->
+                uiModel.rightVRController?.model?.addChild(measureTool)
+                uiModel.inRightHand = measureTool
+                measureTool.visible = true
+                //measureTool.spatial().position = device.worldPosition()
             }
         }
 

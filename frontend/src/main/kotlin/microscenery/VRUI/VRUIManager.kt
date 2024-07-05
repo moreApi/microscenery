@@ -1,6 +1,7 @@
 package microscenery.VRUI
 
 import graphics.scenery.Scene
+import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
@@ -65,7 +66,6 @@ class VRUIManager {
                     stageSpaceManager = stageSpaceUI?.stageSpaceManager
                 )
 
-            VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.LeftHand), false)
 
             val pressButtons = listOf(
                 OpenVRHMD.OpenVRButton.Trigger,
@@ -73,18 +73,35 @@ class VRUIManager {
                 OpenVRHMD.OpenVRButton.Menu,
                 OpenVRHMD.OpenVRButton.Side
             )
-            InHandManager.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.LeftHand,pressButtons)
-            InHandManager.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.RightHand,pressButtons)
+            InHandForwarder.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.LeftHand,pressButtons)
+            InHandForwarder.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.RightHand,pressButtons)
 
-            VRGrab.createAndSet(
-                scene,
-                hmd,
-                listOf(OpenVRHMD.OpenVRButton.Side),
-                listOf(TrackerRole.RightHand, TrackerRole.LeftHand),
-                holdToDrag = false,
-                onGrab = { node, device -> (hmd as? OpenVRHMD)?.vibrate(device); Touch.unapplySelectionColor(node) })
+            listOf(TrackerRole.RightHand, TrackerRole.LeftHand).forEach {side ->
+                val grab = VRGrab.createAndSet(
+                    scene,
+                    hmd,
+                    OpenVRHMD.OpenVRButton.Side,
+                    side,
+                    holdToDrag = false,
+                    onGrab = { node, device -> (hmd as? OpenVRHMD)?.vibrate(device); Touch.unapplySelectionColor(node) })
+
+                // use tool tip for grabbing when one is in hand
+                var controllerCollider: Spatial? = null
+                val handProperty = if (side == TrackerRole.LeftHand) UIModel::inLeftHand else UIModel::inRightHand
+                uiModel.registerListener<VRHandTool>(handProperty){ old,new ->
+                    if (grab.isDone){
+                        if (controllerCollider == null) controllerCollider = grab.get().controllerHitbox
+                        if (new == null){
+                            grab.get().controllerHitbox = controllerCollider as Spatial
+                        } else {
+                            new.getTipCollider()?.let { grab.get().controllerHitbox = it }
+                        }
+                    }
+                }
+            }
+
             val touchRightHand = VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand), false)
-
+            VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.LeftHand), false)
 
             // ----------------- Menus -----------------
             Toolbox(

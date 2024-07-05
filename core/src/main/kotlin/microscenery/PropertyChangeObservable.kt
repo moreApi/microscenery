@@ -17,8 +17,9 @@ open class PropertyChangeObservable{
     }
 
     inline fun <reified T>registerListener(kProperty: KProperty<*>, crossinline action: (T?, T?) -> Unit) {
-        if (kProperty.returnType != T::class.createType()){
-            throw IllegalArgumentException("wrong type for property listener function")
+        // don't care about nullability but the rest of the type has to fit
+        if (!(kProperty.returnType == T::class.createType(nullable = true) || kProperty.returnType == T::class.createType(nullable = false))){
+            throw IllegalArgumentException("wrong type for property listener function got ${kProperty.returnType} needed ${T::class.createType()}")
         }
 
         changeEvents += { event ->

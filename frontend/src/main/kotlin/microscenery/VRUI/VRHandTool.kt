@@ -1,6 +1,7 @@
 package microscenery.VRUI
 
 import graphics.scenery.attribute.spatial.HasSpatial
+import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.PerButtonPressable
 import graphics.scenery.controls.behaviours.Pressable
@@ -11,6 +12,8 @@ import microscenery.detach
 import org.joml.Vector3f
 
 interface VRHandTool: HasSpatial {
+
+    fun getTipCollider(): Spatial? = null
 
     /**
      * Change Side button to grab functionality and set behavior active
