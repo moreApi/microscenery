@@ -11,7 +11,7 @@ import kotlin.concurrent.thread
 /**
  * Redirects button presses to hand held tools if present to circumvent imprecise collision detection.
  */
-class InHandManager(val side: TrackerRole, val button: OpenVRHMD.OpenVRButton, val pressBehavior: VRPress, val uiModel: UIModel):
+class InHandForwarder(val side: TrackerRole, val button: OpenVRHMD.OpenVRButton, val pressBehavior: VRPress, val uiModel: UIModel):
     DragBehaviour {
     init {
         if (side == TrackerRole.Invalid) throw IllegalStateException()
@@ -56,7 +56,7 @@ class InHandManager(val side: TrackerRole, val button: OpenVRHMD.OpenVRButton, v
                     hmd.removeKeyBinding(it.name)
                     hmd.removeBehaviour(it.name)
                     val name = it.name + ":InHandManager"
-                    hmd.addBehaviour(name, InHandManager(side, it.button,it, uiModel))
+                    hmd.addBehaviour(name, InHandForwarder(side, it.button,it, uiModel))
                     hmd.addKeyBinding(name, side, it.button)
                 }
 
