@@ -6,12 +6,14 @@ import graphics.scenery.attribute.material.DefaultMaterial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
-import microscenery.UI.UIModel
+import microscenery.VRUI.Gui3D.TextBox
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.detach
 import microscenery.primitives.LineNode
 import microscenery.stageSpace.StageSpaceManager
+import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.math.PI
 
 
 /**
@@ -36,8 +38,7 @@ import org.joml.Vector3f
 class MeasureTool(
     var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f),
     val stageSpaceManager: StageSpaceManager,
-    hmd: OpenVRHMD,
-    uiModel: UIModel
+    hmd: OpenVRHMD
 ) : Box(Vector3f(0.05f, 0.13f, 0.05f)), VRHandTool {
     private val tip: Box
     private val pointOutput: RichNode
@@ -60,7 +61,8 @@ class MeasureTool(
         tip.addChild(pointOutput)
         val touch = Touch("Measuring Tool touch", tip, {measurePoints})
 
-        this.initVRHandToolAndPressable(uiModel, PerButtonPressable(
+        //this.initVRHandToolAndPressable(uiModel,
+        this.addAttribute(Pressable::class.java, PerButtonPressable(
             mapOf(
                 OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
                     onRelease = { _, _ ->
@@ -111,6 +113,24 @@ class MeasureTool(
 
         measurePoints.lastOrNull()?.connectTo(newPoint)
         measurePoints += newPoint
+
+        newPoint.lines.filter {
+            it.getAttributeOrNull(MeasureLabel::class.java) == null
+        }.forEach { newLine ->
+            val length = scale.y * (parent?.spatialOrNull()?.scale?.y ?: 1f)
+            val label = TextBox("$length mu", thickness = 0.2f)
+            label.spatial {
+                position.y = 1f
+                rotation = Quaternionf().rotationZ(PI.toFloat())
+            }
+            label.update += {
+                val l = scale.y * (parent?.spatialOrNull()?.scale?.y ?: 1f)
+                label.text = "$l mu"
+            }
+            newLine.addChild(label)
+            newLine.addAttribute(MeasureLabel::class.java, MeasureLabel())
+
+        }
     }
 
     private fun deletePoint(point: MeasurePoint?) {
@@ -146,4 +166,9 @@ class MeasureTool(
             setMaterial(DefaultMaterial().apply { diffuse = Vector3f(0.7f) })
         }
     }
+
+    /**
+     * a placeholder to access the attribute functionality
+     */
+    class MeasureLabel
 }

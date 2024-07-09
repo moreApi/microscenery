@@ -15,6 +15,7 @@ import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel.Companion.toActions
 import microscenery.VRUI.fromScenery.WheelMenu
 import microscenery.stageSpace.StageSpaceManager
+import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
 
 class Toolbox(
@@ -33,7 +34,7 @@ class Toolbox(
     val pathAblationTool = stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
     val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
     val ablationInkMoveTool = stageSpaceManager?.let { AblationInkMoveTool(stageSpaceManager)}
-    val measureTool = stageSpaceManager?.let { MeasureTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
+    val measureTool = stageSpaceManager?.let { MeasureTool(stageSpaceManager = it, hmd = hmd) }
     val bubblesTool = BubblesTool()
 
     init {
@@ -53,10 +54,20 @@ class Toolbox(
 
         MicroscenerySettings.set("todo",true)
         measureTool?.let {
-            addIfEnabled("todo", "measure tool") { device ->
-                uiModel.rightVRController?.model?.addChild(measureTool)
-                uiModel.inRightHand = measureTool
-                measureTool.visible = true
+            addIfEnabled("todo", "measure tool") { _ ->
+                uiModel.rightVRController?.let { device ->
+                    uiModel.putInHand(device.role, measureTool)
+                    measureTool.spatial{
+                        //rotation.premul(device.model?.spatialOrNull()?.worldRotation()?.invert())
+                        position = Vector3f()
+                    }
+                    device.model?.addChild(measureTool)
+                }
+
+
+                //uiModel.rightVRController?.model?.addChild(measureTool)
+                //uiModel.inRightHand = measureTool
+
                 //measureTool.spatial().position = device.worldPosition()
             }
         }
