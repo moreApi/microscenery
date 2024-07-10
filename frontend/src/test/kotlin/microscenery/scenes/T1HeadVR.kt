@@ -1,4 +1,4 @@
-package microscenery.example
+package microscenery.scenes
 
 import bdv.util.AxisOrder
 import bvv.core.VolumeViewerOptions

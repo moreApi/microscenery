@@ -1,4 +1,4 @@
-package microscenery.example.microscope
+package microscenery.scenes.microscope
 
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.minus

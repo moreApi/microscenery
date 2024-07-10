@@ -65,7 +65,7 @@ tasks{
     // This registers gradle tasks for all example scenes
     sourceSets.test.get().allSource.files
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
-        .filter { it.contains("microscenery.example.") && !it.contains("resources") }
+        .filter { it.contains("microscenery.scenes.") && !it.contains("resources") }
         .forEach { className ->
             val exampleName = className.substringAfterLast(".")
             val exampleType = className.substringBeforeLast(".").substringAfterLast(".")

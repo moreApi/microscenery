@@ -1,10 +1,10 @@
-package microscenery.example.network
+package microscenery.scenes.network
 
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
 import microscenery.*
-import microscenery.example.microscope.DemoBehavior
+import microscenery.scenes.microscope.DemoBehavior
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage

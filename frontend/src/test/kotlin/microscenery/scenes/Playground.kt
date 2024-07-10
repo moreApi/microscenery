@@ -1,4 +1,4 @@
-package microscenery.example
+package microscenery.scenes
 
 import graphics.scenery.controls.TrackedDevice
 import graphics.scenery.controls.TrackedDeviceType

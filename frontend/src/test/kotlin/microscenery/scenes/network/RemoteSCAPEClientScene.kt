@@ -1,4 +1,4 @@
-package microscenery.example.network
+package microscenery.scenes.network
 
 import microscenery.*
 import microscenery.UI.ScapeViewerUI

@@ -1,11 +1,8 @@
-package microscenery.example.microscope
+package microscenery.scenes.microscope
 
 import graphics.scenery.Node
 import graphics.scenery.utils.extensions.times
-import microscenery.DefaultScene
-import microscenery.DemoMicroscopeHardware
-import microscenery.MicrosceneryHub
-import microscenery.MicroscenerySettings
+import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.UIModel
 import microscenery.stageSpace.MicroscopeLayout
@@ -14,7 +11,7 @@ import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 
-class DemoHWScene : DefaultScene(withSwingUI = true) {
+class FileHWScene : DefaultScene(withSwingUI = false) {
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
@@ -27,8 +24,15 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
         MicroscenerySettings.set("Stage.precisionXY", 1f)
         MicroscenerySettings.set("Stage.precisionZ", 1f)
 
+        val viewSettings = listOf(
+            Settings.StageSpace.viewMode,
+            Settings.StageSpace.HideFocusFrame,
+            Settings.StageSpace.HideFocusTargetFrame,
+            Settings.StageSpace.HideStageSpaceLabel
+        )
+        viewSettings.forEach { MicroscenerySettings.set(it, true) }
 
-        val hw = DemoMicroscopeHardware(binning = 1)
+        val hw = FileMicroscopeHardware("""C:\Users\JanCasus\Downloads\LNDW_VR\emd_3743Stright.tif kept stack.tif""")
         stageSpaceManager = StageSpaceManager(
             hw,
             scene,
@@ -39,21 +43,13 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
 
         stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 1f)
 
+        stageSpaceManager.sliceManager.transferFunctionManager.maxDisplayRange = 65000f
+
         //tfUI.name = "Slices"
 
         thread {
-            //Thread.sleep(5000)
-            @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(
-                hw.hardwareDimensions().stageMax.x,
-                stageSpaceManager
-            )
-            //db.fixedStack(Vector3f(100f,100f,000f), Vector3f(100f, 100f,200f))
-            //Thread.sleep(2500)
-            //db.randomStatic(10)
-            //db.fixed()
-            db.fixedStack()
-
-            //stageSpaceManager.sampleStageSpace(Vector3f(25f), Vector3f(175f), Vector3f(30f, 30f, 50f))
+            Thread.sleep(2000)
+            stageSpaceManager.stack(Vector3f(), Vector3f())
         }
         thread {
             while (true) {
@@ -66,11 +62,11 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
     override fun inputSetup() {
         super.inputSetup()
 
-        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler,msHub)
+        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub)
 
         msHub.getAttribute(UIModel::class.java).changeEvents += {
-            when(it.kProperty){
-                UIModel::selected -> println("${(it.new as? Node)?.name ?: "none"} selected")
+            when (it.kProperty) {
+                UIModel::selected -> println("${(it.new as Node).name} selected")
             }
         }
     }
@@ -78,7 +74,7 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            DemoHWScene().main()
+            FileHWScene().main()
         }
     }
 }

@@ -1,6 +1,6 @@
 @file:Suppress("UNUSED_VARIABLE")
 
-package microscenery.example.microscope
+package microscenery.scenes.microscope
 
 import microscenery.*
 import microscenery.UI.StageSpaceUI

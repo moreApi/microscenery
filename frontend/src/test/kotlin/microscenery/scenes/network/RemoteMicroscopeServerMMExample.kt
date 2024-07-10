@@ -1,6 +1,6 @@
-package microscenery.example.network
+package microscenery.scenes.network
 
-import microscenery.example.microscope.LocalMMScene.Companion.initLocalMMCoreFake
+import microscenery.scenes.microscope.LocalMMScene.Companion.initLocalMMCoreFake
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMCoreConnector
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper

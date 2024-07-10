@@ -1,4 +1,4 @@
-package microscenery.example.microscope
+package microscenery.scenes.microscope
 
 import microscenery.*
 import microscenery.UI.StageSpaceUI
