@@ -13,7 +13,10 @@ import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
 import kotlin.concurrent.thread
 
-class Playground() : DefaultScene(VR = false) {
+/**
+ * https://www.reddit.com/r/Vive/comments/6uo053/how_to_use_steamvr_tracked_devices_without_a_hmd/
+ */
+class Playground() : DefaultScene(VR = true) {
     init {
         MicroscenerySettings.set(Settings.StageSpace.ShowHullbox,true)
     }

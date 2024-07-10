@@ -29,7 +29,34 @@ import kotlin.io.path.Path
 val openSpimScale3 = Vector3f(.225f, .225f, 3.348f)
 val openSpimScale15 = Vector3f(.225f, .225f, 1.524f)
 
-fun currentVolume(hub: Hub) = mohammadMouseBrain(hub)
+fun currentVolume(hub: Hub) = neuroStack4(hub)
+
+
+fun neuroStack4(hub: Hub): Volume {
+    //val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\embo\MariaPlant\export.xml""",hub, VolumeViewerOptions())
+//    val imp: ImagePlus = IJ.openImage("""E:\volumes\Neuronenstacks\img_00115_unsigned_short.tif""")
+    val imp: ImagePlus = IJ.openImage("""E:\volumes\Neuronenstacks\img_00118_unsigned_short.tif""")
+//    val imp: ImagePlus = IJ.openImage("""E:\volumes\Neuronenstacks\img_00123_unsigned_short.tif""")
+    val img: Img<UnsignedShortType> = ImageJFunctions.wrap(imp)
+
+    val volume = Volume.fromRAI(
+        img,
+        UnsignedShortType(),
+        AxisOrder.DEFAULT,
+        "Volume loaded with IJ",
+        hub,
+        VolumeViewerOptions()
+    )
+    volume.spatial() {
+        scale = openSpimScale15*2f
+    }
+    volume.origin = Origin.FrontBottomLeft
+    volume.transferFunction = TransferFunction.ramp(0f, 0.8f, 1f)
+    volume.colormap = Colormap.get("hot")
+    volume.setTransferFunctionRange(100f, 1000f)
+
+    return volume
+}
 
 fun lund(hub: Hub): Volume {
     //val volume = Volume.fromXML("""C:\Users\JanCasus\volumes\embo\MariaPlant\export.xml""",hub, VolumeViewerOptions())
