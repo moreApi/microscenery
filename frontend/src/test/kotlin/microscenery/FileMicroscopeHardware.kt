@@ -1,6 +1,7 @@
 package microscenery
 
 import graphics.scenery.utils.extensions.plus
+import graphics.scenery.utils.extensions.xy
 import graphics.scenery.utils.lazyLogger
 import ij.IJ
 import ij.ImagePlus
@@ -25,6 +26,7 @@ import kotlin.concurrent.thread
 class FileMicroscopeHardware(
     file: String,
     stagePosition: Vector3f = Vector3f(),
+    var zPerXY: Float = 1f
 ) : MicroscopeHardwareAgent() {
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -57,7 +59,7 @@ class FileMicroscopeHardware(
 
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
-            stageMax = Vector3f(0f, 0f, dimensions.z.toFloat()),
+            stageMax = Vector3f(0f, 0f, dimensions.z.toFloat()*zPerXY),
             imageSize = Vector2i(dimensions.x, dimensions.y),
             vertexDiameter = 1f,
             numericType = NumericType.INT16
@@ -96,7 +98,7 @@ class FileMicroscopeHardware(
         val signal = Slice(
             idCounter++,
             System.currentTimeMillis(),
-            stagePosition,
+            Vector3f(stagePosition.xy(),stagePosition.z * zPerXY),
             sliceBuffer.capacity(),
             currentStack?.let { it.Id to stackSliceCounter },
             sliceBuffer
@@ -130,7 +132,7 @@ class FileMicroscopeHardware(
         thread {
 
             val start = Vector3f(0f)
-            val end = Vector3f(0f, 0f, dimensions.z * 1f)
+            val end = Vector3f(0f, 0f, dimensions.z * zPerXY)
             val steps = dimensions.z
 
             currentStack = Stack(
@@ -144,7 +146,7 @@ class FileMicroscopeHardware(
             output.put(currentStack!!)
 
             for (i in 0 until steps) {
-                stagePosition = start + Vector3f(0f, 0f, i * 1f)
+                stagePosition = start + Vector3f(0f, 0f, i.toFloat())
                 stackSliceCounter = i
                 snapSlice()
             }
