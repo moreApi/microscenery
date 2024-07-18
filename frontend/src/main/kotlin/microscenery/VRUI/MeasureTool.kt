@@ -6,6 +6,7 @@ import graphics.scenery.attribute.material.DefaultMaterial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
+import microscenery.UI.UIModel
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel
@@ -29,7 +30,8 @@ import org.joml.Vector3f
 class MeasureTool(
     var lineColor: Vector3f = Vector3f(1.0f, 0.5f, 0.0f),
     val stageSpaceManager: StageSpaceManager,
-    val hmd: OpenVRHMD
+    val hmd: OpenVRHMD,
+    uiModel: UIModel
 ) : Box(Vector3f(0.05f, 0.13f, 0.05f)), VRHandTool {
     private val tip: Box
     private val pointOutput: RichNode
@@ -50,7 +52,7 @@ class MeasureTool(
         val touch = Touch("Measuring Tool touch", tip, { measurePoints })
 
         //this.initVRHandToolAndPressable(uiModel,
-        this.addAttribute(Pressable::class.java, PerButtonPressable(
+       initVRHandToolAndPressable(uiModel,PerButtonPressable(
             mapOf(
                 OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
                     onRelease = { _, _ ->

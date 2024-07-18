@@ -21,7 +21,7 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.AblationInkMoverEnabled, true)
-        MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.CroppingEnabled, true)
         MicroscenerySettings.setVector3f(Settings.Ablation.PointTool.MinDistUm, Vector3f(2.5f))
         MicroscenerySettings.set(Settings.StageSpace.ColorMap, "plasma")
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)

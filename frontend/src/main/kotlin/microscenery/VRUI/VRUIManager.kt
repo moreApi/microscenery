@@ -100,19 +100,18 @@ class VRUIManager {
                 }
             }
 
-            val touchRightHand = VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand), false)
+            VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.RightHand), false)
             VRTouch.createAndSet(scene, hmd, listOf(TrackerRole.LeftHand), false)
 
             // ----------------- Menus -----------------
             Toolbox(
                 scene,
                 hmd,
-                MENU_BUTTON,
-                listOf(TrackerRole.RightHand),
+                TOOL_BOX_BUTTON,
                 customActions?.let { WheelMenu(hmd, it.actions, true) },
                 stageSpaceUI?.stageSpaceManager,
                 uiModel
-            ) { touchRightHand.get()?.selected?.isEmpty() ?: true }
+            )
 
             stageSpaceUI?.stageSpaceManager?.let {
                 LeftHandMenu.init(it, vr2HandSpatialManipulation, scene, hmd)

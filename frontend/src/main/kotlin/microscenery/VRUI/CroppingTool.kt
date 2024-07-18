@@ -18,7 +18,6 @@ class CroppingTool(uiModel: UIModel)
     init {
         material().diffuse = Vector3f(1f)
 
-        this.addAttribute(Touchable::class.java, Touchable())
         this.initVRHandToolAndPressable(uiModel, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(onPress = { _,_ ->
@@ -28,9 +27,6 @@ class CroppingTool(uiModel: UIModel)
                             val next = (current % (Volume.SlicingMode.values().size - 1)) + 1
                             volume.slicingMode = Volume.SlicingMode.values()[next]
                         }
-                    }),
-                    CLOSE_BUTTON to SimplePressable(onPress = { _,_ ->
-                        volume?.let { deactivate(it) }
                     })
                 )
             )

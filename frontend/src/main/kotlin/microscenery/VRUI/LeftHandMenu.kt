@@ -92,7 +92,7 @@ object LeftHandMenu {
             }
         ))
         VR3DGui.createAndSet(
-            scene, hmd, MENU_BUTTON,
+            scene, hmd, TOOL_BOX_BUTTON + TOOL_MENU_BUTTON,
             listOf(TrackerRole.LeftHand),
             ui = TabbedMenu(leftHandMenuTabs)
         )

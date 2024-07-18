@@ -46,7 +46,7 @@ class MeasureToolDebug : DefaultScene(VR = true, width = 1024, height = 1024) {
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
 
-        val measureTool = MeasureTool(stageSpaceManager = stageSpaceManager, hmd = hmd)
+        val measureTool = MeasureTool(stageSpaceManager = stageSpaceManager, hmd = hmd, uiModel = msHub.getAttribute(UIModel::class.java))
         scene.addChild(measureTool)
 
 

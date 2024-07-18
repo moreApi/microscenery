@@ -34,7 +34,15 @@ class LongNightOfScience2D : DefaultScene("Loooooooong night of science", VR = t
             Settings.StageSpace.viewMode,
             Settings.StageSpace.HideFocusFrame,
             Settings.StageSpace.HideFocusTargetFrame,
-            Settings.StageSpace.HideStageSpaceLabel
+            Settings.StageSpace.HideStageSpaceLabel,
+            Settings.VRToolbox.AblationInkMoverEnabled,
+            Settings.VRToolbox.CroppingEnabled,
+            Settings.VRToolbox. PathAblationEnabled ,
+            Settings.VRToolbox.  PointAblationEnabled,
+            Settings.VRToolbox.  BubblesEnabled,
+            Settings.VRToolbox.    OptionsEnabled,
+            Settings.VRToolbox.    ColorChooserEnabled,
+            Settings.VRToolbox.    MeasuringEnabled,
         )
         viewSettings.forEach { MicroscenerySettings.set(it, true) }
         MicroscenerySettings.set(Settings.StageSpace.ShowHullbox, !atmosphere)

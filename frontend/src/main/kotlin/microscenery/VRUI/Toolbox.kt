@@ -15,35 +15,28 @@ import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel.Companion.toActions
 import microscenery.VRUI.fromScenery.WheelMenu
 import microscenery.stageSpace.StageSpaceManager
-import org.joml.Vector3f
 import org.scijava.ui.behaviour.DragBehaviour
 
 class Toolbox(
     val scene: Scene,
     hmd: OpenVRHMD,
     buttons: List<OpenVRHMD.OpenVRButton>,
-    controllerSide: List<TrackerRole>,
     customMenu: WheelMenu? = null,
     stageSpaceManager: StageSpaceManager? = null,
-    uiModel: UIModel,
-    enabled: () -> Boolean = {true}
+    uiModel: UIModel
 ) {
-    val pointTool = PointEntityTool()
-    val lineTool = LineEntityTool()
+    val menuSide = TrackerRole.RightHand
+
     val croppingTool = CroppingTool(uiModel)
-    val pathAblationTool = stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
-    val pointCloudAblationTool = stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
-    val ablationInkMoveTool = stageSpaceManager?.let { AblationInkMoveTool(stageSpaceManager)}
-    val measureTool = stageSpaceManager?.let { MeasureTool(stageSpaceManager = it, hmd = hmd) }
-    val bubblesTool = BubblesTool()
+    val pathAblationTool =
+        stageSpaceManager?.let { PathAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
+    val pointCloudAblationTool =
+        stageSpaceManager?.let { PointCloudAblationTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
+    val ablationInkMoveTool = stageSpaceManager?.let { AblationInkMoveTool(stageSpaceManager, uiModel) }
+    val measureTool = stageSpaceManager?.let { MeasureTool(stageSpaceManager = it, hmd = hmd, uiModel = uiModel) }
+    val bubblesTool = BubblesTool(uiModel)
 
     init {
-        pointTool.visible = false
-        lineTool.visible = false
-        croppingTool.visible = false
-        pathAblationTool?.visible = false
-        pointCloudAblationTool?.visible = false
-
         var defaultMenu: List<Pair<String, (Spatial) -> Unit>> = listOf()
 
         fun addIfEnabled(key: String, name: String, command: (Spatial) -> Unit) {
@@ -52,69 +45,44 @@ class Toolbox(
             }
         }
 
-        MicroscenerySettings.set("todo",true)
+        fun addIfEnabled(key: String, name: String, tool: VRHandTool) {
+            addIfEnabled(key, name) {
+                tool.activate(uiModel, menuSide)
+            }
+        }
+
         measureTool?.let {
-            addIfEnabled("todo", "measure tool") { _ ->
-                uiModel.rightVRController?.let { device ->
-                    uiModel.putInHand(device.role, measureTool)
-                    measureTool.spatial{
-                        //rotation.premul(device.model?.spatialOrNull()?.worldRotation()?.invert())
-                        position = Vector3f()
-                    }
-                    device.model?.addChild(measureTool)
-                }
-
-
-                //uiModel.rightVRController?.model?.addChild(measureTool)
-                //uiModel.inRightHand = measureTool
-
-                //measureTool.spatial().position = device.worldPosition()
-            }
+            addIfEnabled(Settings.VRToolbox.MeasuringEnabled, "measure tool", it)
+//            addIfEnabled("todo", "measure tool") { _ ->
+//
+//
+//                uiModel.rightVRController?.let { device ->
+//                    uiModel.putInHand(device.role, measureTool)
+//                    measureTool.spatial{
+//                        //rotation.premul(device.model?.spatialOrNull()?.worldRotation()?.invert())
+//                        position = Vector3f()
+//                    }
+//                    device.model?.addChild(measureTool)
+//                }
+//
+//
+//                //uiModel.rightVRController?.model?.addChild(measureTool)
+//                //uiModel.inRightHand = measureTool
+//
+//                //measureTool.spatial().position = device.worldPosition()
+//            }
         }
 
-        addIfEnabled(Settings.VRToolbox.SlicingEnabled, "slicing tool") { device ->
-            stageSpaceManager?.sliceManager?.stacks?.firstOrNull()?.let {
-                val vol = it.volume
-                scene.addChild(croppingTool)
-                croppingTool.spatial().position = device.worldPosition()
-                croppingTool.activate(vol)
-            }
-        }
-        addIfEnabled(Settings.VRToolbox.DrawPointsEnabled, "point") { device ->
-            scene.addChild(pointTool)
-            pointTool.visible = true
-            pointTool.spatial().position = device.worldPosition()
-        }
-        addIfEnabled(Settings.VRToolbox.DrawLineEnabled, "line") { device ->
-            scene.addChild(lineTool)
-            lineTool.visible = true
-            lineTool.spatial().position = device.worldPosition()
-        }
-        pathAblationTool?.let{
-            addIfEnabled(Settings.VRToolbox.PathAblationEnabled, "path ablation") { device ->
-                scene.addChild(pathAblationTool)
-                pathAblationTool.visible = true
-                pathAblationTool.spatial().position = device.worldPosition()
-            }}
-        pointCloudAblationTool?.let{
-            addIfEnabled(Settings.VRToolbox.PointAblationEnabled, "point ablation") { device ->
-                scene.addChild(pointCloudAblationTool)
-                pointCloudAblationTool.visible = true
-                pointCloudAblationTool.spatial().position = device.worldPosition()
-            }}
-        ablationInkMoveTool?.let{
-            addIfEnabled(Settings.VRToolbox.AblationInkMoverEnabled, "mover"){ device ->
-                scene.addChild(ablationInkMoveTool)
-                ablationInkMoveTool.visible = true
-                ablationInkMoveTool.spatial().position = device.worldPosition()
-            }}
+        addIfEnabled(Settings.VRToolbox.CroppingEnabled, "slicing tool", croppingTool)
 
-
-        addIfEnabled(Settings.VRToolbox.BubblesEnabled, "bubbles") { device ->
-            scene.addChild(bubblesTool)
-            bubblesTool.visible = true
-            bubblesTool.spatial().position = device.worldPosition()
+        pathAblationTool?.let { addIfEnabled(Settings.VRToolbox.PathAblationEnabled, "path ablation", it) }
+        pointCloudAblationTool?.let {
+            addIfEnabled(Settings.VRToolbox.PointAblationEnabled, "point ablation", it)
         }
+        ablationInkMoveTool?.let { addIfEnabled(Settings.VRToolbox.AblationInkMoverEnabled, "mover", it) }
+
+        addIfEnabled(Settings.VRToolbox.BubblesEnabled, "bubbles", bubblesTool)
+
         addIfEnabled(Settings.VRToolbox.OptionsEnabled, "options") {
             val m = WheelMenu(hmd, listOf(Switch("hull", true) { scene.find("hullbox")?.visible = it }), true)
             m.spatial().position = it.worldPosition()
@@ -132,28 +100,6 @@ class Toolbox(
             }
         }
 
-        class EnableableDragBehaviorWrapper(val isEnabled: () -> Boolean, val wrapped: DragBehaviour): DragBehaviour{
-            var startEnabled = false
-            override fun init(x: Int, y: Int) {
-                if (isEnabled()) {
-                    startEnabled = true
-                    wrapped.init(x,y)
-                } else {
-                    startEnabled = false
-                }
-            }
-
-            override fun drag(x: Int, y: Int) {
-                if (startEnabled) wrapped.drag(x,y)
-            }
-
-            override fun end(x: Int, y: Int) {
-                if (startEnabled) wrapped.end(x,y)
-            }
-
-        }
-
-
         // custom set to allow disableling
         val actions: List<Pair<String, (Spatial) -> Unit>> = customMenu?.let {
             defaultMenu + ("scene ops" to {
@@ -164,9 +110,8 @@ class Toolbox(
         hmd.events.onDeviceConnect.add { _, device, _ ->
             if (device.type == TrackedDeviceType.Controller) {
                 device.model?.let { controller ->
-                    if (controllerSide.contains(device.role)) {
-                        val vrToolSelector = EnableableDragBehaviorWrapper(
-                            enabled,
+                    if (menuSide == device.role) {
+                        val vrToolSelector =
                             VRFastSelectionWheel(
                                 controller.children.first().spatialOrNull()
                                     ?: throw IllegalArgumentException("The target controller needs a spatial."),
@@ -176,9 +121,11 @@ class Toolbox(
                                     controller.children.first().spatialOrNull() ?: throw IllegalArgumentException(
                                         "The target controller needs a spatial."
                                     )
-                                )
+                                ),
+                                noSelection = {
+                                    uiModel.inHand(menuSide)?.deactivate(uiModel)
+                                }
                             )
-                        )
                         buttons.forEach { button ->
                             val name = "ToolBoxWheelMenu:${hmd.trackingSystemName}:${device.role}:$button"
                             hmd.addBehaviour(name, vrToolSelector)

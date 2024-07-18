@@ -34,6 +34,7 @@ class VRFastSelectionWheel(
     val hmd: TrackerInput,
     var actions: List<WheelEntry>,
     val cutoff: Float = 0.1f,
+    val noSelection: () -> Unit = {}
 ) : DragBehaviour {
     private var activeWheel: WheelMenu? = null
 
@@ -81,6 +82,8 @@ class VRFastSelectionWheel(
                 is Switch -> entry.toggle()
                 else -> throw NotImplementedError("${entry.javaClass.simpleName} not implemented for Selection Wheel")
             }
+        } else {
+            noSelection()
         }
 
         activeWiggler?.deativate()

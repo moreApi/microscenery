@@ -30,7 +30,7 @@ class LocalZenSceneVR : DefaultVRScene() {
         MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.PathAblationEnabled, true)
         MicroscenerySettings.set(Settings.VRToolbox.AblationInkMoverEnabled, true)
-        MicroscenerySettings.set(Settings.VRToolbox.SlicingEnabled, true)
+        MicroscenerySettings.set(Settings.VRToolbox.CroppingEnabled, true)
         MicroscenerySettings.set(Settings.Ablation.SizeUM, 11f)
         MicroscenerySettings.setVector3f(Settings.Ablation.PointTool.MinDistUm, Vector3f(5f))
         MicroscenerySettings.set(Settings.StageSpace.ColorMap, "plasma")

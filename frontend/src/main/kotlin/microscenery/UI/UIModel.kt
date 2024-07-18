@@ -15,9 +15,12 @@ class UIModel : PropertyChangeObservable() {
 
     var hardwareDimensions: HardwareDimensions by propertyObservable(HardwareDimensions.EMPTY)
 
-
     var inLeftHand: VRHandTool? by propertyObservable(null)
     var inRightHand: VRHandTool? by propertyObservable(null)
+
+    var leftVRController: TrackedDevice? = null
+    var rightVRController: TrackedDevice? = null
+
     fun inHand(trackerRole: TrackerRole) = when (trackerRole) {
         TrackerRole.Invalid -> throw IllegalArgumentException()
         TrackerRole.LeftHand -> inLeftHand
@@ -30,7 +33,10 @@ class UIModel : PropertyChangeObservable() {
         TrackerRole.RightHand -> inRightHand = tool
     }
 
-    var leftVRController: TrackedDevice? = null
-    var rightVRController: TrackedDevice? = null
+    fun getHandController(trackerRole: TrackerRole): TrackedDevice? = when (trackerRole) {
+        TrackerRole.Invalid -> throw IllegalArgumentException()
+        TrackerRole.LeftHand -> leftVRController
+        TrackerRole.RightHand -> rightVRController
+    }
 
 }

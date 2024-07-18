@@ -67,7 +67,7 @@ class PathAblationTool(
                             }
                         }
                     )
-                ).plus(MENU_BUTTON.map {
+                ).plus(TOOL_MENU_BUTTON.map {
                     it to SimplePressable(
                         onPress = { controllerSpatial,_ ->
                             val scene = getScene() ?: return@SimplePressable

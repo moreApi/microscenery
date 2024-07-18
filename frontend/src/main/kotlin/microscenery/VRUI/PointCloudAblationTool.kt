@@ -5,6 +5,7 @@ import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.Sphere
 import graphics.scenery.attribute.spatial.HasSpatial
+import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.*
 import graphics.scenery.utils.Wiggler
@@ -36,6 +37,8 @@ class PointCloudAblationTool(
     private var inkTouchingEraser: List<Ink> = emptyList()
 
     private var menu: VRFastSelectionWheel? = null
+
+    override fun getTipCollider(): Spatial = inkOutput.spatial()
 
     init {
         MicroscenerySettings.setVector3fIfUnset(Settings.Ablation.PointTool.MinDistUm,Vector3f(0.1f))
@@ -80,7 +83,7 @@ class PointCloudAblationTool(
                             }
                         }
                     )
-                ).plus( MENU_BUTTON.map {
+                ).plus( TOOL_MENU_BUTTON.map {
                     it to SimplePressable(
                         onPress = { controllerSpatial,_ ->
                             val scene = getScene() ?: return@SimplePressable
