@@ -33,8 +33,8 @@ object LeftHandMenu {
         }
         val colorButtonRows = colorButtons.mapIndexedNotNull { index, _ ->
             if (index % 3 != 0) return@mapIndexedNotNull null
-            val endSubList = minOf(index + 2, colorButtons.size-1)
-            Row(*colorButtons.subList(index, endSubList+1).toTypedArray())
+            val endSubList = minOf(index + 2, colorButtons.size - 1)
+            Row(*colorButtons.subList(index, endSubList + 1).toTypedArray())
         }
 
         stageSpaceManager.sliceManager.transferFunctionManager.let { tf ->
@@ -67,7 +67,12 @@ object LeftHandMenu {
 //                        Row(TextBox("laser power", height = 0.8f)),
 //                        ValueEdit.forFloatSetting(Settings.Ablation.LaserPower, 0.1f),
                     Row(TextBox("dwell time", height = 0.8f)),
-                    ValueEdit.forIntSetting(Settings.Ablation.Repetitions, factor = 1,min = 0, plusPlusButtons = false){"${it}us"},
+                    ValueEdit.forIntSetting(
+                        Settings.Ablation.Repetitions,
+                        factor = 1,
+                        min = 0,
+                        plusPlusButtons = false
+                    ) { "${it}us" },
                     Row(TextBox("step size", height = 0.8f)),
                     createStepSizeEdit(),
                     Switch("hide plan", false, true, onChange = ablm::hidePlan),
@@ -107,17 +112,18 @@ object LeftHandMenu {
             val vec = MicroscenerySettings.getVector3(setting) ?: Vector3f(2f)
             return vec.x
         }
+
         fun changeAndSave(value: Float, change: Float): Float {
-            val t = max(((value + change * factor) * 100).roundToInt() * 0.01f,min)
+            val t = max(((value + change * factor) * 100).roundToInt() * 0.01f, min)
             MicroscenerySettings.setVector3f(setting, Vector3f(t))
             return t
         }
         return ValueEdit(getFloatStepSize(),
-            {changeAndSave(it,1f)},
-            {changeAndSave(it,-1f)},
-            {changeAndSave(it,10f)},
-            {changeAndSave(it,-10f)},
-            { "${"%.2f".format(it)}um"}
+            { changeAndSave(it, 1f) },
+            { changeAndSave(it, -1f) },
+            { changeAndSave(it, 10f) },
+            { changeAndSave(it, -10f) },
+            { "${"%.2f".format(it)}um" }
         )
     }
 }

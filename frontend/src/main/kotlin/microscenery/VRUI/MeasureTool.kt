@@ -5,7 +5,10 @@ import graphics.scenery.RichNode
 import graphics.scenery.attribute.material.DefaultMaterial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
-import graphics.scenery.controls.behaviours.*
+import graphics.scenery.controls.behaviours.Action
+import graphics.scenery.controls.behaviours.PerButtonPressable
+import graphics.scenery.controls.behaviours.SimplePressable
+import graphics.scenery.controls.behaviours.Touch
 import microscenery.UI.UIModel
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
@@ -52,7 +55,7 @@ class MeasureTool(
         val touch = Touch("Measuring Tool touch", tip, { measurePoints })
 
         //this.initVRHandToolAndPressable(uiModel,
-       initVRHandToolAndPressable(uiModel,PerButtonPressable(
+        initVRHandToolAndPressable(uiModel, PerButtonPressable(
             mapOf(
                 OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
                     onRelease = { _, _ ->

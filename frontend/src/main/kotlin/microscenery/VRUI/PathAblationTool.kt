@@ -57,44 +57,44 @@ class PathAblationTool(
 
         this.addAttribute(Touchable::class.java, Touchable())
         this.initVRHandToolAndPressable(uiModel, PerButtonPressable(
-                mapOf(
-                    OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onRelease = { _,_ ->
-                            if (preparedInk == null) {
-                                prepareInk()
-                            } else {
-                                placeInk()
-                            }
+            mapOf(
+                OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
+                    onRelease = { _, _ ->
+                        if (preparedInk == null) {
+                            prepareInk()
+                        } else {
+                            placeInk()
                         }
-                    )
-                ).plus(TOOL_MENU_BUTTON.map {
-                    it to SimplePressable(
-                        onPress = { controllerSpatial,_ ->
-                            val scene = getScene() ?: return@SimplePressable
-                            val m = VRFastSelectionWheel(
-                                controllerSpatial, scene, hmd, listOf(
-                                    Action("clear path") { clearInk() },
-                                    Action("undo") { undoLastPoint() },
-                                    Action("hide") {
-                                        this.visible = false
-                                        this.detach()
-                                    })
-                            )
+                    }
+                )
+            ).plus(TOOL_MENU_BUTTON.map {
+                it to SimplePressable(
+                    onPress = { controllerSpatial, _ ->
+                        val scene = getScene() ?: return@SimplePressable
+                        val m = VRFastSelectionWheel(
+                            controllerSpatial, scene, hmd, listOf(
+                                Action("clear path") { clearInk() },
+                                Action("undo") { undoLastPoint() },
+                                Action("hide") {
+                                    this.visible = false
+                                    this.detach()
+                                })
+                        )
 
-                            m.init(0, 0)
-                            menu = m
-                        },
-                        onHold =
-                        { _,_ ->
-                            menu?.drag(0, 0)
-                        },
-                        onRelease =
-                        { _,_ ->
-                            menu?.end(0, 0)
-                        }
-                    )
-                })
-            )
+                        m.init(0, 0)
+                        menu = m
+                    },
+                    onHold =
+                    { _, _ ->
+                        menu?.drag(0, 0)
+                    },
+                    onRelease =
+                    { _, _ ->
+                        menu?.end(0, 0)
+                    }
+                )
+            })
+        )
         )
     }
 

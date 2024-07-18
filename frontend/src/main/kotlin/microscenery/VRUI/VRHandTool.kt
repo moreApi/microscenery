@@ -6,8 +6,6 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
 import graphics.scenery.controls.behaviours.PerButtonPressable
 import graphics.scenery.controls.behaviours.Pressable
-import graphics.scenery.controls.behaviours.SimplePressable
-import graphics.scenery.controls.behaviours.Touchable
 import microscenery.UI.UIModel
 import microscenery.detach
 import org.joml.Quaternionf
@@ -24,7 +22,7 @@ interface VRHandTool : HasSpatial {
 
         val controller = uiModel.getHandController(side) ?: return
         spatial {
-            rotation = Quaternionf().rotationX(-PI.toFloat()*0.5f)
+            rotation = Quaternionf().rotationX(-PI.toFloat() * 0.5f)
             position = Vector3f()
         }
         controller.model?.addChild(this)

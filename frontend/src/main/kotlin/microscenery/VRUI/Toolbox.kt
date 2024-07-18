@@ -15,7 +15,6 @@ import microscenery.VRUI.fromScenery.VRFastSelectionWheel
 import microscenery.VRUI.fromScenery.VRFastSelectionWheel.Companion.toActions
 import microscenery.VRUI.fromScenery.WheelMenu
 import microscenery.stageSpace.StageSpaceManager
-import org.scijava.ui.behaviour.DragBehaviour
 
 class Toolbox(
     val scene: Scene,

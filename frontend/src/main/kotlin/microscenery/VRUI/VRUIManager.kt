@@ -39,7 +39,7 @@ class VRUIManager {
             hmd.events.onDeviceConnect.add { _, device, _ ->
                 if (device.type == TrackedDeviceType.Controller) {
                     device.model?.let {
-                        when(device.role){
+                        when (device.role) {
                             TrackerRole.Invalid -> {}
                             TrackerRole.LeftHand -> uiModel.leftVRController = device
                             TrackerRole.RightHand -> uiModel.rightVRController = device
@@ -73,10 +73,22 @@ class VRUIManager {
                 OpenVRHMD.OpenVRButton.Menu,
                 OpenVRHMD.OpenVRButton.Side
             )
-            InHandForwarder.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.LeftHand,pressButtons)
-            InHandForwarder.createAndWrapVRPressWithInHandManagerBehavior(uiModel, scene, hmd, TrackerRole.RightHand,pressButtons)
+            InHandForwarder.createAndWrapVRPressWithInHandManagerBehavior(
+                uiModel,
+                scene,
+                hmd,
+                TrackerRole.LeftHand,
+                pressButtons
+            )
+            InHandForwarder.createAndWrapVRPressWithInHandManagerBehavior(
+                uiModel,
+                scene,
+                hmd,
+                TrackerRole.RightHand,
+                pressButtons
+            )
 
-            listOf(TrackerRole.RightHand, TrackerRole.LeftHand).forEach {side ->
+            listOf(TrackerRole.RightHand, TrackerRole.LeftHand).forEach { side ->
                 val grab = VRGrab.createAndSet(
                     scene,
                     hmd,
@@ -88,10 +100,10 @@ class VRUIManager {
                 // use tool tip for grabbing when one is in hand
                 var controllerCollider: Spatial? = null
                 val handProperty = if (side == TrackerRole.LeftHand) UIModel::inLeftHand else UIModel::inRightHand
-                uiModel.registerListener<VRHandTool>(handProperty){ old,new ->
-                    if (grab.isDone){
+                uiModel.registerListener<VRHandTool>(handProperty) { old, new ->
+                    if (grab.isDone) {
                         if (controllerCollider == null) controllerCollider = grab.get().controllerHitbox
-                        if (new == null){
+                        if (new == null) {
                             grab.get().controllerHitbox = controllerCollider as Spatial
                         } else {
                             new.getTipCollider()?.let { grab.get().controllerHitbox = it }
@@ -132,35 +144,43 @@ class VRUIManager {
                 if (device.type == TrackedDeviceType.Controller) {
                     device.model?.let { _ ->
                         if (controllerSide.contains(device.role)) {
-                            run{
+                            run {
                                 val name = "Volume scrolling prev"
-                                val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Left,object:DragBehaviour{
-                                    override fun init(x: Int, y: Int) {
-                                        val vol = uiModel.selected as? Volume ?: return
-                                        if (vol.currentTimepoint == 0) return
+                                val behavior = wrapForAnalogInputIfNeeded(
+                                    scene,
+                                    OpenVRHMD.OpenVRButton.Left,
+                                    object : DragBehaviour {
+                                        override fun init(x: Int, y: Int) {
+                                            val vol = uiModel.selected as? Volume ?: return
+                                            if (vol.currentTimepoint == 0) return
 
-                                        vol.previousTimepoint()
-                                        uiModel.updateSelected()
-                                    }
-                                    override fun drag(x: Int, y: Int) {}
-                                    override fun end(x: Int, y: Int) {}
-                                })
+                                            vol.previousTimepoint()
+                                            uiModel.updateSelected()
+                                        }
+
+                                        override fun drag(x: Int, y: Int) {}
+                                        override fun end(x: Int, y: Int) {}
+                                    })
                                 hmd.addBehaviour(name, behavior)
                                 hmd.addKeyBinding(name, device.role, OpenVRHMD.OpenVRButton.Left)
                             }
-                            run{
+                            run {
                                 val name = "Volume scrolling next"
-                                val behavior = wrapForAnalogInputIfNeeded( scene, OpenVRHMD.OpenVRButton.Right,object:DragBehaviour{
-                                    override fun init(x: Int, y: Int) {
-                                        val vol = uiModel.selected as? Volume ?: return
-                                        if (vol.currentTimepoint +1 == vol.timepointCount) return
+                                val behavior = wrapForAnalogInputIfNeeded(
+                                    scene,
+                                    OpenVRHMD.OpenVRButton.Right,
+                                    object : DragBehaviour {
+                                        override fun init(x: Int, y: Int) {
+                                            val vol = uiModel.selected as? Volume ?: return
+                                            if (vol.currentTimepoint + 1 == vol.timepointCount) return
 
-                                        vol.nextTimepoint()
-                                        uiModel.updateSelected()
-                                    }
-                                    override fun drag(x: Int, y: Int) {}
-                                    override fun end(x: Int, y: Int) {}
-                                })
+                                            vol.nextTimepoint()
+                                            uiModel.updateSelected()
+                                        }
+
+                                        override fun drag(x: Int, y: Int) {}
+                                        override fun end(x: Int, y: Int) {}
+                                    })
                                 hmd.addBehaviour(name, behavior)
                                 hmd.addKeyBinding(name, device.role, OpenVRHMD.OpenVRButton.Right)
                             }
@@ -171,7 +191,7 @@ class VRUIManager {
         }
 
         private fun InputHandler.initStickMovement(hmd: OpenVRHMD) {
-            val speed = MicroscenerySettings.setIfUnset(Settings.UI.FlySpeed,0.5f)
+            val speed = MicroscenerySettings.setIfUnset(Settings.UI.FlySpeed, 0.5f)
             // We first grab the default movement actions from scenery's input handler,
             // and re-bind them on the right-hand controller's trackpad or joystick.
             hashMapOf(
@@ -185,7 +205,7 @@ class VRUIManager {
                     hmd.addKeyBinding(name, key)
                     val moveCommand = (b as? graphics.scenery.controls.behaviours.MovementCommand) ?: return
                     moveCommand.speed = speed
-                    MicroscenerySettings.addUpdateRoutine(Settings.UI.FlySpeed){
+                    MicroscenerySettings.addUpdateRoutine(Settings.UI.FlySpeed) {
                         val speed2 = MicroscenerySettings.get(Settings.UI.FlySpeed, 0.5f)
                         moveCommand.speed = speed2
                     }
