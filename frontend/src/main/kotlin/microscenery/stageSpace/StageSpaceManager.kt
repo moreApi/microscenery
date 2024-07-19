@@ -107,44 +107,7 @@ class StageSpaceManager(
         focusTarget?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
         focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
 
-        selectionIndicator = Pyramid().apply {
-            this.spatial().scale = Vector3f(0.1f,0.1f,0.1f)
-            this.name = "Selection Indicator"
-            this.material().diffuse = Vector3f(1f)
-            this.update += {
-                if (this.metadata["animated"] == true){
-                    this.spatial().rotation.rotateLocalY(0.01f)
-                    this.spatial().needsUpdate = true
-                }
-            }
-            this.metadata["animated"] = true
-
-            this.visible = MicroscenerySettings.setIfUnset(Settings.UI.ShowSelectionIndicator, true)
-            MicroscenerySettings.addUpdateRoutine(Settings.UI.ShowSelectionIndicator){
-                this.visible = MicroscenerySettings.get(Settings.UI.ShowSelectionIndicator, true)
-            }
-
-        }
-        // update position or visibility of selection indicator on change
-        uiModel.changeEvents += { event ->
-            when (event.kProperty) {
-                UIModel::selected -> {
-                    selectionIndicator.detach()
-                    (event.new as? Node)?.let { node ->
-                        val bb = node.boundingBox ?: return@let
-                        val pos = Vector3f(bb.center)
-                        pos.y = bb.asWorld().max.y
-                        selectionIndicator.spatial().position = pos
-                        scene.addChild(selectionIndicator)
-
-                        if (MicroscenerySettings.get(Settings.UI.ShowBorderOfSelected,false)){
-                            (event.new as? SliceRenderNode)?.setBorderVisibility(true)
-                            (event.old as? SliceRenderNode)?.setBorderVisibility(false)
-                        }
-                    }
-                }
-            }
-        }
+        selectionIndicator = initSelectionIndicator()
 
         startAgent()
     }
@@ -281,4 +244,46 @@ class StageSpaceManager(
         Matrix4f(stageRoot.spatial().world).invertAffine().transform(Vector4f().set(v, if(isPosition) 1f else 0f)).xyz()
 
     fun getInverseWorldScale(): Vector3f = Matrix4f(stageRoot.spatial().world).invertAffine().getScale(Vector3f())
+
+    private fun initSelectionIndicator(): Pyramid {
+        val selectionIndicator = Pyramid().apply {
+            this.spatial().scale = Vector3f(0.1f, 0.1f, 0.1f)
+            this.name = "Selection Indicator"
+            this.material().diffuse = Vector3f(1f)
+            this.update += {
+                if (this.metadata["animated"] == true) {
+                    this.spatial().rotation.rotateLocalY(0.01f)
+                    this.spatial().needsUpdate = true
+                }
+            }
+            this.metadata["animated"] = true
+
+            this.visible = MicroscenerySettings.setIfUnset(Settings.UI.ShowSelectionIndicator, true)
+            MicroscenerySettings.addUpdateRoutine(Settings.UI.ShowSelectionIndicator) {
+                this.visible = MicroscenerySettings.get(Settings.UI.ShowSelectionIndicator, true)
+            }
+
+        }
+        // update position or visibility of selection indicator on change
+        uiModel.changeEvents += { event ->
+            when (event.kProperty) {
+                UIModel::selected -> {
+                    selectionIndicator.detach()
+                    (event.new as? Node)?.let { node ->
+                        val bb = node.boundingBox ?: return@let
+                        val pos = Vector3f(bb.center)
+                        pos.y = bb.asWorld().max.y
+                        selectionIndicator.spatial().position = pos
+                        scene.addChild(selectionIndicator)
+
+                        if (MicroscenerySettings.get(Settings.UI.ShowBorderOfSelected, false)) {
+                            (event.new as? SliceRenderNode)?.setBorderVisibility(true)
+                            (event.old as? SliceRenderNode)?.setBorderVisibility(false)
+                        }
+                    }
+                }
+            }
+        }
+        return selectionIndicator
+    }
 }
