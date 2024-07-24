@@ -25,11 +25,44 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 import kotlin.io.path.Path
+import kotlin.math.PI
 
 val openSpimScale3 = Vector3f(.225f, .225f, 3.348f)
 val openSpimScale15 = Vector3f(.225f, .225f, 1.524f)
 
-fun currentVolume(hub: Hub) = neuroStack4(hub)
+fun currentVolume(hub: Hub) = spindle(hub)
+
+
+fun spindle(hub: Hub): Volume {
+    //val imp: ImagePlus = IJ.openImage("""E:\volumes\spindle\NikonSD_60x_HeLa_02.tif""")
+    val imp: ImagePlus = IJ.openImage("""E:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+    val img: Img<UnsignedShortType> = ImageJFunctions.wrap(imp)
+
+    val volume = Volume.fromRAI(
+        img,
+        UnsignedShortType(),
+        AxisOrder.DEFAULT,
+        "Volume loaded with IJ",
+        hub,
+        VolumeViewerOptions()
+    )
+    volume.spatial() {
+        scale = Vector3f(5f,5f,8f)//openSpimScale15*2f
+    }
+    volume.origin = Origin.Center
+    volume.transferFunction = TransferFunction.ramp(0f, 0.2f, 1f)
+    volume.colormap = Colormap.get("plasma")
+    volume.setTransferFunctionRange(1000f, 3000f)
+
+    thread {
+        while (true){
+            volume.spatial().rotation = Quaternionf().rotationY(2*PI.toFloat() * ((System.currentTimeMillis() % 5000) / 5000f))
+
+        }
+    }
+
+    return volume
+}
 
 
 fun neuroStack4(hub: Hub): Volume {
