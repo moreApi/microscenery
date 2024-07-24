@@ -116,7 +116,7 @@ class MeasureTool(
             newLine.addChild(lineMidpoint)
 
             val labelPivot = RichNode()
-            WorldToLocalPosSync(lineMidpoint, labelPivot)
+            val sync = WorldToLocalPosSync(lineMidpoint, labelPivot)
             labelPivot.spatial {
                 position.y = 0.01f
                 scale = Vector3f(0.05f)
@@ -130,7 +130,7 @@ class MeasureTool(
             }
             labelPivot.addChild(Row(label))
 
-            newLine.addAttribute(MeasureLabel::class.java, MeasureLabel())
+            newLine.addAttribute(MeasureLabel::class.java, MeasureLabel(sync))
         }
     }
 
@@ -147,14 +147,15 @@ class MeasureTool(
         next?.removeConnection(point)
         next?.let { prev?.connectTo(it) }
 
+        val sync = point.getAttributeOrNull(MeasureLabel::class.java)?.sync
+        sync?.deactivate()
+        sync?.target?.detach()
+
         point.detach()
     }
 
     private fun deleteLastPoint() {
-        val point = measurePoints.lastOrNull() ?: return
-        measurePoints -= point
-        measurePoints.lastOrNull()?.removeConnection(point)
-        point.detach()
+        measurePoints.lastOrNull()?.let { deletePoint(it) }
     }
 
     private fun clearAll() {
@@ -173,5 +174,5 @@ class MeasureTool(
     /**
      * a placeholder to access the attribute functionality
      */
-    class MeasureLabel
+    class MeasureLabel(val sync: WorldToLocalPosSync)
 }
