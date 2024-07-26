@@ -33,7 +33,7 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
         }
 
     protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
-        HardwareDimensions.EMPTY.copy(stageMin = Vector3f(-45f))
+        HardwareDimensions.EMPTY.copy()
     ) { _, old, new ->
         if (old != new) output.put(hardwareDimensions)
     }

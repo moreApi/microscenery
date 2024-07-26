@@ -115,11 +115,11 @@ class MicromanagerWrapper(
      */
     @Suppress("MemberVisibilityCanBePrivate")
     fun updateHardwareDimensions() {
-        val (stageMin, stageMax) = stageMinMax()
+        val (stageMin, stageMax) = stageLimitsFromSettings()
         mmCoreConnector.updateSize()
 
         hardwareDimensions = HardwareDimensions(
-            stageMin, stageMax,
+            stageMin.min(hardwareDimensions.stageMin), stageMax.max(hardwareDimensions.stageMax),
             Vector2i(mmCoreConnector.width, mmCoreConnector.height),
             vertexDiameter,
             NumericType.INT16
@@ -198,8 +198,6 @@ class MicromanagerWrapper(
     @Suppress("unused")
     fun updateStagePositionNoMovement(pos: Vector3f) {
         if (status.state != ServerState.STARTUP) {
-            status = status.copy(stagePosition = pos)
-
             if (MicroscenerySettings.get(Settings.Stage.Limits.AutoGrowStageLimits, true)) {
 
                 val min = hardwareDimensions.stageMin
@@ -216,6 +214,8 @@ class MicromanagerWrapper(
                     hardwareDimensions = hardwareDimensions.copy(stageMin = newMin, stageMax = newMax)
                 }
             }
+
+            status = status.copy(stagePosition = pos)
         }
     }
 
@@ -462,7 +462,7 @@ class MicromanagerWrapper(
     }
 
 
-    private fun stageMinMax(): Pair<Vector3f, Vector3f> {
+    private fun stageLimitsFromSettings(): Pair<Vector3f, Vector3f> {
         val min = MicroscenerySettings.getVector3(Settings.Stage.Limits.Min, stagePosition)!!
         val max = MicroscenerySettings.getVector3(Settings.Stage.Limits.Max, stagePosition)!!
         if (min.x > max.x || min.y > max.y || min.z > max.z) {
