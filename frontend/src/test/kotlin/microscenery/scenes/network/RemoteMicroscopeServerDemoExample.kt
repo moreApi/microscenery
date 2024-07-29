@@ -1,6 +1,6 @@
 package microscenery.scenes.network
 
-import microscenery.scenes.microscope.DataReaderMicroscope
+import microscenery.scenes.microscope.FolderReaderMicroscope
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import org.zeromq.ZContext
@@ -15,7 +15,7 @@ class RemoteMicroscopeServerDemoExample {
             val zContext = ZContext()
 
             //val microscope = DemoMicroscopeHardware()
-            val microscope = DataReaderMicroscope()
+            val microscope = FolderReaderMicroscope()
 
             @Suppress("UNUSED_VARIABLE")
             val server =

@@ -31,10 +31,10 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = true) {
         ScapeViewerUI.scapeViewerSettings()
 
 
-        val hardware = DataReaderMicroscope()
+        val hardware = FolderReaderMicroscope()
 
         stageSpaceManager = StageSpaceManager(
-            hardware, scene, msHub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -40.5), viewMode = true
+            hardware, scene, msHub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, 40.5), viewMode = true
         )
 
         lightSleepOnCondition { hardware.status().state == ServerState.MANUAL }
@@ -82,7 +82,7 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = true) {
 }
 
 
-class DataReaderMicroscope : MicroscopeHardwareAgent() {
+class FolderReaderMicroscope : MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private var idCounter = 1
