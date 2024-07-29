@@ -190,9 +190,9 @@ class StageSpaceManager(
     }
 
     fun exploreCubeStageSpace(p1: Vector3f, p2: Vector3f, resolution: Vector3f = Vector3f(
-        MicroscenerySettings.get("Stage.ExploreResolutionX", 10f),
-        MicroscenerySettings.get("Stage.ExploreResolutionY", 10f),
-        MicroscenerySettings.get("Stage.ExploreResolutionZ", 10f)
+        MicroscenerySettings.get("Stage.ExploreResolutionX", 50f),
+        MicroscenerySettings.get("Stage.ExploreResolutionY", 50f),
+        MicroscenerySettings.get("Stage.ExploreResolutionZ", 50f)
     )) {
         if (hardware.status().state != ServerState.MANUAL) {
             throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
@@ -209,25 +209,21 @@ class StageSpaceManager(
             p1.z.coerceAtLeast(p2.z),
         )
 
-        val positions = mutableListOf<Vector3f>()
         // I'm missing classic for loops, kotlin :,(
-        var x = from.x
-        while (x <= to.x) {
-            var y = from.y
-            while (y <= to.y) {
-                var z = from.z
-                while (z <= to.z) {
-                    positions += Vector3f(x, y, z)
-                    z += resolution.z
-                }
-                y += resolution.y
-            }
-            x += resolution.x
-        }
+        val steps = (to-from).div(resolution).absolute()
+        val xPositions = (0 .. steps.x.toInt()).map{from.x+resolution.x*it}
+        val yPositions = (0 .. steps.y.toInt()).map{from.y+resolution.y*it}
+        val zPositions = (0 .. steps.z.toInt()).map{from.z+resolution.z*it}
 
-        positions.forEach {
-            this.stagePosition = it
-            this.snapSlice()
+        for (z in zPositions.withIndex()) {
+            val tmpX = if (z.index % 2 == 0) xPositions else xPositions.reversed()
+            for (x in tmpX.withIndex()) {
+                val tmpY = if (x.index % 2 == 0) yPositions else yPositions.reversed()
+                for (y in tmpY) {
+                    this.stagePosition = Vector3f(x.value, y, z.value)
+                    this.snapSlice()
+                }
+            }
         }
     }
 

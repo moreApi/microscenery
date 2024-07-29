@@ -31,17 +31,17 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
 //        MicroscenerySettings.set("Stage.maxZ", 100f)
 //        val stageStart =Vector3f(41000f, 23000f, 0f)
 
-//        MicroscenerySettings.set("Stage.minX", -300f)
-//        MicroscenerySettings.set("Stage.minY", -300f)
-//        MicroscenerySettings.set("Stage.minZ", -250f)
-        MicroscenerySettings.set("Stage.maxX", 30f)
-        MicroscenerySettings.set("Stage.maxY", 30f)
+        MicroscenerySettings.set("Stage.minX", -300f)
+        MicroscenerySettings.set("Stage.minY", -300f)
+        MicroscenerySettings.set("Stage.minZ", -250f)
+        MicroscenerySettings.set("Stage.maxX", 300f)
+        MicroscenerySettings.set("Stage.maxY", 300f)
         MicroscenerySettings.set("Stage.maxZ", 250f)
 
         val stageStart = Vector3f()
 
         val hardware: MicroscopeHardware =
-            MicromanagerWrapper(MMCoreConnector(initLocalMMCoreFake(SkewedC1HPO)).apply { moveStage(stageStart, false) })
+            MicromanagerWrapper(MMCoreConnector(initLocalMMCoreDemo()))//initLocalMMCoreFake(SkewedC1HPO)).apply { moveStage(stageStart, false) })
         stageSpaceManager = StageSpaceManager(
             hardware, scene, msHub, layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5)
         )
@@ -56,15 +56,15 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
         //Thread.sleep(2000)
         //db.randomLive()
         //db.fixedStack(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 120f))
-        db.positions(
-            Vector3f(0f,0f,20f),
-            Vector3f(0f,0f,30f),
-            Vector3f(0f,0f,40f),
-            Vector3f(0f,0f,50f),
-            Vector3f(0f,0f,60f),
-            Vector3f(0f,0f,70f),
-            Vector3f(0f,0f,80f),
-        )
+//        db.positions(
+//            Vector3f(0f,0f,20f),
+//            Vector3f(0f,0f,30f),
+//            Vector3f(0f,0f,40f),
+//            Vector3f(0f,0f,50f),
+//            Vector3f(0f,0f,60f),
+//            Vector3f(0f,0f,70f),
+//            Vector3f(0f,0f,80f),
+//        )
 
 
         thread {
@@ -102,7 +102,7 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
         }
         fun initLocalMMCoreDemo(): CMMCore {
             val core = CMMCore()
-            val mmConfiguration = "C:/Program Files/Micro-Manager-2.0gamma/MMConfig_demo.cfg"
+            val mmConfiguration = "C:/Program Files/Micro-Manager-2.0/MMConfig_demo.cfg"
             core.loadSystemConfiguration(mmConfiguration)
 
             return core
