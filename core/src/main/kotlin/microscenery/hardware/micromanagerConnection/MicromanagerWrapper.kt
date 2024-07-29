@@ -46,7 +46,7 @@ class MicromanagerWrapper(
     var vertexDiameter = MicroscenerySettings.get(Settings.MMMicroscope.VertexDiameter, mmCoreConnector.pixelSizeUm)
         set(value) {
             field = value
-            updateHardwareDimensions()
+            hardwareDimensions = hardwareDimensions.copy(vertexDiameter = value)
         }
 
     init {
@@ -60,9 +60,25 @@ class MicromanagerWrapper(
             updateStagePositionPollingThread()
         }
 
-        updateHardwareDimensions()
+        updateImageSize()
+        updateStageLimitsFromSettings()
 
-        if (hardwareDimensions.coercePosition(mmCoreConnector.stagePosition, null) != mmCoreConnector.stagePosition) {
+        startAgent()
+        status = status.copy(stagePosition = mmCoreConnector.stagePosition, state = ServerState.MANUAL)
+    }
+
+    fun updateStageLimitsFromSettings() {
+        val stageMin = MicroscenerySettings.getVector3(Settings.Stage.Limits.Min, stagePosition)!!
+        val stageMax = MicroscenerySettings.getVector3(Settings.Stage.Limits.Max, stagePosition)!!
+        if (stageMin.x > stageMax.x || stageMin.y > stageMax.y || stageMin.z > stageMax.z) {
+            throw IllegalArgumentException("Min allowed stage area parameters need to be smaller than max values")
+        }
+        hardwareDimensions = hardwareDimensions.copy(stageMin = stageMin, stageMax = stageMax)
+        if (hardwareDimensions.coercePosition(
+                mmCoreConnector.stagePosition,
+                null
+            ) != mmCoreConnector.stagePosition
+        ) {
             when (mmStudioConnector.askForStageLimitErrorResolve()) {
                 MMStudioConnector.StageLimitErrorResolves.RESET_LIMITS -> {
                     hardwareDimensions = hardwareDimensions.copy(
@@ -73,8 +89,9 @@ class MicromanagerWrapper(
                     MicroscenerySettings.setVector3f(Settings.Stage.Limits.Min, stagePosition)
                 }
 
-                MMStudioConnector.StageLimitErrorResolves.MOVE_STAGE -> stagePosition =
-                    (hardwareDimensions().stageMin + hardwareDimensions().stageMax).times(0.5f)
+                MMStudioConnector.StageLimitErrorResolves.MOVE_STAGE -> {
+                    stagePosition = (hardwareDimensions().stageMin + hardwareDimensions().stageMax).times(0.5f)
+                }
 
                 MMStudioConnector.StageLimitErrorResolves.IGNORE -> {}
                 null -> throw IllegalArgumentException(
@@ -83,9 +100,6 @@ class MicromanagerWrapper(
                 )
             }
         }
-
-        startAgent()
-        status = status.copy(stagePosition = mmCoreConnector.stagePosition, state = ServerState.MANUAL)
     }
 
     private fun updateStagePositionPollingThread() {
@@ -110,20 +124,12 @@ class MicromanagerWrapper(
     /**
      * Reads settings and image size to update hardware dimensions.
      *
-     * Takes one image with the microscope to make sure, image meta information are correctly set.
-     * Can be called from UI.
+     * Takes one image with the microscope if none has be taken to make sure, image meta information are correctly set.
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun updateHardwareDimensions() {
-        val (stageMin, stageMax) = stageLimitsFromSettings()
-        mmCoreConnector.updateSize()
-
-        hardwareDimensions = HardwareDimensions(
-            stageMin.min(hardwareDimensions.stageMin), stageMax.max(hardwareDimensions.stageMax),
-            Vector2i(mmCoreConnector.width, mmCoreConnector.height),
-            vertexDiameter,
-            NumericType.INT16
-        )
+    fun updateImageSize() {
+        mmCoreConnector.initImageSize()
+        hardwareDimensions = hardwareDimensions.copy(imageSize = Vector2i(mmCoreConnector.width, mmCoreConnector.height))
     }
 
     //############################## called from external threads ##############################
@@ -225,7 +231,7 @@ class MicromanagerWrapper(
      */
     @Suppress("unused")
     fun externalSnap(position: Vector3f, data: ByteBuffer) {
-        updateHardwareDimensions()
+        if (data.capacity() != hardwareDimensions.byteSize) updateImageSize()
         val sliceSignal = Slice(
             idCounter++,
             System.currentTimeMillis(),
@@ -300,7 +306,7 @@ class MicromanagerWrapper(
             takeImage()
         } catch (t: Throwable) {
             //image size might has be changed by ROI selection -> retry
-            updateHardwareDimensions()
+            updateImageSize()
             try {
                 takeImage()
             } catch (t: Throwable) {
@@ -461,15 +467,6 @@ class MicromanagerWrapper(
         }
     }
 
-
-    private fun stageLimitsFromSettings(): Pair<Vector3f, Vector3f> {
-        val min = MicroscenerySettings.getVector3(Settings.Stage.Limits.Min, stagePosition)!!
-        val max = MicroscenerySettings.getVector3(Settings.Stage.Limits.Max, stagePosition)!!
-        if (min.x > max.x || min.y > max.y || min.z > max.z) {
-            throw IllegalArgumentException("Min allowed stage area parameters need to be smaller than max values")
-        }
-        return min to max
-    }
 
     private sealed class HardwareCommand {
         protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))

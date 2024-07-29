@@ -49,10 +49,10 @@ class MMCoreConnector(
 
         setup = microscenery.hardware.SPIMSetup.createDefaultSetup(core)
 
-        updateSize()
+        initImageSize()
     }
 
-    fun updateSize() {
+    fun initImageSize() {
         if (width == 0) setup.snapImage()
     }
 
