@@ -91,5 +91,10 @@ object Settings {
         /** int */ const val PollStagePositionFrequencyMS = "MMMicroscope.PollStagePositionFrequencyMS"
         /** bool */ const val IsMicromanagerMicroscope = "MMMicroscope.IsMicromanagerMicroscope"
         /** bool */ const val UseImageMetadataPosition = "MMMicroscope.useImageMetadataPosition"
+
+        object Stream{
+            /** int */ const val ImageRateLimitPerSec = "MMMicroscope.Stream.imageRateLimitPerSec"
+            /** int */ const val Camera = "MMMicroscope.Stream.camera"
+        }
     }
 }
