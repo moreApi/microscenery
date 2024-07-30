@@ -44,7 +44,7 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
         thread {
             //Thread.sleep(5000)
             @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(
-                hw.hardwareDimensions().stageMax.x,
+                hw.hardwareDimensions().stageMax,
                 stageSpaceManager
             )
             //db.fixedStack(Vector3f(100f,100f,000f), Vector3f(100f, 100f,200f))

@@ -29,7 +29,7 @@ import kotlin.math.sqrt
 class DemoMicroscopeHardware(
     stagePosition: Vector3f = Vector3f(),
     var timeBetweenUpdatesMilli: Int = 200,
-    val size: Int = 200,
+    val size: Vector3f = Vector3f(300f),
     val binning: Int = 1
 ) : MicroscopeHardwareAgent() {
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -45,7 +45,7 @@ class DemoMicroscopeHardware(
 
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
-            stageMax = Vector3f(size.toFloat()),
+            stageMax = size,
             imageSize = Vector2i(50 / binning, 50 / binning),
             vertexDiameter = 1f * binning,
             numericType = NumericType.INT8

@@ -9,12 +9,12 @@ import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 
 @Suppress("unused")
-class DemoBehavior(private val extend: Float, private val stageSpaceManager: StageSpaceManager) {
+class DemoBehavior(private val extend: Vector3f, private val stageSpaceManager: StageSpaceManager) {
 
     fun randomStatic(amount: Int = 200) {
         val sortedSlices = ArrayList<Vector3f>()
         for (i in 0..amount) {
-            val target = Random.random3DVectorFromRange(0f, extend)
+            val target = Random.random3DVectorFromRange(0f, 1f) * extend
             sortedSlices.add(target)
         }
 
@@ -28,10 +28,11 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
     fun fixed() {
         val sortedSlices = ArrayList<Vector3f>()
         for (z in 0..4) for (y in 0..4) for (x in 0..4) {
+
             val target = Vector3f(
-                ((extend / 4) * x).coerceAtMost(extend - 1f),
-                ((extend / 4) * y).coerceAtMost(extend - 1f),
-                ((extend / 4) * z).coerceAtMost(extend - 1f)
+                ((extend.x / 4) * x).coerceAtMost(extend.x - 1f),
+                ((extend.y / 4) * y).coerceAtMost(extend.y - 1f),
+                ((extend.z / 4) * z).coerceAtMost(extend.z - 1f)
             )
 
             sortedSlices.add(target)
@@ -44,7 +45,7 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
         }
     }
 
-    fun positions(vararg pos : Vector3f) {
+    fun positions(vararg pos: Vector3f) {
         pos.sortBy { it.z() }
         for (target in pos) {
             stageSpaceManager.stagePosition = target
@@ -66,7 +67,7 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
                         startTime = nowMillis()
                         position = target
                         start = position
-                        target = Random.random3DVectorFromRange(0f, extend)
+                        target = Random.random3DVectorFromRange(0f, 1f) * extend
                     }
 
                     val dir = target - start
@@ -78,17 +79,11 @@ class DemoBehavior(private val extend: Float, private val stageSpaceManager: Sta
         }
     }
 
-    fun fixedStack(
-        from: Vector3f = Vector3f(extend / 2, extend / 2, extend / 4),
-        to: Vector3f = Vector3f(extend / 2, extend / 2, (extend / 4) * 3)
-    ) {
+    fun fixedStack(from: Vector3f, to: Vector3f) {
         stageSpaceManager.stack(from, to, false)
     }
 
-    fun liveStack(
-        from: Vector3f = Vector3f(extend / 2, extend / 2, extend / 4),
-        to: Vector3f = Vector3f(extend / 2, extend / 2, (extend / 4) * 3)
-    ) {
+    fun liveStack(from: Vector3f, to: Vector3f) {
         stageSpaceManager.stack(from, to, true)
     }
 }

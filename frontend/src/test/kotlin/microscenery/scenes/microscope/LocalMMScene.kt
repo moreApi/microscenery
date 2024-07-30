@@ -52,7 +52,7 @@ class LocalMMScene : DefaultScene(withSwingUI = true) {
 
         //stageSpaceManager.focusTarget?.mode = FocusFrame.Mode.STEERING
         @Suppress("UNUSED_VARIABLE")
-        val db = DemoBehavior(hardware.hardwareDimensions().stageMax.z, stageSpaceManager)
+        val db = DemoBehavior(hardware.hardwareDimensions().stageMax, stageSpaceManager)
         //Thread.sleep(2000)
         //db.randomLive()
         //db.fixedStack(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 120f))
