@@ -11,18 +11,17 @@ import kotlin.reflect.KProperty
 
 /**
  * Movement Command class. Moves a node in the given direction.
- * TODO: Figure out why there are two movementCommand one here and one in scenery
  *
  * @author Ulrik Günther <hello@ulrik.is>
  * @author Jan Tiemann
  * @property[direction] The direction of movement as string. Can be forward/back/left/right/up/down.
  * @property[n] The [Node] this behaviour affects.
  */
-open class MovementCommand(
+open class MovementCommandLocalSpace(
     private val direction: String,
     private var n: () -> Node?,
     val cam: Camera,
-    var speed: Float = 0.5f
+    var speed: () -> Float = {1f}
 ) : ClickBehaviour {
     private val node: Node? by NodeDelegate()
 
@@ -38,30 +37,23 @@ open class MovementCommand(
         }
     }
 
-    /**
-     * This function is triggered upon arrival of a click event that concerns
-     * this behaviour. The camera is then moved in the corresponding direction.
-     * this behaviour. The camera is then moved in the corresponding direction.
-     */
     @Synchronized
     override fun click(x: Int, y: Int) {
-        // see if the node is a camera, if not, try to find the active observer, and return
-        // if that could not be found as well
-        val deltaT = cam.deltaT
         val forward = Vector3f(0f, 0f, -1f)
         val right = Vector3f(1f, 0f, 0f)
         val up = Vector3f(0f, 1f, 0f)
+
 
         node?.let { node ->
             if (node.lock.tryLock() != false) {
                 node.ifSpatial {
                     when (direction) {
-                        "forward" -> position += forward * speed * deltaT * 1f / worldScale().z
-                        "back" -> position -= forward * speed * deltaT * 1f / worldScale().z
-                        "left" -> position -= right * speed * deltaT * 1f / worldScale().x
-                        "right" -> position += right * speed * deltaT * 1f / worldScale().x
-                        "up" -> position += up * speed * deltaT * 1f / worldScale().y
-                        "down" -> position -= up * speed * deltaT * 1f / worldScale().y
+                        "forward" -> position += forward * speed()
+                        "back" -> position -= forward * speed()
+                        "left" -> position -= right * speed()
+                        "right" -> position += right * speed()
+                        "up" -> position += up * speed()
+                        "down" -> position -= up * speed()
                     }
                 }
 

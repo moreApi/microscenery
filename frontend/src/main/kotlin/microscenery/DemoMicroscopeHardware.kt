@@ -214,7 +214,7 @@ class DemoMicroscopeHardware(
             } else {
                 255 to 1
             }
-            val byteSize = (imgSize.x*imgSize.y*bytesPerVoxel).toInt()
+            val byteSize = (imgSize.x*imgSize.y*bytesPerVoxel)
 
             val buffer = MemoryUtil.memAlloc(byteSize)
             val shortBufferView = buffer.asShortBuffer()

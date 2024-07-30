@@ -254,12 +254,13 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     }
 
     fun stageKeyUI(inputHandler: InputHandler, cam: Camera) {
+        fun imgSize() = stageSpaceManager.hardware.hardwareDimensions().imageSize
         listOf(
-            "frame_forward", "frame_back", "frame_left", "frame_right", "frame_up", "frame_down"
-        ).forEach { name ->
+            "frame_forward" to {10}, "frame_back" to {10}, "frame_left" to {imgSize().x}, "frame_right" to {imgSize().x}, "frame_up" to {imgSize().y}, "frame_down"  to {imgSize().y}
+        ).forEach { (name, speed) ->
             inputHandler.addBehaviour(
                 name,
-                MovementCommand(name.removePrefix("frame_"), { stageSpaceManager.focusTarget }, cam, speed = 1f)
+                MovementCommandLocalSpace(name.removePrefix("frame_"), { stageSpaceManager.focusTarget }, cam, speed = {speed().toFloat()})
             )
         }
         MicroscenerySettings.setIfUnset("FrameControl", false)
