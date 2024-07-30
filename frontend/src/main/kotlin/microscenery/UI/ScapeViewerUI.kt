@@ -87,6 +87,8 @@ class ScapeViewerUI(val msHub: MicrosceneryHub) {
             MicroscenerySettings.set(Settings.StageSpace.RandomSliceOffset, 0.1f)
             MicroscenerySettings.set(Settings.UI.ShowBorderOfSelected,true)
             MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator,false)
+            MicroscenerySettings.set(Settings.MMMicroscope.IsMicromanagerMicroscope,true)
+
         }
     }
 }
