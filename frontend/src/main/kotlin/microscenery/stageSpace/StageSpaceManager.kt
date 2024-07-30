@@ -195,7 +195,9 @@ class StageSpaceManager(
         MicroscenerySettings.get("Stage.ExploreResolutionZ", 50f)
     )) {
         if (hardware.status().state != ServerState.MANUAL) {
-            throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
+            logger.warn("Can only start sampling stage space if server is in Manual state.")
+            return
+            //throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
         }
 
         val from = Vector3f(
