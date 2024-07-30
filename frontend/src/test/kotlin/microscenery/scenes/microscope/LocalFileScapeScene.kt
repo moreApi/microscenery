@@ -4,7 +4,6 @@ import graphics.scenery.utils.lazyLogger
 import microscenery.*
 import microscenery.UI.ScapeViewerUI
 import microscenery.UI.StageSpaceUI
-import microscenery.UI.StageUICommand
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
 import microscenery.stageSpace.MicroscopeLayout
@@ -55,22 +54,7 @@ class LocalFileScapeScene : DefaultScene(withSwingUI = true) {
         super.inputSetup()
         val scapeUI = ScapeViewerUI(msHub)
         scapeUI.resetView()
-        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub, listOf(
-            StageUICommand("Right", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(-1f, 0f, 0f))
-            },
-            StageUICommand("Left", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(1f, 0f, 0f))
-            }, StageUICommand("Top", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(0f, -1f, -0.1f))
-            },
-            StageUICommand("Bottom", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(0f, 1f, -0.1f))
-            },
-            StageUICommand("reset", "") { _, _ ->
-                scapeUI.resetView()
-            }
-        ))
+        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub, scapeUI.orthoViewCommands())
     }
 
     companion object {

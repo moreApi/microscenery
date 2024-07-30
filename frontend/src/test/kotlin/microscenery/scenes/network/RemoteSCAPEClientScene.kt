@@ -3,12 +3,10 @@ package microscenery.scenes.network
 import microscenery.*
 import microscenery.UI.ScapeViewerUI
 import microscenery.UI.StageSpaceUI
-import microscenery.UI.StageUICommand
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
-import org.joml.Vector3f
 import org.zeromq.ZContext
 
 
@@ -39,22 +37,7 @@ class RemoteSCAPEClientScene : DefaultScene(withSwingUI = true) {
 
         val scapeUI = ScapeViewerUI(msHub)
         scapeUI.resetView()
-        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub, listOf(
-            StageUICommand("Right", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(-1f, 0f, 0f))
-            },
-            StageUICommand("Left", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(1f, 0f, 0f))
-            }, StageUICommand("Top", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(0f, -1f, -0.1f))
-            },
-            StageUICommand("Bottom", "") { _, _ ->
-                scapeUI.setViewDirection(Vector3f(0f, 1f, -0.1f))
-            },
-            StageUICommand("reset", "") { _, _ ->
-                scapeUI.resetView()
-            }
-        ))
+        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub, scapeUI.orthoViewCommands())
     }
 
     companion object {
