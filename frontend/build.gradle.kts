@@ -20,8 +20,8 @@ dependencies {
     // - jans-branch
     // - fix/16bit-histogram
     // - split-histogram-checkbox
-    //implementation("com.github.scenerygraphics:scenery:d8eacd74035095c14ae164e374f4247b192a4da6")
-    implementation("com.github.scenerygraphics:scenery:012586e5beca0ca691a23669796b46e91d1a885d")
+    // implementation("com.github.scenerygraphics:scenery:012586e5beca0ca691a23669796b46e91d1a885d")
+    implementation("com.github.scenerygraphics:scenery:5b5f2b6293c786d1e9f97a9a7f26f6bc8243dec4")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
