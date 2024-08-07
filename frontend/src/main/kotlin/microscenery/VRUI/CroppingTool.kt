@@ -1,6 +1,7 @@
 package microscenery.VRUI
 
 import graphics.scenery.Box
+import graphics.scenery.Node
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.PerButtonPressable
 import graphics.scenery.controls.behaviours.SimplePressable
@@ -9,6 +10,21 @@ import graphics.scenery.volumes.Volume
 import microscenery.UI.UIModel
 import org.joml.Vector3f
 
+
+/**
+ *
+ * Cropping Plane TODO:
+ *  - in stage space and rotates with it
+ *  - handle only visible when hand is close or other cropping plane is equipped.
+ *  - grabable
+ *  - press trigger to toggle modes
+ *  - press TOOL_MENU_BUTTON to deconstruct
+ *  - applies to all volumes in scene (also new ones!!)
+ *  - deletes copping planes it touches
+ *  - place on side
+ *  - option to axis align plane
+ *  - option to flip plane
+ */
 class CroppingTool(uiModel: UIModel) : Box(Vector3f(0.2f, 0.02f, 0.2f)), VRHandTool {
     var volume: Volume? = null
     val croppingPlane = SlicingPlane()
@@ -30,6 +46,14 @@ class CroppingTool(uiModel: UIModel) : Box(Vector3f(0.2f, 0.02f, 0.2f)), VRHandT
                 )
             )
         )
+
+        getScene()?.findByClassname("Volume")?.forEach { node ->
+            (node as? Volume)?.let { activate(it) }
+        }
+
+        uiModel.registerListener<Node>(UIModel::selected){ _, node->
+            (node as? Volume)?.let { activate(it) }
+        }
 
         this.addChild(croppingPlane)
     }
