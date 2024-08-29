@@ -85,7 +85,7 @@ abstract class DefaultScene(
             }
         }
 
-        if (MicroscenerySettings.get(Settings.StageSpace.ShowHullbox,VR)){
+        if (MicroscenerySettings.getOrNull(Settings.StageSpace.ShowHullbox) ?: VR){
             hullbox = Box(Vector3f(10.0f, 10.0f, 10.0f), insideNormals = true)
             hullbox.name = "hullbox"
             hullbox.material {
