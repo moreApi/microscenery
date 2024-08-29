@@ -63,8 +63,6 @@ class PointCloudAblationTool(
         }
         Touch("point ablation eraser", eraserHead, { placedPoints })
 
-        this.addAttribute(Touchable::class.java, Touchable())
-
         var timeOfLastInk = System.currentTimeMillis()
         val timeBetweenInks = 50
 
