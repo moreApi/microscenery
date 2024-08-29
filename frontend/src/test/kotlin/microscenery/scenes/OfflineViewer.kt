@@ -30,8 +30,30 @@ import kotlin.math.PI
 val openSpimScale3 = Vector3f(.225f, .225f, 3.348f)
 val openSpimScale15 = Vector3f(.225f, .225f, 1.524f)
 
-fun currentVolume(hub: Hub) = spindle(hub)
+fun currentVolume(hub: Hub) = janasWingDisk(hub)
 
+fun janasWingDisk(hub: Hub): Volume {
+    val imp: ImagePlus = IJ.openImage("""E:\volumes\de-skewed\WingDisk_deskewed.tif""")
+    val img: Img<UnsignedShortType> = ImageJFunctions.wrap(imp)
+
+    val volume = Volume.fromRAI(
+        img,
+        UnsignedShortType(),
+        AxisOrder.DEFAULT,
+        "Volume loaded with IJ",
+        hub,
+        VolumeViewerOptions()
+    )
+    volume.spatial() {
+        scale = Vector3f(5f,5f,8f)//openSpimScale15*2f
+    }
+    volume.origin = Origin.Center
+    volume.transferFunction = TransferFunction.ramp(0.08605619f, 0.5125469f, 1f)
+    volume.colormap = Colormap.get("plasma")
+    volume.setTransferFunctionRange(1125.0f,3300.0f)
+
+    return volume
+}
 
 fun spindle(hub: Hub): Volume {
     //val imp: ImagePlus = IJ.openImage("""E:\volumes\spindle\NikonSD_60x_HeLa_02.tif""")
@@ -50,13 +72,13 @@ fun spindle(hub: Hub): Volume {
         scale = Vector3f(5f,5f,8f)//openSpimScale15*2f
     }
     volume.origin = Origin.Center
-    volume.transferFunction = TransferFunction.ramp(0f, 0.2f, 1f)
+    volume.transferFunction = TransferFunction.ramp(0.08605619f, 0.5125469f, 1f)
     volume.colormap = Colormap.get("plasma")
-    volume.setTransferFunctionRange(1000f, 3000f)
+    volume.setTransferFunctionRange(1125.0f,3300.0f)
 
     thread {
         while (true){
-            volume.spatial().rotation = Quaternionf().rotationY(2*PI.toFloat() * ((System.currentTimeMillis() % 5000) / 5000f))
+            volume.spatial().rotation = Quaternionf().rotationY(2*PI.toFloat() * ((System.currentTimeMillis() % 10000) / 10000f))
 
         }
     }

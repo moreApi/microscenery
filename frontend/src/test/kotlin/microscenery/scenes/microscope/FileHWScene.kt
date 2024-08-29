@@ -2,27 +2,28 @@ package microscenery.scenes.microscope
 
 import graphics.scenery.Node
 import graphics.scenery.utils.extensions.times
+import graphics.scenery.volumes.Colormap
+import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.UIModel
+import microscenery.VRUI.VRUIManager
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 
-class FileHWScene : DefaultScene(withSwingUI = false) {
+class FileHWScene : DefaultScene(withSwingUI = false, VR = true) {
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
-    override fun init() {
-        super.init()
-        logger.info("Starting demo hw scene")
-        cam.spatial().position = Vector3f(0f, 0f, 5f)
-
-
+    init {
         MicroscenerySettings.set("Stage.precisionXY", 1f)
         MicroscenerySettings.set("Stage.precisionZ", 1f)
+
+        MicroscenerySettings.set(Settings.VRToolbox.PointAblationEnabled, true)
+        MicroscenerySettings.set(Settings.StageSpace.ShowHullbox, true)
 
         val viewSettings = listOf(
             Settings.StageSpace.viewMode,
@@ -31,8 +32,14 @@ class FileHWScene : DefaultScene(withSwingUI = false) {
             Settings.StageSpace.HideStageSpaceLabel
         )
         viewSettings.forEach { MicroscenerySettings.set(it, true) }
+    }
 
-        val hw = FileMicroscopeHardware("""C:\Users\JanCasus\Downloads\LNDW_VR\emd_3743Stright.tif kept stack.tif""")
+    override fun init() {
+        super.init()
+        logger.info("Starting demo hw scene")
+        cam.spatial().position = Vector3f(0f, 0f, 5f)
+
+        val hw = FileMicroscopeHardware("""E:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
         stageSpaceManager = StageSpaceManager(
             hw,
             scene,
@@ -50,6 +57,13 @@ class FileHWScene : DefaultScene(withSwingUI = false) {
         thread {
             Thread.sleep(2000)
             stageSpaceManager.stack(Vector3f(), Vector3f())
+            Thread.sleep(1000)
+
+            stageSpaceManager.sliceManager.transferFunctionManager.transferFunction =
+                TransferFunction.ramp(0.08605619f, 0.5125469f, 1f)
+            stageSpaceManager.sliceManager.transferFunctionManager.colormap = Colormap.get("plasma")
+            stageSpaceManager.sliceManager.transferFunctionManager.maxDisplayRange = 3300.0f
+            stageSpaceManager.sliceManager.transferFunctionManager.minDisplayRange = 1125.0f
         }
         thread {
             while (true) {
@@ -62,12 +76,25 @@ class FileHWScene : DefaultScene(withSwingUI = false) {
     override fun inputSetup() {
         super.inputSetup()
 
-        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub)
+        if (!VR) {
+            StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub)
 
-        msHub.getAttribute(UIModel::class.java).changeEvents += {
-            when (it.kProperty) {
-                UIModel::selected -> println("${(it.new as Node).name} selected")
+            msHub.getAttribute(UIModel::class.java).changeEvents += {
+                when (it.kProperty) {
+                    UIModel::selected -> println("${(it.new as Node).name} selected")
+                }
             }
+        } else {
+            val ssUI = StageSpaceUI(stageSpaceManager)
+
+            inputHandler?.let {
+                ssUI.stageKeyUI(it, cam)
+            }
+
+            VRUIManager.initBehavior(
+                scene, hmd, inputHandler,
+                stageSpaceUI = ssUI, msHub = MicrosceneryHub(hub)
+            )
         }
     }
 
