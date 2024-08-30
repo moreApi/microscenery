@@ -11,6 +11,7 @@ import microscenery.VRUI.behaviors.AnalogInputWrapper
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.Behaviour
 import org.scijava.ui.behaviour.DragBehaviour
+import java.util.ArrayList
 import kotlin.concurrent.thread
 
 
@@ -77,3 +78,5 @@ fun HasMaterial.changeColorWithTouchable(newColor: Vector3f){
         messages?.remove(tb)
     }
 }
+
+fun Scene.discover(func: (Node) -> Boolean): ArrayList<Node> = this.discover(this,func,false)
