@@ -26,6 +26,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import kotlin.concurrent.thread
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -36,7 +37,8 @@ class SimulationMicroscopeHardware(
     val msHub: MicrosceneryHub,
     stagePosition: Vector3f = Vector3f(),
     imageSize: Vector2i = Vector2i(250),
-    stageSize: Vector3f = Vector3f(300f)
+    stageSize: Vector3f = Vector3f(300f),
+    val maxIntensity: Short = Short.MAX_VALUE
 ) : MicroscopeHardwareAgent() {
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -92,6 +94,7 @@ class SimulationMicroscopeHardware(
                         .map { it.intensity(Vector3f(x.toFloat()-imgX/2,y.toFloat()-imgY/2,0f)+ stagePosition) }
                         .sum()
                         .toShort()
+                        .coerceAtMost(maxIntensity)
                 )
             }
         }

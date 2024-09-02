@@ -2,16 +2,16 @@ package microscenery.scenes
 
 import fromScenery.utils.extensions.times
 import graphics.scenery.Box
+import graphics.scenery.Sphere
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunction
-import microscenery.DefaultScene
-import microscenery.DemoMicroscopeHardware
-import microscenery.MicrosceneryHub
-import microscenery.MicroscenerySettings
+import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.scenes.microscope.DemoBehavior
+import microscenery.simulation.BoxSimulatable
 import microscenery.simulation.Simulatable
 import microscenery.simulation.SimulationMicroscopeHardware
+import microscenery.simulation.SphereSimulatable
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Matrix4f
@@ -35,55 +35,44 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
 
         MicroscenerySettings.set("Stage.precisionXY", 1f)
         MicroscenerySettings.set("Stage.precisionZ", 1f)
-
-        val box = Box(Vector3f(10f))
-        box.material().cullingMode = Material.CullingMode.FrontAndBack
-        box.addAttribute(Simulatable::class.java, object : Simulatable {
-            val maxIntensity = 4000.toShort()
-            val parent = box
-            override fun intensity(pos: Vector3f): Short {
-                val modelPos = Vector4f(pos,1f).mul(Matrix4f(parent.spatial().model).invertAffine())
-                val boxMin = Vector3f(-0.5f) * box.sizes
-                val boxMax = Vector3f(0.5f) * box.sizes
+        MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
 
 
-
-                val dx = listOf(boxMin.x - modelPos.x, 0f, modelPos.x - boxMax.x).max()
-                val dy = listOf(boxMin.y - modelPos.y, 0f, modelPos.y - boxMax.y).max();
-                val dz = listOf(boxMin.z - modelPos.z, 0f, modelPos.z - boxMax.z).max();
-                val dist = sqrt(dx*dx + dy*dy + dz * dz)
-
-
-                return when{
-                    dist <= 0f -> maxIntensity
-                    dist > 15f -> 0
-                    else -> ((1f-(dist/15f)) * maxIntensity).toInt().toShort()
-                }
-            }
-        })
-
-
-        val hw = SimulationMicroscopeHardware(msHub, imageSize = Vector2i(50))
+        val hw = SimulationMicroscopeHardware(msHub, imageSize = Vector2i(250), maxIntensity = 5000)
         stageSpaceManager = StageSpaceManager(
             hw,
             scene,
             msHub,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
-        stageSpaceManager.stageRoot.addChild(box)
+
 
         val tfManager = stageSpaceManager.sliceManager.transferFunctionManager
 
         tfManager.transferFunction = TransferFunction.ramp(distance = 1f)
         tfManager.minDisplayRange = 0f
-        tfManager.maxDisplayRange = 5000f
+        tfManager.maxDisplayRange = 5001f
+
+        val box = Box(Vector3f(5f,10f,5f))
+        box.material().cullingMode = Material.CullingMode.FrontAndBack
+        BoxSimulatable.addTo(box).also {
+            it.range = 5f
+            it.maxIntensity = 4000
+        }
+        stageSpaceManager.stageRoot.addChild(box)
+
+        val sphere = Sphere(10f)
+        sphere.material().cullingMode = Material.CullingMode.FrontAndBack
+        sphere.spatial().position.y = 15f
+        SphereSimulatable.addTo(sphere)
+        stageSpaceManager.stageRoot.addChild(sphere)
+
 
         thread {
             @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(
                 hw.hardwareDimensions().stageMax,
                 stageSpaceManager
             )
-            db.randomStatic(10)
         }
         thread {
             while (true) {
