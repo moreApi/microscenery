@@ -1,17 +1,18 @@
 package microscenery.scenes
 
-import fromScenery.utils.extensions.times
 import graphics.scenery.Box
 import graphics.scenery.Sphere
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.UI.StageSpaceUI
+import microscenery.VRUI.VRUIManager
 import microscenery.scenes.microscope.DemoBehavior
 import microscenery.simulation.BoxSimulatable
 import microscenery.simulation.Simulatable
 import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.SphereSimulatable
+import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Matrix4f
@@ -23,7 +24,7 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 
-class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height = 500) {
+class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height = 500,VR=true) {
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
@@ -53,19 +54,9 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
         tfManager.minDisplayRange = 0f
         tfManager.maxDisplayRange = 5001f
 
-        val box = Box(Vector3f(5f,10f,5f))
-        box.material().cullingMode = Material.CullingMode.FrontAndBack
-        BoxSimulatable.addTo(box).also {
-            it.range = 5f
-            it.maxIntensity = 4000
-        }
-        stageSpaceManager.stageRoot.addChild(box)
+        lightBulb()
 
-        val sphere = Sphere(10f)
-        sphere.material().cullingMode = Material.CullingMode.FrontAndBack
-        sphere.spatial().position.y = 15f
-        SphereSimulatable.addTo(sphere)
-        stageSpaceManager.stageRoot.addChild(sphere)
+        stageSpaceManager.focusTarget?.mode = FrameGizmo.Mode.STEERING
 
 
         thread {
@@ -82,9 +73,35 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
         }
     }
 
+    private fun lightBulb(){
+
+        val box = Box(Vector3f(5f,10f,5f))
+        box.material().cullingMode = Material.CullingMode.FrontAndBack
+        BoxSimulatable.addTo(box).also {
+            it.range = 5f
+            it.maxIntensity = 4000
+        }
+        stageSpaceManager.stageRoot.addChild(box)
+
+        val sphere = Sphere(10f)
+        sphere.material().cullingMode = Material.CullingMode.FrontAndBack
+        sphere.spatial().position.y = 15f
+        SphereSimulatable.addTo(sphere)
+        stageSpaceManager.stageRoot.addChild(sphere)
+    }
+
     override fun inputSetup() {
         super.inputSetup()
-        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub)
+        val ssUI = StageSpaceUI(stageSpaceManager)
+        ssUI.stageUI(this, inputHandler, msHub)
+
+        if (VR){
+
+            VRUIManager.initBehavior(
+                scene, hmd, inputHandler,
+                stageSpaceUI = ssUI, msHub = MicrosceneryHub(hub)
+            )
+        }
     }
 
     companion object {
