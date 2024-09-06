@@ -31,12 +31,10 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
 
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }
-        stageSpaceManager.focusTarget?.spatial()?.position = stageSpaceManager.focus.spatial().position
         //DemoBehavior(50f, stageSpaceManager).randomLive()
 
         //TransferFunctionEditor(tfContainer = stageSpaceManager)
         //SettingsEditor(settings = MicroscenerySettings)
-
 
         /*
         thread {

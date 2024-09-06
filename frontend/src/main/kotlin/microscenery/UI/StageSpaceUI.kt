@@ -11,7 +11,7 @@ import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
 import microscenery.*
 import microscenery.hardware.micromanagerConnection.MicroManagerUtil
-import microscenery.stageSpace.FrameGizmo
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.SliceManager
 import microscenery.stageSpace.SliceRenderNode
 import microscenery.stageSpace.StageSpaceManager
@@ -44,35 +44,35 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     val comGoLive = StageUICommand("goLive", "3"
     ) { _, _ -> stageSpaceManager.goLive() }
     val comSteering = StageUICommand("steering", "4") { _, _ ->
-        stageSpaceManager.focusTarget?.let {
-            if (it.mode != FrameGizmo.Mode.STEERING) {
-                it.mode = FrameGizmo.Mode.STEERING
+        stageSpaceManager.focusManager.let {
+            if (it.mode != FocusManager.Mode.STEERING) {
+                it.mode = FocusManager.Mode.STEERING
             } else {
-                it.mode = FrameGizmo.Mode.PASSIVE
+                it.mode = FocusManager.Mode.PASSIVE
             }
             logger.info("focus frame mode is now ${it.mode}")
         }
     }
     val comStackAcq = StageUICommand("stackAcq", "5") { _, _ ->
-        stageSpaceManager.focusTarget?.let {
-            if (it.mode == FrameGizmo.Mode.STACK_SELECTION) {
-                stageSpaceManager.focusTarget?.let {
-                    if (it.stackStartPos.z < it.spatial().position.z) stageSpaceManager.stack(
+        stageSpaceManager.focusManager.let {
+            if (it.mode == FocusManager.Mode.STACK_SELECTION) {
+                it.focusTarget.let { focusTarget ->
+                    if (it.stackStartPos.z < focusTarget.spatial().position.z) stageSpaceManager.stack(
                         it.stackStartPos,
-                        it.spatial().position
+                        focusTarget.spatial().position
                     )
-                    else stageSpaceManager.stack(it.spatial().position, it.stackStartPos)
+                    else stageSpaceManager.stack(focusTarget.spatial().position, it.stackStartPos)
                 }
-                it.mode = FrameGizmo.Mode.PASSIVE
+                it.mode = FocusManager.Mode.PASSIVE
             } else {
-                it.mode = FrameGizmo.Mode.STACK_SELECTION
+                it.mode = FocusManager.Mode.STACK_SELECTION
             }
             logger.info("focus frame mode is now ${it.mode}")
         }
     }
     val comSearchCube = StageUICommand("searchCube", "6", object : ClickBehaviour {
         override fun click(x: Int, y: Int) {
-            val frame = stageSpaceManager.focusTarget ?: return
+            val frame = stageSpaceManager.focusManager.focusTarget
             if (searchCubeStart == null) {
                 stageSpaceManager.stageRoot.addChild(Box().apply {
                     spatial {
@@ -260,7 +260,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         ).forEach { (name, speed) ->
             inputHandler.addBehaviour(
                 name,
-                MovementCommandLocalSpace(name.removePrefix("frame_"), { stageSpaceManager.focusTarget }, cam, speed = {speed().toFloat()})
+                MovementCommandLocalSpace(name.removePrefix("frame_"), { stageSpaceManager.focusManager.focusTarget }, cam, speed = {speed().toFloat()})
             )
         }
         MicroscenerySettings.setIfUnset("FrameControl", false)
@@ -280,7 +280,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         inputHandler.addBehaviour(
             "frameDragging", MouseDragPlane("frameDragging",
                 { stageSpaceManager.scene.findObserver() },
-                { stageSpaceManager.focusTarget },
+                { stageSpaceManager.focusManager.focusTarget },
                 false,
                 mouseSpeed = { 25f })
         )

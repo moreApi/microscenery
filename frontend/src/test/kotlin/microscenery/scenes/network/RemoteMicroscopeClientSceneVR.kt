@@ -34,7 +34,6 @@ class RemoteMicroscopeClientSceneVR : DefaultVRScene() {
 
         lightSleepOnCondition { stageSpaceManager.hardware.status().state == ServerState.MANUAL }
         lightSleepOnCondition { stageSpaceManager.hardware.hardwareDimensions().imageSize.x != 0 }
-        stageSpaceManager.focusTarget?.spatial()?.position = stageSpaceManager.focus.spatial().position
 
     }
 

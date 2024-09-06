@@ -3,7 +3,7 @@ package microscenery.scenes.microscope
 import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
-import microscenery.stageSpace.FrameGizmo
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import kotlin.concurrent.thread
@@ -27,7 +27,7 @@ class DemoHWSceneVR : DefaultVRScene() {
         val hw = DemoMicroscopeHardware()
         stageSpaceManager = StageSpaceManager(hw, scene, msHub)
 
-        stageSpaceManager.focusTarget?.mode = FrameGizmo.Mode.STEERING
+        stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
 
         thread {
             while (true) {

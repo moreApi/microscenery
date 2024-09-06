@@ -7,12 +7,15 @@ import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.lazyLogger
 import microscenery.*
-import microscenery.stageSpace.FrameGizmo
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 
+/**
+ * Ablate command for mouse use
+ */
 class AblateStageUICommand(stageSpaceManager: StageSpaceManager): StageUICommand("ablate", "7", object : ClickBehaviour {
     val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -20,9 +23,9 @@ class AblateStageUICommand(stageSpaceManager: StageSpaceManager): StageUICommand
     var goneToFirstPoint = false
 
     override fun click(x: Int, y: Int) {
-        val frame = stageSpaceManager.focusTarget ?: return
-        if (frame.mode != FrameGizmo.Mode.PASSIVE) {
-            logger.warn("Frame not passive. Not going to plan ablation.")
+        val frame = stageSpaceManager.focusManager.focusTarget ?: return
+        if (stageSpaceManager.focusManager.mode != FocusManager.Mode.PASSIVE) {
+            logger.warn("FocusManager not passive. Not going to plan ablation.")
             return
         }
 

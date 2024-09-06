@@ -12,7 +12,6 @@ import microscenery.simulation.BoxSimulatable
 import microscenery.simulation.Simulatable
 import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.SphereSimulatable
-import microscenery.stageSpace.FrameGizmo
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Matrix4f
@@ -55,9 +54,6 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
         tfManager.maxDisplayRange = 5001f
 
         lightBulb()
-
-        stageSpaceManager.focusTarget?.mode = FrameGizmo.Mode.STEERING
-
 
         thread {
             @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(

@@ -12,10 +12,17 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.PI
 
+
+/**
+ * Gets controller presses forwarded to when set in [UIModel.inLeftHand] (and right) by [InHandForwarder]
+ */
 interface VRHandTool : HasSpatial {
 
     fun getTipCollider(): Spatial? = null
 
+    /**
+     * This gets called by the menu to put the tool in hand
+     */
     fun activate(uiModel: UIModel, side: TrackerRole) {
         uiModel.inHand(side)?.deactivate(uiModel)
         this.deactivate(uiModel) // in case tool is in other hand. we are not dual wielding tools here

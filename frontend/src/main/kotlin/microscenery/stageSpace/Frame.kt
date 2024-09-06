@@ -17,7 +17,8 @@ import org.joml.Vector4f
  */
 open class Frame(
     uiModel: UIModel,
-    color: Vector3f? = null
+    color: Vector3f? = null,
+    alternativeLabelPos: (() -> Vector3f)? = null
 ) : RichNode("focus") {
 
     protected val pivot: RichNode
@@ -64,17 +65,10 @@ open class Frame(
         pivot.addChild(positionLabel)
 
         this.update += {
-            positionLabel.text = spatial().position.toReadableString()
+            positionLabel.text = (alternativeLabelPos?.invoke() ?: spatial().position).toReadableString()
         }
 
         applyHardwareDimensions(uiModel.hardwareDimensions)
-//        uiModel.changeEvents += { event ->
-//            when (event.kProperty) {
-//                UIModel::hardwareDimensions -> {
-//                    applyHardwareDimensions(event.new as HardwareDimensions)
-//                }
-//            }
-//        }
         uiModel.registerListener<HardwareDimensions>(UIModel::hardwareDimensions) { _, new ->
             new?.let { applyHardwareDimensions(new) }
         }

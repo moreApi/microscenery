@@ -36,22 +36,21 @@ class StageSpaceManager(
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
+    val uiModel = msHub.getAttribute(UIModel::class.java)
+
     val stageRoot = RichNode("stage root")
     val scaleAndRotationPivot = RichNode("scaleAndRotationPivot")
 
-    val focus: Frame
-    var focusTarget: FrameGizmo? = null
     val selectionIndicator: HasSpatial
 
     internal val stageAreaBorders: Box
     var stageAreaCenter = Vector3f()
         private set
 
-
     val sliceManager = SliceManager(hardware, stageRoot, scene, msHub)
     val ablationManager = AblationManager(hardware,this,scene)
+    val focusManager = FocusManager(this,uiModel)
     private val stageSpaceLabel: StageSpaceLabel?
-    val uiModel = msHub.getAttribute(UIModel::class.java)
 
     var stagePosition: Vector3f
         get() = hardware.status().stagePosition
@@ -91,20 +90,6 @@ class StageSpaceManager(
                 null
             }
 
-        focus = Frame(uiModel, Vector3f(0.4f, 0.4f, 1f)).apply {
-            spatial().position = hardware.stagePosition.copy()
-            stageRoot.addChild(this)
-            visible = !MicroscenerySettings.get(Settings.StageSpace.HideFocusFrame,false)
-        }
-
-        if (!MicroscenerySettings.get(Settings.StageSpace.HideFocusTargetFrame,false))
-            focusTarget = FrameGizmo(this, uiModel).apply {
-                spatial().position = hardware.stagePosition.copy()
-                stageRoot.addChild(this)
-            }
-
-        focusTarget?.children?.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
-        focus.children.first()?.spatialOrNull()?.rotation = layout.sheetRotation()
 
         selectionIndicator = initSelectionIndicator()
 
@@ -122,7 +107,7 @@ class StageSpaceManager(
                 handleHardwareDimensionsSignal(signal)
             }
             is MicroscopeStatus -> {
-                focus.spatial().position = signal.stagePosition
+                focusManager.newStagePosition(signal.stagePosition)
                 stageSpaceLabel?.updateMicroscopeStatusLabel(signal)
             }
             is Stack -> {
