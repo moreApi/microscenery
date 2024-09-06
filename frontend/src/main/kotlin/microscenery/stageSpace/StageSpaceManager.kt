@@ -60,9 +60,8 @@ class StageSpaceManager(
         }
 
     init {
-        MicroscenerySettings.setVector3fIfUnset("Stage.ExploreResolution", Vector3f(10f))
-        MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
-        MicroscenerySettings.setIfUnset("Stage.NextStackLive", false)
+        MicroscenerySettings.setVector3fIfUnset(Settings.Stage.ExploreResolution, Vector3f(10f))
+        MicroscenerySettings.setIfUnset(Settings.StageSpace.CameraDependendZSorting, true)
 
         //init hub TODO: move out of ssmanager
         msHub.addAttribute(Scene::class.java, scene)
@@ -164,12 +163,12 @@ class StageSpaceManager(
         uiModel.hardwareDimensions = signal
     }
 
-    fun stack(from: Vector3f, to: Vector3f, live: Boolean = MicroscenerySettings.get("Stage.NextStackLive", false)) {
+    fun stack(from: Vector3f, to: Vector3f, live: Boolean = MicroscenerySettings.get(Settings.Stage.NextStackLive, false)) {
         hardware.acquireStack(
             ClientSignal.AcquireStack(
                 from,
                 to,
-                MicroscenerySettings.get("Stage.precisionZ", hardware.hardwareDimensions().vertexDiameter),
+                MicroscenerySettings.get(Settings.Stage.PrecisionZ, hardware.hardwareDimensions().vertexDiameter),
                 live
             )
         )
@@ -189,11 +188,11 @@ class StageSpaceManager(
         hardware.stop()
     }
 
-    fun exploreCubeStageSpace(p1: Vector3f, p2: Vector3f, resolution: Vector3f = Vector3f(
-        MicroscenerySettings.get("Stage.ExploreResolutionX", 50f),
-        MicroscenerySettings.get("Stage.ExploreResolutionY", 50f),
-        MicroscenerySettings.get("Stage.ExploreResolutionZ", 50f)
-    )) {
+    fun exploreCubeStageSpace(
+        p1: Vector3f,
+        p2: Vector3f,
+        resolution: Vector3f = MicroscenerySettings.getVector3(Settings.Stage.ExploreResolution) ?: Vector3f(50f)
+    ) {
         if (hardware.status().state != ServerState.MANUAL) {
             logger.warn("Can only start sampling stage space if server is in Manual state.")
             return

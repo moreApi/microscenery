@@ -53,12 +53,15 @@ object Settings {
         /** bool */ const val HideStageSpaceLabel = "StageSpace.hideStageSpaceLabel"
         /** bool */ const val ShowHullbox = "StageSpace.showHullbox"
         /** string */ const val ColorMap = "StageSpace.colorMap"
+        /** bool */ const val CameraDependendZSorting = "StageSpace.cameraDependendZSorting"
     }
 
     object Stage{
 
-        val PrecisionXY: String = "Stage.precisionXY"
-        val PrecisionZ: String = "Stage.precisionZ"
+        /** float*/ val PrecisionXY: String = "Stage.precisionXY"
+        /** float*/ val PrecisionZ: String = "Stage.precisionZ"
+        /** vec3f */ val ExploreResolution: String = "Stage.exploreResolution"
+        /** bool */ val NextStackLive: String = "Stage.nextStackLive"
 
         object Limits{
             val OriginMoveProtection: String = "MMConnection.OriginMoveProtection"  //todo rename

@@ -46,7 +46,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             if (MicroscenerySettings.get("Stage.Image.FlipZ",false)) -1f else 1f)}
 
     init {
-        MicroscenerySettings.setIfUnset("Stage.CameraDependendZSorting", true)
+        MicroscenerySettings.setIfUnset(Settings.StageSpace.CameraDependendZSorting, true)
 
         MicroscenerySettings.setIfUnset("Stage.Image.FlipX", false)
         MicroscenerySettings.setIfUnset("Stage.Image.FlipY", false)

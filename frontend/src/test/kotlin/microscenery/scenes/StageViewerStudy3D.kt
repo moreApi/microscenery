@@ -24,7 +24,7 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 
-class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height = 500,VR=true) {
+class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height = 500,VR=!true) {
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
