@@ -4,11 +4,8 @@ import graphics.scenery.RichNode
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
-import microscenery.MicroscenerySettings
-import microscenery.Settings
+import microscenery.*
 import microscenery.UI.UIModel
-import microscenery.copy
-import microscenery.nowMillis
 import org.joml.Vector3f
 
 class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIModel) {
@@ -27,6 +24,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
 
     var stackStartPos = Vector3f()
         private set
+    private var stackStartIndicator: Frame? = null
 
     init {
 
@@ -120,10 +118,19 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
 
     private fun modeChanged(mode: Mode) {
         when (mode){
-            Mode.PASSIVE -> {}
-            Mode.STEERING -> {}
+            Mode.PASSIVE -> {
+                stackStartIndicator?.detach()
+            }
+            Mode.STEERING -> {
+                stackStartIndicator?.detach()
+            }
             Mode.STACK_SELECTION -> {
                 stackStartPos = focusTarget.spatial().position
+                stackStartIndicator?.detach()
+                stackStartIndicator = Frame(uiModel,Vector3f(0.1f,0.8f,0.8f)).apply {
+                    spatial().position = stackStartPos
+                    stageSpaceManager.stageRoot.addChild(this)
+                }
             }
         }
     }
