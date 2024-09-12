@@ -1,26 +1,16 @@
-package microscenery.scenes
+package microscenery.scenes.stageStudy
 
-import graphics.scenery.Box
-import graphics.scenery.Sphere
-import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.scenes.microscope.DemoBehavior
-import microscenery.simulation.BoxSimulatable
-import microscenery.simulation.Simulatable
 import microscenery.simulation.SimulationMicroscopeHardware
-import microscenery.simulation.SphereSimulatable
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
-import org.joml.Matrix4f
 import org.joml.Vector2i
 import org.joml.Vector3f
-import org.joml.Vector4f
 import kotlin.concurrent.thread
-import kotlin.math.max
-import kotlin.math.sqrt
 
 
 class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height = 500,VR=!true) {
@@ -30,11 +20,11 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
     override fun init() {
         super.init()
         logger.info("Starting demo hw scene")
-        cam.spatial().position = Vector3f(0f, 0f, 2f)
+        cam.spatial().position = Vector3f(0f, -1f, 2f)
 
 
         MicroscenerySettings.set("Stage.precisionXY", 1f)
-        MicroscenerySettings.set("Stage.precisionZ", 1f)
+        MicroscenerySettings.set("Stage.precisionZ", 3f)
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
 
 
@@ -45,6 +35,7 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
             msHub,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
+        StageSimulation.scaffold(stageSpaceManager.stageRoot)
 
 
         val tfManager = stageSpaceManager.sliceManager.transferFunctionManager
@@ -53,7 +44,7 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
         tfManager.minDisplayRange = 0f
         tfManager.maxDisplayRange = 5001f
 
-        lightBulb()
+        //lightBulb()
 
         thread {
             @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(
@@ -67,23 +58,6 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
                 scene to stageSpaceManager
             }
         }
-    }
-
-    private fun lightBulb(){
-
-        val box = Box(Vector3f(5f,10f,5f))
-        box.material().cullingMode = Material.CullingMode.FrontAndBack
-        BoxSimulatable.addTo(box).also {
-            it.range = 5f
-            it.maxIntensity = 4000
-        }
-        stageSpaceManager.stageRoot.addChild(box)
-
-        val sphere = Sphere(10f)
-        sphere.material().cullingMode = Material.CullingMode.FrontAndBack
-        sphere.spatial().position.y = 15f
-        SphereSimulatable.addTo(sphere)
-        stageSpaceManager.stageRoot.addChild(sphere)
     }
 
     override fun inputSetup() {
@@ -106,6 +80,7 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
             StageViewerStudy3D().main()
         }
     }
+
 }
 
 
