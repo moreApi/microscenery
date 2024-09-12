@@ -19,9 +19,10 @@ dependencies {
     // At the moment scenery:jans-dirtier-branch should be a merge of:
     // - jans-branch
     // - fix/16bit-histogram
+    // - fix/windows-mouse-click-scroll
     // - split-histogram-checkbox
     // implementation("com.github.scenerygraphics:scenery:012586e5beca0ca691a23669796b46e91d1a885d")
-    implementation("com.github.scenerygraphics:scenery:5b5f2b6293c786d1e9f97a9a7f26f6bc8243dec4")
+    implementation("com.github.scenerygraphics:scenery:d1da4091659b4970b6e954cda375b5aae33b2f66")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
