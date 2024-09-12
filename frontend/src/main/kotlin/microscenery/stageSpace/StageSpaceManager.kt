@@ -59,7 +59,6 @@ class StageSpaceManager(
         }
 
     init {
-        MicroscenerySettings.setVector3fIfUnset(Settings.Stage.ExploreResolution, Vector3f(10f))
         MicroscenerySettings.setIfUnset(Settings.StageSpace.CameraDependendZSorting, true)
 
         //init hub TODO: move out of ssmanager
@@ -176,13 +175,30 @@ class StageSpaceManager(
     fun exploreCubeStageSpace(
         p1: Vector3f,
         p2: Vector3f,
-        resolution: Vector3f = MicroscenerySettings.getVector3(Settings.Stage.ExploreResolution) ?: Vector3f(50f)
+        resolution: Vector3f = MicroscenerySettings.getVector3(Settings.Stage.ExploreResolution) ?: Vector3f()
     ) {
         if (hardware.status().state != ServerState.MANUAL) {
             logger.warn("Can only start sampling stage space if server is in Manual state.")
             return
             //throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
         }
+
+        resolution.x = resolution.x.let {
+            if (it > 0f){
+                it
+            } else {
+                hardware.hardwareDimensions().imageSize.x * hardware.hardwareDimensions().vertexDiameter
+            }
+        }
+
+        // if a component of resolution is 0 replace with sensible default (eg. image size)
+        for (d in listOf(0,1)){
+            if (resolution[d] <=  0f){
+                resolution.setComponent(d,
+                hardware.hardwareDimensions().imageSize[d] * hardware.hardwareDimensions().vertexDiameter)
+            }
+        }
+        if (resolution.z <= 0f) resolution.z = 50f
 
         val from = Vector3f(
             p1.x.coerceAtMost(p2.x),

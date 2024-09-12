@@ -4,6 +4,7 @@ import fromScenery.SettingsEditor
 import graphics.scenery.Box
 import graphics.scenery.Camera
 import graphics.scenery.Node
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.MouseDragPlane
 import graphics.scenery.utils.lazyLogger
@@ -11,10 +12,8 @@ import graphics.scenery.volumes.TransferFunctionEditor
 import graphics.scenery.volumes.Volume
 import microscenery.*
 import microscenery.hardware.micromanagerConnection.MicroManagerUtil
+import microscenery.stageSpace.*
 import microscenery.stageSpace.FocusManager
-import microscenery.stageSpace.SliceManager
-import microscenery.stageSpace.SliceRenderNode
-import microscenery.stageSpace.StageSpaceManager
 import net.miginfocom.swing.MigLayout
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -39,7 +38,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         initAblationSettings()
     }
 
-    var searchCubeStart: Box? = null
+    var searchCubeStart: HasSpatial? = null
 
     val comGoLive = StageUICommand("goLive", "3"
     ) { _, _ -> stageSpaceManager.goLive() }
@@ -72,23 +71,23 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     }
     val comSearchCube = StageUICommand("searchCube", "6", object : ClickBehaviour {
         override fun click(x: Int, y: Int) {
-            val frame = stageSpaceManager.focusManager.focusTarget
+            val focusTarget = stageSpaceManager.focusManager.focusTarget
             if (searchCubeStart == null) {
-                stageSpaceManager.stageRoot.addChild(Box().apply {
-                    spatial {
-                        this.position = frame.spatial().position
-                        this.scale = Vector3f((frame.children.first().ifSpatial {}?.scale?.x ?: 1f) / 5f)
-                    }
 
-                    searchCubeStart = this
-                })
+                searchCubeStart = Frame(stageSpaceManager.uiModel, Vector3f(0.2f,0.8f,0.5f)).also {
+                    it.spatial {
+                        rotation = stageSpaceManager.layout.sheetRotation()
+                        position = focusTarget.spatial().position.copy()
+                    }
+                    stageSpaceManager.stageRoot.addChild(it)
+                }
             } else {
                 val p1 = searchCubeStart!!.spatial().position
-                val p2 = frame.spatial().position
+                val p2 = focusTarget.spatial().position
 
                 stageSpaceManager.exploreCubeStageSpace(p1, p2)
 
-                searchCubeStart?.let { it.parent?.removeChild(it) }
+                searchCubeStart?.detach()
                 searchCubeStart = null
             }
         }
