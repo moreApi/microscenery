@@ -22,7 +22,7 @@ open class Frame(
 ) : RichNode("focus") {
 
     protected val pivot: RichNode
-    protected val beams: List<Box>
+    val beams: List<Box>
 
     // to make the warnings happy
     @Transient

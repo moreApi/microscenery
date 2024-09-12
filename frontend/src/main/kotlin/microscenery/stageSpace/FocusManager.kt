@@ -1,12 +1,18 @@
 package microscenery.stageSpace
 
+import graphics.scenery.Box
 import graphics.scenery.RichNode
+import graphics.scenery.controls.OpenVRHMD
+import graphics.scenery.controls.TrackerRole
+import graphics.scenery.controls.behaviours.*
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import microscenery.*
 import microscenery.UI.UIModel
+import microscenery.VRUI.VRHandTool
 import org.joml.Vector3f
+import kotlin.math.absoluteValue
 
 class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIModel) {
     val focus: Frame
@@ -33,6 +39,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
             stageSpaceManager.stageRoot.addChild(this)
             visible = !MicroscenerySettings.get(Settings.StageSpace.HideFocusFrame,false)
             children.first()?.spatialOrNull()?.rotation = stageSpaceManager.layout.sheetRotation()
+            //initVRInteraction(this,true)
         }
 
         stageSpaceManager.stageRoot.addChild(focusTarget)
@@ -41,6 +48,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
         focusTargetIndicator = Frame(uiModel, Vector3f(0.2f,0.2f,1f)) { focusTarget.spatial().position }.also {
             focusTarget.addChild(it)
             it.spatialOrNull()?.rotation = stageSpaceManager.layout.sheetRotation()
+            initVRInteraction(it,false)
         }
 
         focus.update += {
@@ -75,45 +83,64 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
         }
     }
 
-    private fun initVRInteraction(){
-        /**
-         * var dragStartPos: Vector3f? = null
-         *         var dragStartMode = mode
-         *
-         *         beams.forEach { beam ->
-         *             beam.addAttribute(Grabable::class.java, Grabable(target = {this}, lockRotation = true))
-         *             beam.addAttribute(Touchable::class.java, Touchable())
-         *             beam.addAttribute(
-         *                 Pressable::class.java, PerButtonPressable(
-         *                     mapOf(OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-         *                         // dragging while snaping results in a stack, but we dont want to penalize miss clicks when someone
-         *                         // strangely decides to start stack acquisition via desktop gui
-         *                         onPress = { _,_ ->
-         *                             if (mode == Mode.STACK_SELECTION) return@SimplePressable
-         *                             dragStartPos = this.spatial().position
-         *                             dragStartMode = mode
-         *                                   },
-         *                         onHold = { _, _ ->
-         *                             if (((dragStartPos?.z ?: 0f)- spatial().position.z).absoluteValue
-         *                                 > MicroscenerySettings.get("Stage.precisionZ", 1f) * 5) {
-         *                                 // activate only on a sufficently large drag
-         *                                 // todo respect stageManager.layout
-         *                                 mode = Mode.STACK_SELECTION
-         *                             }
-         *                         },
-         *                         onRelease = {  _,_ ->
-         *                             if (mode == Mode.STACK_SELECTION && dragStartPos != null){
-         *                                 stageSpaceManager.stack(dragStartPos!!, spatial().position)
-         *                             } else {
-         *                                 stageSpaceManager.snapSlice()
-         *                             }
-         *                             dragStartPos = null
-         *                             mode = dragStartMode
-         *                         }))
-         *                 )
-         *             )
-         *         }
-         */
+    class FocusMover(val stageSpaceManager: StageSpaceManager): RichNode("Focus Mover"), VRHandTool {
+        private val focusManager = stageSpaceManager.focusManager
+
+        private var dragStartPos: Vector3f? = null
+
+        init {
+            addAttribute(
+                Pressable::class.java, PerButtonPressable(
+                    mapOf(
+                        OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
+                        // dragging while snaping results in a stack, but we dont want to penalize miss clicks when someone
+                        // strangely decides to start stack acquisition via desktop gui
+                        onPress = { _,_ ->
+                            if (focusManager.mode == Mode.STACK_SELECTION) return@SimplePressable
+                            dragStartPos = this.spatial().position
+                        },
+                        onHold = { _, _ ->
+                            if (((dragStartPos?.z ?: 0f)- spatial().position.z).absoluteValue
+                                > MicroscenerySettings.get("Stage.precisionZ", 1f) * 5) {
+                                // activate only on a sufficently large drag
+                                // todo respect stageManager.layout
+                                focusManager.mode = Mode.STACK_SELECTION
+                            }
+                        },
+                        onRelease = {  _,_ ->
+                            if (focusManager.mode == Mode.STACK_SELECTION && dragStartPos != null){
+                                stageSpaceManager.stack(dragStartPos!!, spatial().position)
+                            } else {
+                                stageSpaceManager.snapSlice()
+                            }
+                            dragStartPos = null
+                            focusManager.mode = Mode.PASSIVE
+                        }))
+                )
+            )
+        }
+    }
+
+    private fun initVRInteraction(frame: Frame, resetTargetPos: Boolean){
+        val beams = frame.beams
+
+        beams.forEach { beam ->
+            beam.addAttribute(Touchable::class.java, Touchable())
+            beam.addAttribute(Grabable::class.java,Grabable(lockRotation = true, target = {focusTarget}, onGrab = {
+                uiModel.putInHand(TrackerRole.RightHand, FocusMover(stageSpaceManager))
+            }))
+            beam.addAttribute(
+                Pressable::class.java, PerButtonPressable(mapOf( OpenVRHMD.OpenVRButton.Side to SimplePressable(onPress = { _, device->
+                    if (resetTargetPos){
+                        focusTarget.spatial().position = stageSpaceManager.stagePosition
+                    }
+                    if (!FocusMover::class.isInstance(uiModel.inRightHand) && !FocusMover::class.isInstance(uiModel.inLeftHand) ) {
+                        uiModel.putInHand(device.role, FocusMover(stageSpaceManager))
+                        //TODO disable touch indicator
+                    }
+                })))
+            )
+        }
     }
 
     private fun modeChanged(mode: Mode) {
