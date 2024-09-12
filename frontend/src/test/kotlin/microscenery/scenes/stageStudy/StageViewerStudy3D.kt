@@ -1,5 +1,8 @@
 package microscenery.scenes.stageStudy
 
+import graphics.scenery.SceneryElement
+import graphics.scenery.controls.InputHandler
+import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.UI.StageSpaceUI
@@ -71,6 +74,19 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
                 scene, hmd, inputHandler,
                 stageSpaceUI = ssUI, msHub = MicrosceneryHub(hub)
             )
+        } else {
+            val windowWidth = renderer?.window?.width ?: 512
+            val windowHeight = renderer?.window?.height ?: 512
+
+            val target =  Vector3f(0.0f)
+            val inputHandler = (hub.get(SceneryElement.Input) as InputHandler)
+            val targetArcball = ArcballCameraControl("mouse_control", { scene.findObserver() }, windowWidth, windowHeight, target)
+
+            targetArcball.target = { target }
+
+            inputHandler.addBehaviour("mouse_control", targetArcball)
+            inputHandler.addBehaviour("scroll_arcball", targetArcball)
+            inputHandler.addKeyBinding("scroll_arcball", "scroll")
         }
     }
 
