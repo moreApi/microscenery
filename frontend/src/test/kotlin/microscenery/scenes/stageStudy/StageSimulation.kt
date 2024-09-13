@@ -1,16 +1,37 @@
 package microscenery.scenes.stageStudy
 
-import graphics.scenery.Box
-import graphics.scenery.Node
-import graphics.scenery.RichNode
-import graphics.scenery.Sphere
+import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.volumes.TransferFunction
+import microscenery.MicrosceneryHub
 import microscenery.detach
 import microscenery.simulation.BoxSimulatable
+import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.SphereSimulatable
+import microscenery.stageSpace.MicroscopeLayout
+import microscenery.stageSpace.StageSpaceManager
+import org.joml.Vector2i
 import org.joml.Vector3f
 
 object StageSimulation {
+
+    fun setupStage(msHub: MicrosceneryHub, scene: Scene):StageSpaceManager{
+        val hw = SimulationMicroscopeHardware(msHub, stageSize = Vector3f(600f), imageSize = Vector2i(50), maxIntensity = 4000)
+        val stageSpaceManager = StageSpaceManager(
+            hw,
+            scene,
+            msHub,
+            layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
+        )
+
+        stageSpaceManager.sliceManager.transferFunctionManager.apply {
+            this.transferFunction = TransferFunction.flat(1f)
+            maxDisplayRange = 4100f
+            minDisplayRange = 0f
+        }
+
+        return stageSpaceManager
+    }
 
     fun scaffold(stageRoot: Node){
         val boxes = listOf(

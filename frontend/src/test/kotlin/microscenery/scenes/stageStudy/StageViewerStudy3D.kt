@@ -5,6 +5,7 @@ import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.TransferFunction
 import microscenery.*
+import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.scenes.microscope.DemoBehavior
@@ -30,31 +31,9 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
         MicroscenerySettings.set("Stage.precisionZ", 3f)
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
 
-
-        val hw = SimulationMicroscopeHardware(msHub, imageSize = Vector2i(250), maxIntensity = 5000)
-        stageSpaceManager = StageSpaceManager(
-            hw,
-            scene,
-            msHub,
-            layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
-        )
+        stageSpaceManager = StageSimulation.setupStage(msHub, scene)
         StageSimulation.scaffold(stageSpaceManager.stageRoot)
 
-
-        val tfManager = stageSpaceManager.sliceManager.transferFunctionManager
-
-        tfManager.transferFunction = TransferFunction.ramp(distance = 1f)
-        tfManager.minDisplayRange = 0f
-        tfManager.maxDisplayRange = 5001f
-
-        //lightBulb()
-
-        thread {
-            @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(
-                hw.hardwareDimensions().stageMax,
-                stageSpaceManager
-            )
-        }
         thread {
             while (true) {
                 Thread.sleep(200)
@@ -86,7 +65,12 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
 
             inputHandler.addBehaviour("mouse_control", targetArcball)
             inputHandler.addBehaviour("scroll_arcball", targetArcball)
-            inputHandler.addKeyBinding("scroll_arcball", "scroll")
+            //inputHandler.addKeyBinding("scroll_arcball", "scroll")
+
+            val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget,{25f})
+            inputHandler.addBehaviour(frameMouseDrag.name,frameMouseDrag)
+            inputHandler.addKeyBinding(frameMouseDrag.name,"button2")
+            inputHandler.addKeyBinding(frameMouseDrag.name,"scroll")
         }
     }
 

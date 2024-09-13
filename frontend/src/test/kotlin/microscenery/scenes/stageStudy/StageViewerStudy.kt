@@ -26,29 +26,10 @@ class StageViewerStudy : DefaultScene(withSwingUI = true) {
         MicroscenerySettings.set("Stage.precisionZ", 1f)
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
 
-
-        val hw = SimulationMicroscopeHardware(msHub, stageSize = Vector3f(500f), imageSize = Vector2i(50), maxIntensity = 4000)
-        stageSpaceManager = StageSpaceManager(
-            hw,
-            scene,
-            msHub,
-            layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
-        )
+        stageSpaceManager = StageSimulation.setupStage(msHub, scene)
         StageSimulation.scaffold(stageSpaceManager.stageRoot)
 
-        stageSpaceManager.sliceManager.transferFunctionManager.apply {
-            this.transferFunction = TransferFunction.flat(1f)
-            maxDisplayRange = 4100f
-            minDisplayRange = 0f
-        }
 
-        thread {
-            @Suppress("UNUSED_VARIABLE") val db = DemoBehavior(
-                hw.hardwareDimensions().stageMax,
-                stageSpaceManager
-            )
-            db.randomStatic(10)
-        }
         thread {
             while (true) {
                 Thread.sleep(200)
