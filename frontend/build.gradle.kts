@@ -22,7 +22,7 @@ dependencies {
     // - fix/windows-mouse-click-scroll
     // - split-histogram-checkbox
     // implementation("com.github.scenerygraphics:scenery:012586e5beca0ca691a23669796b46e91d1a885d")
-    implementation("com.github.scenerygraphics:scenery:d1da4091659b4970b6e954cda375b5aae33b2f66")
+    implementation("com.github.scenerygraphics:scenery:15720b5e567db6f2680a4aaad15f01be8fadb8f0")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
