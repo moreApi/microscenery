@@ -82,6 +82,7 @@ class StageSpaceManager(
         }
         stageRoot.addChild(stageAreaBorders)
         BoundingGrid().node = stageAreaBorders
+        stageAreaBorders.visible = MicroscenerySettings.get(Settings.StageSpace.ShowStageAreaBorders,true)
 
         stageSpaceLabel = if (!MicroscenerySettings.get(Settings.StageSpace.HideStageSpaceLabel,false)){
                 StageSpaceLabel(scene, msHub)
@@ -127,7 +128,6 @@ class StageSpaceManager(
             val xSize = (signal.stageMax.x - signal.stageMin.x + signal.imageSize.x * signal.vertexDiameter)
             scale = Vector3f(1 / xSize)
             position = Vector3f(-1f) * stageAreaCenter * scale
-            updateWorld(true,false)
         }
         stageAreaBorders.spatial {
             position = stageAreaCenter

@@ -52,6 +52,7 @@ object Settings {
         /** bool */ const val HideFocusTargetFrame = "StageSpace.hideFocusTargetFrame"
         /** bool */ const val HideStageSpaceLabel = "StageSpace.hideStageSpaceLabel"
         /** bool */ const val ShowHullbox = "StageSpace.showHullbox"
+        /** bool */ const val ShowStageAreaBorders = "StageSpace.showStageAreaBorders"
         /** string */ const val ColorMap = "StageSpace.colorMap"
         /** bool */ const val CameraDependendZSorting = "StageSpace.cameraDependendZSorting"
     }
