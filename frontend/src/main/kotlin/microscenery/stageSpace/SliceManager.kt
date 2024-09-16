@@ -31,7 +31,7 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
 
-    private val sortingSlicesLock = ReentrantLock()
+    internal val sortingSlicesLock = ReentrantLock()
 
     internal val sortedSlices = ArrayList<SliceRenderNode>()
     internal var stacks = emptyList<StackContainer>()

@@ -8,6 +8,7 @@ import microscenery.detach
 import microscenery.simulation.BoxSimulatable
 import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.SphereSimulatable
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector2i
@@ -29,6 +30,9 @@ object StageSimulation {
             maxDisplayRange = 4100f
             minDisplayRange = 0f
         }
+
+        stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
+        stageSpaceManager.goLive()
 
         return stageSpaceManager
     }
