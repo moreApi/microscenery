@@ -2,9 +2,9 @@ package microscenery.scenes.stageStudy
 
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
-import fromScenery.utils.extensions.times
 import fromScenery.utils.extensions.xyz
 import graphics.scenery.Box
+import graphics.scenery.volumes.TransferFunction
 import microscenery.*
 import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
@@ -54,6 +54,9 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
 
         stageSpaceManager = StageSimulation.setupStage(msHub, scene)
         StageSimulation.scaffold(stageSpaceManager.stageRoot)
+        stageSpaceManager.sliceManager.transferFunctionManager.apply {
+            this.transferFunction = TransferFunction.flat(1f)
+        }
 
         stageSpaceManager.focusManager.focusTarget.let { focusTarget ->
             var prevZ = stageSpaceManager.focusManager.focusTarget.spatial().worldPosition().z
@@ -95,9 +98,6 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                 val posX = (2.0f * ((x + 0.5f) / cam.width) - 1) * tanFov * aspect
                 val posY = (1.0f - 2.0f * ((y + 0.5f) / cam.height)) * tanFov
 
-                // transform both origin points and screen-space positions with the view matrix to world space
-                // screen is 1 unit away from the camera -> ray should start at nearPlaneDist and go through worldPos
-                val origin = cam.spatial().viewToWorld(Vector3f(0.0f)).xyz()
                 val screenPos = cam.spatial().viewToWorld(
                     Vector3f(
                         posX, posY,
@@ -105,8 +105,6 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                     )
                 ).xyz()
 
-                val worldDir = (screenPos.minus(origin)).normalize()
-                val worldPos = origin.plus(worldDir.times(cam.nearPlaneDistance)) + Vector3f(0f, 0f, -0.1f)
                 position = screenPos + Vector3f(0f, 0f, -0.1f) - cam.position
                 scale = Vector3f(0.1f, 0.1f, 0.01f)
             }
@@ -155,7 +153,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         super.inputSetup()
         StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub)
 
-
+        // disable fps camera control
         inputHandler?.addBehaviour("mouse_control", ClickBehaviour{_,_ -> /*dummy*/})
 
         val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget,{25f})

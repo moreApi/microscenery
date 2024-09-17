@@ -26,7 +26,6 @@ object StageSimulation {
         )
 
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
-            this.transferFunction = TransferFunction.flat(1f)
             maxDisplayRange = 4100f
             minDisplayRange = 0f
         }
