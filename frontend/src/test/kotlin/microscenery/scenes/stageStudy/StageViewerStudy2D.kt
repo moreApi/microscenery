@@ -160,7 +160,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
 
         val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget,{25f})
         inputHandler?.addBehaviour(frameMouseDrag.name,frameMouseDrag)
-        inputHandler?.addKeyBinding(frameMouseDrag.name,"button2")
+        inputHandler?.addKeyBinding(frameMouseDrag.name,"button1")
         //inputHandler?.addKeyBinding(frameMouseDrag.name,"scroll")
 
         inputHandler?.addBehaviour("zScroll", ScrollBehaviour { wheelRotation: Double, isHorizontal: Boolean, x: Int, y: Int ->
