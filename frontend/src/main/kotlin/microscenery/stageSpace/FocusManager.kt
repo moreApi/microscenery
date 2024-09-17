@@ -1,6 +1,5 @@
 package microscenery.stageSpace
 
-import graphics.scenery.Box
 import graphics.scenery.RichNode
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
@@ -39,7 +38,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
             stageSpaceManager.stageRoot.addChild(this)
             visible = !MicroscenerySettings.get(Settings.StageSpace.HideFocusFrame,false)
             children.first()?.spatialOrNull()?.rotation = stageSpaceManager.layout.sheetRotation()
-            //initVRInteraction(this,true)
+            initVRInteraction(this,true)
         }
 
         stageSpaceManager.stageRoot.addChild(focusTarget)
@@ -89,6 +88,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
         private var dragStartPos: Vector3f? = null
 
         init {
+            focusManager.mode = Mode.STEERING
             addAttribute(
                 Pressable::class.java, PerButtonPressable(
                     mapOf(
@@ -97,14 +97,19 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
                         // strangely decides to start stack acquisition via desktop gui
                         onPress = { _,_ ->
                             if (focusManager.mode == Mode.STACK_SELECTION) return@SimplePressable
-                            dragStartPos = focusManager.focusTarget.spatial().position
+                            dragStartPos = focusManager.focusTarget.spatial().position.copy()
                         },
                         onHold = { _, _ ->
-                            if (((dragStartPos?.z ?: 0f)- focusManager.focusTarget.spatial().position.z).absoluteValue
-                                > MicroscenerySettings.get("Stage.precisionZ", 1f) * 5) {
+                            val startTmp = dragStartPos?: return@SimplePressable
+                            if ((startTmp.z - focusManager.focusTarget.spatial().position.z).absoluteValue
+                                > MicroscenerySettings.get("Stage.precisionZ", 1f) * 5
+                                && focusManager.mode != Mode.STACK_SELECTION) {
                                 // activate only on a sufficently large drag
                                 // todo respect stageManager.layout
                                 focusManager.mode = Mode.STACK_SELECTION
+                                focusManager.stackStartPos = startTmp
+                                focusManager.stackStartIndicator?.spatial()?.position = startTmp
+
                             }
                         },
                         onRelease = {  _,_ ->
@@ -126,10 +131,16 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
 
         beams.forEach { beam ->
             beam.addAttribute(Touchable::class.java, Touchable())
-            beam.addAttribute(Grabable::class.java,Grabable(lockRotation = true, target = {focusTarget},
-                onGrab = {uiModel.putInHand(TrackerRole.RightHand, FocusMover(stageSpaceManager))},
-                onRelease = {uiModel.putInHand(TrackerRole.RightHand, null)}
-            ))
+            if (resetTargetPos){
+                beam.addAttribute(Pressable::class.java, SimplePressable(
+                    onPress = {_,_ -> focusTarget.spatial().position = stageSpaceManager.stagePosition}
+                ))
+            } else {
+                beam.addAttribute(Grabable::class.java, Grabable(lockRotation = true, target = { focusTarget },
+                    onGrab = { uiModel.putInHand(TrackerRole.RightHand, FocusMover(stageSpaceManager)) },
+                    onRelease = { uiModel.putInHand(TrackerRole.RightHand, null) }
+                ))
+            }
         }
     }
 
@@ -142,7 +153,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
                 stackStartIndicator?.detach()
             }
             Mode.STACK_SELECTION -> {
-                stackStartPos = focusTarget.spatial().position
+                stackStartPos = focusTarget.spatial().position.copy()
                 stackStartIndicator?.detach()
                 stackStartIndicator = Frame(uiModel,Vector3f(0.1f,0.8f,0.8f)).apply {
                     spatial().position = stackStartPos
