@@ -1,25 +1,21 @@
 package microscenery
 
-import graphics.scenery.numerics.OpenSimplexNoise
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
 import graphics.scenery.utils.lazyLogger
-import graphics.scenery.volumes.Volume
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
 import microscenery.signals.Stack
+import microscenery.simulation.Procedural
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import kotlin.concurrent.thread
-import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 /**
  * Demo Hardware that returns generated data like [Volume.generateProceduralVolume]
@@ -35,6 +31,8 @@ class DemoMicroscopeHardware(
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     override val output: BlockingQueue<MicroscopeSignal> = ArrayBlockingQueue(10)
+
+    val procedural = Procedural()
 
     var idCounter = 0
     var liveThread: Thread? = null
@@ -69,8 +67,9 @@ class DemoMicroscopeHardware(
     override fun snapSlice() {
         val sliceBuffer = when (binning) {
             1 -> {
-                genSlice(stagePosition,hardwareDimensions.imageSize)
+                procedural.slice(stagePosition, hardwareDimensions.imageSize)
             }
+
             else -> {
                 val imgX = hardwareDimensions.imageSize.x
                 val imgY = hardwareDimensions.imageSize.y
@@ -78,7 +77,7 @@ class DemoMicroscopeHardware(
 
                 val dataX = imgX * binning
                 val dataY = imgY * binning
-                val dataBuffer = genSlice(stagePosition, Vector2i(dataX,dataY))
+                val dataBuffer = procedural.slice(stagePosition, Vector2i(dataX, dataY))
 
                 for (imgYPos in 0 until imgY) for (imgXPos in 0 until imgX) {
                     var collector = 0
@@ -176,7 +175,7 @@ class DemoMicroscopeHardware(
     override fun ablatePoints(signal: ClientSignal.AblationPoints) {
         for (p in signal.points)
             logger.info("Ablating $p")
-        output.put(AblationResults(signal.points.size*50,(1..signal.points.size).map { Random().nextInt(20)+40 }))
+        output.put(AblationResults(signal.points.size * 50, (1..signal.points.size).map { Random().nextInt(20) + 40 }))
     }
 
     override fun onLoop() {
@@ -189,61 +188,5 @@ class DemoMicroscopeHardware(
 
     override fun startAcquisition() {
         snapSlice()
-    }
-
-    companion object{
-        class GenerationParams(val size: Int = 200,
-                               val seed: Long = 1337L,
-                               val use16bit: Boolean = false,
-                               val radius: Float = size * 0.95f)
-
-        /**
-         * Algorithm copied from [Volume.generateProceduralVolume]
-         */
-        fun genSlice(pos: Vector3f, imgSize: Vector2i, params: GenerationParams = GenerationParams()): ByteBuffer{
-            val size = params.size
-            val seed = params.seed
-            val use16bit = params.use16bit
-            val radius = params.radius
-
-            val f = 3.0f / size
-            val center = size / 2.0f + 0.5f
-            val noise = OpenSimplexNoise(seed)
-            val (range, bytesPerVoxel) = if(use16bit) {
-                65535 to 2
-            } else {
-                255 to 1
-            }
-            val byteSize = (imgSize.x*imgSize.y*bytesPerVoxel)
-
-            val buffer = MemoryUtil.memAlloc(byteSize)
-            val shortBufferView = buffer.asShortBuffer()
-
-            for (y in pos.y.toInt() until pos.y.toInt()+imgSize.y)
-                for (x in pos.x.toInt() until pos.x.toInt()+imgSize.x) {
-                    val z = pos.z
-
-                    val dx = center - x
-                    val dy = center - y
-                    val dz = center - z
-
-                    val offset = abs(noise.random3D((x) * f, (y) * f, (z) * f))
-                    val d = sqrt(dx * dx + dy * dy + dz * dz) / size
-
-                    val result = if(radius > Math.ulp(1.0f)) {
-                        if(d - offset < radius) { ((d-offset)*range).toInt().toShort() } else { 0 }
-                    } else {
-                        ((d - offset) * range).toInt().toShort()
-                    }
-
-                    if(use16bit) {
-                        shortBufferView.put(result)
-                    } else {
-                        buffer.put(result.toByte())
-                    }
-                }
-            buffer.clear()
-            return buffer
-        }
     }
 }
