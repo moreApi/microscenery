@@ -97,10 +97,10 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
                         // strangely decides to start stack acquisition via desktop gui
                         onPress = { _,_ ->
                             if (focusManager.mode == Mode.STACK_SELECTION) return@SimplePressable
-                            dragStartPos = this.spatial().position
+                            dragStartPos = focusManager.focusTarget.spatial().position
                         },
                         onHold = { _, _ ->
-                            if (((dragStartPos?.z ?: 0f)- spatial().position.z).absoluteValue
+                            if (((dragStartPos?.z ?: 0f)- focusManager.focusTarget.spatial().position.z).absoluteValue
                                 > MicroscenerySettings.get("Stage.precisionZ", 1f) * 5) {
                                 // activate only on a sufficently large drag
                                 // todo respect stageManager.layout
@@ -109,12 +109,12 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
                         },
                         onRelease = {  _,_ ->
                             if (focusManager.mode == Mode.STACK_SELECTION && dragStartPos != null){
-                                stageSpaceManager.stack(dragStartPos!!, spatial().position)
+                                focusManager.mode = Mode.PASSIVE
+                                stageSpaceManager.stack(dragStartPos!!, focusManager.focusTarget.spatial().position)
                             } else {
                                 stageSpaceManager.snapSlice()
                             }
                             dragStartPos = null
-                            focusManager.mode = Mode.PASSIVE
                         }))
                 )
             )
@@ -126,20 +126,10 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
 
         beams.forEach { beam ->
             beam.addAttribute(Touchable::class.java, Touchable())
-            beam.addAttribute(Grabable::class.java,Grabable(lockRotation = true, target = {focusTarget}, onGrab = {
-                uiModel.putInHand(TrackerRole.RightHand, FocusMover(stageSpaceManager))
-            }))
-            beam.addAttribute(
-                Pressable::class.java, PerButtonPressable(mapOf( OpenVRHMD.OpenVRButton.Side to SimplePressable(onPress = { _, device->
-                    if (resetTargetPos){
-                        focusTarget.spatial().position = stageSpaceManager.stagePosition
-                    }
-                    if (!FocusMover::class.isInstance(uiModel.inRightHand) && !FocusMover::class.isInstance(uiModel.inLeftHand) ) {
-                        uiModel.putInHand(device.role, FocusMover(stageSpaceManager))
-                        //TODO disable touch indicator
-                    }
-                })))
-            )
+            beam.addAttribute(Grabable::class.java,Grabable(lockRotation = true, target = {focusTarget},
+                onGrab = {uiModel.putInHand(TrackerRole.RightHand, FocusMover(stageSpaceManager))},
+                onRelease = {uiModel.putInHand(TrackerRole.RightHand, null)}
+            ))
         }
     }
 
