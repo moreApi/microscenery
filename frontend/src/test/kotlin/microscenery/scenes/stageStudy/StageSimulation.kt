@@ -4,10 +4,13 @@ import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.primitives.Cylinder
 import graphics.scenery.volumes.TransferFunction
 import microscenery.MicrosceneryHub
 import microscenery.detach
 import microscenery.simulation.BoxSimulatable
+import microscenery.simulation.CylinderSimulatable
+import microscenery.simulation.Simulatable.Companion.hideMaterial
 import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.SphereSimulatable
 import microscenery.stageSpace.FocusManager
@@ -15,6 +18,9 @@ import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector2i
 import org.joml.Vector3f
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.random.Random
 
 object StageSimulation {
 
@@ -36,6 +42,33 @@ object StageSimulation {
         stageSpaceManager.goLive()
 
         return stageSpaceManager
+    }
+
+    fun tube(stageRoot: Node): List<Vector3f>{
+        val radius = 200f
+        val height = 400f
+        Cylinder(radius * 0.95f,height, 16).let { cy ->
+            CylinderSimulatable.addTo(cy)
+            cy.hideMaterial()
+            cy.spatial().position = Vector3f(0f,-height*0.5f,0f)
+            stageRoot.addChild(cy)
+        }
+
+        Cylinder(radius,height, 16).let { cy ->
+            CylinderSimulatable.addTo(cy)
+            cy.hideMaterial()
+            cy.spatial().position = Vector3f(0f,-height*0.5f,0f)
+            stageRoot.addChild(cy)
+        }
+
+        return (0..10).map {
+            val a = Random.nextFloat()
+            Vector3f(
+                radius * cos(a*2f*Math.PI.toFloat()),
+                (Random.nextFloat()-0.5f)*height,
+                radius * sin(a*2f*Math.PI.toFloat())
+            )
+        }
     }
 
     fun scaffold(stageRoot: Node): List<Vector3f>{

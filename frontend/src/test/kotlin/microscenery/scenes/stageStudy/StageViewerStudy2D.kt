@@ -54,14 +54,18 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
 
 
         stageSpaceManager = StageSimulation.setupStage(msHub, scene)
-        val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
-        stageSpaceManager.sliceManager.transferFunctionManager.apply {
-            this.transferFunction = TransferFunction.flat(1f)
+        //val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
+        val targetPositions = StageSimulation.tube(stageSpaceManager.stageRoot)
+        //targetPositions.random().let {
+        targetPositions.forEach{
+            val blob = ProceduralBlob(size = 75)
+            blob.spatial().position = it
+            stageSpaceManager.stageRoot.addChild(blob)
         }
 
-        targetPositions.forEach{
-            val blob = ProceduralBlob(size = 30)
-            stageSpaceManager.stageRoot.addChild(blob)
+
+        stageSpaceManager.sliceManager.transferFunctionManager.apply {
+            this.transferFunction = TransferFunction.flat(1f)
         }
 
 
