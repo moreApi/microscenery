@@ -79,4 +79,7 @@ fun HasMaterial.changeColorWithTouchable(newColor: Vector3f){
     }
 }
 
+/**
+ * @return a list of nodes that return true for [func]
+ */
 fun Scene.discover(func: (Node) -> Boolean): ArrayList<Node> = this.discover(this,func,false)
