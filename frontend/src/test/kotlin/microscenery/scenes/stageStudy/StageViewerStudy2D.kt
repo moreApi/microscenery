@@ -10,6 +10,7 @@ import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
+import microscenery.simulation.ProceduralBlob
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -53,10 +54,16 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
 
 
         stageSpaceManager = StageSimulation.setupStage(msHub, scene)
-        StageSimulation.scaffold(stageSpaceManager.stageRoot)
+        val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
             this.transferFunction = TransferFunction.flat(1f)
         }
+
+        targetPositions.forEach{
+            val blob = ProceduralBlob(size = 30)
+            stageSpaceManager.stageRoot.addChild(blob)
+        }
+
 
         stageSpaceManager.focusManager.focusTarget.let { focusTarget ->
             var prevZ = stageSpaceManager.focusManager.focusTarget.spatial().worldPosition().z

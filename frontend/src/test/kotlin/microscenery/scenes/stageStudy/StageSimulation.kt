@@ -1,5 +1,7 @@
 package microscenery.scenes.stageStudy
 
+import fromScenery.utils.extensions.plus
+import fromScenery.utils.extensions.times
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.volumes.TransferFunction
@@ -17,7 +19,7 @@ import org.joml.Vector3f
 object StageSimulation {
 
     fun setupStage(msHub: MicrosceneryHub, scene: Scene):StageSpaceManager{
-        val hw = SimulationMicroscopeHardware(msHub, stageSize = Vector3f(600f), imageSize = Vector2i(50), maxIntensity = 4000)
+        val hw = SimulationMicroscopeHardware(msHub, stageSize = Vector3f(600f), imageSize = Vector2i(150), maxIntensity = 4000)
         val stageSpaceManager = StageSpaceManager(
             hw,
             scene,
@@ -36,7 +38,8 @@ object StageSimulation {
         return stageSpaceManager
     }
 
-    fun scaffold(stageRoot: Node){
+    fun scaffold(stageRoot: Node): List<Vector3f>{
+        // size to pos
         val boxes = listOf(
             Vector3f(10f,500f,10f) to Vector3f(0f,0f,0f),
             Vector3f(500f,30f,10f) to Vector3f(0f,0f,0f),
@@ -46,9 +49,6 @@ object StageSimulation {
             Vector3f(300f,20f,20f) to Vector3f(0f,250f,0f),
             Vector3f(30f,20f,200f) to Vector3f(0f,-250f,0f),
         )
-        val droot = RichNode("droot").also { stageRoot.addChild(it) }
-        //        val droot = scene.find("droot")
-        droot.children.forEach { it.detach() }
 
         boxes.forEach {
             val box = Box(it.first)
@@ -59,7 +59,11 @@ object StageSimulation {
                 it.range = 50f
                 it.maxIntensity = 4000
             }
-            droot.addChild(box)
+            stageRoot.addChild(box)
+        }
+
+        return boxes.drop(3).flatMap {
+            listOf(it.first * 0.5f + it.second, it.first * -0.5f + it.second)
         }
     }
 

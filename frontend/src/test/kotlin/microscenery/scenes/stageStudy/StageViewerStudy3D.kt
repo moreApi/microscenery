@@ -8,13 +8,15 @@ import microscenery.*
 import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
+import microscenery.simulation.ProceduralBlob
+import microscenery.simulation.Simulatable
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
 
-class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height = 500,VR=!true) {
+class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height = 1200,VR=!true) {
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
@@ -29,11 +31,22 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 500, height 
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
 
         stageSpaceManager = StageSimulation.setupStage(msHub, scene)
-        StageSimulation.scaffold(stageSpaceManager.stageRoot)
+        val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
             this.transferFunction = TransferFunction.ramp(0f,1f,1f)
             this.transferFunction.controlPoints().first().factor = 0.1f
         }
+        targetPositions.random().let {
+        //targetPositions.forEach{
+            val blob = ProceduralBlob(size = 75)
+            blob.spatial().position = it
+            stageSpaceManager.stageRoot.addChild(blob)
+        }
+
+        scene.discover { it.getAttributeOrNull(Simulatable::class.java) != null }
+            //.forEach{ it.materialOrNull()?.cullingMode = Material.CullingMode.None}
+
+
 
         thread {
             while (true) {
