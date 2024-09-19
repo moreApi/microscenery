@@ -8,17 +8,18 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 
 class Procedural(
     val size: Int = 200,
-    seed: Long = 1337L,
+    seed: Long = Random.nextLong(),
     val use16bit: Boolean = false,
     val radius: Float = size * 0.95f
 ) {
 
     val f = 3.0f / size
-    val center = size / 2.0f + 0.5f
+    val center = 0f //size / 2.0f + 0.5f
     val noise = OpenSimplexNoise(seed)
     val range: Int
     val bytesPerVoxel: Int

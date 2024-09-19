@@ -10,6 +10,7 @@ import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.VRUIManager
 import microscenery.simulation.CylinderSimulatable
+import microscenery.simulation.Procedural
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.Simulatable
 import microscenery.simulation.Simulatable.Companion.hideMaterial
@@ -26,7 +27,7 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
     override fun init() {
         super.init()
         logger.info("Starting demo hw scene")
-        cam.spatial().position = Vector3f(0f, -1f, 2f)
+        cam.spatial().position = Vector3f(0f, -0f, 2f)
 
 
         MicroscenerySettings.set("Stage.precisionXY", 1f)
@@ -36,6 +37,7 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         stageSpaceManager = StageSimulation.setupStage(msHub, scene)
         //val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
         val targetPositions = StageSimulation.tube(stageSpaceManager.stageRoot)
+        //val targetPositions: List<Vector3f> = listOf(Vector3f(0f))
         //targetPositions.random().let {
         targetPositions.forEach{
             val blob = ProceduralBlob(size = 75)
