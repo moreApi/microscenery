@@ -48,14 +48,14 @@ object StageSimulation {
         val radius = 200f
         val height = 400f
         Cylinder(radius * 0.95f,height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy)
+            CylinderSimulatable.addTo(cy).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = Vector3f(0f,-height*0.5f,0f)
             stageRoot.addChild(cy)
         }
 
         Cylinder(radius,height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy)
+            CylinderSimulatable.addTo(cy).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = Vector3f(0f,-height*0.5f,0f)
             stageRoot.addChild(cy)
@@ -64,9 +64,9 @@ object StageSimulation {
         return (0..10).map {
             val a = Random.nextFloat()
             Vector3f(
-                radius * cos(a*2f*Math.PI.toFloat()),
+                radius*0.8f * cos(a*2f*Math.PI.toFloat()),
                 (Random.nextFloat()-0.5f)*height,
-                radius * sin(a*2f*Math.PI.toFloat())
+                radius*0.8f * sin(a*2f*Math.PI.toFloat())
             )
         }
     }

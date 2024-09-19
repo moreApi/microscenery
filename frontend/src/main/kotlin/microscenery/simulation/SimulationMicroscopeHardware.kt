@@ -12,6 +12,7 @@ import graphics.scenery.volumes.Volume
 import microscenery.MicrosceneryHub
 import microscenery.discover
 import microscenery.hardware.MicroscopeHardwareAgent
+import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.nowMillis
 import microscenery.signals.*
 import microscenery.signals.Stack
@@ -24,6 +25,7 @@ import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -46,8 +48,14 @@ class SimulationMicroscopeHardware(
 
     val focalPlane = Plane(Vector3f(Vector2f(imageSize),1f,))
 
+    private val hardwareCommandsQueue = ArrayBlockingQueue<HardwareCommand>(5000)
+
+    // this lock is only relevant for self replicating commands e.g. snapSlice(live=true)
+    private val stopLock = Any()
+
+    // for Slices and stacks
     var idCounter = 0
-    var liveThread: Thread? = null
+    var lastSnap = 0L
     var currentStack: Stack? = null
     var stackSliceCounter: Int = 0
 
@@ -68,9 +76,9 @@ class SimulationMicroscopeHardware(
             false
         )
 
-        //no need to start the agent
+        startAgent()
     }
-
+/*
     override var stagePosition = stagePosition
         set(target) {
             val safeTarget = hardwareDimensions.coercePosition(target, logger)
@@ -205,4 +213,205 @@ class SimulationMicroscopeHardware(
         snapSlice()
     }
 
+*/
+    //############################## called from external threads ##############################
+    // to following functions are called from external threads and not from this agents thread
+
+    override fun snapSlice() {
+        hardwareCommandsQueue.add(HardwareCommand.SnapImage(false))
+    }
+
+    override fun moveStage(target: Vector3f) {
+        hardwareCommandsQueue.add(HardwareCommand.MoveStage(target, hardwareDimensions, true))
+    }
+
+    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+        stop()
+        hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
+    }
+
+    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+    }
+
+    override fun goLive() {
+        hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
+    }
+
+    override fun stop() {
+        synchronized(stopLock) {
+            hardwareCommandsQueue.clear()
+            hardwareCommandsQueue.add(HardwareCommand.Stop)
+        }
+    }
+
+    override fun shutdown() {
+        status = status.copy(state = ServerState.SHUTTING_DOWN)
+        synchronized(stopLock) {
+            hardwareCommandsQueue.clear()
+            hardwareCommandsQueue.add(HardwareCommand.Shutdown)
+        }
+    }
+
+    override fun startAcquisition() {
+    }
+
+    override fun deviceSpecificCommands(data: ByteArray) {
+    }
+
+
+    //############################## end of called from external threads ##############################
+
+    override fun onLoop() {
+        when (val hwCommand = hardwareCommandsQueue.poll(200, MILLISECONDS)) {
+            is HardwareCommand.GenerateStackCommands -> {
+                executeGenerateStackCommands(hwCommand)
+            }
+            is HardwareCommand.MoveStage -> {
+                executeMoveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
+            }
+            is HardwareCommand.SnapImage -> {
+                executeSnapImage(hwCommand)
+            }
+            is HardwareCommand.Stop -> {
+                status = status.copy(state = ServerState.MANUAL)
+            }
+            HardwareCommand.Shutdown -> TODO()
+        }
+    }
+
+    private fun executeSnapImage(hwCommand: HardwareCommand.SnapImage) {
+        if (hwCommand.live) {
+            when (status.state) {
+                ServerState.LIVE -> {}
+                ServerState.MANUAL -> status = status.copy(state = ServerState.LIVE)
+                else -> {
+                    stop()
+                    logger.error("Want to go live but server is ${status.state}. Stopping.")
+                    return
+                }
+            }
+
+            hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
+
+            if (System.currentTimeMillis() - lastSnap  < 500){
+                return
+            }
+        }
+
+        val imgX = hardwareDimensions.imageSize.x
+        val imgY = hardwareDimensions.imageSize.y
+        val sliceBuffer = MemoryUtil.memAlloc(imgX * imgY * 2)
+        val shortBuffer = sliceBuffer.asShortBuffer()
+
+        val microDummys = getMicroDummysInFocus()
+
+        for (y in 0 until imgY) {
+            for (x in 0 until imgX) {
+                shortBuffer.put(
+                    microDummys
+                        .map { it.intensity(Vector3f(x.toFloat()-imgX/2,y.toFloat()-imgY/2,0f)+ stagePosition) }
+                        .sum()
+                        .toShort()
+                        .coerceAtMost(maxIntensity)
+                )
+            }
+        }
+
+
+        val signal = Slice(
+            idCounter++,
+            System.currentTimeMillis(),
+            stagePosition,
+            sliceBuffer.capacity(),
+            hwCommand.stackIdAndSliceIndex,
+            sliceBuffer
+        )
+        Thread.sleep(100)
+        output.put(signal)
+    }
+
+    private fun getMicroDummysInFocus(): List<Simulatable> {
+        val stageSpaceManager = msHub.getAttribute(StageSpaceManager::class.java)
+        if (focalPlane.parent == null) stageSpaceManager.stageRoot.addChild(focalPlane)
+
+        return focalPlane.getScene()?.discover { it.getAttributeOrNull(Simulatable::class.java) != null }
+            ?.filter {
+                it.boundingBox?.intersects(focalPlane.boundingBox!!) ?: false
+            }?.map {
+                it.getAttribute(Simulatable::class.java)
+            } ?: emptyList()
+    }
+
+    private fun executeGenerateStackCommands(hwCommand: HardwareCommand.GenerateStackCommands) {
+        val meta = hwCommand.signal
+
+        val start = hardwareDimensions.coercePosition(meta.startPosition, logger)
+        val end = hardwareDimensions.coercePosition(meta.endPosition, logger)
+        val dist = end - start
+        val steps = (dist.length() / meta.stepSize).roundToInt()
+        val step = dist * (1f / steps)
+
+        val currentStack = Stack(
+            if (meta.id > 0) meta.id else idCounter++,
+            meta.live,
+            start,
+            end,
+            steps,
+            nowMillis()
+        )
+        output.put(currentStack)
+        status = status.copy(state = ServerState.STACK)
+
+        for (i in 0 until steps) {
+            hardwareCommandsQueue.add(
+                HardwareCommand.MoveStage(
+                    start + (step * i.toFloat()),
+                    hardwareDimensions,
+                    true
+                )
+            )
+            hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id to i))
+        }
+
+        if (hwCommand.signal.live) {
+            addToCommandQueueIfNotStopped(
+                HardwareCommand.GenerateStackCommands(
+                    signal = meta.copy(id = currentStack.Id)
+                )
+            )
+        }
+    }
+
+
+    private fun executeMoveStage(target: Vector3f, wait: Boolean) {
+        // skip if next command is also move
+        if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
+
+
+        val safeTarget = hardwareDimensions.coercePosition(target, logger)
+        focalPlane.spatial().position = safeTarget
+        status = status.copy(stagePosition = safeTarget)
+    }
+
+
+    private fun addToCommandQueueIfNotStopped(vararg commands: HardwareCommand) {
+        synchronized(stopLock) {
+            if (hardwareCommandsQueue.peek() !is HardwareCommand.Stop) {
+                commands.forEach { hardwareCommandsQueue.add(it) }
+            }
+        }
+    }
+
+    private sealed class HardwareCommand {
+        val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
+
+        class MoveStage(target: Vector3f, hwd: HardwareDimensions, val waitForCompletion: Boolean = false) :
+            HardwareCommand() {
+            val safeTarget = hwd.coercePosition(target, logger)
+        }
+        data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
+        data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
+        object Stop : HardwareCommand()
+        object Shutdown : HardwareCommand()
+    }
 }
