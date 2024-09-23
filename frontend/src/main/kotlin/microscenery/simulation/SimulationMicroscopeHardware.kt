@@ -56,8 +56,6 @@ class SimulationMicroscopeHardware(
     // for Slices and stacks
     var idCounter = 0
     var lastSnap = 0L
-    var currentStack: Stack? = null
-    var stackSliceCounter: Int = 0
 
     init {
 

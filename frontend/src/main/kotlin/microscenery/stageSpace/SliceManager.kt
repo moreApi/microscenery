@@ -133,13 +133,6 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
             volume.goToLastTimepoint()
             msHub.getAttributeOrNull(UIModel::class.java)?.updateSelected()
         } else {
-            // todo handle old stacks better
-            selectedStack?.let {
-                if (it.meta.Id != stack.Id) {
-                    clearSlices()
-                    selectedStack = null
-                }
-            }
 
             val volume = when (hardware.hardwareDimensions().numericType) {
                 NumericType.INT8 -> Volume.fromBuffer(

@@ -65,6 +65,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                 it.mode = FocusManager.Mode.PASSIVE
             } else {
                 it.mode = FocusManager.Mode.STACK_SELECTION
+                it.stageSpaceManager.stop()
             }
             logger.info("focus frame mode is now ${it.mode}")
         }
