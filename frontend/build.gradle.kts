@@ -21,8 +21,8 @@ dependencies {
     // - fix/16bit-histogram
     // - fix/windows-mouse-click-scroll
     // - split-histogram-checkbox
-    // implementation("com.github.scenerygraphics:scenery:012586e5beca0ca691a23669796b46e91d1a885d")
-    implementation("com.github.scenerygraphics:scenery:15720b5e567db6f2680a4aaad15f01be8fadb8f0")
+    // - fix/attachment-order-in-dssdo-shaders
+    implementation("com.github.scenerygraphics:scenery:bb14191e179d12288814dea7217dc12442ee9142")
     // necessary for logging to work correctly
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
