@@ -12,7 +12,7 @@ import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 
-class RappNeuroStack : DefaultScene("RappNeuroStack", VR = !false, width = 840, height = 840) {
+class RappNeuroStack : DefaultScene("RappNeuroStack", VR = !true, width = 840, height = 840) {
 
     val atmosphere = !true
 
