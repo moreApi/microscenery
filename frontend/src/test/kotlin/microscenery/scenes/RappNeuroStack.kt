@@ -12,24 +12,29 @@ import org.joml.Vector3f
 import kotlin.concurrent.thread
 
 
-class RappNeuroStack : DefaultScene("Loooooooong night of science", VR = false, width = 840, height = 840) {
+class RappNeuroStack : DefaultScene("RappNeuroStack", VR = !false, width = 840, height = 840) {
 
-    val atmosphere = false
+    val atmosphere = !true
 
     init {
-        val viewSettings = listOf(
-            Settings.StageSpace.viewMode,
-            Settings.StageSpace.HideFocusFrame,
-            Settings.StageSpace.HideFocusTargetFrame,
-            Settings.StageSpace.HideStageSpaceLabel
+        val setts = listOf(
+            Settings.StageSpace.viewMode to true,
+            Settings.StageSpace.HideFocusFrame to true,
+            Settings.StageSpace.HideFocusTargetFrame to true,
+            Settings.StageSpace.HideStageSpaceLabel to true,
+            Settings.VRToolbox.CroppingEnabled to true,
+            Settings.VRToolbox.MeasuringEnabled to true,
+            Settings.VRToolbox.PathAblationEnabled to true,
+            Settings.VRToolbox.PointAblationEnabled to true,
         )
-        viewSettings.forEach { MicroscenerySettings.set(it, true) }
+        setts.forEach { MicroscenerySettings.set(it.first, it.second) }
         MicroscenerySettings.set(Settings.StageSpace.ShowHullbox, !atmosphere)
+        MicroscenerySettings.set(Settings.Ablation.SizeUM, 10f)
     }
 
-    val two = """E:\volumes\Neuronenstacks\img_00115_unsigned_short.tif"""
-    val three = """E:\volumes\Neuronenstacks\img_00118_unsigned_short.tif"""
-    val four = """E:\volumes\Neuronenstacks\img_00123_unsigned_short.tif"""
+    val two = """H:\volumes\Neuronenstacks\img_00115_unsigned_short.tif"""
+    val three = """H:\volumes\Neuronenstacks\img_00118_unsigned_short.tif"""
+    val four = """H:\volumes\Neuronenstacks\img_00123_unsigned_short.tif"""
     val imgFile = two
 
     lateinit var stageSpaceManager: StageSpaceManager
@@ -64,7 +69,8 @@ class RappNeuroStack : DefaultScene("Loooooooong night of science", VR = false, 
 //            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Y, 33f)
         )
 
-        stageSpaceManager.sliceManager.transferFunctionManager.maxDisplayRange = 65000f
+        stageSpaceManager.sliceManager.transferFunctionManager.maxDisplayRange = 60000f
+        stageSpaceManager.sliceManager.transferFunctionManager.minDisplayRange = 2100f
 
 
         //microscope.loadImg(it)
