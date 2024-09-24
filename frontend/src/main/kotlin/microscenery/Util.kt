@@ -4,6 +4,7 @@ import graphics.scenery.Camera
 import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.attribute.material.HasMaterial
+import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.Touchable
 import microscenery.VRUI.Gui3D.TextBox
@@ -13,6 +14,7 @@ import org.scijava.ui.behaviour.Behaviour
 import org.scijava.ui.behaviour.DragBehaviour
 import java.util.ArrayList
 import kotlin.concurrent.thread
+import kotlin.random.Random
 
 
 fun wrapForAnalogInputIfNeeded(
@@ -83,3 +85,11 @@ fun HasMaterial.changeColorWithTouchable(newColor: Vector3f){
  * @return a list of nodes that return true for [func]
  */
 fun Scene.discover(func: (Node) -> Boolean): ArrayList<Node> = this.discover(this,func,false)
+
+fun InputHandler.addBehaviorBinding( behavior: Behaviour, vararg key: String, name: String? = null){
+    val name = name ?: (Random.nextInt().toString() + Random.nextInt().toString())
+    this.addBehaviour(name, behavior)
+    key.forEach {
+        this.addKeyBinding(name, it)
+    }
+}
