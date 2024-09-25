@@ -1,13 +1,14 @@
 package microscenery.scenes.stageStudy
 
+import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.primitives.Cylinder
-import graphics.scenery.volumes.TransferFunction
 import microscenery.MicrosceneryHub
-import microscenery.detach
+import microscenery.MicroscenerySettings
+import microscenery.Settings.StageSpace.HideStageSpaceLabel
 import microscenery.simulation.BoxSimulatable
 import microscenery.simulation.CylinderSimulatable
 import microscenery.simulation.Simulatable.Companion.hideMaterial
@@ -24,8 +25,16 @@ import kotlin.random.Random
 
 object StageSimulation {
 
-    fun setupStage(msHub: MicrosceneryHub, scene: Scene):StageSpaceManager{
-        val hw = SimulationMicroscopeHardware(msHub, stageSize = Vector3f(600f), imageSize = Vector2i(150), maxIntensity = 4000)
+    fun setupStage(msHub: MicrosceneryHub, scene: Scene): StageSpaceManager {
+        MicroscenerySettings.set(HideStageSpaceLabel, true)
+
+
+        val hw = SimulationMicroscopeHardware(
+            msHub,
+            stageSize = Vector3f(600f),
+            imageSize = Vector2i(150),
+            maxIntensity = 4000
+        )
         val stageSpaceManager = StageSpaceManager(
             hw,
             scene,
@@ -44,43 +53,52 @@ object StageSimulation {
         return stageSpaceManager
     }
 
-    fun tube(stageRoot: Node): List<Vector3f>{
+    fun tube(stageRoot: Node): List<Vector3f> {
         val radius = 200f
         val height = 400f
-        Cylinder(radius * 0.95f,height, 16).let { cy ->
+        Cylinder(radius * 0.95f, height, 16).let { cy ->
             CylinderSimulatable.addTo(cy).maxIntensity = 3000
             cy.hideMaterial()
-            cy.spatial().position = Vector3f(0f,-height*0.5f,0f)
+            cy.spatial().position = Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
         }
 
-        Cylinder(radius,height, 16).let { cy ->
+        Cylinder(radius, height, 16).let { cy ->
             CylinderSimulatable.addTo(cy).maxIntensity = 3000
             cy.hideMaterial()
-            cy.spatial().position = Vector3f(0f,-height*0.5f,0f)
+            cy.spatial().position = Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
         }
 
-        return (0..10).map {
+        val targetPositions = mutableListOf<Vector3f>()
+        while (targetPositions.size < 10) {
             val a = Random.nextFloat()
-            Vector3f(
-                radius*0.8f * cos(a*2f*Math.PI.toFloat()),
-                (Random.nextFloat()-0.5f)*height,
-                radius*0.8f * sin(a*2f*Math.PI.toFloat())
+            val new = Vector3f(
+                radius * 0.8f * cos(a * 2f * Math.PI.toFloat()),
+                (Random.nextFloat() - 0.5f) * height,
+                radius * 0.8f * sin(a * 2f * Math.PI.toFloat())
             )
+
+            val targetSize = 30f
+            if (targetPositions.any { (it - new).length() < targetSize * 2 })
+                continue
+            else {
+                targetPositions.add(new)
+            }
         }
+        return targetPositions
     }
 
-    fun scaffold(stageRoot: Node): List<Vector3f>{
+    fun scaffold(stageRoot: Node): List<Vector3f> {
         // size to pos
         val boxes = listOf(
-            Vector3f(10f,500f,10f) to Vector3f(0f,0f,0f),
-            Vector3f(500f,30f,10f) to Vector3f(0f,0f,0f),
-            Vector3f(30f,30f,300f) to Vector3f(0f,0f,0f),
-            Vector3f(30f,20f,200f) to Vector3f(250f,0f,0f),
-            Vector3f(30f,20f,200f) to Vector3f(-250f,0f,0f),
-            Vector3f(300f,20f,20f) to Vector3f(0f,250f,0f),
-            Vector3f(30f,20f,200f) to Vector3f(0f,-250f,0f),
+            Vector3f(10f, 500f, 10f) to Vector3f(0f, 0f, 0f),
+            Vector3f(500f, 30f, 10f) to Vector3f(0f, 0f, 0f),
+            Vector3f(30f, 30f, 300f) to Vector3f(0f, 0f, 0f),
+            Vector3f(30f, 20f, 200f) to Vector3f(250f, 0f, 0f),
+            Vector3f(30f, 20f, 200f) to Vector3f(-250f, 0f, 0f),
+            Vector3f(300f, 20f, 20f) to Vector3f(0f, 250f, 0f),
+            Vector3f(30f, 20f, 200f) to Vector3f(0f, -250f, 0f),
         )
 
         boxes.forEach {
@@ -100,9 +118,9 @@ object StageSimulation {
         }
     }
 
-    fun lightBulb(stageRoot: Node){
+    fun lightBulb(stageRoot: Node) {
 
-        val box = Box(Vector3f(5f,10f,5f))
+        val box = Box(Vector3f(5f, 10f, 5f))
         box.material().cullingMode = Material.CullingMode.FrontAndBack
         BoxSimulatable.addTo(box).also {
             it.range = 5f
