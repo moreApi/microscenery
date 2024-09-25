@@ -1,7 +1,6 @@
 package microscenery.UI
 
 import fromScenery.SettingsEditor
-import graphics.scenery.Box
 import graphics.scenery.Camera
 import graphics.scenery.Node
 import graphics.scenery.attribute.spatial.HasSpatial
@@ -74,6 +73,8 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         override fun click(x: Int, y: Int) {
             val focusTarget = stageSpaceManager.focusManager.focusTarget
             if (searchCubeStart == null) {
+                stageSpaceManager.focusManager.mode = FocusManager.Mode.PASSIVE
+                stageSpaceManager.stop()
 
                 searchCubeStart = Frame(stageSpaceManager.uiModel, Vector3f(0.2f,0.8f,0.5f)).also {
                     it.spatial {
@@ -148,7 +149,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         }),
     )
 
-    fun stageSwingUI(panel: JPanel, customCommands: List<StageUICommand>, msHub: MicrosceneryHub) {
+    fun stageSwingUI(panel: JPanel, msHub: MicrosceneryHub, commands: List<StageUICommand> = desktopCommands) {
         val uiModel = msHub.getAttribute(UIModel::class.java)
 
         val infoPanel = JPanel(MigLayout())
@@ -233,7 +234,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         val commandPanel = JPanel(MigLayout())
         commandPanel.border = BorderFactory.createTitledBorder("Commands")
 
-        (desktopCommands + customCommands).forEachIndexed {i,stageUICommand ->
+        commands.forEachIndexed { i, stageUICommand ->
             val name = stageUICommand.name
             val key = stageUICommand.key
             val command = stageUICommand.command
@@ -253,7 +254,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         panel.add(commandPanel, "wrap")
     }
 
-    fun stageKeyUI(inputHandler: InputHandler, cam: Camera) {
+    fun stageKeyUI(inputHandler: InputHandler, cam: Camera, commands: List<StageUICommand> = desktopCommands) {
         fun imgSize() = stageSpaceManager.hardware.hardwareDimensions().imageSize
         listOf(
             "frame_forward" to {10}, "frame_back" to {10}, "frame_left" to {imgSize().x}, "frame_right" to {imgSize().x}, "frame_up" to {imgSize().y}, "frame_down"  to {imgSize().y}
@@ -286,7 +287,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
         )
         inputHandler.addKeyBinding("frameDragging", "1")
 
-        desktopCommands.forEach {
+        commands.forEach {
             val name = it.name
             val key = it.key
             val command = it.command
@@ -298,12 +299,12 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     }
 
     fun stageUI(base: DefaultScene, inputHandler: InputHandler?,msHub: MicrosceneryHub, customCommands: List<StageUICommand> = emptyList()) {
-        base.extraPanel?.let { stageSwingUI(it,customCommands,msHub)}
+        base.extraPanel?.let { stageSwingUI(it, msHub, desktopCommands + customCommands)}
         base.mainFrame?.pack()
         DesktopUI.initMouseSelection(inputHandler,msHub)
 
         inputHandler?.let {
-            stageKeyUI(it, base.cam)
+            stageKeyUI(it, base.cam, desktopCommands + customCommands)
         }
     }
 

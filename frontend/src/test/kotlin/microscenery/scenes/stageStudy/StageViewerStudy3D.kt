@@ -3,24 +3,23 @@ package microscenery.scenes.stageStudy
 import graphics.scenery.SceneryElement
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.ArcballCameraControl
-import graphics.scenery.primitives.Cylinder
 import graphics.scenery.volumes.TransferFunction
 import microscenery.*
+import microscenery.UI.DesktopUI
 import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
+import microscenery.UI.StageUICommand
 import microscenery.VRUI.VRUIManager
-import microscenery.simulation.CylinderSimulatable
-import microscenery.simulation.Procedural
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.Simulatable
-import microscenery.simulation.Simulatable.Companion.hideMaterial
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
 
 
-class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height = 1200,VR=!true) {
+class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = !true) {
     lateinit var stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
@@ -39,18 +38,18 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         val targetPositions = StageSimulation.tube(stageSpaceManager.stageRoot)
         //val targetPositions: List<Vector3f> = listOf(Vector3f(0f))
         //targetPositions.random().let {
-        targetPositions.forEach{
+        targetPositions.forEach {
             val blob = ProceduralBlob(size = 75)
             blob.spatial().position = it
             stageSpaceManager.stageRoot.addChild(blob)
         }
 
         scene.discover { it.getAttributeOrNull(Simulatable::class.java) != null }
-            //.forEach{ it.materialOrNull()?.cullingMode = Material.CullingMode.None}
+        //.forEach{ it.materialOrNull()?.cullingMode = Material.CullingMode.None}
 
 
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
-            this.transferFunction = TransferFunction.ramp(0f,1f,1f)
+            this.transferFunction = TransferFunction.ramp(0f, 1f, 1f)
             this.transferFunction.controlPoints().first().factor = 0.05f
         }
 
@@ -66,36 +65,57 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
     override fun inputSetup() {
         super.inputSetup()
         val ssUI = StageSpaceUI(stageSpaceManager)
-        ssUI.stageUI(this, inputHandler, msHub)
+        //ssUI.stageUI(this, inputHandler, msHub)
+        val commands = listOf(ssUI.comStackAcq,ssUI.comStop,ssUI.comSteering,ssUI.comGoLive,StageUICommand("seach Cube","button3",object : ClickBehaviour {
+            override fun click(p0: Int, p1: Int) {
+                ssUI.comSearchCube.command?.click(0, 0)
+                if (ssUI.searchCubeStart == null) {
+                    thread {
+                        Thread.sleep(3000)
+                        stageSpaceManager.goLive()
+                        stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
+                    }
+                }
+            }
+        }))
 
-        if (VR){
+        this.extraPanel?.let { ssUI.stageSwingUI(it, msHub, commands)}
+        this.mainFrame?.pack()
+        DesktopUI.initMouseSelection(inputHandler,msHub)
 
+        inputHandler?.let { inputHandler ->
+            ssUI.stageKeyUI(inputHandler, cam, commands)
+        }
+
+
+        if (VR) {
             VRUIManager.initBehavior(
                 scene, hmd, inputHandler,
                 stageSpaceUI = ssUI, msHub = MicrosceneryHub(hub)
             )
         } else {
             // disable fps camera control
-            inputHandler?.addBehaviour("mouse_control", ClickBehaviour{_,_ -> /*dummy*/})
+            inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
 
             val windowWidth = renderer?.window?.width ?: 512
             val windowHeight = renderer?.window?.height ?: 512
 
-            val target =  Vector3f(0.0f)
+            val target = Vector3f(0.0f)
             val inputHandler = (hub.get(SceneryElement.Input) as InputHandler)
-            val targetArcball = ArcballCameraControl("mouse_control", { scene.findObserver() }, windowWidth, windowHeight, target)
+            val targetArcball =
+                ArcballCameraControl("mouse_control", { scene.findObserver() }, windowWidth, windowHeight, target)
 
             targetArcball.target = { target }
 
             inputHandler.addBehaviour("arcCam", targetArcball)
-            inputHandler.addKeyBinding("arcCam","button2")
-            inputHandler.addBehaviour("scroll_arcball", targetArcball)
-            //inputHandler.addKeyBinding("scroll_arcball", "scroll")
+            inputHandler.addKeyBinding("arcCam", "button2")
 
-            val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget,{25f})
-            inputHandler.addBehaviour(frameMouseDrag.name,frameMouseDrag)
-            inputHandler.addKeyBinding(frameMouseDrag.name,"button1")
-            inputHandler.addKeyBinding(frameMouseDrag.name,"scroll")
+            inputHandler.addBehaviorBinding(
+                FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, { 25f }),
+                "button1",
+                "scroll",
+                name = "Frame Mouse Drag"
+            )
         }
     }
 
