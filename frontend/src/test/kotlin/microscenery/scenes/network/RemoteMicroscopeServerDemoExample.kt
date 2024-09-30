@@ -1,5 +1,6 @@
 package microscenery.scenes.network
 
+import microscenery.DemoMicroscopeHardware
 import microscenery.scenes.microscope.FolderReaderMicroscope
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
@@ -14,8 +15,8 @@ class RemoteMicroscopeServerDemoExample {
             // settings like port can be set in [microscenery.properties]
             val zContext = ZContext()
 
-            //val microscope = DemoMicroscopeHardware()
-            val microscope = FolderReaderMicroscope()
+            val microscope = DemoMicroscopeHardware()
+            //val microscope = FolderReaderMicroscope()
 
             @Suppress("UNUSED_VARIABLE")
             val server =
@@ -23,7 +24,7 @@ class RemoteMicroscopeServerDemoExample {
 
             thread {
                 Thread.sleep(10000)
-                microscope.readImages()
+                //microscope.readImages()
             }
         }
     }

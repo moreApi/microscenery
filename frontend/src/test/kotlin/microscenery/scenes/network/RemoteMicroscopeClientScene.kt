@@ -22,9 +22,7 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
         val client = RemoteMicroscopeClient(zContext = zContext)
         stageSpaceManager = StageSpaceManager(
             client, scene, msHub,
-            //layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -0.5f)
-            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.X, 0.0),
-            viewMode = true
+            //viewMode = true
         )
 
         //stageSpaceManager.stageRoot.spatial().scale *= Vector3f(1f, 1f, 2f)
