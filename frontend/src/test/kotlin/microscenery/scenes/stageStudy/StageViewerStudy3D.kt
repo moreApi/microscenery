@@ -103,7 +103,9 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
             val target = Vector3f(0.0f)
             val inputHandler = (hub.get(SceneryElement.Input) as InputHandler)
             val targetArcball =
-                ArcballCameraControl("mouse_control", { scene.findObserver() }, windowWidth, windowHeight, target)
+                ArcballCameraControl("mouse_control", { scene.findObserver() }, windowWidth, windowHeight, {
+                    stageSpaceManager.focusManager.focusTarget.spatial().worldPosition()
+                })
 
             targetArcball.target = { target }
 
