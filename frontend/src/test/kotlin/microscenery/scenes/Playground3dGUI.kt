@@ -1,7 +1,6 @@
 package microscenery.scenes
 
 import fromScenery.utils.extensions.times
-import graphics.scenery.DefaultNode
 import graphics.scenery.RichNode
 import graphics.scenery.controls.TrackedDevice
 import graphics.scenery.controls.TrackedDeviceType
@@ -11,7 +10,11 @@ import graphics.scenery.numerics.Random
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
 import microscenery.Settings
-import microscenery.VRUI.Gui3D.*
+import microscenery.VRUI.Gui3D.Button
+import microscenery.VRUI.Gui3D.Column
+import microscenery.VRUI.Gui3D.Row
+import microscenery.VRUI.Gui3D.TextBox
+import microscenery.VRUI.Gui3D.ValueEdit
 import microscenery.primitives.LineNode
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -22,23 +25,23 @@ import kotlin.math.PI
 /**
  * https://www.reddit.com/r/Vive/comments/6uo053/how_to_use_steamvr_tracked_devices_without_a_hmd/
  */
-class Playground() : DefaultScene(VR = false, width = 1024, height = 1024) {
+class Playground3dGUI() : DefaultScene(VR = false, width = 1024, height = 1024) {
     init {
         MicroscenerySettings.set(Settings.StageSpace.ShowHullbox,true)
     }
     override fun init() {
         super.init()
 
-        cam.spatial().position = Vector3f(0f,0f,10f)
+        cam.spatial().position = Vector3f(0f, 0f, 10f)
 
         val menu = Column(
             Row(TextBox("laser power", height = 0.8f)),
-            ValueEdit.forFloatSetting(Settings.Ablation.LaserPower,0.1f),
+            ValueEdit.Companion.forFloatSetting(Settings.Ablation.LaserPower, 0.1f),
             Row(TextBox("step size", height = 0.8f)),
-            ValueEdit.forIntSetting(Settings.Ablation.StepSizeUm,10),
+            ValueEdit.Companion.forIntSetting(Settings.Ablation.StepSizeUm, 10),
             Row(TextBox("repetitions", height = 0.8f)),
-            ValueEdit.forIntSetting(Settings.Ablation.Repetitions, plusPlusButtons = false),
-            Row(Button("ablate", height = 1.3f){
+            ValueEdit.Companion.forIntSetting(Settings.Ablation.Repetitions, plusPlusButtons = false),
+            Row(Button("ablate", height = 1.3f) {
             })
         )
         //scene.addChild(menu)
@@ -49,16 +52,16 @@ class Playground() : DefaultScene(VR = false, width = 1024, height = 1024) {
 
         val lNodes = (0..4).map { LineNode().apply {
             root.addChild(this)
-            this.spatial().position = Random.random3DVectorFromRange(-3.0f,3.0f)
+            this.spatial().position = Random.Companion.random3DVectorFromRange(-3.0f,3.0f)
             this.spatial().scale = Vector3f(0.3f)
-            this.material().diffuse = Random.random3DVectorFromRange(0f,1f)
+            this.material().diffuse = Random.Companion.random3DVectorFromRange(0f,1f)
             this.lineMaterial = this.material()
         } }
         lNodes.forEachIndexed { index, lineNode -> if (index > 0) lineNode.connectTo(lNodes[index - 1])}
         lNodes[0].connectTo(lNodes[4])
 
         thread {
-            while (true){
+            while (true) {
                 lNodes[2].spatial().position = Vector3f(3f) * ((System.currentTimeMillis() % 5000) / 5000f)
                 root.rotation.rotationY(PI.toFloat() * 2f * ((System.currentTimeMillis() % 5000) / 5000f))
                 root.spatial().needsUpdate = true
@@ -75,7 +78,8 @@ class Playground() : DefaultScene(VR = false, width = 1024, height = 1024) {
         // debug: select 3dGUI menu entries with mouse
         inputHandler?.addBehaviour("debug3dClick", object : DragBehaviour {
             var pressable: SimplePressable? = null
-            val controllerDevice = TrackedDevice(TrackedDeviceType.Generic,"dummy", Matrix4f().identity(),System.nanoTime())
+            val controllerDevice =
+                TrackedDevice(TrackedDeviceType.Generic, "dummy", Matrix4f().identity(), System.nanoTime())
 
             override fun init(p0: Int, p1: Int) {
                 pressable = cam.getNodesForScreenSpacePosition(p0,p1).matches
@@ -100,7 +104,7 @@ class Playground() : DefaultScene(VR = false, width = 1024, height = 1024) {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            Playground().main()
+            Playground3dGUI().main()
         }
     }
 }
