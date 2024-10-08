@@ -83,7 +83,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         return targetPositions
     }
 
-    fun tubeScenario(stageRoot: Node, radius: Float = 200f, roiHeight: Float = 400f): List<Vector3f> {
+    fun tubeScenario(stageRoot: Node, radius: Float = 200f, roiHeight: Float = 600f): List<Vector3f> {
         val roiPos = random.nextVector3f()
         roiPos.y = roiPos.y * (stageSpaceSize - roiHeight) + roiHeight / 2
         roiPos.x = roiPos.x * stageSpaceSize * 0.2f + stageSpaceSize / 2
