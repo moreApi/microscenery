@@ -9,9 +9,9 @@ group = "me.jancasus"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    maven("https://jitpack.io")
     mavenCentral()
     maven("https://maven.scijava.org/content/groups/public")
-    maven("https://jitpack.io")
 }
 
 dependencies {

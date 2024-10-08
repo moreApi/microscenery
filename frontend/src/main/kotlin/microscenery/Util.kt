@@ -93,3 +93,7 @@ fun InputHandler.addBehaviorBinding( behavior: Behaviour, vararg key: String, na
         this.addKeyBinding(name, it)
     }
 }
+
+fun Random.nextVector3f() : Vector3f{
+    return Vector3f(this.nextFloat(),this.nextFloat(),this.nextFloat())
+}
