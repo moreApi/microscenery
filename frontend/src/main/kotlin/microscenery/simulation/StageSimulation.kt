@@ -1,19 +1,16 @@
-package microscenery.scenes.stageStudy
+package microscenery.simulation
 
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
-import graphics.scenery.*
+import graphics.scenery.Box
+import graphics.scenery.Node
+import graphics.scenery.Scene
+import graphics.scenery.Sphere
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.primitives.Cylinder
-import microscenery.MicrosceneryHub
-import microscenery.MicroscenerySettings
+import microscenery.*
 import microscenery.Settings.StageSpace.HideStageSpaceLabel
-import microscenery.simulation.BoxSimulatable
-import microscenery.simulation.CylinderSimulatable
-import microscenery.simulation.Simulatable.Companion.hideMaterial
-import microscenery.simulation.SimulationMicroscopeHardware
-import microscenery.simulation.SphereSimulatable
 import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
@@ -23,16 +20,15 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-object StageSimulation {
+class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 100, val random: Random) {
 
     fun setupStage(msHub: MicrosceneryHub, scene: Scene): StageSpaceManager {
         MicroscenerySettings.set(HideStageSpaceLabel, true)
 
-
         val hw = SimulationMicroscopeHardware(
             msHub,
-            stageSize = Vector3f(600f),
-            imageSize = Vector2i(150),
+            stageSize = Vector3f(stageSpaceSize),
+            imageSize = Vector2i(imageSize),
             maxIntensity = 4000
         )
         val stageSpaceManager = StageSpaceManager(
@@ -53,31 +49,29 @@ object StageSimulation {
         return stageSpaceManager
     }
 
-    fun tube(stageRoot: Node): List<Vector3f> {
-        val radius = 200f
-        val height = 400f
+    fun tube(stageRoot: Node, position: Vector3f, radius: Float = 200f, height: Float = 400f): List<Vector3f> {
         Cylinder(radius * 0.95f, height, 16).let { cy ->
             CylinderSimulatable.addTo(cy).maxIntensity = 3000
             cy.hideMaterial()
-            cy.spatial().position = Vector3f(0f, -height * 0.5f, 0f)
+            cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
         }
 
         Cylinder(radius, height, 16).let { cy ->
             CylinderSimulatable.addTo(cy).maxIntensity = 3000
             cy.hideMaterial()
-            cy.spatial().position = Vector3f(0f, -height * 0.5f, 0f)
+            cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
         }
 
         val targetPositions = mutableListOf<Vector3f>()
         while (targetPositions.size < 10) {
-            val a = Random.nextFloat()
+            val a = random.nextFloat()
             val new = Vector3f(
-                radius * 0.8f * cos(a * 2f * Math.PI.toFloat()),
-                (Random.nextFloat() - 0.5f) * height,
-                radius * 0.8f * sin(a * 2f * Math.PI.toFloat())
-            )
+                radius * 0.7f * cos(a * 2f * Math.PI.toFloat()),
+                (random.nextFloat() - 0.5f) * height,
+                radius * 0.7f * sin(a * 2f * Math.PI.toFloat())
+            ) + position
 
             val targetSize = 30f
             if (targetPositions.any { (it - new).length() < targetSize * 2 })
@@ -87,6 +81,24 @@ object StageSimulation {
             }
         }
         return targetPositions
+    }
+
+    fun tubeScenario(stageRoot: Node, radius: Float = 200f, roiHeight: Float = 400f): List<Vector3f> {
+        val roiPos = random.nextVector3f()
+        roiPos.y = roiPos.y * (stageSpaceSize - roiHeight) + roiHeight / 2
+        roiPos.x = roiPos.x * stageSpaceSize * 0.2f + stageSpaceSize / 2
+        roiPos.z = roiPos.z * stageSpaceSize * 0.2f + stageSpaceSize / 2
+
+        val paddedStageSpaceSize = stageSpaceSize * 1.2f //to include padding because of estimated image size
+        if (roiPos.y + roiHeight / 2 < paddedStageSpaceSize) {
+            // add extension tube from the top
+            val pos = roiPos.copy()
+            pos.y = (paddedStageSpaceSize + roiPos.y + roiHeight / 2f) / 2
+            val height = (paddedStageSpaceSize - pos.y) * 2
+            tube(stageRoot, pos, radius, height)
+        }
+
+        return tube(stageRoot, roiPos, radius, roiHeight)
     }
 
     fun scaffold(stageRoot: Node): List<Vector3f> {
@@ -135,4 +147,28 @@ object StageSimulation {
         stageRoot.addChild(sphere)
     }
 
+    companion object {
+
+        fun Scene.toggleMaterialRendering() {
+            this.discover { node ->
+                node.ifHasAttribute(Simulatable::class.java) {
+                    node.ifMaterial {
+                        if (this.cullingMode == Material.CullingMode.FrontAndBack)
+                            node.showMaterial()
+                        else
+                            node.hideMaterial()
+                    }
+                }
+                false
+            }
+        }
+
+        fun Node.showMaterial() {
+            ifMaterial { cullingMode = Material.CullingMode.None }
+        }
+
+        fun Node.hideMaterial() {
+            ifMaterial { cullingMode = Material.CullingMode.FrontAndBack }
+        }
+    }
 }

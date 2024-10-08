@@ -12,16 +12,21 @@ import microscenery.UI.StageUICommand
 import microscenery.VRUI.VRUIManager
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.Simulatable
+import microscenery.simulation.StageSimulation
+import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import kotlin.concurrent.thread
+import kotlin.random.Random
 
 
 class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = !true) {
     lateinit var stageSpaceManager: StageSpaceManager
+    lateinit var stageSimulation: StageSimulation
     val msHub = MicrosceneryHub(hub)
+
 
     override fun init() {
         super.init()
@@ -33,9 +38,14 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         MicroscenerySettings.set("Stage.precisionZ", 3f)
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
 
-        stageSpaceManager = StageSimulation.setupStage(msHub, scene)
+        val seed = Random.nextInt()
+        val random = Random(seed)
+        println("Seed: $seed")
+
+        stageSimulation = StageSimulation(imageSize = 150, random = random)
+        stageSpaceManager = stageSimulation.setupStage(msHub, scene)
         //val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
-        val targetPositions = StageSimulation.tube(stageSpaceManager.stageRoot)
+        val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
         //val targetPositions: List<Vector3f> = listOf(Vector3f(0f))
         //targetPositions.random().let {
         targetPositions.forEach {
@@ -45,7 +55,6 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         }
 
         scene.discover { it.getAttributeOrNull(Simulatable::class.java) != null }
-        //.forEach{ it.materialOrNull()?.cullingMode = Material.CullingMode.None}
 
 
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
@@ -66,18 +75,24 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         super.inputSetup()
         val ssUI = StageSpaceUI(stageSpaceManager)
         //ssUI.stageUI(this, inputHandler, msHub)
-        val commands = listOf(ssUI.comStackAcq,ssUI.comStop,ssUI.comSteering,ssUI.comGoLive,StageUICommand("seach Cube","button3",object : ClickBehaviour {
-            override fun click(p0: Int, p1: Int) {
-                ssUI.comSearchCube.command?.click(0, 0)
-                if (ssUI.searchCubeStart == null) {
-                    thread {
-                        Thread.sleep(3000)
-                        stageSpaceManager.goLive()
-                        stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
+        val commands = listOf(ssUI.comStackAcq,ssUI.comStop,ssUI.comSteering,ssUI.comGoLive,
+            StageUICommand("seach Cube","button3",object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    ssUI.comSearchCube.command?.click(0, 0)
+                    if (ssUI.searchCubeStart == null) {
+                        thread {
+                            Thread.sleep(3000)
+                            stageSpaceManager.goLive()
+                            stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
+                        }
                     }
                 }
-            }
-        }))
+            }), StageUICommand("toggle material",null ,object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    scene.toggleMaterialRendering()
+                }
+            })
+        )
 
         this.extraPanel?.let { ssUI.stageSwingUI(it, msHub, commands)}
         this.mainFrame?.pack()

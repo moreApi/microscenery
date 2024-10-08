@@ -11,6 +11,7 @@ import microscenery.UI.StageSpaceUI
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.simulation.ProceduralBlob
+import microscenery.simulation.StageSimulation
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -20,10 +21,12 @@ import kotlin.concurrent.withLock
 import kotlin.math.PI
 import kotlin.math.roundToInt
 import kotlin.math.tan
+import kotlin.random.Random
 
 
 class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
     lateinit var stageSpaceManager: StageSpaceManager
+    lateinit var stageSimulation: StageSimulation
     val msHub = MicrosceneryHub(hub)
 
     var currentZLevel = 0
@@ -53,9 +56,11 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         logger.info("Starting demo hw scene")
 
 
-        stageSpaceManager = StageSimulation.setupStage(msHub, scene)
+        val random = Random(5)
+        stageSimulation = StageSimulation(random = random)
+        stageSpaceManager = stageSimulation.setupStage(msHub, scene)
         //val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
-        val targetPositions = StageSimulation.tube(stageSpaceManager.stageRoot)
+        val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
         //targetPositions.random().let {
         targetPositions.forEach{
             val blob = ProceduralBlob(size = 75)

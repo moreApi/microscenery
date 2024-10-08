@@ -12,7 +12,6 @@ import microscenery.discover
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.nowMillis
 import microscenery.signals.*
-import microscenery.signals.Stack
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector2f
 import org.joml.Vector2i
@@ -28,7 +27,7 @@ import kotlin.math.roundToInt
  */
 class SimulationMicroscopeHardware(
     val msHub: MicrosceneryHub,
-    stagePosition: Vector3f = Vector3f(),
+    stagePosition: Vector3f? = null,
     imageSize: Vector2i = Vector2i(250),
     stageSize: Vector3f = Vector3f(300f),
     val maxIntensity: Short = Short.MAX_VALUE
@@ -53,156 +52,21 @@ class SimulationMicroscopeHardware(
         focalPlane.material().cullingMode = Material.CullingMode.FrontAndBack
 
         hardwareDimensions = HardwareDimensions(
-            stageMin = stageSize * -0.5f,
-            stageMax = stageSize * 0.5f,
+            stageMin = Vector3f(0f),
+            stageMax = stageSize,
             imageSize = imageSize,
             vertexDiameter = 1f,
             numericType = NumericType.INT16
         )
         status = MicroscopeStatus(
             ServerState.MANUAL,
-            stagePosition,
+            stagePosition ?: (stageSize * 0.5f),
             false
         )
 
         startAgent()
     }
-    /*
-        override var stagePosition = stagePosition
-            set(target) {
-                val safeTarget = hardwareDimensions.coercePosition(target, logger)
-                field = safeTarget
-                focalPlane.spatial().position = safeTarget
-                status = status.copy(stagePosition = safeTarget)
-            }
 
-        override fun snapSlice() {
-            val imgX = hardwareDimensions.imageSize.x
-            val imgY = hardwareDimensions.imageSize.y
-            val sliceBuffer = MemoryUtil.memAlloc(imgX * imgY * 2)
-            val shortBuffer = sliceBuffer.asShortBuffer()
-
-            val microDummys = getMicroDummysInFocus()
-
-            for (y in 0 until imgY) {
-                for (x in 0 until imgX) {
-                    shortBuffer.put(
-                        microDummys
-                            .map { it.intensity(Vector3f(x.toFloat()-imgX/2,y.toFloat()-imgY/2,0f)+ stagePosition) }
-                            .sum()
-                            .toShort()
-                            .coerceAtMost(maxIntensity)
-                    )
-                }
-            }
-
-
-            val signal = Slice(
-                idCounter++,
-                System.currentTimeMillis(),
-                stagePosition,
-                sliceBuffer.capacity(),
-                currentStack?.let { it.Id to stackSliceCounter },
-                sliceBuffer
-            )
-            output.put(signal)
-        }
-
-        private fun getMicroDummysInFocus(): List<Simulatable> {
-            val stageSpaceManager = msHub.getAttribute(StageSpaceManager::class.java)
-            if (focalPlane.parent == null) stageSpaceManager.stageRoot.addChild(focalPlane)
-
-            return focalPlane.getScene()?.discover { it.getAttributeOrNull(Simulatable::class.java) != null }
-                ?.filter {
-                    it.boundingBox?.intersects(focalPlane.boundingBox!!) ?: false
-                }?.map {
-                    it.getAttribute(Simulatable::class.java)
-                } ?: emptyList()
-        }
-
-        override fun goLive() {
-            val timeBetweenUpdatesMilli = 200
-            if (
-                status.state == ServerState.MANUAL && liveThread == null) {
-                liveThread = thread(isDaemon = true) {
-                    while (!Thread.currentThread().isInterrupted) {
-                        snapSlice()
-                        Thread.sleep(timeBetweenUpdatesMilli.toLong())
-                    }
-                }
-                status = status.copy(state = ServerState.LIVE)
-            } else {
-                logger.warn("Microscope not Manual (is ${status.state}) -> not going live")
-            }
-        }
-
-        override fun stop() {
-
-            if (status.state == ServerState.LIVE) {
-                liveThread?.interrupt()
-                liveThread = null
-                status = status.copy(state = ServerState.MANUAL)
-            }
-        }
-
-        override fun shutdown() {
-            stop()
-        }
-
-        override fun acquireStack(meta: ClientSignal.AcquireStack) {
-            if (status.state != ServerState.MANUAL) {
-                logger.warn("Ignoring Stack command because microscope is busy.")
-            }
-
-            status = status.copy(state = ServerState.STACK)
-            thread {
-
-                val start = meta.startPosition
-                val end = meta.endPosition
-                val dist = end - start
-                val steps = (dist.length() / meta.stepSize).roundToInt()
-                val step = dist * (1f / steps)
-
-                currentStack = Stack(
-                    idCounter++,
-                    false,
-                    start,
-                    end,
-                    steps,
-                    nowMillis()
-                )
-                output.put(currentStack!!)
-
-                for (i in 0 until steps) {
-                    stagePosition = start + (step * i.toFloat())
-                    stackSliceCounter = i
-                    snapSlice()
-                }
-
-                currentStack = null
-                status = status.copy(state = ServerState.MANUAL)
-            }
-        }
-
-        override fun ablatePoints(signal: ClientSignal.AblationPoints) {
-            for (p in signal.points)
-                logger.info("Ablating $p")
-            output.put(AblationResults(signal.points.size*50,(1..signal.points.size).map { Random().nextInt(20)+40 }))
-        }
-
-        override fun onLoop() {
-            throw NotImplementedError("demo hardware has no active agent")
-        }
-
-        override fun moveStage(target: Vector3f) {
-            throw NotImplementedError("demo does not use MicroscopeAgents stage handling")
-        }
-
-        override fun startAcquisition() {
-            snapSlice()
-        }
-
-    */
     //############################## called from external threads ##############################
     // to following functions are called from external threads and not from this agents thread
 
@@ -211,7 +75,7 @@ class SimulationMicroscopeHardware(
     }
 
     override fun moveStage(target: Vector3f) {
-        hardwareCommandsQueue.add(HardwareCommand.MoveStage(target, hardwareDimensions, true))
+        hardwareCommandsQueue.add(HardwareCommand.MoveStage(target, hardwareDimensions))
     }
 
     override fun acquireStack(meta: ClientSignal.AcquireStack) {
@@ -257,7 +121,7 @@ class SimulationMicroscopeHardware(
             }
 
             is HardwareCommand.MoveStage -> {
-                executeMoveStage(hwCommand.safeTarget, hwCommand.waitForCompletion)
+                executeMoveStage(hwCommand.safeTarget)
             }
 
             is HardwareCommand.SnapImage -> {
@@ -367,8 +231,7 @@ class SimulationMicroscopeHardware(
             hardwareCommandsQueue.add(
                 HardwareCommand.MoveStage(
                     start + (step * i.toFloat()),
-                    hardwareDimensions,
-                    true
+                    hardwareDimensions
                 )
             )
             hardwareCommandsQueue.add(HardwareCommand.SnapImage(false, currentStack.Id to i))
@@ -383,29 +246,23 @@ class SimulationMicroscopeHardware(
         }
     }
 
-
-    private fun executeMoveStage(target: Vector3f, wait: Boolean) {
+    private fun executeMoveStage(target: Vector3f) {
         // skip if next command is also move
         if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
 
-
         val safeTarget = hardwareDimensions.coercePosition(target, logger)
-        val diff = safeTarget - stagePosition
-        diff.copy().normalize()
         val umPerSek = 500f
-
-        var target = stagePosition
-        while (target != safeTarget) {
+        var currentPos = stagePosition
+        while (currentPos != safeTarget) {
             val diff = safeTarget - stagePosition
             val step = diff.copy()
             if (step.length() > umPerSek / 100) step.normalize(umPerSek / 100)
-            target = stagePosition + step
-            focalPlane.spatial().position = target
-            status = status.copy(stagePosition = target)
+            currentPos = stagePosition + step
+            focalPlane.spatial().position = currentPos
+            status = status.copy(stagePosition = currentPos)
             Thread.sleep(1000 / 100)
         }
     }
-
 
     private fun addToCommandQueueIfNotStopped(vararg commands: HardwareCommand) {
         synchronized(stopLock) {
@@ -418,7 +275,7 @@ class SimulationMicroscopeHardware(
     private sealed class HardwareCommand {
         val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-        class MoveStage(target: Vector3f, hwd: HardwareDimensions, val waitForCompletion: Boolean = false) :
+        class MoveStage(target: Vector3f, hwd: HardwareDimensions) :
             HardwareCommand() {
             val safeTarget = hwd.coercePosition(target, logger)
         }
