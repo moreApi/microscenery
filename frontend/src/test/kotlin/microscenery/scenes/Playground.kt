@@ -1,5 +1,8 @@
 package microscenery.scenes
 
+import fromScenery.utils.extensions.minus
+import fromScenery.utils.extensions.plus
+import fromScenery.utils.extensions.times
 import graphics.scenery.Node
 import graphics.scenery.RichNode
 import microscenery.DefaultScene
@@ -13,8 +16,15 @@ class Playground : DefaultScene(VR = false, width = 1024, height = 1024) {
 
     override fun init() {
         super.init()
-        cam.spatial().position = Vector3f(0f,0f,5f)
-        scene.addChild(generateTree(Random(0L), Vector3f(0f,.5f,0f), 1f, 5))
+        cam.spatial().position = Vector3f(0f,2.5f,7f)
+
+        val seed = 3824716//Random.nextInt()
+        scene.addChild(generateTree(
+            Random(seed),
+            Vector3f(0f,0.5f,0f),
+            2f,
+            3,
+            1..3))
 
         thread{
             while (true){
@@ -24,35 +34,39 @@ class Playground : DefaultScene(VR = false, width = 1024, height = 1024) {
         }
     }
 
-    data class TreeNode(val pos: Vector3f, val prev: TreeNode?)
+    data class TreeNode(val pos: Vector3f, val prev: TreeNode?, var visualisation: LineNode? = null)
 
-    private fun generateTree(random: Random, dir: Vector3f, distance: Float, iterations: Int): Node {
+    private fun generateTree(random: Random, dir: Vector3f, stepSize: Float, iterations: Int, childrenPerIteration: IntRange)
+        : Node {
 
-        var nodes = mutableListOf(listOf(TreeNode(Vector3f(),null)))
+        val nodes = mutableListOf(listOf(TreeNode(Vector3f(),null)))
+
+        fun nextPos(parent: Vector3f): Vector3f {
+            return ((random.nextVector3f() - Vector3f(0.5f)) * stepSize
+                    + dir * stepSize
+                    + parent)
+        }
 
         for (i in 0 until iterations){
             nodes += nodes[i].flatMap{ parent ->
-                listOf(
-                    TreeNode(((random.nextVector3f().add(parent.pos)).add(dir)).mul(distance), parent),
-                    TreeNode(((random.nextVector3f().add(parent.pos)).add(dir)).mul(distance), parent)
-                )
+                (1 .. random.nextInt(childrenPerIteration.first, childrenPerIteration.endInclusive+1))
+                    .map{
+                        TreeNode(nextPos(parent.pos), parent)
+                    }
             }
         }
 
-        var visualizedNodes = listOf(LineNode(radius = 0.1f) to nodes[0][0])
-
-        nodes.drop(1).flatten().forEach {
-            val parent = visualizedNodes.find { vn -> vn.second == it.prev } ?: return@forEach
-            val lNode = LineNode( listOf(parent.first), radius = 0.1f,)
-            lNode.spatial().position = it.pos
-            visualizedNodes += lNode to it
+        // -- visualisation --
+        val root = RichNode()
+        nodes.flatten().forEach { treeNode ->
+            val parent = treeNode.prev?.visualisation?.let { listOf(it) } ?: emptyList()
+            val lNode = LineNode( parent, radius = 0.1f,)
+            lNode.spatial().position = treeNode.pos
+            treeNode.visualisation = lNode
+            root.addChild(lNode)
         }
 
-        return RichNode().also { rn ->
-            visualizedNodes.forEach{ vn ->
-                rn.addChild(vn.first)
-            }
-        }
+        return root
     }
 
     companion object {
@@ -68,8 +82,10 @@ class Playground : DefaultScene(VR = false, width = 1024, height = 1024) {
 scene.children[3]?.detach()
 val seed = Random.nextInt()
 scene.addChild(generateTree(
-Random(seed),
-Vector3f(0f),
-1.2f, 3))
+    Random(seed),
+    Vector3f(0f,0.5f,0f),
+    2f,
+    3,
+    1..3))
 seed
  */
