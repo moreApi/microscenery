@@ -86,6 +86,11 @@ fun HasMaterial.changeColorWithTouchable(newColor: Vector3f){
  */
 fun Scene.discover(func: (Node) -> Boolean): ArrayList<Node> = this.discover(this,func,false)
 
+/**
+ * Depth first tree walk.
+ */
+fun <T> Node.treeWalk(func: (Node) -> T): List<T> = listOf(func(this)) + children.flatMap { it.treeWalk(func) }
+
 fun InputHandler.addBehaviorBinding( behavior: Behaviour, vararg key: String, name: String? = null){
     val name = name ?: (Random.nextInt().toString() + Random.nextInt().toString())
     this.addBehaviour(name, behavior)
