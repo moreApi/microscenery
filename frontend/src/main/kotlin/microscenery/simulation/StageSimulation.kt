@@ -3,14 +3,12 @@ package microscenery.simulation
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
-import graphics.scenery.Box
-import graphics.scenery.Node
-import graphics.scenery.Scene
-import graphics.scenery.Sphere
+import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.primitives.Cylinder
 import microscenery.*
 import microscenery.Settings.StageSpace.HideStageSpaceLabel
+import microscenery.primitives.LineNode
 import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
@@ -99,6 +97,67 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         }
 
         return tube(stageRoot, roiPos, radius, roiHeight)
+    }
+
+    data class TreeNode(val pos: Vector3f, val prev: TreeNode?, var visualisation: LineNode? = null)
+
+    private fun Node.generateTree(
+        random: Random,
+        dir: Vector3f,
+        stepSize: Float,
+        iterations: Int,
+        childrenPerIteration: IntRange
+    ): MutableList<List<TreeNode>> {
+
+        val nodes = mutableListOf(listOf(TreeNode(Vector3f(), null)))
+
+        fun nextPos(parent: Vector3f): Vector3f {
+            return ((random.nextVector3f() - Vector3f(0.5f)) * stepSize
+                    + dir * stepSize
+                    + parent)
+        }
+
+        for (i in 0 until iterations) {
+            nodes += nodes[i].flatMap { parent ->
+                (1..random.nextInt(childrenPerIteration.first, childrenPerIteration.endInclusive + 1))
+                    .map {
+                        TreeNode(nextPos(parent.pos), parent)
+                    }
+            }
+        }
+
+        // -- visualisation --
+        nodes.flatten().forEach { treeNode ->
+            val parent = treeNode.prev?.visualisation?.let { listOf(it) } ?: emptyList()
+            val lNode = LineNode(parent, radius = 10f)
+            lNode.spatial().position = treeNode.pos
+            treeNode.visualisation = lNode
+            this.addChild(lNode)
+        }
+
+        this.treeWalk {
+            it.hideMaterial()
+            if (it is LineNode.LineConnection) {
+                CylinderSimulatable.addTo(it).maxIntensity = 3000
+            }
+        }
+
+        return nodes
+    }
+
+    fun axionScenario(
+        stageRoot: Node, random: Random = Random(3824716),
+        dir: Vector3f = Vector3f(0f, -0.5f, 0f),
+        stepSize: Float = 300f,
+        iterations: Int = 3,
+        childrenPerIteration: IntRange = 1..3
+    ): List<Vector3f> {
+        val root = RichNode()
+        root.spatial().position = Vector3f(stageSpaceSize / 2, stageSpaceSize, stageSpaceSize / 2)
+        val treeNodes = root.generateTree(random, dir, stepSize, iterations, childrenPerIteration)
+        stageRoot.addChild(root)
+
+        return treeNodes.last().map { it.pos + root.spatial().position }
     }
 
     fun scaffold(stageRoot: Node): List<Vector3f> {
