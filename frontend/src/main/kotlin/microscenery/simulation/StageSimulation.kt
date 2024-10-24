@@ -5,6 +5,7 @@ import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.primitives.Cylinder
 import microscenery.*
 import microscenery.Settings.StageSpace.HideStageSpaceLabel
@@ -47,16 +48,16 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         return stageSpaceManager
     }
 
-    fun tube(stageRoot: Node, position: Vector3f, radius: Float = 200f, height: Float = 400f): List<Vector3f> {
+    fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float = 200f, height: Float = 400f): List<Vector3f> {
         Cylinder(radius * 0.95f, height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy).maxIntensity = 3000
+            CylinderSimulatable.addTo(cy,stageRoot.spatial()).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
         }
 
         Cylinder(radius, height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy).maxIntensity = 3000
+            CylinderSimulatable.addTo(cy,stageRoot.spatial()).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
@@ -81,7 +82,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         return targetPositions
     }
 
-    fun tubeScenario(stageRoot: Node, radius: Float = 200f, roiHeight: Float = 600f): List<Vector3f> {
+    fun tubeScenario(stageRoot: HasSpatial, radius: Float = 200f, roiHeight: Float = 600f): List<Vector3f> {
         val roiPos = random.nextVector3f()
         roiPos.y = roiPos.y * (stageSpaceSize - roiHeight) + roiHeight / 2
         roiPos.x = roiPos.x * stageSpaceSize * 0.2f + stageSpaceSize / 2
@@ -106,7 +107,8 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         dir: Vector3f,
         stepSize: Float,
         iterations: Int,
-        childrenPerIteration: IntRange
+        childrenPerIteration: IntRange,
+        stageRoot: HasSpatial
     ): MutableList<List<TreeNode>> {
 
         val nodes = mutableListOf(listOf(TreeNode(Vector3f(), null)))
@@ -119,7 +121,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
 
         for (i in 0 until iterations) {
             nodes += nodes[i].flatMap { parent ->
-                (1..random.nextInt(childrenPerIteration.first, childrenPerIteration.endInclusive + 1))
+                (1..random.nextInt(childrenPerIteration.first, childrenPerIteration.last + 1))
                     .map {
                         TreeNode(nextPos(parent.pos), parent)
                     }
@@ -127,26 +129,25 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         }
 
         // -- visualisation --
-        nodes.flatten().forEach { treeNode ->
+         nodes.flatten().forEach { treeNode ->
             val parent = treeNode.prev?.visualisation?.let { listOf(it) } ?: emptyList()
-            val lNode = LineNode(parent, radius = 10f)
+            val lNode = LineNode(radius = 20f, fixedConnections = true)
             lNode.spatial().position = treeNode.pos
             treeNode.visualisation = lNode
             this.addChild(lNode)
-        }
-
-        this.treeWalk {
-            it.hideMaterial()
-            if (it is LineNode.LineConnection) {
-                CylinderSimulatable.addTo(it).maxIntensity = 3000
+            parent.firstOrNull()?.let { lNode.connectTo(it)}
+            lNode.lines.forEach {
+                CylinderSimulatable.addTo(it,stageRoot.spatial()).maxIntensity = 3000
+                it.hideMaterial()
             }
+            lNode.hideMaterial()
         }
 
         return nodes
     }
 
     fun axionScenario(
-        stageRoot: Node, random: Random = Random(3824716),
+        stageRoot: HasSpatial, random: Random = Random(3824716),
         dir: Vector3f = Vector3f(0f, -0.5f, 0f),
         stepSize: Float = 300f,
         iterations: Int = 3,
@@ -154,7 +155,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
     ): List<Vector3f> {
         val root = RichNode()
         root.spatial().position = Vector3f(stageSpaceSize / 2, stageSpaceSize, stageSpaceSize / 2)
-        val treeNodes = root.generateTree(random, dir, stepSize, iterations, childrenPerIteration)
+        val treeNodes = root.generateTree(random, dir, stepSize, iterations, childrenPerIteration, stageRoot = stageRoot)
         stageRoot.addChild(root)
 
         return treeNodes.last().map { it.pos + root.spatial().position }

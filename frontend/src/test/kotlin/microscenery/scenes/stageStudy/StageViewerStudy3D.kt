@@ -44,10 +44,10 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
 
         stageSimulation = StageSimulation(imageSize = 150, random = random)
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
-        //val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
-        //val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
+//        val targetPositions = stageSimulation.scaffold(stageSpaceManager.stageRoot)
+//        val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
         val targetPositions = stageSimulation.axionScenario(stageSpaceManager.stageRoot)
-        //val targetPositions: List<Vector3f> = listOf(Vector3f(0f))
+//        val targetPositions: List<Vector3f> = listOf()
         //targetPositions.random().let {
         targetPositions.forEach {
             val blob = ProceduralBlob(size = 75)
