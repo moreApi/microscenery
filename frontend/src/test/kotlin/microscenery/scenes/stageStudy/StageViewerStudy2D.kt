@@ -33,7 +33,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         set(value) {
             val hw = stageSpaceManager.hardware.hardwareDimensions()
             val v = value.toFloat().coerceIn(hw.stageMin.z, hw.stageMax.z).roundToInt()
-            updateZ(field,v)
+            updateZ(field, v)
             field = v
         }
 
@@ -62,7 +62,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         //val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
         val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
         //targetPositions.random().let {
-        targetPositions.forEach{
+        targetPositions.forEach {
             val blob = ProceduralBlob(size = 75)
             blob.spatial().position = it
             stageSpaceManager.stageRoot.addChild(blob)
@@ -79,7 +79,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
             focusTarget.lock.withLock {
                 focusTarget.update += {
                     val focusZ = focusTarget.spatial().worldPosition().z
-                    if (prevZ != focusZ){
+                    if (prevZ != focusZ) {
                         val diff = focusZ - prevZ
                         cam.lock.withLock {
                             cam.spatial {
@@ -98,7 +98,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         background.material().diffuse = Vector3f(0.1f)
         stageSpaceManager.stageRoot.addChild(background)
 
-        cam.spatial().position = Vector3f(0f,0f,1.25f)
+        cam.spatial().position = Vector3f(0f, 0f, 1.25f)
         cam.update += {
             ZLevelLabelPivot.spatial {
                 val x = 5
@@ -121,7 +121,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                     )
                 ).xyz()
 
-                position = screenPos + Vector3f(0f, 0f, -0.1f) - cam.position
+                position = screenPos + Vector3f(0f, 0f, -0.1f) - cam.spatial().position
                 scale = Vector3f(0.1f, 0.1f, 0.01f)
             }
         }
@@ -154,9 +154,9 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                 }
             }
         }
-        background.spatial{
-            position = Vector3f(0f,0f,new.toFloat()-5f)
-            scale = stageSpaceManager.stageAreaBorders.scale.let {
+        background.spatial {
+            position = Vector3f(0f, 0f, new.toFloat() - 5f)
+            scale = stageSpaceManager.stageAreaBorders.spatial().scale.let {
                 val v = Vector3f(it)
                 v.z = 0.1f
                 v
@@ -170,23 +170,25 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub)
 
         // disable fps camera control
-        inputHandler?.addBehaviour("mouse_control", ClickBehaviour{_,_ -> /*dummy*/})
+        inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
 
-        val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget,{25f})
-        inputHandler?.addBehaviour(frameMouseDrag.name,frameMouseDrag)
-        inputHandler?.addKeyBinding(frameMouseDrag.name,"button1")
+        val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, { 25f })
+        inputHandler?.addBehaviour(frameMouseDrag.name, frameMouseDrag)
+        inputHandler?.addKeyBinding(frameMouseDrag.name, "button1")
         //inputHandler?.addKeyBinding(frameMouseDrag.name,"scroll")
 
-        inputHandler?.addBehaviour("zScroll", ScrollBehaviour { wheelRotation: Double, isHorizontal: Boolean, x: Int, y: Int ->
-            val amount = 10
-            val value = currentZLevel + if (wheelRotation > 0) amount else -amount
-            val hw = stageSpaceManager.hardware.hardwareDimensions()
-            val coerced = value.toFloat().coerceIn(hw.stageMin.z, hw.stageMax.z).roundToInt()
-            if (value == coerced) currentZLevel = coerced
-            ZLevelLabel.text = "Z: $currentZLevel"
-            logger.info("Current : $currentZLevel")
-        })
-        inputHandler?.addKeyBinding("zScroll","scroll")
+        inputHandler?.addBehaviour(
+            "zScroll",
+            ScrollBehaviour { wheelRotation: Double, isHorizontal: Boolean, x: Int, y: Int ->
+                val amount = 10
+                val value = currentZLevel + if (wheelRotation > 0) amount else -amount
+                val hw = stageSpaceManager.hardware.hardwareDimensions()
+                val coerced = value.toFloat().coerceIn(hw.stageMin.z, hw.stageMax.z).roundToInt()
+                if (value == coerced) currentZLevel = coerced
+                ZLevelLabel.text = "Z: $currentZLevel"
+                logger.info("Current : $currentZLevel")
+            })
+        inputHandler?.addKeyBinding("zScroll", "scroll")
     }
 
     companion object {

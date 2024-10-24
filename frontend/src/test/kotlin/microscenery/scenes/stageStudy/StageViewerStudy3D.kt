@@ -76,8 +76,8 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         super.inputSetup()
         val ssUI = StageSpaceUI(stageSpaceManager)
         //ssUI.stageUI(this, inputHandler, msHub)
-        val commands = listOf(ssUI.comStackAcq,ssUI.comStop,ssUI.comSteering,ssUI.comGoLive,
-            StageUICommand("seach Cube","button3",object : ClickBehaviour {
+        val commands = listOf(ssUI.comStackAcq, ssUI.comStop, ssUI.comSteering, ssUI.comGoLive,
+            StageUICommand("seach Cube", "button3", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     ssUI.comSearchCube.command?.click(0, 0)
                     if (ssUI.searchCubeStart == null) {
@@ -88,16 +88,16 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
                         }
                     }
                 }
-            }), StageUICommand("toggle material",null ,object : ClickBehaviour {
+            }), StageUICommand("toggle material", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     scene.toggleMaterialRendering()
                 }
             })
         )
 
-        this.extraPanel?.let { ssUI.stageSwingUI(it, msHub, commands)}
+        this.extraPanel?.let { ssUI.stageSwingUI(it, msHub, commands) }
         this.mainFrame?.pack()
-        DesktopUI.initMouseSelection(inputHandler,msHub)
+        DesktopUI.initMouseSelection(inputHandler, msHub)
 
         inputHandler?.let { inputHandler ->
             ssUI.stageKeyUI(inputHandler, cam, commands)

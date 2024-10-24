@@ -50,14 +50,14 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
 
     fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float = 200f, height: Float = 400f): List<Vector3f> {
         Cylinder(radius * 0.95f, height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy,stageRoot.spatial()).maxIntensity = 3000
+            CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
         }
 
         Cylinder(radius, height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy,stageRoot.spatial()).maxIntensity = 3000
+            CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
             stageRoot.addChild(cy)
@@ -129,15 +129,15 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         }
 
         // -- visualisation --
-         nodes.flatten().forEach { treeNode ->
+        nodes.flatten().forEach { treeNode ->
             val parent = treeNode.prev?.visualisation?.let { listOf(it) } ?: emptyList()
             val lNode = LineNode(radius = 20f, fixedConnections = true)
             lNode.spatial().position = treeNode.pos
             treeNode.visualisation = lNode
             this.addChild(lNode)
-            parent.firstOrNull()?.let { lNode.connectTo(it)}
+            parent.firstOrNull()?.let { lNode.connectTo(it) }
             lNode.lines.forEach {
-                CylinderSimulatable.addTo(it,stageRoot.spatial()).maxIntensity = 3000
+                CylinderSimulatable.addTo(it, stageRoot.spatial()).maxIntensity = 3000
                 it.hideMaterial()
             }
             lNode.hideMaterial()
@@ -155,7 +155,8 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
     ): List<Vector3f> {
         val root = RichNode()
         root.spatial().position = Vector3f(stageSpaceSize / 2, stageSpaceSize, stageSpaceSize / 2)
-        val treeNodes = root.generateTree(random, dir, stepSize, iterations, childrenPerIteration, stageRoot = stageRoot)
+        val treeNodes =
+            root.generateTree(random, dir, stepSize, iterations, childrenPerIteration, stageRoot = stageRoot)
         stageRoot.addChild(root)
 
         return treeNodes.last().map { it.pos + root.spatial().position }

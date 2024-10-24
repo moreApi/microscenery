@@ -18,7 +18,12 @@ import org.joml.Vector3f
  * @param lineMaterial defaults to material of Node
  * @param fixedConnections uses cylinder size instead of scaling for line connections. Allows no runtime manipulation.Param [connectTo] hast to be empty. Add connections via [LineNode.connectTo] function.
  */
-open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 1f,var lineMaterial: Material? = null, val fixedConnections: Boolean = false ) :
+open class LineNode(
+    connectedTo: List<LineNode> = emptyList(),
+    radius: Float = 1f,
+    var lineMaterial: Material? = null,
+    val fixedConnections: Boolean = false
+) :
     Sphere(radius, segments = 16) {
 
 
@@ -33,7 +38,7 @@ open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 
         connectedTo.forEach { connectTo(it) }
     }
 
-    fun connectTo(to: LineNode){
+    fun connectTo(to: LineNode) {
         if (to == this) return
         if (getConnectionTo(to) != null) return
 
@@ -43,14 +48,14 @@ open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 
         to.lines += connection
     }
 
-    fun removeConnection(to: LineNode){
+    fun removeConnection(to: LineNode) {
         val connection = getConnectionTo(to) ?: return
         this.lines -= connection
         to.lines -= connection
         connection.detach()
     }
 
-    private fun getConnectionTo(to: LineNode): LineConnection?{
+    private fun getConnectionTo(to: LineNode): LineConnection? {
         if (to == this) return null
         return lines.firstOrNull { it.from == to || it.to == to }
     }
@@ -58,8 +63,13 @@ open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 
     /**
      * @param fixedLength uses cylinder size instead of scaling. Allows no runtime manipulation. Is required for the simulation stuff.
      */
-    class LineConnection(val from: HasSpatial, val to: HasSpatial, material: Material, radius: Float, fixedLength: Boolean = false)
-        : Cylinder(radius = radius, if (fixedLength) getLength(from,to) else 1f, 20){
+    class LineConnection(
+        val from: HasSpatial,
+        val to: HasSpatial,
+        material: Material,
+        radius: Float,
+        fixedLength: Boolean = false
+    ) : Cylinder(radius = radius, if (fixedLength) getLength(from, to) else 1f, 20) {
         init {
             name = "LineConnection"
             setMaterial(material)
@@ -75,7 +85,7 @@ open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 
 
         }
 
-        companion object{
+        companion object {
             fun getLength(from: HasSpatial, to: HasSpatial): Float {
                 val diff = to.spatial().position - from.spatial().position
                 return diff.length()

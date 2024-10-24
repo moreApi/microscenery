@@ -12,7 +12,6 @@ import microscenery.VRUI.behaviors.AnalogInputWrapper
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.Behaviour
 import org.scijava.ui.behaviour.DragBehaviour
-import java.util.ArrayList
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
@@ -38,13 +37,13 @@ fun wrapForAnalogInputIfNeeded(
 /**
  * Remove node from parent if there is one.
  */
-fun Node.detach(){
+fun Node.detach() {
     this.parent?.removeChild(this)
 }
 
-fun HasMaterial.changeColorWithTouchable(newColor: Vector3f){
+fun HasMaterial.changeColorWithTouchable(newColor: Vector3f) {
     val touch = this.getAttributeOrNull(Touchable::class.java)
-    if (touch?.originalDiffuse != null){
+    if (touch?.originalDiffuse != null) {
         // this might screw with [VRTouch]s coloring
         touch.originalDiffuse = newColor
     } else {
@@ -58,7 +57,8 @@ fun HasMaterial.changeColorWithTouchable(newColor: Vector3f){
  *
  * It will be shown for [duration] milliseconds, with a default of 3000.
  */
-@JvmOverloads fun Camera.showMessage2(message: String, distance: Float = 0.75f, size: Float = 0.05f, duration: Int = 3000) {
+@JvmOverloads
+fun Camera.showMessage2(message: String, distance: Float = 0.75f, size: Float = 0.05f, duration: Int = 3000) {
     val tb = TextBox(message)
     tb.spatial {
         scale = Vector3f(size, size, size)
@@ -84,21 +84,21 @@ fun HasMaterial.changeColorWithTouchable(newColor: Vector3f){
 /**
  * @return a list of nodes that return true for [func]
  */
-fun Scene.discover(func: (Node) -> Boolean): ArrayList<Node> = this.discover(this,func,false)
+fun Scene.discover(func: (Node) -> Boolean): ArrayList<Node> = this.discover(this, func, false)
 
 /**
  * Depth first tree walk.
  */
 fun <T> Node.treeWalk(func: (Node) -> T): List<T> = listOf(func(this)) + children.flatMap { it.treeWalk(func) }
 
-fun InputHandler.addBehaviorBinding( behavior: Behaviour, vararg key: String, name: String? = null){
-    val name = name ?: (Random.nextInt().toString() + Random.nextInt().toString())
-    this.addBehaviour(name, behavior)
+fun InputHandler.addBehaviorBinding(behavior: Behaviour, vararg key: String, name: String? = null) {
+    val behaviourName = name ?: (Random.nextInt().toString() + Random.nextInt().toString())
+    this.addBehaviour(behaviourName, behavior)
     key.forEach {
-        this.addKeyBinding(name, it)
+        this.addKeyBinding(behaviourName, it)
     }
 }
 
-fun Random.nextVector3f() : Vector3f{
-    return Vector3f(this.nextFloat(),this.nextFloat(),this.nextFloat())
+fun Random.nextVector3f(): Vector3f {
+    return Vector3f(this.nextFloat(), this.nextFloat(), this.nextFloat())
 }
