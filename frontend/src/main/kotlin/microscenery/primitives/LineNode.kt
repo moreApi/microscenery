@@ -16,8 +16,9 @@ import org.joml.Vector3f
 /**
  *
  * @param lineMaterial defaults to material of Node
+ * @param fixedConnections uses cylinder size instead of scaling for line connections. Allows no runtime manipulation.Param [connectTo] hast to be empty. Add connections via [LineNode.connectTo] function.
  */
-open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 1f,var lineMaterial: Material? = null ) :
+open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 1f,var lineMaterial: Material? = null, val fixedConnections: Boolean = false ) :
     Sphere(radius, segments = 16) {
 
 
@@ -36,7 +37,7 @@ open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 
         if (to == this) return
         if (getConnectionTo(to) != null) return
 
-        val connection = LineConnection(this, to, lineMaterial ?: this.material(), this.radius * .5f)
+        val connection = LineConnection(this, to, lineMaterial ?: this.material(), this.radius * .5f, fixedConnections)
         this.addChild(connection)
         this.lines += connection
         to.lines += connection
@@ -54,19 +55,32 @@ open class LineNode( connectedTo: List<LineNode> = emptyList(), radius: Float = 
         return lines.firstOrNull { it.from == to || it.to == to }
     }
 
-    class LineConnection(val from: HasSpatial, val to: HasSpatial, material: Material, radius: Float)
-        : Cylinder(radius = radius, 1f, 20){
+    /**
+     * @param fixedLength uses cylinder size instead of scaling. Allows no runtime manipulation. Is required for the simulation stuff.
+     */
+    class LineConnection(val from: HasSpatial, val to: HasSpatial, material: Material, radius: Float, fixedLength: Boolean = false)
+        : Cylinder(radius = radius, if (fixedLength) getLength(from,to) else 1f, 20){
         init {
             name = "LineConnection"
             setMaterial(material)
+
             update += {
-                val diff = to.spatial().position - from.spatial().position
                 spatial {
-                    scale.y = diff.length() / (parent?.spatialOrNull()?.scale?.y ?: 1f)
+                    val diff = to.spatial().position - from.spatial().position
+                    if (!fixedLength) scale.y = diff.length() / (parent?.spatialOrNull()?.scale?.y ?: 1f)
                     position = Vector3f()
                     rotation = Quaternionf().rotationTo(UP, diff)
                 }
             }
+
         }
+
+        companion object{
+            fun getLength(from: HasSpatial, to: HasSpatial): Float {
+                val diff = to.spatial().position - from.spatial().position
+                return diff.length()
+            }
+        }
+
     }
 }
