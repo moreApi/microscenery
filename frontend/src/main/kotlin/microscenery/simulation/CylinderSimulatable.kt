@@ -1,5 +1,6 @@
 package microscenery.simulation
 
+import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.primitives.Cylinder
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -10,11 +11,12 @@ class CylinderSimulatable(
     val parent: Cylinder,
     var maxIntensity: Short = 4000.toShort(),
     var range: Float = 15f,
-    val hollow: Boolean = true
+    val hollow: Boolean = true,
+    val stageRoot: Spatial
 ) : Simulatable {
 
     override fun intensity(pos: Vector3f): Short {
-        val modelPos = Vector4f(pos, 1f).mul(parent.inverseStageMatrix())
+        val modelPos = Vector4f(pos, 1f).mul(parent.inverseStageMatrix(stageRoot = stageRoot))
 
         var distanceFromDisc = Vector2f(modelPos.x, modelPos.z).length() - parent.radius
         if (distanceFromDisc.absoluteValue > range) return 0 //out of range
@@ -37,8 +39,8 @@ class CylinderSimulatable(
     }
 
     companion object {
-        fun addTo(box: Cylinder): CylinderSimulatable {
-            val tmp = CylinderSimulatable(box)
+        fun addTo(box: Cylinder, stageRoot: Spatial): CylinderSimulatable {
+            val tmp = CylinderSimulatable(box, stageRoot = stageRoot)
             box.addAttribute(Simulatable::class.java, tmp)
             return tmp
         }
