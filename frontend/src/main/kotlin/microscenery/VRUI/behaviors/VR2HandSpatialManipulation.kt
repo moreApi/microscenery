@@ -9,6 +9,8 @@ import graphics.scenery.controls.behaviours.VRTwoHandDragOffhand
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plusAssign
 import graphics.scenery.utils.extensions.times
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UP
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Matrix4f
@@ -76,7 +78,7 @@ class VR2HandSpatialManipulation(
             button: OpenVRHMD.OpenVRButton,
             scene: Scene,
             scaleLocked: Boolean = false,
-            rotationLocked: Boolean = false,
+            rotationLocked: Boolean = MicroscenerySettings.get(Settings.VRUI.LockRotationDefault, false),
             stageSpaceManager: StageSpaceManager?,
         ): CompletableFuture<VR2HandSpatialManipulation> {
             @Suppress("UNCHECKED_CAST") return createAndSet(

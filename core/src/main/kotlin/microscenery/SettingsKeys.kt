@@ -13,6 +13,7 @@ object Settings {
     }
 
     object VRUI {
+        /** bool */ const val LockRotationDefault: String = "VRUI.lockRotationDefault"
         const val LeftHandMenuFixedPosition: String = "VRUI.leftHandMenuFixedPosition"
         const val TeleportEnabled = "VRUI.teleportEnabled"
     }

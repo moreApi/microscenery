@@ -22,7 +22,7 @@ import kotlin.concurrent.thread
 import kotlin.random.Random
 
 
-class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = !true) {
+class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = true) {
     lateinit var stageSpaceManager: StageSpaceManager
     lateinit var stageSimulation: StageSimulation
     val msHub = MicrosceneryHub(hub)
@@ -37,6 +37,8 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         MicroscenerySettings.set("Stage.precisionXY", 1f)
         MicroscenerySettings.set("Stage.precisionZ", 3f)
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
+        MicroscenerySettings.set(Settings.VRUI.LockRotationDefault, true)
+
 
         val seed = Random.nextInt()
         val random = Random(seed)
