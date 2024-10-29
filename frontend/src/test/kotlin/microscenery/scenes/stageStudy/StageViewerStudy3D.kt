@@ -22,7 +22,7 @@ import kotlin.concurrent.thread
 import kotlin.random.Random
 
 
-class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = true) {
+class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = vr) {
     lateinit var stageSpaceManager: StageSpaceManager
     lateinit var stageSimulation: StageSimulation
     val msHub = MicrosceneryHub(hub)
@@ -145,7 +145,13 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
             StageViewerStudy3D().main()
         }
     }
+}
 
+object StageViewerStudy3DVR{
+    @JvmStatic
+    fun main(args: Array<String>) {
+        StageViewerStudy3D(vr = true).main()
+    }
 }
 
 

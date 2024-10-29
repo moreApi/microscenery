@@ -232,33 +232,39 @@ class SliceManager(val hardware: MicroscopeHardware, val stageRoot: RichNode, va
     }
 
     private fun sortAndInsertSlices(cam: Camera, newSlice: SliceRenderNode) {
+        // detect too close slices to replace them
         sortingSlicesLock.withLock {
-            // detect too close slices to replace them
             stageRoot.children.filter {
-                it is SliceRenderNode && it.spatialOrNull()?.position?.equals(
-                    newSlice.spatial().position, hardware.hardwareDimensions().vertexDiameter
+                it is SliceRenderNode && it.spatialOrNull()?.position
+                    ?.equals(
+                        newSlice.spatial().position,
+                        hardware.hardwareDimensions().vertexDiameter
                 ) ?: false
             }.toList() // get out of children.iterator or something, might be bad to do manipulation within an iterator
                 .forEach {
                     stageRoot.removeChild(it)
                     sortedSlices.remove(it)
                 }
-
-            stageRoot.addChild(newSlice)
-            sortedSlices.add(newSlice)
         }
-        sortSlices(cam)
+        //insert slice
+        sortSlices(cam, newSlice)
     }
 
     /**
      * Sorts slices with an adjusted painters algorithm.
      * This causes the slices to be rendered in a back to front order so that their transparency is displayed correctly.
      */
-    private fun sortSlices(cam: Camera) {
+    private fun sortSlices(cam: Camera, newSlice: SliceRenderNode? = null) {
         setupCameraPainterAlgorithmUpdate()
 
         sortingSlicesLock.withLock {
+            newSlice?.let {
+                sortedSlices.add(it)
+                stageRoot.addChild(it)
+                it.spatial().updateWorld(false,true)
+            }
             if (sortedSlices.isEmpty()) return
+            
             // Adjusted Painters algorithm for uniformly leaning planes
             // General Idea: sort the planes roughly along their normal
 
