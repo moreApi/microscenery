@@ -42,7 +42,7 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
         val random = Random(seed)
         println("Seed: $seed")
 
-        stageSimulation = StageSimulation(imageSize = 150, random = random)
+        stageSimulation = StageSimulation(random = random)
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
 //        val targetPositions = stageSimulation.scaffold(stageSpaceManager.stageRoot)
 //        val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
@@ -129,7 +129,7 @@ class StageViewerStudy3D : DefaultScene(withSwingUI = true, width = 1200, height
             inputHandler.addKeyBinding("arcCam", "button2")
 
             inputHandler.addBehaviorBinding(
-                FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, { 25f }),
+                FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, cam, { 25f }),
                 "button1",
                 "scroll",
                 name = "Frame Mouse Drag"

@@ -1,6 +1,8 @@
 package microscenery.UI
 
+import fromScenery.utils.extensions.times
 import graphics.scenery.BoundingGrid
+import graphics.scenery.Camera
 import graphics.scenery.Node
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.utils.lazyLogger
@@ -11,11 +13,12 @@ import org.scijava.ui.behaviour.ScrollBehaviour
 
 /**
  *
- * Liberatly adapted from [MouseDragPlane]
+ * Liberally adapted from [MouseDragPlane]
  * @author Jan Tiemann
  */
 open class FrameMouseDrag(
     protected val targetNode: HasSpatial,
+    protected val camera: Camera,
     protected val mouseSpeed: () -> Float = { 0.25f },
     protected val fpsSpeedSlow: () -> Float = { 0.05f },
     val name: String = "Frame Mouse Drag"
@@ -27,13 +30,6 @@ open class FrameMouseDrag(
     private var lastY = 0
 
 
-    /**
-     * This function is called upon mouse down and initializes the camera control
-     * with the current window size.
-     *
-     * x position in window
-     * y position in window
-     */
     override fun init(x: Int, y: Int) {
         lastX = x
         lastY = y
@@ -44,7 +40,7 @@ open class FrameMouseDrag(
         if (!targetNode.lock.tryLock()) return
 
         targetNode.ifSpatial {
-            Vector3f(1f,0f,0f).mul((x - lastX) * fpsSpeedSlow() * mouseSpeed(), dragPosUpdater)
+            val dragPosUpdater = Vector3f(if (camera.right.x > 0f) 1f else -1f,0f,0f) * ((x - lastX) * fpsSpeedSlow() * mouseSpeed())
             position.add(dragPosUpdater)
             UP.mul((lastY - y) * fpsSpeedSlow() * mouseSpeed(), dragPosUpdater)
             position.add(dragPosUpdater)
@@ -79,6 +75,5 @@ open class FrameMouseDrag(
     }
 
     //aux vars to prevent from re-creating them over and over
-    private val dragPosUpdater: Vector3f = Vector3f()
     private val scrollPosUpdater: Vector3f = Vector3f()
 }

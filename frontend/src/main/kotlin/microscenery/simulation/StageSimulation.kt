@@ -19,7 +19,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 100, val random: Random) {
+class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 150, val random: Random) {
 
     fun setupStage(msHub: MicrosceneryHub, scene: Scene): StageSpaceManager {
         MicroscenerySettings.set(HideStageSpaceLabel, true)
@@ -82,7 +82,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 10
         return targetPositions
     }
 
-    fun tubeScenario(stageRoot: HasSpatial, radius: Float = 200f, roiHeight: Float = 600f): List<Vector3f> {
+    fun tubeScenario(stageRoot: HasSpatial, radius: Float = 100f, roiHeight: Float = 600f): List<Vector3f> {
         val roiPos = random.nextVector3f()
         roiPos.y = roiPos.y * (stageSpaceSize - roiHeight) + roiHeight / 2
         roiPos.x = roiPos.x * stageSpaceSize * 0.2f + stageSpaceSize / 2

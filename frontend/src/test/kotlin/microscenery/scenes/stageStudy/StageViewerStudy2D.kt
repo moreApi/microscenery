@@ -155,7 +155,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
             }
         }
         background.spatial {
-            position = Vector3f(0f, 0f, new.toFloat() - 5f)
+            position = Vector3f(stageSpaceManager.stageAreaCenter.x, stageSpaceManager.stageAreaCenter.y, new.toFloat() - 5f)
             scale = stageSpaceManager.stageAreaBorders.spatial().scale.let {
                 val v = Vector3f(it)
                 v.z = 0.1f
@@ -172,7 +172,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         // disable fps camera control
         inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
 
-        val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, { 25f })
+        val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, cam, { 25f })
         inputHandler?.addBehaviour(frameMouseDrag.name, frameMouseDrag)
         inputHandler?.addKeyBinding(frameMouseDrag.name, "button1")
         //inputHandler?.addKeyBinding(frameMouseDrag.name,"scroll")
