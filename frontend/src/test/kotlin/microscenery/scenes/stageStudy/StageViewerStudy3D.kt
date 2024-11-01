@@ -3,7 +3,7 @@ package microscenery.scenes.stageStudy
 import graphics.scenery.SceneryElement
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.ArcballCameraControl
-import graphics.scenery.volumes.TransferFunction
+import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.DesktopUI
 import microscenery.UI.FrameMouseDrag
@@ -11,7 +11,6 @@ import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.VRUI.VRUIManager
 import microscenery.simulation.ProceduralBlob
-import microscenery.simulation.Simulatable
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.stageSpace.FocusManager
@@ -25,6 +24,7 @@ import kotlin.random.Random
 class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = vr) {
     lateinit var stageSpaceManager: StageSpaceManager
     lateinit var stageSimulation: StageSimulation
+    lateinit var studyController: StudyController
     val msHub = MicrosceneryHub(hub)
 
 
@@ -51,13 +51,15 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
         val targetPositions = stageSimulation.axionScenario(stageSpaceManager.stageRoot)
 //        val targetPositions: List<Vector3f> = listOf()
         //targetPositions.random().let {
-        targetPositions.forEach {
+        val targetBlobs = targetPositions.map {
             val blob = ProceduralBlob(size = 75)
             blob.spatial().position = it
+            blob.material().diffuse = Vector3f(0f, .9f, 0f)
             stageSpaceManager.stageRoot.addChild(blob)
+            blob
         }
 
-        scene.discover { it.getAttributeOrNull(Simulatable::class.java) != null }
+        studyController = StudyController(targetBlobs)
 
 
 
@@ -88,6 +90,15 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
             }), StageUICommand("toggle material", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     scene.toggleMaterialRendering()
+                }
+            }), StageUICommand("mark RoI", null, object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    val result = studyController.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
+                    logger.warn("got a  " + result.toString())
+                }
+            }), StageUICommand("transfer function", null, object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    TransferFunctionEditor.showTFFrame(stageSpaceManager.sliceManager.transferFunctionManager)
                 }
             })
         )
