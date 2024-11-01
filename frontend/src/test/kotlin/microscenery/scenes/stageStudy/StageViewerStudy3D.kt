@@ -14,18 +14,17 @@ import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
-import java.io.File
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
 
 class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = vr) {
+    val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
+
     lateinit var stageSimulation: StageSimulation
     lateinit var studyController: StudyController
     lateinit var studyLogger: StudySpatialLogger
-    val msHub = MicrosceneryHub(hub)
-
 
     override fun init() {
         super.init()

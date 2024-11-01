@@ -5,13 +5,18 @@ import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.xyz
 import graphics.scenery.Box
 import graphics.scenery.volumes.TransferFunction
+import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
+import microscenery.UI.DesktopUI
 import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
+import microscenery.UI.StageUICommand
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
+import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -25,9 +30,12 @@ import kotlin.random.Random
 
 
 class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
-    lateinit var stageSpaceManager: StageSpaceManager
-    lateinit var stageSimulation: StageSimulation
     val msHub = MicrosceneryHub(hub)
+    lateinit var stageSpaceManager: StageSpaceManager
+
+    lateinit var stageSimulation: StageSimulation
+    lateinit var studyController: StudyController
+    lateinit var studyLogger: StudySpatialLogger
 
     var currentZLevel = 0
         set(value) {
@@ -55,19 +63,27 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         super.init()
         logger.info("Starting demo hw scene")
 
-
-        val random = Random(5)
+        val seed = Random.nextInt()
+        val random = Random(seed)
+        println("Seed: $seed")
         stageSimulation = StageSimulation(random = random)
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
-        //val targetPositions = StageSimulation.scaffold(stageSpaceManager.stageRoot)
-        val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
+//        val targetPositions = stageSimulation.scaffold(stageSpaceManager.stageRoot)
+//        val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
+        val targetPositions = stageSimulation.axionScenario(stageSpaceManager.stageRoot)
+//        val targetPositions: List<Vector3f> = listOf()
         //targetPositions.random().let {
-        targetPositions.forEach {
+        val targetBlobs = targetPositions.map {
             val blob = ProceduralBlob(size = 75)
             blob.spatial().position = it
+            blob.material().diffuse = Vector3f(0f, .9f, 0f)
             stageSpaceManager.stageRoot.addChild(blob)
+            blob
         }
 
+        studyController = StudyController(targetBlobs)
+
+        studyLogger = StudySpatialLogger(cam, msHub,null)
 
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
             this.transferFunction = TransferFunction.flat(1f)
@@ -167,7 +183,44 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
 
     override fun inputSetup() {
         super.inputSetup()
-        StageSpaceUI(stageSpaceManager).stageUI(this, inputHandler, msHub)
+        val ssUI = StageSpaceUI(stageSpaceManager)
+        //ssUI.stageUI(this, inputHandler, msHub)
+        val commands = listOf(ssUI.comStackAcq, ssUI.comStop, ssUI.comSteering, ssUI.comGoLive,
+            StageUICommand("seach Cube", "button3", object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    ssUI.comSearchCube.command?.click(0, 0)
+                    if (ssUI.searchCubeStart == null) {
+                        thread {
+                            Thread.sleep(3000)
+                            stageSpaceManager.goLive()
+                            stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
+                        }
+                    }
+                }
+            }), StageUICommand("toggle material", null, object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    scene.toggleMaterialRendering()
+                }
+            }), StageUICommand("mark RoI", null, object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    val result = studyController.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
+                    studyLogger.logEvent("MarkRoi")
+                    logger.warn("got a  " + result.toString())
+                }
+            }), StageUICommand("transfer function", null, object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    TransferFunctionEditor.showTFFrame(stageSpaceManager.sliceManager.transferFunctionManager)
+                }
+            })
+        )
+
+        this.extraPanel?.let { ssUI.stageSwingUI(it, msHub, commands) }
+        this.mainFrame?.pack()
+        DesktopUI.initMouseSelection(inputHandler, msHub)
+
+        inputHandler?.let { inputHandler ->
+            ssUI.stageKeyUI(inputHandler, cam, commands)
+        }
 
         // disable fps camera control
         inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
