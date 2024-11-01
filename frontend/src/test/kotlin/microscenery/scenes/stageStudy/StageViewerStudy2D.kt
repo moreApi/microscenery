@@ -37,18 +37,23 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
     lateinit var studyController: StudyController
     lateinit var studyLogger: StudySpatialLogger
 
+    var zInitDone = false
     var currentZLevel = 0
         set(value) {
-            val hw = stageSpaceManager.hardware.hardwareDimensions()
-            val v = value.toFloat().coerceIn(hw.stageMin.z, hw.stageMax.z).roundToInt()
-            updateZ(field, v)
-            field = v
+            if(zInitDone) {
+                val hw = stageSpaceManager.hardware.hardwareDimensions()
+                val v = value.toFloat().coerceIn(hw.stageMin.z, hw.stageMax.z).roundToInt()
+                updateZ(field, v)
+                field = v
+            } else {
+                field = value
+            }
         }
 
     val ZLevelLabel = TextBox(" Z: 0")
     val ZLevelLabelPivot = Row(ZLevelLabel, middleAlign = false)
 
-    lateinit var background: Box
+    var background: Box? = null
 
     init {
         MicroscenerySettings.set("Stage.precisionXY", 1f)
@@ -89,6 +94,9 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
             this.transferFunction = TransferFunction.flat(1f)
         }
 
+        currentZLevel = stageSpaceManager.stagePosition.z.toInt()
+        ZLevelLabel.text = "Z: $currentZLevel"
+        zInitDone = true
 
         stageSpaceManager.focusManager.focusTarget.let { focusTarget ->
             var prevZ = stageSpaceManager.focusManager.focusTarget.spatial().worldPosition().z
@@ -111,8 +119,9 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         }
 
         background = Box(Vector3f(1f))
-        background.material().diffuse = Vector3f(0.1f)
-        stageSpaceManager.stageRoot.addChild(background)
+        background?.material()?.diffuse = Vector3f(0.1f)
+        stageSpaceManager.stageRoot.addChild(background!!)
+        updateZ(currentZLevel,currentZLevel)
 
         cam.spatial().position = Vector3f(0f, 0f, 1.25f)
         cam.update += {
@@ -143,8 +152,6 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         }
         cam.addChild(ZLevelLabelPivot)
 
-        currentZLevel = 0
-
         thread {
             while (true) {
                 Thread.sleep(200)
@@ -170,7 +177,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                 }
             }
         }
-        background.spatial {
+        background?.spatial {
             position = Vector3f(stageSpaceManager.stageAreaCenter.x, stageSpaceManager.stageAreaCenter.y, new.toFloat() - 5f)
             scale = stageSpaceManager.stageAreaBorders.spatial().scale.let {
                 val v = Vector3f(it)
@@ -178,6 +185,8 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                 v
             }
         }
+
+        studyLogger.logEvent("scrollZ", listOf(currentZLevel.toString()))
 
     }
 

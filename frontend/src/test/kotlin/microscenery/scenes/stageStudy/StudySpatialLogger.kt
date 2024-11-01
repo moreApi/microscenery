@@ -38,8 +38,8 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         startAgent()
     }
 
-    fun logEvent(name: String, time: Long = System.currentTimeMillis()){
-        otherEvents.put(LoggingEvent(name,time))
+    fun logEvent(name: String,extraParams: List<String>? = null, time: Long = System.currentTimeMillis()){
+        otherEvents.put(LoggingEvent(name,extraParams,time))
     }
 
     companion object{
@@ -57,7 +57,7 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
     override fun onLoop() {
         while (otherEvents.isNotEmpty()){
             val e = otherEvents.poll()
-            writer.write(e.time.toString() + ";" + e.name)
+            writer.write(e.time.toString() + ";" + e.name + e.extraParams?.let { ";"+it.joinToString(";") })
             writer.newLine()
         }
         writeLog("camera", camera.spatial())
@@ -82,5 +82,5 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         writer.close()
     }
 
-    data class LoggingEvent(val name: String, val time: Long = System.currentTimeMillis())
+    data class LoggingEvent(val name: String,val extraParams: List<String>? = null, val time: Long = System.currentTimeMillis())
 }
