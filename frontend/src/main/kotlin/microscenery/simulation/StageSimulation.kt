@@ -7,6 +7,7 @@ import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.primitives.Cylinder
+import graphics.scenery.volumes.Colormap
 import microscenery.*
 import microscenery.Settings.StageSpace.HideStageSpaceLabel
 import microscenery.primitives.LineNode
@@ -15,11 +16,14 @@ import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector2i
 import org.joml.Vector3f
+import java.io.File
+import kotlin.concurrent.thread
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
 class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 150, val random: Random) {
+    lateinit var stageSpaceManager: StageSpaceManager
 
     fun setupStage(msHub: MicrosceneryHub, scene: Scene): StageSpaceManager {
         MicroscenerySettings.set(HideStageSpaceLabel, true)
@@ -28,19 +32,14 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
             msHub,
             stageSize = Vector3f(stageSpaceSize),
             imageSize = Vector2i(imageSize),
-            maxIntensity = 4000
+            maxIntensity = Short.MAX_VALUE
         )
-        val stageSpaceManager = StageSpaceManager(
+        stageSpaceManager = StageSpaceManager(
             hw,
             scene,
             msHub,
             layout = MicroscopeLayout.Default(MicroscopeLayout.Axis.Z)
         )
-
-        stageSpaceManager.sliceManager.transferFunctionManager.apply {
-            maxDisplayRange = 4100f
-            minDisplayRange = 0f
-        }
 
         stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
         stageSpaceManager.goLive()
@@ -153,6 +152,14 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
         iterations: Int = 3,
         childrenPerIteration: IntRange = 1..3
     ): List<Vector3f> {
+
+        stageSpaceManager.sliceManager.transferFunctionManager.loadTransferFunctionFromFile(
+            File("""frontend/src/test/kotlin/microscenery/scenes/stageStudy/axionTransferFunction""")
+        )
+        stageSpaceManager.sliceManager.transferFunctionManager.colormap =
+            Colormap.fromPNGFile(File("""frontend/src/test/kotlin/microscenery/scenes/stageStudy/axionColormap.png"""))
+
+
         val root = RichNode()
         root.spatial().position = Vector3f(stageSpaceSize / 2, stageSpaceSize, stageSpaceSize / 2)
         val treeNodes =

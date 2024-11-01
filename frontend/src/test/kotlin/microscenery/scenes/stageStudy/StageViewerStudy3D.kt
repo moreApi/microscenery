@@ -60,11 +60,6 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
         scene.discover { it.getAttributeOrNull(Simulatable::class.java) != null }
 
 
-        stageSpaceManager.sliceManager.transferFunctionManager.apply {
-            this.transferFunction = TransferFunction.ramp(0f, 1f, 1f)
-            this.transferFunction.controlPoints().first().factor = 0.05f
-        }
-
 
         thread {
             while (true) {
@@ -147,7 +142,7 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
     }
 }
 
-object StageViewerStudy3DVR{
+object StageViewerStudy3DVR {
     @JvmStatic
     fun main(args: Array<String>) {
         StageViewerStudy3D(vr = true).main()

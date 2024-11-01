@@ -6,7 +6,7 @@ import graphics.scenery.attribute.material.Material
 import org.joml.Vector3f
 import kotlin.math.pow
 
-class ProceduralBlob(val procedural: Procedural = Procedural(use16bit = true), var maxIntensity: Short = 4000) :
+class ProceduralBlob(val procedural: Procedural = Procedural(use16bit = true), val maxIntensity: Short = 4000, val intensityOffset: Short = 20000) :
     Sphere(radius = procedural.size / 2f), Simulatable {
 
     constructor(size: Int, maxIntensity: Short = 4000) : this(Procedural(size, use16bit = true), maxIntensity)
@@ -31,6 +31,6 @@ class ProceduralBlob(val procedural: Procedural = Procedural(use16bit = true), v
         val coreValue = (relativeDist-1).pow(2)*maxIntensity
 
 
-        return (proceduralValue + coreValue).toInt().toShort().coerceAtMost(maxIntensity)
+        return ((proceduralValue + coreValue).toInt().toShort().coerceAtMost(maxIntensity)+intensityOffset).toShort()
     }
 }

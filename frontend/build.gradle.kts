@@ -21,6 +21,7 @@ dependencies {
     // - fix/16bit-histogram
     // - fix/windows-mouse-click-scroll
     // - split-histogram-checkbox
+    // - improveDisplayRangeLimitsNaming
     // - fix/attachment-order-in-dssdo-shaders
     implementation("com.github.scenerygraphics:scenery:bb14191e179d12288814dea7217dc12442ee9142")
     // necessary for logging to work correctly
