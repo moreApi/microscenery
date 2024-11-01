@@ -5,6 +5,7 @@ import graphics.scenery.attribute.spatial.Spatial
 import microscenery.Agent
 import microscenery.MicrosceneryHub
 import microscenery.UI.UIModel
+import microscenery.signals.MicroscopeSignal
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -13,12 +14,16 @@ import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.BlockingQueue
 
 class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: File?, val loggingInterval: Long = 200): Agent() {
     val uiModel = msHub.getAttribute(UIModel::class.java)
     val stageSpaceManager = msHub.getAttribute(StageSpaceManager::class.java)
 
     val writer: BufferedWriter
+
+    val otherEvents: BlockingQueue<LoggingEvent> = ArrayBlockingQueue(50)
 
     init {
         val sdf = SimpleDateFormat("yyyy-MM-dd--hh-mm-ss")
@@ -31,6 +36,10 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         writer.newLine()
 
         startAgent()
+    }
+
+    fun logEvent(name: String, time: Long = System.currentTimeMillis()){
+        otherEvents.put(LoggingEvent(name,time))
     }
 
     companion object{
@@ -46,6 +55,11 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
     }
 
     override fun onLoop() {
+        while (otherEvents.isNotEmpty()){
+            val e = otherEvents.poll()
+            writer.write(e.time.toString() + ";" + e.name)
+            writer.newLine()
+        }
         writeLog("camera", camera.spatial())
         writer.newLine()
         writeLog("focusTarget", stageSpaceManager.focusManager.focusTarget.spatial())
@@ -67,4 +81,6 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
     override fun onClose() {
         writer.close()
     }
+
+    data class LoggingEvent(val name: String, val time: Long = System.currentTimeMillis())
 }

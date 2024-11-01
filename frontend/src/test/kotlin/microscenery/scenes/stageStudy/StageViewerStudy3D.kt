@@ -23,6 +23,7 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
     lateinit var stageSpaceManager: StageSpaceManager
     lateinit var stageSimulation: StageSimulation
     lateinit var studyController: StudyController
+    lateinit var studyLogger: StudySpatialLogger
     val msHub = MicrosceneryHub(hub)
 
 
@@ -59,7 +60,7 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
 
         studyController = StudyController(targetBlobs)
 
-        StudySpatialLogger(cam, msHub,null)
+        studyLogger = StudySpatialLogger(cam, msHub,null)
 
 
 
@@ -94,6 +95,7 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
             }), StageUICommand("mark RoI", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     val result = studyController.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
+                    studyLogger.logEvent("MarkRoi")
                     logger.warn("got a  " + result.toString())
                 }
             }), StageUICommand("transfer function", null, object : ClickBehaviour {
