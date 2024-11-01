@@ -5,10 +5,7 @@ import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
-import microscenery.UI.DesktopUI
-import microscenery.UI.FrameMouseDrag
-import microscenery.UI.StageSpaceUI
-import microscenery.UI.StageUICommand
+import microscenery.UI.*
 import microscenery.VRUI.VRUIManager
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
@@ -17,6 +14,7 @@ import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
+import java.io.File
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
@@ -60,6 +58,8 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
         }
 
         studyController = StudyController(targetBlobs)
+
+        StudySpatialLogger(cam, msHub,null)
 
 
 
