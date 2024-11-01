@@ -16,7 +16,7 @@ class TransferFunctionManager(val sliceManager: SliceManager, val msHub: Microsc
             field = value
             updateTransferFunction()
         }
-    override var maxDisplayRange: Float  = MicroscenerySettings.get("TransferFunction.DisplayRangeMax",1000.0f)
+    override var maxDisplayRange: Float  = MicroscenerySettings.get("TransferFunction.DisplayRangeMax",Short.MAX_VALUE.toFloat())
         set(value) {
             field = value
             updateTransferFunction()
@@ -33,7 +33,7 @@ class TransferFunctionManager(val sliceManager: SliceManager, val msHub: Microsc
             updateColorMap()
         }
 
-    override var range: Pair<Float, Float> = 0.0f to 10000f
+    override var range: Pair<Float, Float> = 0.0f to Short.MAX_VALUE.toFloat()
 
     init {
         updateTransferFunction()
