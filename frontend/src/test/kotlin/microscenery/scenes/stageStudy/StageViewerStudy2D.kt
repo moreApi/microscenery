@@ -15,6 +15,8 @@ import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
+import microscenery.simulation.StageSimulation.Companion.hideMaterial
+import microscenery.simulation.StageSimulation.Companion.showMaterial
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
@@ -24,6 +26,7 @@ import org.scijava.ui.behaviour.ScrollBehaviour
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 import kotlin.math.PI
+import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import kotlin.math.tan
 import kotlin.random.Random
@@ -177,6 +180,17 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                 }
             }
         }
+        studyController.targets.forEach { blob, isHit ->
+            if (!isHit) return@forEach
+
+            if ((blob.spatial().position.z - new).absoluteValue < blob.radius*1.1f){
+                blob.showMaterial()
+            } else {
+                blob.hideMaterial()
+            }
+
+        }
+
         background?.spatial {
             position = Vector3f(stageSpaceManager.stageAreaCenter.x, stageSpaceManager.stageAreaCenter.y, new.toFloat() - 5f)
             scale = stageSpaceManager.stageAreaBorders.spatial().scale.let {
@@ -213,8 +227,8 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
             }), StageUICommand("mark RoI", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     val result = studyController.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
-                    studyLogger.logEvent("MarkRoi")
-                    logger.warn("got a  " + result.toString())
+                    studyLogger.logEvent("MarkRoi", listOf(result.toString()))
+                    logger.warn("got a  $result")
                 }
             }), StageUICommand("transfer function", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {

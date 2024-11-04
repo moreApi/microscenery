@@ -5,7 +5,6 @@ import graphics.scenery.attribute.spatial.Spatial
 import microscenery.Agent
 import microscenery.MicrosceneryHub
 import microscenery.UI.UIModel
-import microscenery.signals.MicroscopeSignal
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Quaternionf
 import org.joml.Vector3f
