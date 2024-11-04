@@ -65,6 +65,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         MicroscenerySettings.set(Settings.StageSpace.ShowHullbox, false)
         MicroscenerySettings.set(Settings.StageSpace.ShowStageAreaBorders, false)
         MicroscenerySettings.set(Settings.StageSpace.HideStageSpaceLabel, true)
+        MicroscenerySettings.set(Settings.StageSpace.ShowFocusPositionLabel, false)
     }
 
     override fun init() {

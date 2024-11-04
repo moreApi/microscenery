@@ -6,6 +6,8 @@ import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.UIModel
 import microscenery.signals.HardwareDimensions
 import microscenery.toReadableString
@@ -52,20 +54,22 @@ open class Frame(
             beam
         }
 
-        val positionLabel = TextBoard()
-        positionLabel.text = "0,0,0"
-        positionLabel.name = "FramePositionLabel"
-        positionLabel.transparent = 0
-        positionLabel.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
-        positionLabel.backgroundColor = Vector4f(100f, 100f, 100f, 1.0f)
-        positionLabel.spatial {
-            position = Vector3f(-distanceFromCenter.x, distanceFromCenter.y + beamBase.y, 0f)
-            scale = Vector3f(0.15f, 0.15f, 0.15f)
-        }
-        pivot.addChild(positionLabel)
+        if (MicroscenerySettings.get(Settings.StageSpace.ShowFocusPositionLabel, true)) {
+            val positionLabel = TextBoard()
+            positionLabel.text = "0,0,0"
+            positionLabel.name = "FramePositionLabel"
+            positionLabel.transparent = 0
+            positionLabel.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+            positionLabel.backgroundColor = Vector4f(100f, 100f, 100f, 1.0f)
+            positionLabel.spatial {
+                position = Vector3f(-distanceFromCenter.x, distanceFromCenter.y + beamBase.y, 0f)
+                scale = Vector3f(0.15f, 0.15f, 0.15f)
+            }
+            pivot.addChild(positionLabel)
 
-        this.update += {
-            positionLabel.text = (alternativeLabelPos?.invoke() ?: spatial().position).toReadableString()
+            this.update += {
+                positionLabel.text = (alternativeLabelPos?.invoke() ?: spatial().position).toReadableString()
+            }
         }
 
         applyHardwareDimensions(uiModel.hardwareDimensions)

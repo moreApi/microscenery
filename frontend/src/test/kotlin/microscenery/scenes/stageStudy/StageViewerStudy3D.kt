@@ -26,16 +26,18 @@ class StageViewerStudy3D(vr: Boolean = !true) : DefaultScene(withSwingUI = true,
     lateinit var studyController: StudyController
     lateinit var studyLogger: StudySpatialLogger
 
-    override fun init() {
-        super.init()
-        logger.info("Starting demo hw scene")
-        cam.spatial().position = Vector3f(0f, -0f, 2f)
-
-
+    init {
         MicroscenerySettings.set("Stage.precisionXY", 1f)
         MicroscenerySettings.set("Stage.precisionZ", 3f)
         MicroscenerySettings.set(Settings.UI.ShowSelectionIndicator, false)
         MicroscenerySettings.set(Settings.VRUI.LockRotationDefault, true)
+        MicroscenerySettings.set(Settings.StageSpace.ShowFocusPositionLabel, false)
+    }
+
+    override fun init() {
+        super.init()
+        logger.info("Starting demo hw scene")
+        cam.spatial().position = Vector3f(0f, -0f, 2f)
 
 
         val seed = Random.nextInt()
