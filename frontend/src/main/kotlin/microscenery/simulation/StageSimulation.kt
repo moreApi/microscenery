@@ -110,7 +110,8 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
         stageRoot: HasSpatial
     ): MutableList<List<TreeNode>> {
 
-        val nodes = mutableListOf(listOf(TreeNode(Vector3f(), null)))
+        val first = TreeNode(Vector3f(dir) * -stepSize,null)
+        val nodes = mutableListOf(listOf(first), listOf(TreeNode(Vector3f(), first)))
 
         fun nextPos(parent: Vector3f): Vector3f {
             return ((random.nextVector3f() - Vector3f(0.5f)) * stepSize
@@ -118,7 +119,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
                     + parent)
         }
 
-        for (i in 0 until iterations) {
+        for (i in 1 until iterations+1) {
             nodes += nodes[i].flatMap { parent ->
                 (1..random.nextInt(childrenPerIteration.first, childrenPerIteration.last + 1))
                     .map {
