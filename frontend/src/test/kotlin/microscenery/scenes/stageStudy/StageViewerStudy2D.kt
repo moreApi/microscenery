@@ -24,6 +24,7 @@ import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import org.scijava.ui.behaviour.ScrollBehaviour
+import javax.swing.JOptionPane
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 import kotlin.math.PI
@@ -78,6 +79,13 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         println("Seed: $seed")
         stageSimulation = StageSimulation(random = random)
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
+        studyLogger = StudySpatialLogger(cam, msHub,null)
+
+
+        JOptionPane.showMessageDialog(null,
+            "Press ok when ready");
+
+        trialCoordinator?.startExperiment(studyLogger)
 
         val targetPositions = scenario.generate(stageSpaceManager,stageSimulation.stageSpaceSize)
         val targetBlobs = targetPositions.map {
@@ -87,8 +95,6 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
             stageSpaceManager.stageRoot.addChild(blob)
             blob
         }
-
-        studyLogger = StudySpatialLogger(cam, msHub,null)
 
         targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 

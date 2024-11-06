@@ -15,6 +15,7 @@ import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
+import javax.swing.JOptionPane
 import kotlin.random.Random
 import kotlin.system.exitProcess
 
@@ -52,6 +53,16 @@ class StageViewerStudy3D(
         stageSimulation = StageSimulation(random = random)
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
 
+        studyLogger = StudySpatialLogger(cam, msHub,null)
+
+        if (VR){
+            //todo
+        } else {
+            JOptionPane.showMessageDialog(null,
+                "Press ok when ready");
+        }
+        trialCoordinator?.startExperiment(studyLogger)
+
         val targetPositions = scenario.generate(stageSpaceManager,stageSimulation.stageSpaceSize)
         val targetBlobs = targetPositions.map {
             val blob = ProceduralBlob(size = 75)
@@ -60,8 +71,6 @@ class StageViewerStudy3D(
             stageSpaceManager.stageRoot.addChild(blob)
             blob
         }
-
-        studyLogger = StudySpatialLogger(cam, msHub,null)
 
         targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 

@@ -22,7 +22,7 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
 
     val writer: BufferedWriter
 
-    val otherEvents: BlockingQueue<LoggingEvent> = ArrayBlockingQueue(50)
+    private val otherEvents: BlockingQueue<LoggingEvent> = ArrayBlockingQueue(50)
 
     init {
         val sdf = SimpleDateFormat("yyyy-MM-dd--hh-mm-ss")
@@ -54,11 +54,7 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
     }
 
     override fun onLoop() {
-        while (otherEvents.isNotEmpty()){
-            val e = otherEvents.poll()
-            writer.write(e.time.toString() + ";" + e.name + e.extraParams?.let { ";"+it.joinToString(";") })
-            writer.newLine()
-        }
+        writeOutOtherEvents()
         writeLog("camera", camera.spatial())
         writer.newLine()
         writeLog("focusTarget", stageSpaceManager.focusManager.focusTarget.spatial())
@@ -72,12 +68,21 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         Thread.sleep(loggingInterval)
     }
 
+    private fun writeOutOtherEvents() {
+        while (otherEvents.isNotEmpty()) {
+            val e = otherEvents.poll()
+            writer.write(e.time.toString() + ";" + e.name + e.extraParams?.let { ";" + it.joinToString(";") })
+            writer.newLine()
+        }
+    }
+
     private fun writeLog(name: String, spatial: Spatial) {
         val logLine = System.currentTimeMillis().toString() + ";$name;" + spatial.toCSVString()
         writer.write(logLine)
     }
 
     override fun onClose() {
+        writeOutOtherEvents()
         writer.close()
     }
 

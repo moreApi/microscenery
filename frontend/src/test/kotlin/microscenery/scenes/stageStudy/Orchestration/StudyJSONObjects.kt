@@ -9,7 +9,7 @@ data class TrialConfig(val name: String, var cases: List<Case> ){
 }
 
 
-data class Case(val modality: Modality, val simulation: Simulation, var done: Boolean = false)
+data class Case(val modality: Modality, val scenario: Simulation, var done: Boolean = false)
 
 enum class Modality{VR, ThreeD, TwoD}
 

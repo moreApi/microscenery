@@ -5,59 +5,80 @@ import java.io.File
 import java.io.FileWriter
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import graphics.scenery.utils.lazyLogger
+import microscenery.MicroscenerySettings
 import microscenery.scenes.stageStudy.StageViewerStudy2D
 import microscenery.scenes.stageStudy.StageViewerStudy3D
+import microscenery.scenes.stageStudy.StudySpatialLogger
 import java.security.InvalidParameterException
 import kotlin.system.exitProcess
 
 class TrialCoordinator {
+    private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
+
     val mapper = jacksonObjectMapper()
+    var studySpatialLogger: StudySpatialLogger? = null
+
+    val configFile: File
+    val config: TrialConfig
+    val case: Case
+
     init {
-        val config = readConfig()
-        val case = config.cases.firstOrNull { !it.done }
-        if (case == null){
-            println("all cases are done")
+        logger.info("Starting trial Coordinator")
+
+        val configFilePath = MicroscenerySettings.get("Study.TrialConfigFile","trialConfig1.json")
+        logger.info("Loading $configFilePath trial config")
+        configFile = File(configFilePath)
+
+        val json = configFile.readText()
+        config = mapper.readValue<TrialConfig>(json)
+
+        val c = config.cases.firstOrNull { !it.done }
+        if (c == null){
+            logger.warn("all cases are done")
             exitProcess(1)
-        } else {
-            startCase(case)
         }
+        case = c
     }
 
-    fun writeConfig(config: TrialConfig) {
-        val f = File("trialConfig1.json")
-        val writer = BufferedWriter(FileWriter(f))
-        writer.write(mapper.writeValueAsString(config))
-        writer.close()
+    fun startExperiment(studySpatialLogger: StudySpatialLogger){
+        this.studySpatialLogger = studySpatialLogger
+
+        studySpatialLogger.logEvent("StartCase", listOf(config.name,mapper.writeValueAsString(case)))
     }
 
-    private fun readConfig(): TrialConfig{
-        val f = File("trialConfig1.json")
-        val json = f.readText()
-
-        return mapper.readValue<TrialConfig>(json)
-    }
-
-    fun quitCase() {
+    fun caseFinished() {
+        studySpatialLogger?.close()?.join() // let it finish writing the log
+        case.done = true
+        writeConfig(config,configFile)
         exitProcess(0)
     }
 
-    fun startCase(case: Case){
+    fun startCase(){
+        logger.info("starting case $case")
         val scenario = when{
-            case.simulation.tube != null -> case.simulation.tube.toScenario()
-            case.simulation.axion != null -> case.simulation.axion.toScenario()
+            case.scenario.tube != null -> case.scenario.tube.toScenario()
+            case.scenario.axion != null -> case.scenario.axion.toScenario()
             else -> throw InvalidParameterException("simulation param null")
         }
         when (case.modality){
-            Modality.VR -> StageViewerStudy3D(scenario,vr = true,this)
-            Modality.ThreeD -> StageViewerStudy3D(scenario,vr = false,this)
-            Modality.TwoD -> StageViewerStudy2D(scenario,this)
+            Modality.VR -> StageViewerStudy3D(scenario,vr = true,this).main()
+            Modality.ThreeD -> StageViewerStudy3D(scenario,vr = false,this).main()
+            Modality.TwoD -> StageViewerStudy2D(scenario,this).main()
         }
     }
 
     companion object{
         @JvmStatic
         fun main(args: Array<String>) {
-            TrialCoordinator()
+            TrialCoordinator().startCase()
+        }
+
+        fun writeConfig(config: TrialConfig, file: File) {
+            val mapper = jacksonObjectMapper()
+            val writer = BufferedWriter(FileWriter(file))
+            writer.write(mapper.writeValueAsString(config))
+            writer.close()
         }
     }
 
@@ -73,8 +94,8 @@ object WriteAConfig{
             3,
             1,
             3)))
-        val config = TrialConfig("test trial config", listOf(case,case2))
+        val config = TrialConfig("test trial config", listOf(case2))
 
-        TrialCoordinator().writeConfig(config)
+        TrialCoordinator.writeConfig(config, File("trialConfig1.json") )
     }
 }

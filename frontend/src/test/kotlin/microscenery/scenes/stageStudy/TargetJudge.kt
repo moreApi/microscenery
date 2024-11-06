@@ -6,7 +6,6 @@ import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation.Companion.showMaterial
 import org.joml.Vector3f
-import kotlin.system.exitProcess
 
 class TargetJudge(targetBlobs: List<ProceduralBlob>, val studySpatialLogger: StudySpatialLogger, val trialCoordinator: TrialCoordinator?) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -40,7 +39,7 @@ class TargetJudge(targetBlobs: List<ProceduralBlob>, val studySpatialLogger: Stu
 
         studySpatialLogger.logEvent("MarkRoi")
         logger.warn("got a  " + result.toString())
-        if (result == TargetJudge.Results.AllHit) trialCoordinator?.quitCase()
+        if (result == TargetJudge.Results.AllHit) trialCoordinator?.caseFinished()
 
         return result
     }
