@@ -98,7 +98,7 @@ class StageSpaceManager(
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
-        signal?.let { logger.info("got a ${signal::class.simpleName} signal:\n$signal") }
+        signal?.let { logger.trace("got a ${signal::class.simpleName} signal:\n$signal") }
         when (signal) {
             is Slice -> {
                 sliceManager.handleSliceSignal(signal, layout)

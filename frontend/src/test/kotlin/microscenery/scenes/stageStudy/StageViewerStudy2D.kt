@@ -13,6 +13,7 @@ import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
+import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
@@ -32,12 +33,12 @@ import kotlin.math.tan
 import kotlin.random.Random
 
 
-class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
+class StageViewerStudy2D(val scenario: StageSimulation.Scenario) : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
     lateinit var stageSimulation: StageSimulation
-    lateinit var studyController: StudyController
+    lateinit var targetJudge: TargetJudge
     lateinit var studyLogger: StudySpatialLogger
 
     var zInitDone = false
@@ -77,11 +78,8 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         println("Seed: $seed")
         stageSimulation = StageSimulation(random = random)
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
-//        val targetPositions = stageSimulation.scaffold(stageSpaceManager.stageRoot)
-//        val targetPositions = stageSimulation.tubeScenario(stageSpaceManager.stageRoot)
-        val targetPositions = stageSimulation.axionScenario(stageSpaceManager.stageRoot)
-//        val targetPositions: List<Vector3f> = listOf()
-        //targetPositions.random().let {
+
+        val targetPositions = scenario.generate(stageSpaceManager,stageSimulation.stageSpaceSize)
         val targetBlobs = targetPositions.map {
             val blob = ProceduralBlob(size = 75)
             blob.spatial().position = it
@@ -90,9 +88,9 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
             blob
         }
 
-        studyController = StudyController(targetBlobs)
-
         studyLogger = StudySpatialLogger(cam, msHub,null)
+
+        targetJudge = TargetJudge(targetBlobs, studyLogger)
 
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
             this.transferFunction = TransferFunction.flat(1f)
@@ -181,7 +179,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
                 }
             }
         }
-        studyController.targets.forEach { blob, isHit ->
+        targetJudge.targets.forEach { blob, isHit ->
             if (!isHit) return@forEach
 
             if ((blob.spatial().position.z - new).absoluteValue < blob.radius*1.1f){
@@ -210,26 +208,13 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
         val ssUI = StageSpaceUI(stageSpaceManager)
         //ssUI.stageUI(this, inputHandler, msHub)
         val commands = listOf(ssUI.comStackAcq, ssUI.comStop, ssUI.comSteering, ssUI.comGoLive,
-            StageUICommand("seach Cube", "button3", object : ClickBehaviour {
-                override fun click(p0: Int, p1: Int) {
-                    ssUI.comSearchCube.command?.click(0, 0)
-                    if (ssUI.searchCubeStart == null) {
-                        thread {
-                            Thread.sleep(3000)
-                            stageSpaceManager.goLive()
-                            stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
-                        }
-                    }
-                }
-            }), StageUICommand("toggle material", null, object : ClickBehaviour {
+            StageUICommand("toggle material", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     scene.toggleMaterialRendering()
                 }
-            }), StageUICommand("mark RoI", null, object : ClickBehaviour {
+            }), StageUICommand("mark RoI", "button3", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
-                    val result = studyController.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
-                    studyLogger.logEvent("MarkRoi", listOf(result.toString()))
-                    logger.warn("got a  $result")
+                    targetJudge.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
                 }
             }), StageUICommand("transfer function", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
@@ -271,7 +256,7 @@ class StageViewerStudy2D : DefaultScene(withSwingUI = true, width = 1000, height
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            StageViewerStudy2D().main()
+            StageViewerStudy2D(AxionScenario()).main()
         }
     }
 }
