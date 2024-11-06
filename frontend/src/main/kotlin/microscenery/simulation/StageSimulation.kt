@@ -44,6 +44,12 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
         return stageSpaceManager
     }
 
+    data class TubeScenario(val randomSeed: Long) : Scenario {
+        override fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f> {
+            TODO("Not yet implemented")
+        }
+    }
+
     fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float = 200f, height: Float = 400f): List<Vector3f> {
         Cylinder(radius * 0.95f, height, 16).let { cy ->
             CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000

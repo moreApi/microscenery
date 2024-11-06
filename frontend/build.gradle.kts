@@ -76,6 +76,7 @@ tasks{
                 classpath = sourceSets.test.get().runtimeClasspath
                 mainClass.set(className)
                 group = "examples.$exampleType"
+                workingDir = workingDir.parentFile
 
                 val props = System.getProperties().filter { (k, _) -> k.toString().startsWith("scenery.") }
 

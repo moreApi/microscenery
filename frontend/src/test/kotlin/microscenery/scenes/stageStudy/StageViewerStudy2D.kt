@@ -13,13 +13,13 @@ import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
+import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
 import microscenery.simulation.StageSimulation.Companion.showMaterial
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
-import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -33,7 +33,7 @@ import kotlin.math.tan
 import kotlin.random.Random
 
 
-class StageViewerStudy2D(val scenario: StageSimulation.Scenario) : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
+class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordinator: TrialCoordinator? = null) : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
@@ -90,7 +90,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario) : DefaultScene(
 
         studyLogger = StudySpatialLogger(cam, msHub,null)
 
-        targetJudge = TargetJudge(targetBlobs, studyLogger)
+        targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
         stageSpaceManager.sliceManager.transferFunctionManager.apply {
             this.transferFunction = TransferFunction.flat(1f)

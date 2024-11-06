@@ -7,6 +7,7 @@ import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.*
 import microscenery.VRUI.VRUIManager
+import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
@@ -18,7 +19,11 @@ import kotlin.random.Random
 import kotlin.system.exitProcess
 
 
-class StageViewerStudy3D( val scenario: StageSimulation.Scenario, vr: Boolean = !true) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = vr) {
+class StageViewerStudy3D(
+    val scenario: StageSimulation.Scenario,
+    vr: Boolean = !true,
+    val trialCoordinator: TrialCoordinator? = null
+) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = vr) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
@@ -58,7 +63,7 @@ class StageViewerStudy3D( val scenario: StageSimulation.Scenario, vr: Boolean = 
 
         studyLogger = StudySpatialLogger(cam, msHub,null)
 
-        targetJudge = TargetJudge(targetBlobs, studyLogger)
+        targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
 
 
@@ -151,7 +156,7 @@ class StageViewerStudy3D( val scenario: StageSimulation.Scenario, vr: Boolean = 
 object StageViewerStudy3DVR {
     @JvmStatic
     fun main(args: Array<String>) {
-        StageViewerStudy3D( AxionScenario(), vr = true).main()
+        StageViewerStudy3D(AxionScenario(), vr = true).main()
     }
 }
 
