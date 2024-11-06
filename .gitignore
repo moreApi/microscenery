@@ -185,3 +185,6 @@ log.txt
 
 # ExampleRunner logs
 ExampleRunner-*/
+
+# microscenery specific
+/spatialLogs/
