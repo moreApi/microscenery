@@ -17,21 +17,21 @@ import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import javax.swing.JOptionPane
+import kotlin.concurrent.thread
 import kotlin.random.Random
 import kotlin.system.exitProcess
 
 
 class StageViewerStudy3D(
     val scenario: StageSimulation.Scenario,
-    vr: Boolean = !true,
     val trialCoordinator: TrialCoordinator? = null
-) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = vr) {
+) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = false) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
     lateinit var stageSimulation: StageSimulation
-    lateinit var targetJudge: TargetJudge
     lateinit var studyLogger: StudySpatialLogger
+    var targetJudge: TargetJudge? = null
 
     init {
         MicroscenerySettings.set("Stage.precisionXY", 1f)
@@ -46,33 +46,29 @@ class StageViewerStudy3D(
         logger.info("Starting demo hw scene")
         cam.spatial().position = Vector3f(0f, -0f, 2f)
 
-        val seed = Random.nextInt()
-        val random = Random(seed)
-        println("Seed: $seed")
-
         stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
 
         studyLogger = StudySpatialLogger(cam, msHub,null)
 
-        if (VR){
-            //todo
-        } else {
-            JOptionPane.showMessageDialog(null,
-                "Press ok when ready");
-        }
-        trialCoordinator?.startCase(studyLogger)
+        thread {
+            JOptionPane.showMessageDialog(
+                null,
+                "Press ok when ready"
+            )
+            trialCoordinator?.startCase(studyLogger)
 
-        val targetPositions = scenario.generate(stageSpaceManager,stageSimulation.stageSpaceSize)
-        val targetBlobs = targetPositions.map {
-            val blob = ProceduralBlob(size = 75)
-            blob.spatial().position = it
-            blob.material().diffuse = Vector3f(0f, .9f, 0f)
-            stageSpaceManager.stageRoot.addChild(blob)
-            blob
-        }
+            val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
+            val targetBlobs = targetPositions.map {
+                val blob = ProceduralBlob(size = 75)
+                blob.spatial().position = it
+                blob.material().diffuse = Vector3f(0f, .9f, 0f)
+                stageSpaceManager.stageRoot.addChild(blob)
+                blob
+            }
 
-        targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
+            targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
+        }
 
 //        thread {
 //            while (true) {
@@ -93,7 +89,7 @@ class StageViewerStudy3D(
                 }
             }), StageUICommand("mark RoI", "button3", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
-                    targetJudge.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
+                    targetJudge?.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
                 }
             }), StageUICommand("transfer function", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
@@ -118,37 +114,30 @@ class StageViewerStudy3D(
         }
 
 
-        if (VR) {
-            VRUIManager.initBehavior(
-                scene, hmd, inputHandler,
-                stageSpaceUI = ssUI, msHub = MicrosceneryHub(hub)
-            )
-        } else {
-            // disable fps camera control
-            inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
+        // disable fps camera control
+        inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
 
-            val windowWidth = renderer?.window?.width ?: 512
-            val windowHeight = renderer?.window?.height ?: 512
+        val windowWidth = renderer?.window?.width ?: 512
+        val windowHeight = renderer?.window?.height ?: 512
 
-            val target = Vector3f(0.0f)
-            val inputHandler = (hub.get(SceneryElement.Input) as InputHandler)
-            val targetArcball =
-                ArcballCameraControl("mouse_control", { scene.findObserver() }, windowWidth, windowHeight, {
-                    stageSpaceManager.focusManager.focusTarget.spatial().worldPosition()
-                })
+        val target = Vector3f(0.0f)
+        val inputHandler = (hub.get(SceneryElement.Input) as InputHandler)
+        val targetArcball =
+            ArcballCameraControl("mouse_control", { scene.findObserver() }, windowWidth, windowHeight, {
+                stageSpaceManager.focusManager.focusTarget.spatial().worldPosition()
+            })
 
-            targetArcball.target = { target }
+        targetArcball.target = { target }
 
-            inputHandler.addBehaviour("arcCam", targetArcball)
-            inputHandler.addKeyBinding("arcCam", "button2")
+        inputHandler.addBehaviour("arcCam", targetArcball)
+        inputHandler.addKeyBinding("arcCam", "button2")
 
-            inputHandler.addBehaviorBinding(
-                FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, cam, { 25f }),
-                "button1",
-                "scroll",
-                name = "Frame Mouse Drag"
-            )
-        }
+        inputHandler.addBehaviorBinding(
+            FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, cam, { 25f }),
+            "button1",
+            "scroll",
+            name = "Frame Mouse Drag"
+        )
     }
 
     companion object {
@@ -160,11 +149,5 @@ class StageViewerStudy3D(
     }
 }
 
-object StageViewerStudy3DVR {
-    @JvmStatic
-    fun main(args: Array<String>) {
-        StageViewerStudy3D(AxionScenario(), vr = true).main()
-    }
-}
 
 

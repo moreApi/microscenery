@@ -39,8 +39,8 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
     lateinit var stageSpaceManager: StageSpaceManager
 
     lateinit var stageSimulation: StageSimulation
-    lateinit var targetJudge: TargetJudge
     lateinit var studyLogger: StudySpatialLogger
+    var targetJudge: TargetJudge? = null
 
     var zInitDone = false
     var currentZLevel = 0
@@ -74,40 +74,41 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         super.init()
         logger.info("Starting demo hw scene")
 
-        val seed = Random.nextInt()
-        val random = Random(seed)
-        println("Seed: $seed")
         stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
         studyLogger = StudySpatialLogger(cam, msHub,null)
 
+        thread {
+            JOptionPane.showMessageDialog(
+                null,
+                "Press ok when ready"
+            )
+            trialCoordinator?.startCase(studyLogger)
 
-        JOptionPane.showMessageDialog(null,
-            "Press ok when ready");
+            val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
+            val targetBlobs = targetPositions.map {
+                val blob = ProceduralBlob(size = 75)
+                blob.spatial().position = it
+                blob.material().diffuse = Vector3f(0f, .9f, 0f)
+                stageSpaceManager.stageRoot.addChild(blob)
+                blob
+            }
 
-        trialCoordinator?.startCase(studyLogger)
+            targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
-        val targetPositions = scenario.generate(stageSpaceManager,stageSimulation.stageSpaceSize)
-        val targetBlobs = targetPositions.map {
-            val blob = ProceduralBlob(size = 75)
-            blob.spatial().position = it
-            blob.material().diffuse = Vector3f(0f, .9f, 0f)
-            stageSpaceManager.stageRoot.addChild(blob)
-            blob
+            stageSpaceManager.sliceManager.transferFunctionManager.apply {
+                this.transferFunction = TransferFunction.flat(1f)
+            }
         }
 
-        targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
-
-        stageSpaceManager.sliceManager.transferFunctionManager.apply {
-            this.transferFunction = TransferFunction.flat(1f)
-        }
 
         currentZLevel = stageSpaceManager.stagePosition.z.toInt()
         ZLevelLabel.text = "Z: $currentZLevel"
         zInitDone = true
 
+        // link camera pos and focus Z level
         stageSpaceManager.focusManager.focusTarget.let { focusTarget ->
-            var prevZ = stageSpaceManager.focusManager.focusTarget.spatial().worldPosition().z
+            var prevZ = focusTarget.spatial().worldPosition().z
             focusTarget.lock.withLock {
                 focusTarget.update += {
                     val focusZ = focusTarget.spatial().worldPosition().z
@@ -185,7 +186,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
                 }
             }
         }
-        targetJudge.targets.forEach { blob, isHit ->
+        targetJudge?.targets?.forEach { (blob, isHit) ->
             if (!isHit) return@forEach
 
             if ((blob.spatial().position.z - new).absoluteValue < blob.radius*1.1f){
@@ -220,7 +221,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
                 }
             }), StageUICommand("mark RoI", "button3", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
-                    targetJudge.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
+                    targetJudge?.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
                 }
             }), StageUICommand("transfer function", null, object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
