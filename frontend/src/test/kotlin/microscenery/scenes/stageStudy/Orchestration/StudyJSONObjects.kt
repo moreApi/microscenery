@@ -1,7 +1,7 @@
 package microscenery.scenes.stageStudy.Orchestration
 
 import microscenery.simulation.AxionScenario
-import microscenery.simulation.StageSimulation
+import microscenery.simulation.TubeScenario
 import org.joml.Vector3f
 
 
@@ -17,7 +17,7 @@ enum class Modality{VR, ThreeD, TwoD}
 data class Simulation(val tube: Tube? = null, val axion: Axion? = null){
 
     data class Tube(val seed: Long){
-         fun toScenario() = StageSimulation.TubeScenario(seed)
+         fun toScenario() = TubeScenario(seed)
     }
 
     data class Axion(

@@ -12,6 +12,7 @@ import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
+import microscenery.simulation.TubeScenario
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -45,12 +46,11 @@ class StageViewerStudy3D(
         logger.info("Starting demo hw scene")
         cam.spatial().position = Vector3f(0f, -0f, 2f)
 
-
         val seed = Random.nextInt()
         val random = Random(seed)
         println("Seed: $seed")
 
-        stageSimulation = StageSimulation(random = random)
+        stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
 
         studyLogger = StudySpatialLogger(cam, msHub,null)
@@ -73,9 +73,6 @@ class StageViewerStudy3D(
         }
 
         targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
-
-
-
 
 //        thread {
 //            while (true) {
@@ -157,7 +154,8 @@ class StageViewerStudy3D(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            StageViewerStudy3D(AxionScenario()).main()
+            //StageViewerStudy3D(AxionScenario()).main()
+            StageViewerStudy3D(TubeScenario()).main()
         }
     }
 }

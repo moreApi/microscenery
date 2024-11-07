@@ -1,25 +1,19 @@
 package microscenery.simulation
 
-import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import graphics.scenery.*
 import graphics.scenery.attribute.material.Material
-import graphics.scenery.attribute.spatial.HasSpatial
-import graphics.scenery.primitives.Cylinder
 import microscenery.*
 import microscenery.Settings.StageSpace.HideStageSpaceLabel
-import microscenery.primitives.LineNode
 import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector2i
 import org.joml.Vector3f
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.random.Random
 
-class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 150, val random: Random) {
+class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 150) {
     lateinit var stageSpaceManager: StageSpaceManager
 
     fun setupStage(msHub: MicrosceneryHub, scene: Scene): StageSpaceManager {
@@ -43,66 +37,6 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
 
         return stageSpaceManager
     }
-
-    data class TubeScenario(val randomSeed: Long) : Scenario {
-        override fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f> {
-            TODO("Not yet implemented")
-        }
-    }
-
-    fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float = 200f, height: Float = 400f): List<Vector3f> {
-        Cylinder(radius * 0.95f, height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000
-            cy.hideMaterial()
-            cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
-            stageRoot.addChild(cy)
-        }
-
-        Cylinder(radius, height, 16).let { cy ->
-            CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000
-            cy.hideMaterial()
-            cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
-            stageRoot.addChild(cy)
-        }
-
-        val targetPositions = mutableListOf<Vector3f>()
-        while (targetPositions.size < 10) {
-            val a = random.nextFloat()
-            val new = Vector3f(
-                radius * 0.7f * cos(a * 2f * Math.PI.toFloat()),
-                (random.nextFloat() - 0.5f) * height,
-                radius * 0.7f * sin(a * 2f * Math.PI.toFloat())
-            ) + position
-
-            val targetSize = 30f
-            if (targetPositions.any { (it - new).length() < targetSize * 2 })
-                continue
-            else {
-                targetPositions.add(new)
-            }
-        }
-        return targetPositions
-    }
-
-    fun tubeScenario(stageRoot: HasSpatial, radius: Float = 100f, roiHeight: Float = 600f): List<Vector3f> {
-        val roiPos = random.nextVector3f()
-        roiPos.y = roiPos.y * (stageSpaceSize - roiHeight) + roiHeight / 2
-        roiPos.x = roiPos.x * stageSpaceSize * 0.2f + stageSpaceSize / 2
-        roiPos.z = roiPos.z * stageSpaceSize * 0.2f + stageSpaceSize / 2
-
-        val paddedStageSpaceSize = stageSpaceSize * 1.2f //to include padding because of estimated image size
-        if (roiPos.y + roiHeight / 2 < paddedStageSpaceSize) {
-            // add extension tube from the top
-            val pos = roiPos.copy()
-            pos.y = (paddedStageSpaceSize + roiPos.y + roiHeight / 2f) / 2
-            val height = (paddedStageSpaceSize - pos.y) * 2
-            tube(stageRoot, pos, radius, height)
-        }
-
-        return tube(stageRoot, roiPos, radius, roiHeight)
-    }
-
-    data class TreeNode(val pos: Vector3f, val prev: TreeNode?, var visualisation: LineNode? = null)
 
     interface Scenario{
         fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f>

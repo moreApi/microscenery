@@ -77,7 +77,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         val seed = Random.nextInt()
         val random = Random(seed)
         println("Seed: $seed")
-        stageSimulation = StageSimulation(random = random)
+        stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
         studyLogger = StudySpatialLogger(cam, msHub,null)
 

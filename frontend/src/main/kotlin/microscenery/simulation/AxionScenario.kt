@@ -49,10 +49,10 @@ data class AxionScenario(val randomSeed: Long = 3824716,
         iterations: Int,
         childrenPerIteration: IntRange,
         stageRoot: HasSpatial
-    ): MutableList<List<StageSimulation.TreeNode>> {
+    ): MutableList<List<TreeNode>> {
 
-        val first = StageSimulation.TreeNode(Vector3f(dir) * -stepSize, null)
-        val nodes = mutableListOf(listOf(first), listOf(StageSimulation.TreeNode(Vector3f(), first)))
+        val first = TreeNode(Vector3f(dir) * -stepSize, null)
+        val nodes = mutableListOf(listOf(first), listOf(TreeNode(Vector3f(), first)))
 
         fun nextPos(parent: Vector3f): Vector3f {
             return ((random.nextVector3f() - Vector3f(0.5f)) * stepSize
@@ -64,7 +64,7 @@ data class AxionScenario(val randomSeed: Long = 3824716,
             nodes += nodes[i].flatMap { parent ->
                 (1..random.nextInt(childrenPerIteration.first, childrenPerIteration.last + 1))
                     .map {
-                        StageSimulation.TreeNode(nextPos(parent.pos), parent)
+                        TreeNode(nextPos(parent.pos), parent)
                     }
             }
         }
@@ -86,4 +86,6 @@ data class AxionScenario(val randomSeed: Long = 3824716,
 
         return nodes
     }
+
+    data class TreeNode(val pos: Vector3f, val prev: TreeNode?, var visualisation: LineNode? = null)
 }
