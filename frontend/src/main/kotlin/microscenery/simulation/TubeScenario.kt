@@ -4,6 +4,7 @@ import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.primitives.Cylinder
+import graphics.scenery.volumes.TransferFunction
 import microscenery.copy
 import microscenery.nextVector3f
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
@@ -19,6 +20,10 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, v
 
     override fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f> {
         val stageRoot = stageSpaceManager.stageRoot
+
+        val tf = TransferFunction.ramp(0.0f, 1.0f, 0.5f)
+        tf.controlPoints().first().factor = 0.04f
+        stageSpaceManager.sliceManager.transferFunctionManager.transferFunction = tf
 
         val roiPos = random.nextVector3f()
         roiPos.y = roiPos.y * (stageSpaceSize - roiHeight) + roiHeight / 2
