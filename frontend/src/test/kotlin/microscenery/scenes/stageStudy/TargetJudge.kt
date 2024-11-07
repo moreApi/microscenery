@@ -39,7 +39,7 @@ class TargetJudge(targetBlobs: List<ProceduralBlob>, val studySpatialLogger: Stu
 
         studySpatialLogger.logEvent("MarkRoi")
         logger.warn("got a  " + result.toString())
-        if (result == TargetJudge.Results.AllHit) trialCoordinator?.caseFinished()
+        if (result == TargetJudge.Results.AllHit) trialCoordinator?.caseFinished(false)
 
         return result
     }

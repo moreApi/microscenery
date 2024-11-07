@@ -61,7 +61,7 @@ class StageViewerStudy3D(
             JOptionPane.showMessageDialog(null,
                 "Press ok when ready");
         }
-        trialCoordinator?.startExperiment(studyLogger)
+        trialCoordinator?.startCase(studyLogger)
 
         val targetPositions = scenario.generate(stageSpaceManager,stageSimulation.stageSpaceSize)
         val targetBlobs = targetPositions.map {

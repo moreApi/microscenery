@@ -5,16 +5,16 @@ import microscenery.simulation.TubeScenario
 import org.joml.Vector3f
 
 
-data class TrialConfig(val name: String, var cases: List<Case> ){
+data class TrialConfig(val name: String, var cases: List<Case>, val timeLimitPerCaseMS: Long = 1000*60*5){
 }
 
 
-data class Case(val modality: Modality, val scenario: Simulation, var done: Boolean = false)
+data class Case(val modality: Modality, val scenario: Scenario, var done: Boolean = false)
 
 enum class Modality{VR, ThreeD, TwoD}
 
 
-data class Simulation(val tube: Tube? = null, val axion: Axion? = null){
+data class Scenario(val tube: Tube? = null, val axion: Axion? = null){
 
     data class Tube(val seed: Long){
          fun toScenario() = TubeScenario(seed)
