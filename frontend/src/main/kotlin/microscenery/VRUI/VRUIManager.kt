@@ -33,20 +33,7 @@ class VRUIManager {
             stageSpaceUI: StageSpaceUI? = null,
             msHub: MicrosceneryHub
         ) {
-            val uiModel = msHub.getAttribute(UIModel::class.java)
-
-            // register controller objects in ui model once they show up
-            hmd.events.onDeviceConnect.add { _, device, _ ->
-                if (device.type == TrackedDeviceType.Controller) {
-                    device.model?.let {
-                        when (device.role) {
-                            TrackerRole.Invalid -> {}
-                            TrackerRole.LeftHand -> uiModel.leftVRController = device
-                            TrackerRole.RightHand -> uiModel.rightVRController = device
-                        }
-                    }
-                }
-            }
+            val uiModel = initUIModel(msHub, hmd)
 
             VRGrabTheWorldSelfMove.createAndSet(
                 scene, hmd, listOf(OpenVRHMD.OpenVRButton.Down), listOf(TrackerRole.RightHand)
@@ -188,6 +175,27 @@ class VRUIManager {
                     }
                 }
             }
+        }
+
+        fun initUIModel(
+            msHub: MicrosceneryHub,
+            hmd: OpenVRHMD
+        ): UIModel {
+            val uiModel = msHub.getAttribute(UIModel::class.java)
+
+            // register controller objects in ui model once they show up
+            hmd.events.onDeviceConnect.add { _, device, _ ->
+                if (device.type == TrackedDeviceType.Controller) {
+                    device.model?.let {
+                        when (device.role) {
+                            TrackerRole.Invalid -> {}
+                            TrackerRole.LeftHand -> uiModel.leftVRController = device
+                            TrackerRole.RightHand -> uiModel.rightVRController = device
+                        }
+                    }
+                }
+            }
+            return uiModel
         }
 
         private fun InputHandler.initStickMovement(hmd: OpenVRHMD) {

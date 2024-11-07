@@ -10,6 +10,7 @@ import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.scenes.stageStudy.StageViewerStudy2D
 import microscenery.scenes.stageStudy.StageViewerStudy3D
+import microscenery.scenes.stageStudy.StageViewerStudyVR
 import microscenery.scenes.stageStudy.StudySpatialLogger
 import java.security.InvalidParameterException
 import javax.swing.JOptionPane
@@ -52,8 +53,8 @@ class TrialCoordinator {
             else -> throw InvalidParameterException("simulation param null")
         }
         when (case.modality){
-            Modality.VR -> StageViewerStudy3D(scenario,vr = true,this).main()
-            Modality.ThreeD -> StageViewerStudy3D(scenario,vr = false,this).main()
+            Modality.VR -> StageViewerStudyVR(scenario,this).main()
+            Modality.ThreeD -> StageViewerStudy3D(scenario,this).main()
             Modality.TwoD -> StageViewerStudy2D(scenario,this).main()
         }
     }

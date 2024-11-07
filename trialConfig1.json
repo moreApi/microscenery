@@ -1,0 +1,1 @@
+{"name":"test trial config","cases":[{"modality":"TwoD","scenario":{"tube":null,"axion":{"seed":3824716,"dir":[0.0,-0.5,0.0],"stepSize":350.0,"iterations":3,"childrenPerIterationFrom":1,"childrenPerIterationTo":3}},"done":true}],"timeLimitPerCaseMS":10000}
