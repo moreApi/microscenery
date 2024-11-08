@@ -47,6 +47,8 @@ class SimulationMicroscopeHardware(
     var idCounter = 0
     var lastSnap = 0L
 
+    val timeBetweenImagesMS = 200
+
     init {
 
         focalPlane.material().cullingMode = Material.CullingMode.FrontAndBack
@@ -150,7 +152,7 @@ class SimulationMicroscopeHardware(
 
             hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
 
-            if (System.currentTimeMillis() - lastSnap < 500) {
+            if (System.currentTimeMillis() - lastSnap < timeBetweenImagesMS) {
                 return
             }
         }
@@ -191,7 +193,7 @@ class SimulationMicroscopeHardware(
             hwCommand.stackIdAndSliceIndex,
             sliceBuffer
         )
-        Thread.sleep(200)
+        Thread.sleep(100)
         output.put(signal)
     }
 
@@ -256,11 +258,11 @@ class SimulationMicroscopeHardware(
         while (currentPos != safeTarget) {
             val diff = safeTarget - stagePosition
             val step = diff.copy()
-            if (step.length() > umPerSek / 100) step.normalize(umPerSek / 100)
+            if (step.length() > umPerSek / 200) step.normalize(umPerSek / 200)
             currentPos = stagePosition + step
             focalPlane.spatial().position = currentPos
             status = status.copy(stagePosition = currentPos)
-            Thread.sleep(1000 / 100)
+            Thread.sleep(1000 / 200)
         }
     }
 
