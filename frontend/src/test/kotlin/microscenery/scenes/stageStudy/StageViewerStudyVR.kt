@@ -1,37 +1,31 @@
 package microscenery.scenes.stageStudy
 
+import fromScenery.utils.extensions.plus
+import graphics.scenery.Node
 import graphics.scenery.RichNode
-import graphics.scenery.SceneryElement
-import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackerRole
-import graphics.scenery.controls.behaviours.*
-import graphics.scenery.volumes.TransferFunctionEditor
+import graphics.scenery.controls.behaviours.PerButtonPressable
+import graphics.scenery.controls.behaviours.Pressable
+import graphics.scenery.controls.behaviours.SimplePressable
+import graphics.scenery.controls.behaviours.VRTouch
+import graphics.scenery.utils.extensions.times
 import microscenery.*
-import microscenery.UI.*
+import microscenery.UI.UIModel
 import microscenery.VRUI.Gui3D.Button
-import microscenery.VRUI.Gui3D.TextBox
 import microscenery.VRUI.InHandForwarder
 import microscenery.VRUI.VRHandTool
 import microscenery.VRUI.VRUIManager
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
-import microscenery.VRUI.behaviors.VRTeleport
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
-import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
-import microscenery.simulation.TubeScenario
 import microscenery.stageSpace.FocusManager.Mode
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
-import org.scijava.ui.behaviour.ClickBehaviour
-import javax.swing.JOptionPane
 import kotlin.concurrent.thread
-import kotlin.math.absoluteValue
-import kotlin.random.Random
-import kotlin.system.exitProcess
 
 
 class StageViewerStudyVR(
@@ -58,17 +52,32 @@ class StageViewerStudyVR(
     override fun init() {
         super.init()
         logger.info("Starting demo hw scene")
-        //cam.spatial().position = Vector3f(0f, -0f, 2f)
+        cam.spatial().position = Vector3f(0f, -1f, 1f)
 
         stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
+        studyLogger = StudySpatialLogger(cam, msHub, null)
 
-        studyLogger = StudySpatialLogger(cam, msHub,null)
+        thread {
+            Thread.sleep(1000)
+            val target = stageSpaceManager.scaleAndRotationPivot.spatial()
+            val pivot = stageSpaceManager.stageRoot.spatial().worldPosition(stageSpaceManager.stageAreaCenter)
+            val scaleDelta = 0.6f
+            // pivot and target are in same space
+            for (i in 0..2) {
+                target.position.setComponent(i, (target.position[i] + pivot[i] * (scaleDelta - 1)))
+            }
+            target.scale *= scaleDelta
 
-        Button("ready?"){
+            target.needsUpdate = true
+        }
+
+        var readyButton: Node? = null
+        readyButton = Button("ready?") {
+            readyButton?.detach()
             trialCoordinator?.startCase(studyLogger)
 
-            val targetPositions = scenario.generate(stageSpaceManager,stageSimulation.stageSpaceSize)
+            val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
             val targetBlobs = targetPositions.map {
                 val blob = ProceduralBlob(size = 75)
                 blob.spatial().position = it
@@ -80,23 +89,26 @@ class StageViewerStudyVR(
             targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
             // init frame movement
-            uiModel.putInHand(TrackerRole.RightHand, StudyFocusMover(stageSpaceManager,targetJudge))
+            StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, TrackerRole.RightHand)
         }.apply {
             spatial {
-                position = stageSpaceManager.stageRoot.spatial().worldPosition(stageSpaceManager.stageAreaCenter)
-                scale = Vector3f(0.2f)
+                position = stageSpaceManager.stageAreaCenter.copy() + Vector3f(-200f, -100f, 200f)
+                scale = Vector3f(200f)
             }
+            stageSpaceManager.stageRoot.addChild(this)
         }
-
     }
 
     override fun inputSetup() {
         super.inputSetup()
-        uiModel = VRUIManager.initUIModel(msHub,hmd)
+        uiModel = VRUIManager.initUIModel(msHub, hmd)
 
 
         VRGrabTheWorldSelfMove.createAndSet(
-            scene, hmd, listOf(OpenVRHMD.OpenVRButton.A,OpenVRHMD.OpenVRButton.Menu), listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
+            scene,
+            hmd,
+            listOf(OpenVRHMD.OpenVRButton.A, OpenVRHMD.OpenVRButton.Menu),
+            listOf(TrackerRole.RightHand, TrackerRole.LeftHand)
         )
 
         VR2HandSpatialManipulation.createAndSet(
@@ -132,21 +144,23 @@ class StageViewerStudyVR(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            //StageViewerStudy3D(AxionScenario()).main()
-            StageViewerStudyVR(TubeScenario()).main()
+            StageViewerStudyVR(AxionScenario()).main()
+            //StageViewerStudyVR(TubeScenario()).main()
         }
     }
 }
 
-class StudyFocusMover(val stageSpaceManager: StageSpaceManager, targetJudge: TargetJudge): RichNode("Focus Mover"), VRHandTool {
+class StudyFocusMover(val stageSpaceManager: StageSpaceManager, targetJudge: TargetJudge) : RichNode("Focus Mover"),
+    VRHandTool {
     private val focusManager = stageSpaceManager.focusManager
 
     init {
         focusManager.mode = Mode.STEERING
 
         update += {
-            val positionStageSpace = stageSpaceManager.worldToStageSpace(spatial().position,true)
-            val coercedPosition = stageSpaceManager.hardware.hardwareDimensions().coercePosition(positionStageSpace,null)
+            val positionStageSpace = stageSpaceManager.worldToStageSpace(spatial().worldPosition(), true)
+            val coercedPosition =
+                stageSpaceManager.hardware.hardwareDimensions().coercePosition(positionStageSpace, null)
             focusManager.focusTarget.spatial().position = coercedPosition
         }
 
@@ -154,12 +168,12 @@ class StudyFocusMover(val stageSpaceManager: StageSpaceManager, targetJudge: Tar
             Pressable::class.java, PerButtonPressable(
                 mapOf(
                     OpenVRHMD.OpenVRButton.Trigger to SimplePressable(
-                        onPress = { _,_ ->
+                        onPress = { _, _ ->
                             targetJudge.hit(focusManager.focusTarget.spatial().position)
                         },
                         onHold = { _, _ ->
                         },
-                        onRelease = {  _,_ ->
+                        onRelease = { _, _ ->
                         })
                 )
             )

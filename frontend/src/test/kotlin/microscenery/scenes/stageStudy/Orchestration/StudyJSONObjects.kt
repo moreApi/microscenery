@@ -5,7 +5,7 @@ import microscenery.simulation.TubeScenario
 import org.joml.Vector3f
 
 
-data class TrialConfig(val name: String, var cases: List<Case>, val timeLimitPerCaseMS: Long = 1000*60*5){
+data class TrialConfig(val name: String, var cases: List<Case>, val timeLimitPerCaseMS: Long = 1000*60*3){
 }
 
 

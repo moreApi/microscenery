@@ -7,10 +7,12 @@ import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.*
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
+import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.simulation.TubeScenario
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -98,6 +100,22 @@ class StageViewerStudy3D(
                     stageSpaceManager.close()
                     close()
                     exitProcess(1)
+                }
+            }), StageUICommand("seach Cube", "C", object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    MicroscenerySettings.setVector3f(Settings.Stage.ExploreResolution,Vector3f(stageSimulation.imageSize*1.2f,stageSimulation.imageSize*1.2f,50f))
+                    ssUI.comSearchCube.command?.click(0, 0)
+                    if (ssUI.searchCubeStart == null) {
+                        thread {
+                            Thread.sleep(3000)
+                            stageSpaceManager.goLive()
+                            stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
+                        }
+                    }
+                }
+            }), StageUICommand("clear Stage", null, object : ClickBehaviour {
+                override fun click(p0: Int, p1: Int) {
+                    stageSpaceManager.clearStage()
                 }
             })
         )

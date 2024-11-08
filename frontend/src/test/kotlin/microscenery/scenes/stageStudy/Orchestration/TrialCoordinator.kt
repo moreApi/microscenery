@@ -106,13 +106,13 @@ object WriteAConfig{
     @JvmStatic
     fun main(args: Array<String>) {
         val case = Case(Modality.VR,Scenario(tube = Scenario.Tube(123)))
-        val case2 = Case(Modality.TwoD,Scenario(axion= Scenario.Axion( 3824716,
+        val case2 = Case(Modality.VR,Scenario(axion= Scenario.Axion( 3824716,
             listOf(0f, -0.5f, 0f).toFloatArray(),
             350f,
             3,
             1,
             3)))
-        val config = TrialConfig("test trial config", listOf(case2), timeLimitPerCaseMS = 10000)
+        val config = TrialConfig("test trial config", listOf(case2))
 
         TrialCoordinator.writeConfig(config, File("trialConfig1.json") )
     }
