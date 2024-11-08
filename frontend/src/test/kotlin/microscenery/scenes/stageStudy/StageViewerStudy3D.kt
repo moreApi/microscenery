@@ -6,9 +6,7 @@ import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.*
-import microscenery.VRUI.VRUIManager
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
-import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
@@ -18,7 +16,6 @@ import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import javax.swing.JOptionPane
 import kotlin.concurrent.thread
-import kotlin.random.Random
 import kotlin.system.exitProcess
 
 

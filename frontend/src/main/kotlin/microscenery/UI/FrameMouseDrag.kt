@@ -63,7 +63,7 @@ open class FrameMouseDrag(
         if (!targetNode.lock.tryLock()) return
 
         Vector3f(0f,0f,1f).mul(
-            wheelRotation.toFloat() * fpsSpeedSlow() * mouseSpeed(),
+            wheelRotation.toFloat() * fpsSpeedSlow() * mouseSpeed() * if (camera.forward.z > 0) -1 else 1,
             scrollPosUpdater
         )
         targetNode.ifSpatial {
