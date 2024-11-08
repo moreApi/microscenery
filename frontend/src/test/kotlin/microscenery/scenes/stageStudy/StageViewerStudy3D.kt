@@ -7,7 +7,6 @@ import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.*
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
-import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
@@ -55,7 +54,8 @@ class StageViewerStudy3D(
                 null,
                 "Press ok when ready"
             )
-            trialCoordinator?.startCase(studyLogger)
+            logger.warn("Starting!")
+            trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam))
 
             val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
             val targetBlobs = targetPositions.map {

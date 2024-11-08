@@ -72,11 +72,11 @@ class StageViewerStudyVR(
             target.needsUpdate = true
         }
 
-        var readyButton: Node? = null
-        readyButton = Button("ready?") {
-            readyButton?.detach()
-            trialCoordinator?.startCase(studyLogger)
-
+        var button: Node? = null
+        button = Button("ready?") {
+            button?.detach()
+            logger.warn("Starting!")
+            trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam, distance = 0.5f))
             val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
             val targetBlobs = targetPositions.map {
                 val blob = ProceduralBlob(size = 75)
@@ -85,15 +85,13 @@ class StageViewerStudyVR(
                 stageSpaceManager.stageRoot.addChild(blob)
                 blob
             }
-
             targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
-
             // init frame movement
             StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, TrackerRole.RightHand)
         }.apply {
-            spatial {
-                position = stageSpaceManager.stageAreaCenter.copy() + Vector3f(-200f, -100f, 200f)
-                scale = Vector3f(200f)
+            this.spatial {
+                this.position = stageSpaceManager.stageAreaCenter.copy() + Vector3f(-200f, -100f, 200f)
+                this.scale = Vector3f(200f)
             }
             stageSpaceManager.stageRoot.addChild(this)
         }

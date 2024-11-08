@@ -31,7 +31,6 @@ import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import kotlin.math.tan
-import kotlin.random.Random
 
 
 class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordinator: TrialCoordinator? = null) : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
@@ -83,7 +82,8 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
                 null,
                 "Press ok when ready"
             )
-            trialCoordinator?.startCase(studyLogger)
+            logger.warn("Starting!")
+            trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam))
 
             val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
             val targetBlobs = targetPositions.map {

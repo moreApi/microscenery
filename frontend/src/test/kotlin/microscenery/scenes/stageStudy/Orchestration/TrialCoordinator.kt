@@ -5,6 +5,7 @@ import java.io.File
 import java.io.FileWriter
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import graphics.scenery.Camera
 import graphics.scenery.utils.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
@@ -12,15 +13,17 @@ import microscenery.scenes.stageStudy.StageViewerStudy2D
 import microscenery.scenes.stageStudy.StageViewerStudy3D
 import microscenery.scenes.stageStudy.StageViewerStudyVR
 import microscenery.scenes.stageStudy.StudySpatialLogger
+import microscenery.showMessage2
 import java.security.InvalidParameterException
-import javax.swing.JOptionPane
 import kotlin.system.exitProcess
 
 class TrialCoordinator {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val mapper = jacksonObjectMapper()
+
     var studySpatialLogger: StudySpatialLogger? = null
+    var userPrompter: FinishMessageDisplayer? = null
 
     val configFile: File
     val trialConfig: TrialConfig
@@ -59,8 +62,9 @@ class TrialCoordinator {
         }
     }
 
-    fun startCase(studySpatialLogger: StudySpatialLogger){
+    fun startCase(studySpatialLogger: StudySpatialLogger, userPrompter: FinishMessageDisplayer){
         this.studySpatialLogger = studySpatialLogger
+        this.userPrompter = userPrompter
 
         if (trialConfig.timeLimitPerCaseMS > 0){
             timeLimitAgent = object : Agent(){
@@ -78,12 +82,34 @@ class TrialCoordinator {
 
     fun caseFinished(byTimeLimit: Boolean) {
         studySpatialLogger?.logEvent("case finished", listOf(if (byTimeLimit) "TimeLimit" else "AllHit"))
-        JOptionPane.showMessageDialog(null,
-            if (byTimeLimit) "Time Limit reached. Please continue to next case." else "Success! All targets marked!")
+        val indexOfCase = trialConfig.cases.indexOf(case)
+        val nextCase = trialConfig.cases.getOrNull(indexOfCase+1)
+        userPrompter?.displayFinishDialog(byTimeLimit,nextCase?.modality)
         studySpatialLogger?.close()?.join() // let it finish writing the log
         case.done = true
         writeConfig(trialConfig,configFile)
         exitProcess(0)
+    }
+
+    /**
+     * Used to display finish message to user
+     */
+    class FinishMessageDisplayer(val cam: Camera, val distance: Float = 0.75f) {
+
+        fun displayFinishDialog(becauseTimeLimit: Boolean, nextModality: Modality?) {
+            cam.showMessage2(
+                listOf(
+                    if (becauseTimeLimit) "Time Limit reached." else "Success! All targets marked",
+                    when(nextModality){
+                        Modality.VR -> "Loading next case in VR mode"
+                        Modality.ThreeD -> "Loading next case in 3D desktop mode"
+                        Modality.TwoD -> "Loading next case in 2D desktop mode"
+                        null -> "Finished Session! Good Bye."
+                    }),
+                duration = 5000, distance = distance)
+            Thread.sleep(5000)
+        }
+
     }
 
     companion object{
@@ -106,13 +132,13 @@ object WriteAConfig{
     @JvmStatic
     fun main(args: Array<String>) {
         val case = Case(Modality.VR,Scenario(tube = Scenario.Tube(123)))
-        val case2 = Case(Modality.VR,Scenario(axion= Scenario.Axion( 3824716,
+        val case2 = Case(Modality.ThreeD,Scenario(axion= Scenario.Axion( 3824716,
             listOf(0f, -0.5f, 0f).toFloatArray(),
             350f,
             3,
             1,
             3)))
-        val config = TrialConfig("test trial config", listOf(case2))
+        val config = TrialConfig("test trial config", listOf(case2),2000)
 
         TrialCoordinator.writeConfig(config, File("trialConfig1.json") )
     }

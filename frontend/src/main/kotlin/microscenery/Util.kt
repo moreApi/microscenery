@@ -2,11 +2,14 @@ package microscenery
 
 import graphics.scenery.Camera
 import graphics.scenery.Node
+import graphics.scenery.RichNode
 import graphics.scenery.Scene
 import graphics.scenery.attribute.material.HasMaterial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.Touchable
+import microscenery.VRUI.Gui3D.Column
+import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.VRUI.behaviors.AnalogInputWrapper
 import org.joml.Vector3f
@@ -60,6 +63,47 @@ fun HasMaterial.changeColorWithTouchable(newColor: Vector3f) {
 @JvmOverloads
 fun Camera.showMessage2(message: String, distance: Float = 0.75f, size: Float = 0.05f, duration: Int = 3000) {
     val tb = TextBox(message)
+    tb.spatial {
+        scale = Vector3f(size, size, size)
+        position = Vector3f(0.0f, 0.0f, -1.0f * distance)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    val messages = metadata.getOrPut("messages", { mutableListOf<Node>() }) as? MutableList<Node>?
+    messages?.forEach { this.removeChild(it) }
+    messages?.clear()
+
+    messages?.add(tb)
+    this.addChild(tb)
+
+    thread {
+        Thread.sleep(duration.toLong())
+
+        this.removeChild(tb)
+        messages?.remove(tb)
+    }
+}
+
+
+/**
+ * Shows a [message] to the user, at a distance of [distance] meters.
+ * The message can by styled by [size] (in meters).
+ *
+ * It will be shown for [duration] milliseconds, with a default of 3000.
+ */
+@JvmOverloads
+fun Camera.showMessage2(message: List<String>, distance: Float = 0.75f, size: Float = 0.05f, duration: Int = 3000) {
+    val tb = RichNode()
+
+    tb.addChild(
+        Column(
+            *message.map {
+                Row(TextBox(it))
+            }.toTypedArray(),
+            middleAlign = true,
+            invertedYOrder = true
+        )
+    )
     tb.spatial {
         scale = Vector3f(size, size, size)
         position = Vector3f(0.0f, 0.0f, -1.0f * distance)
