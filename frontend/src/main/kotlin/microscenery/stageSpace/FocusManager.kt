@@ -38,7 +38,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
             stageSpaceManager.stageRoot.addChild(this)
             visible = !MicroscenerySettings.get(Settings.StageSpace.HideFocusFrame,false)
             children.first()?.spatialOrNull()?.rotation = stageSpaceManager.layout.sheetRotation()
-            initVRInteraction(this,true)
+            // POSTSTUDY reactivate initVRInteraction(this,true)
         }
 
         stageSpaceManager.stageRoot.addChild(focusTarget)
@@ -47,7 +47,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
         focusTargetIndicator = Frame(uiModel, Vector3f(0.2f,0.2f,1f)) { focusTarget.spatial().position }.also {
             focusTarget.addChild(it)
             it.spatialOrNull()?.rotation = stageSpaceManager.layout.sheetRotation()
-            initVRInteraction(it,false)
+            // TODO POSTSTUDY reactivate initVRInteraction(it,false)
         }
 
         focus.update += {
