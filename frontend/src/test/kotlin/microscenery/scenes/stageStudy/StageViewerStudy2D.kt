@@ -20,6 +20,7 @@ import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
 import microscenery.simulation.StageSimulation.Companion.showMaterial
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
+import microscenery.simulation.TubeScenario
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -96,9 +97,12 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
 
             targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
+            (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
+
             stageSpaceManager.sliceManager.transferFunctionManager.apply {
                 this.transferFunction = TransferFunction.flat(1f)
             }
+
         }
 
 
@@ -263,7 +267,8 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            StageViewerStudy2D(AxionScenario()).main()
+            StageViewerStudy2D(TubeScenario()).main()
+            //StageViewerStudy2D(AxionScenario()).main()
         }
     }
 }

@@ -21,6 +21,7 @@ import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
+import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.StageSimulation
 import microscenery.stageSpace.FocusManager.Mode
 import microscenery.stageSpace.StageSpaceManager
@@ -86,6 +87,8 @@ class StageViewerStudyVR(
                 blob
             }
             targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
+
+            (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = true
             // init frame movement
             StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, TrackerRole.RightHand)
         }.apply {

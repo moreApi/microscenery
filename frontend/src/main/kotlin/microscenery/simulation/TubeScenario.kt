@@ -2,14 +2,16 @@ package microscenery.simulation
 
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
+import fromScenery.utils.extensions.times
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.primitives.Cylinder
 import graphics.scenery.volumes.TransferFunction
-import microscenery.copy
-import microscenery.nextVector3f
+import microscenery.*
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
+import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
+import kotlin.concurrent.thread
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -17,6 +19,7 @@ import kotlin.random.Random
 data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, val roiHeight: Float = 600f) :
     StageSimulation.Scenario {
     val random = Random(randomSeed)
+    val roiPos = random.nextVector3f()
 
     override fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f> {
         val stageRoot = stageSpaceManager.stageRoot
@@ -25,7 +28,6 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, v
         tf.controlPoints().first().factor = 0.04f
         stageSpaceManager.sliceManager.transferFunctionManager.transferFunction = tf
 
-        val roiPos = random.nextVector3f()
         roiPos.y = roiPos.y * (stageSpaceSize - roiHeight) + roiHeight / 2
         roiPos.x = roiPos.x * stageSpaceSize * 0.2f + stageSpaceSize / 2
         roiPos.z = roiPos.z * stageSpaceSize * 0.2f + stageSpaceSize / 2
@@ -41,6 +43,22 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, v
 
         tube(stageRoot, roiPos, radius, roiHeight)
         return generateTargetPositions(radius, roiHeight, roiPos,5)
+    }
+
+    fun autoExplore(stageSpaceManager: StageSpaceManager, imageSize: Int){
+        (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = true
+
+        val min = roiPos - Vector3f(radius,roiHeight/2, radius) * 1.2f
+        val max = roiPos + Vector3f(radius,roiHeight/2, radius) * 1.2f
+
+        stageSpaceManager.focusManager.mode = FocusManager.Mode.PASSIVE
+        stageSpaceManager.stop()
+        stageSpaceManager.sync().get()
+        stageSpaceManager.exploreCubeStageSpace(min,max,Vector3f(imageSize*1.2f,imageSize*1.2f,50f))
+        stageSpaceManager.sync().get()
+        stageSpaceManager.goLive()
+        stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
+        (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = false
     }
 
     private fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float = 200f, height: Float = 400f) {

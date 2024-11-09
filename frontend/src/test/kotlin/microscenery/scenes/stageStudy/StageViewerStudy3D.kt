@@ -6,8 +6,10 @@ import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.*
+import microscenery.scenes.stageStudy.Orchestration.Scenario
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.ProceduralBlob
+import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.simulation.TubeScenario
@@ -67,6 +69,8 @@ class StageViewerStudy3D(
             }
 
             targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
+
+            (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
         }
 
 //        thread {

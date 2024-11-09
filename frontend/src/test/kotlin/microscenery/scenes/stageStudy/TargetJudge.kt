@@ -27,11 +27,10 @@ class TargetJudge(targetBlobs: List<ProceduralBlob>, val studySpatialLogger: Stu
             closest.second.value ->  Results.AlreadyHit
             else -> {
                 targets[closest.second.key] = true
+                closest.second.key.showMaterial()
                  if (!targets.any{!it.value}){
                     Results.AllHit
-
                 } else {
-                    closest.second.key.showMaterial()
                     Results.Hit
                 }
             }
