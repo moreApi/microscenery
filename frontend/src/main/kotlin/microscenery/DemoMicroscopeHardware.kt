@@ -14,6 +14,8 @@ import org.lwjgl.system.MemoryUtil
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
@@ -122,6 +124,10 @@ class DemoMicroscopeHardware(
         } else {
             logger.warn("Microscope not Manual (is ${status.state}) -> not going live")
         }
+    }
+
+    override fun sync(): Future<Boolean> {
+        return CompletableFuture<Boolean>().apply { complete(true) }
     }
 
     override fun stop() {

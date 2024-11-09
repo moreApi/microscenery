@@ -19,6 +19,8 @@ import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.math.roundToInt
 
@@ -47,7 +49,22 @@ class SimulationMicroscopeHardware(
     var idCounter = 0
     var lastSnap = 0L
 
-    val timeBetweenImagesMS = 200
+    var fastMode: Boolean = false
+        set(value) {
+            field = value
+            if (value){
+                exposureMS = 1L
+                stageSpeedumPerSek = 50000000f
+            } else {
+                exposureMS = 100L
+                stageSpeedumPerSek = 500f
+            }
+        }
+
+    private var timeBetweenLiveImagesMS = 200L
+    private var exposureMS = 100L
+    private var stageSpeedumPerSek = 500f
+
 
     init {
 
@@ -92,6 +109,12 @@ class SimulationMicroscopeHardware(
         hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
     }
 
+    override fun sync(): Future<Boolean> {
+        val sync = HardwareCommand.Sync()
+        hardwareCommandsQueue.add(sync)
+        return sync.future
+    }
+
     override fun stop() {
         synchronized(stopLock) {
             hardwareCommandsQueue.clear()
@@ -117,7 +140,7 @@ class SimulationMicroscopeHardware(
     //############################## end of called from external threads ##############################
 
     override fun onLoop() {
-        when (val hwCommand = hardwareCommandsQueue.poll(200, MILLISECONDS)) {
+        when (val hwCommand = hardwareCommandsQueue.poll(50, MILLISECONDS)) {
             is HardwareCommand.GenerateStackCommands -> {
                 executeGenerateStackCommands(hwCommand)
             }
@@ -133,7 +156,7 @@ class SimulationMicroscopeHardware(
             is HardwareCommand.Stop -> {
                 status = status.copy(state = ServerState.MANUAL)
             }
-
+            is HardwareCommand.Sync -> hwCommand.future.complete(true)
             HardwareCommand.Shutdown -> TODO()
         }
     }
@@ -152,7 +175,7 @@ class SimulationMicroscopeHardware(
 
             hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
 
-            if (System.currentTimeMillis() - lastSnap < timeBetweenImagesMS) {
+            if (System.currentTimeMillis() - lastSnap < timeBetweenLiveImagesMS) {
                 return
             }
         }
@@ -193,7 +216,7 @@ class SimulationMicroscopeHardware(
             hwCommand.stackIdAndSliceIndex,
             sliceBuffer
         )
-        Thread.sleep(100)
+        Thread.sleep(exposureMS)
         output.put(signal)
     }
 
@@ -253,16 +276,15 @@ class SimulationMicroscopeHardware(
         if (hardwareCommandsQueue.peek() is HardwareCommand.MoveStage) return
 
         val safeTarget = hardwareDimensions.coercePosition(target, logger)
-        val umPerSek = 500f
         var currentPos = stagePosition
         while (currentPos != safeTarget) {
             val diff = safeTarget - stagePosition
             val step = diff.copy()
-            if (step.length() > umPerSek / 200) step.normalize(umPerSek / 200)
+            if (step.length() > stageSpeedumPerSek / 100) step.normalize(stageSpeedumPerSek / 100)
             currentPos = stagePosition + step
             focalPlane.spatial().position = currentPos
             status = status.copy(stagePosition = currentPos)
-            Thread.sleep(1000 / 200)
+            Thread.sleep(1000 / 100)
         }
     }
 
@@ -284,6 +306,7 @@ class SimulationMicroscopeHardware(
 
         data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
         data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
+        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()): HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
     }

@@ -8,6 +8,7 @@ import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 /**
@@ -71,6 +72,10 @@ class RemoteMicroscopeClient(
 
     override fun goLive() {
         controlConnection.sendSignal(ClientSignal.Live)
+    }
+
+    override fun sync(): Future<Boolean> {
+        TODO("Not yet implemented")
     }
 
     override fun stop() {

@@ -16,6 +16,8 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -159,6 +161,12 @@ class MicromanagerWrapper(
         hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
     }
 
+    override fun sync(): Future<Boolean> {
+        val sync = HardwareCommand.Sync()
+        hardwareCommandsQueue.add(sync)
+        return sync.future
+    }
+
     override fun stop() {
         ablationThread?.interrupt()
         synchronized(stopLock) {
@@ -258,6 +266,8 @@ class MicromanagerWrapper(
             is HardwareCommand.SnapImage -> {
                 executeSnapImage(hwCommand)
             }
+
+            is HardwareCommand.Sync -> hwCommand.future.complete(true)
 
             is HardwareCommand.Stop -> {
                 mmStudioConnector.live(false)
@@ -478,6 +488,7 @@ class MicromanagerWrapper(
 
         data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
         data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
+        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()): HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
         data class AblatePoints(val points: List<ClientSignal.AblationPoint>) : HardwareCommand()

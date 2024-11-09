@@ -18,6 +18,8 @@ import org.lwjgl.system.MemoryUtil
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
 import kotlin.concurrent.thread
 
 /**
@@ -108,6 +110,10 @@ class FileMicroscopeHardware(
 
     override fun goLive() {
         logger.warn("File Microscope does not support live mode")
+    }
+
+    override fun sync(): Future<Boolean> {
+        return CompletableFuture<Boolean>().apply { complete(true) }
     }
 
     override fun stop() {

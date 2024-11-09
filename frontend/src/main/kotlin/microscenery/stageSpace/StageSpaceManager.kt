@@ -20,6 +20,7 @@ import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 /**
@@ -170,6 +171,11 @@ class StageSpaceManager(
     fun stop() {
         logger.info("stopping")
         hardware.stop()
+    }
+
+    fun sync(): Future<Boolean>{
+        logger.info("starting sync")
+        return hardware.sync()
     }
 
     fun exploreCubeStageSpace(
