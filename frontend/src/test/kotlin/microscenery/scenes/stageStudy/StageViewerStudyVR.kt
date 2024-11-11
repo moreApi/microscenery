@@ -89,7 +89,7 @@ class StageViewerStudyVR(
             targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
             (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = true
-            // init frame movement
+            // init focus frame movement
             StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, TrackerRole.RightHand)
         }.apply {
             this.spatial {

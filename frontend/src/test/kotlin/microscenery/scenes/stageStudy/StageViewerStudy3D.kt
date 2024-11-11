@@ -52,6 +52,7 @@ class StageViewerStudy3D(
         studyLogger = StudySpatialLogger(cam, msHub,null)
 
         thread {
+            waitForSceneInitialisation()
             JOptionPane.showMessageDialog(
                 null,
                 "Press ok when ready"

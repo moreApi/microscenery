@@ -79,6 +79,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         studyLogger = StudySpatialLogger(cam, msHub,null)
 
         thread {
+            waitForSceneInitialisation()
             JOptionPane.showMessageDialog(
                 null,
                 "Press ok when ready"
