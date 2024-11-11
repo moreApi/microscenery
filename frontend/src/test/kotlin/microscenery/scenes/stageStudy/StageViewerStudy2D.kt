@@ -6,15 +6,16 @@ import fromScenery.utils.extensions.xyz
 import graphics.scenery.Box
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.TransferFunctionEditor
-import microscenery.*
-import microscenery.UI.DesktopUI
+import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
-import microscenery.simulation.AxionScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
@@ -34,7 +35,8 @@ import kotlin.math.roundToInt
 import kotlin.math.tan
 
 
-class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordinator: TrialCoordinator? = null) : DefaultScene(withSwingUI = !true, width = 1200, height = 1200) {
+class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordinator: TrialCoordinator? = null) :
+    DefaultScene(withSwingUI = !true, width = 1200, height = 1200) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
@@ -45,7 +47,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
     var zInitDone = false
     var currentZLevel = 0
         set(value) {
-            if(zInitDone) {
+            if (zInitDone) {
                 val hw = stageSpaceManager.hardware.hardwareDimensions()
                 val v = value.toFloat().coerceIn(hw.stageMin.z, hw.stageMax.z).roundToInt()
                 updateZ(field, v)
@@ -76,7 +78,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
 
         stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
-        studyLogger = StudySpatialLogger(cam, msHub,null)
+        studyLogger = StudySpatialLogger(cam, msHub, null)
 
         currentZLevel = stageSpaceManager.stagePosition.z.toInt()
         ZLevelLabel.text = "Z: $currentZLevel"
@@ -106,7 +108,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         background = Box(Vector3f(1f))
         background?.material()?.diffuse = Vector3f(0.1f)
         stageSpaceManager.stageRoot.addChild(background!!)
-        updateZ(currentZLevel,currentZLevel)
+        updateZ(currentZLevel, currentZLevel)
 
         cam.spatial().position = Vector3f(0f, 0f, 1.25f)
         cam.update += {
@@ -154,7 +156,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         }
 
         currentZLevel = 1000
-        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
+        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager, stageSimulation.imageSize)
         currentZLevel = 500
 
         thread {
@@ -192,7 +194,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         targetJudge?.targets?.forEach { (blob, isHit) ->
             if (!isHit) return@forEach
 
-            if ((blob.spatial().position.z - new).absoluteValue < blob.radius*1.1f){
+            if ((blob.spatial().position.z - new).absoluteValue < blob.radius * 1.1f) {
                 blob.showMaterial()
             } else {
                 blob.hideMaterial()
@@ -201,7 +203,8 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         }
 
         background?.spatial {
-            position = Vector3f(stageSpaceManager.stageAreaCenter.x, stageSpaceManager.stageAreaCenter.y, new.toFloat() - 5f)
+            position =
+                Vector3f(stageSpaceManager.stageAreaCenter.x, stageSpaceManager.stageAreaCenter.y, new.toFloat() - 5f)
             scale = stageSpaceManager.stageAreaBorders.spatial().scale.let {
                 val v = Vector3f(it)
                 v.z = 0.1f

@@ -15,11 +15,13 @@ import org.joml.Vector3f
 import java.io.File
 import kotlin.random.Random
 
-data class AxionScenario(val randomSeed: Long = 3824716,
-                         val dir: Vector3f = Vector3f(0f, -0.5f, 0f),
-                         val stepSize: Float = 350f,
-                         val iterations: Int = 3,
-                         val childrenPerIteration: IntRange = 1..3): StageSimulation.Scenario {
+data class AxionScenario(
+    val randomSeed: Long = 3824716,
+    val dir: Vector3f = Vector3f(0f, -0.5f, 0f),
+    val stepSize: Float = 350f,
+    val iterations: Int = 3,
+    val childrenPerIteration: IntRange = 1..3
+) : StageSimulation.Scenario {
 
     override fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f> {
         val random = Random(randomSeed)
@@ -60,7 +62,7 @@ data class AxionScenario(val randomSeed: Long = 3824716,
                     + parent)
         }
 
-        for (i in 1 until iterations+1) {
+        for (i in 1 until iterations + 1) {
             nodes += nodes[i].flatMap { parent ->
                 (1..random.nextInt(childrenPerIteration.first, childrenPerIteration.last + 1))
                     .map {

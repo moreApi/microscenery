@@ -5,19 +5,19 @@ import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
-import microscenery.UI.*
+import microscenery.UI.FrameMouseDrag
+import microscenery.UI.StageSpaceUI
+import microscenery.UI.StageUICommand
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.simulation.TubeScenario
-import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import javax.swing.JOptionPane
 import kotlin.concurrent.thread
-import kotlin.system.exitProcess
 
 
 class StageViewerStudy3D(
@@ -47,7 +47,7 @@ class StageViewerStudy3D(
         stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
 
-        studyLogger = StudySpatialLogger(cam, msHub,null)
+        studyLogger = StudySpatialLogger(cam, msHub, null)
 
 
         val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
@@ -61,7 +61,7 @@ class StageViewerStudy3D(
 
         targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
-        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
+        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager, stageSimulation.imageSize)
 
         thread {
             waitForSceneInitialisation()

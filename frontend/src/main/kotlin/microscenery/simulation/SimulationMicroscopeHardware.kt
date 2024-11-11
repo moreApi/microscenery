@@ -52,7 +52,7 @@ class SimulationMicroscopeHardware(
     var fastMode: Boolean = false
         set(value) {
             field = value
-            if (value){
+            if (value) {
                 exposureMS = 1L
                 stageSpeedumPerSek = 50000000f
             } else {
@@ -156,8 +156,9 @@ class SimulationMicroscopeHardware(
             is HardwareCommand.Stop -> {
                 status = status.copy(state = ServerState.MANUAL)
             }
+
             is HardwareCommand.Sync -> hwCommand.future.complete(true)
-            HardwareCommand.Shutdown -> TODO()
+            HardwareCommand.Shutdown -> {}
         }
     }
 
@@ -306,7 +307,7 @@ class SimulationMicroscopeHardware(
 
         data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
         data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
-        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()): HardwareCommand()
+        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
     }

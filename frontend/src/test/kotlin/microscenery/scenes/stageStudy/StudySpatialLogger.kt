@@ -17,7 +17,8 @@ import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 
-class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: File?, val loggingInterval: Long = 200): Agent() {
+class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: File?, val loggingInterval: Long = 200) :
+    Agent() {
     val uiModel = msHub.getAttribute(UIModel::class.java)
     val stageSpaceManager = msHub.getAttribute(StageSpaceManager::class.java)
 
@@ -45,8 +46,8 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         startAgent()
     }
 
-    fun logEvent(name: String,extraParams: List<String>? = null, time: Long = System.currentTimeMillis()){
-        otherEvents.put(LoggingEvent(name,extraParams,time))
+    fun logEvent(name: String, extraParams: List<String>? = null, time: Long = System.currentTimeMillis()) {
+        otherEvents.put(LoggingEvent(name, extraParams, time))
     }
 
     override fun onLoop() {
@@ -57,12 +58,12 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         writer.newLine()
         uiModel.leftVRController?.model?.let {
             if (leftControllerSpatialBobbel.parent == null) it.addChild(leftControllerSpatialBobbel)
-            writeSpatialLog("leftHand",leftControllerSpatialBobbel.spatial())
+            writeSpatialLog("leftHand", leftControllerSpatialBobbel.spatial())
             writer.newLine()
         }
         uiModel.rightVRController?.model?.let {
             if (rightControllerSpatialBobbel.parent == null) it.addChild(rightControllerSpatialBobbel)
-            writeSpatialLog("rightHand",rightControllerSpatialBobbel.spatial())
+            writeSpatialLog("rightHand", rightControllerSpatialBobbel.spatial())
             writer.newLine()
         }
         writer.newLine()
@@ -90,16 +91,22 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         writer.close()
     }
 
-    data class LoggingEvent(val name: String,val extraParams: List<String>? = null, val time: Long = System.currentTimeMillis())
+    data class LoggingEvent(
+        val name: String,
+        val extraParams: List<String>? = null,
+        val time: Long = System.currentTimeMillis()
+    )
 
-    companion object{
-        fun Spatial.toCSVString():String{
+    companion object {
+        fun Spatial.toCSVString(): String {
             return worldPosition().toCSVString() + ";" + worldRotation().toCSVString()
         }
-        fun Vector3f.toCSVString():String{
+
+        fun Vector3f.toCSVString(): String {
             return "%.4f".format(x) + ";" + "%.4f".format(y) + ";" + "%.4f".format(z)
         }
-        fun Quaternionf.toCSVString():String{
+
+        fun Quaternionf.toCSVString(): String {
             return "%.4f".format(x) + ";" + "%.4f".format(y) + ";" + "%.4f".format(z) + ";" + "%.4f".format(w)
         }
     }

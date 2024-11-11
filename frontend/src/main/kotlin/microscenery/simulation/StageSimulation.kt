@@ -2,16 +2,20 @@ package microscenery.simulation
 
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
-import graphics.scenery.*
+import graphics.scenery.Box
+import graphics.scenery.Node
+import graphics.scenery.Scene
+import graphics.scenery.Sphere
 import graphics.scenery.attribute.material.Material
-import microscenery.*
+import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
 import microscenery.Settings.StageSpace.HideStageSpaceLabel
+import microscenery.discover
 import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector2i
 import org.joml.Vector3f
-import kotlin.random.Random
 
 class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 150) {
     lateinit var stageSpaceManager: StageSpaceManager
@@ -38,7 +42,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
         return stageSpaceManager
     }
 
-    interface Scenario{
+    interface Scenario {
         fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f>
     }
 

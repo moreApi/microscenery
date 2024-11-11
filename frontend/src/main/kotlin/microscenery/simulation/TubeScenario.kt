@@ -6,12 +6,12 @@ import fromScenery.utils.extensions.times
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.primitives.Cylinder
 import graphics.scenery.volumes.TransferFunction
-import microscenery.*
+import microscenery.copy
+import microscenery.nextVector3f
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
 import microscenery.stageSpace.FocusManager
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
-import kotlin.concurrent.thread
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -42,23 +42,23 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, v
         }
 
         tube(stageRoot, roiPos, radius, roiHeight)
-        return generateTargetPositions(radius, roiHeight, roiPos,5)
+        return generateTargetPositions(radius, roiHeight, roiPos, 5)
     }
 
-    fun autoExplore(stageSpaceManager: StageSpaceManager, imageSize: Int){
+    fun autoExplore(stageSpaceManager: StageSpaceManager, imageSize: Int) {
         (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = true
 
-        fun roundToTen(f: Float, up: Boolean): Float = ((f/10f)+if (up) 1 else 0).toInt() * 10f
+        fun roundToTen(f: Float, up: Boolean): Float = ((f / 10f) + if (up) 1 else 0).toInt() * 10f
 
-        val min = roiPos - Vector3f(radius,roiHeight/2, radius) * 1.2f
-        min.z = roundToTen(min.z,false)
-        val max = roiPos + Vector3f(radius,roiHeight/2, radius) * 1.2f
-        max.z = roundToTen(max.z,true)
+        val min = roiPos - Vector3f(radius, roiHeight / 2, radius) * 1.2f
+        min.z = roundToTen(min.z, false)
+        val max = roiPos + Vector3f(radius, roiHeight / 2, radius) * 1.2f
+        max.z = roundToTen(max.z, true)
 
         stageSpaceManager.focusManager.mode = FocusManager.Mode.PASSIVE
         stageSpaceManager.stop()
         stageSpaceManager.sync().get()
-        stageSpaceManager.exploreCubeStageSpace(min,max,Vector3f(imageSize*1.2f,imageSize*1.2f,50f))
+        stageSpaceManager.exploreCubeStageSpace(min, max, Vector3f(imageSize * 1.2f, imageSize * 1.2f, 50f))
         stageSpaceManager.sync().get()
         stageSpaceManager.goLive()
         stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING

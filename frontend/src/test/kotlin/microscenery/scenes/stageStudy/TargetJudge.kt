@@ -7,18 +7,22 @@ import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation.Companion.showMaterial
 import org.joml.Vector3f
 
-class TargetJudge(targetBlobs: List<ProceduralBlob>, val studySpatialLogger: StudySpatialLogger, val trialCoordinator: TrialCoordinator?) {
+class TargetJudge(
+    targetBlobs: List<ProceduralBlob>,
+    val studySpatialLogger: StudySpatialLogger,
+    val trialCoordinator: TrialCoordinator?
+) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
     var hitRadius = 35f
 
-    var targets: MutableMap<ProceduralBlob,Boolean>
+    var targets: MutableMap<ProceduralBlob, Boolean>
 
 
     init {
         targets = targetBlobs.associateWith { false }.toMutableMap()
     }
 
-    enum class Results{NoHit,Hit, AlreadyHit,AllHit}
+    enum class Results { NoHit, Hit, AlreadyHit, AllHit }
 
     fun hit(pos: Vector3f): Results {
         val closest = targets.map { (it.key.spatial().position - pos).length() to it }.minByOrNull { it.first }
@@ -45,7 +49,7 @@ class TargetJudge(targetBlobs: List<ProceduralBlob>, val studySpatialLogger: Stu
 
         studySpatialLogger.logEvent("MarkRoi")
         logger.warn("got a  " + result.toString())
-        if (result == TargetJudge.Results.AllHit) trialCoordinator?.caseFinished(false)
+        if (result == Results.AllHit) trialCoordinator?.caseFinished(false)
 
         return result
     }
