@@ -67,7 +67,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
                     Mode.PASSIVE -> {}
                     Mode.STEERING ->
                         if (position != stageSpaceManager.stagePosition
-                            && lastUpdate + MicroscenerySettings.get("Stage.PositionUpdateRate", 500) < nowMillis()
+                            && lastUpdate + MicroscenerySettings.get("Stage.PositionUpdateRate", 200) < nowMillis()
                         ) {
                             stageSpaceManager.stagePosition = position
                             lastUpdate = nowMillis()
