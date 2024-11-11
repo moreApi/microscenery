@@ -6,10 +6,8 @@ import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.TransferFunctionEditor
 import microscenery.*
 import microscenery.UI.*
-import microscenery.scenes.stageStudy.Orchestration.Scenario
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
 import microscenery.simulation.ProceduralBlob
-import microscenery.simulation.SimulationMicroscopeHardware
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
 import microscenery.simulation.TubeScenario
@@ -25,7 +23,7 @@ import kotlin.system.exitProcess
 class StageViewerStudy3D(
     val scenario: StageSimulation.Scenario,
     val trialCoordinator: TrialCoordinator? = null
-) : DefaultScene(withSwingUI = true, width = 1200, height = 1200, VR = false) {
+) : DefaultScene(withSwingUI = !true, width = 1200, height = 1200, VR = false) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
@@ -51,27 +49,31 @@ class StageViewerStudy3D(
 
         studyLogger = StudySpatialLogger(cam, msHub,null)
 
+
+        val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
+        val targetBlobs = targetPositions.map {
+            val blob = ProceduralBlob(size = 75)
+            blob.spatial().position = it
+            blob.material().diffuse = Vector3f(0f, .9f, 0f)
+            stageSpaceManager.stageRoot.addChild(blob)
+            blob
+        }
+
+        targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
+
+        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
+
         thread {
             waitForSceneInitialisation()
+
             JOptionPane.showMessageDialog(
                 null,
                 "Press ok when ready"
             )
-            logger.warn("Starting!")
+            initFrameAndRoIControl()
             trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam))
 
-            val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
-            val targetBlobs = targetPositions.map {
-                val blob = ProceduralBlob(size = 75)
-                blob.spatial().position = it
-                blob.material().diffuse = Vector3f(0f, .9f, 0f)
-                stageSpaceManager.stageRoot.addChild(blob)
-                blob
-            }
-
-            targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
-
-            (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
+            logger.warn("Starting!")
         }
 
 //        thread {
@@ -87,7 +89,7 @@ class StageViewerStudy3D(
         val ssUI = StageSpaceUI(stageSpaceManager)
         //ssUI.stageUI(this, inputHandler, msHub)
         val commands = listOf(ssUI.comStackAcq, ssUI.comStop, ssUI.comSteering, ssUI.comGoLive,
-            StageUICommand("toggle material", null, object : ClickBehaviour {
+            StageUICommand("toggle material", "M", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     scene.toggleMaterialRendering()
                 }
@@ -95,48 +97,25 @@ class StageViewerStudy3D(
                 override fun click(p0: Int, p1: Int) {
                     targetJudge?.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
                 }
-            }), StageUICommand("transfer function", null, object : ClickBehaviour {
+            }), StageUICommand("transfer function", "T", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     TransferFunctionEditor.showTFFrame(stageSpaceManager.sliceManager.transferFunctionManager)
-                }
-            }), StageUICommand("quit", null, object : ClickBehaviour {
-                override fun click(p0: Int, p1: Int) {
-                    stageSpaceManager.stop()
-                    stageSpaceManager.close()
-                    close()
-                    exitProcess(1)
-                }
-            }), StageUICommand("seach Cube", "C", object : ClickBehaviour {
-                override fun click(p0: Int, p1: Int) {
-                    MicroscenerySettings.setVector3f(Settings.Stage.ExploreResolution,Vector3f(stageSimulation.imageSize*1.2f,stageSimulation.imageSize*1.2f,50f))
-                    ssUI.comSearchCube.command?.click(0, 0)
-                    if (ssUI.searchCubeStart == null) {
-                        thread {
-                            Thread.sleep(3000)
-                            stageSpaceManager.goLive()
-                            stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
-                        }
-                    }
-                }
-            }), StageUICommand("clear Stage", null, object : ClickBehaviour {
-                override fun click(p0: Int, p1: Int) {
-                    stageSpaceManager.clearStage()
                 }
             })
         )
 
         this.extraPanel?.let { ssUI.stageSwingUI(it, msHub, commands) }
         this.mainFrame?.pack()
-        DesktopUI.initMouseSelection(inputHandler, msHub)
 
         inputHandler?.let { inputHandler ->
             ssUI.stageKeyUI(inputHandler, cam, commands)
         }
 
-
         // disable fps camera control
         inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
+    }
 
+    private fun initFrameAndRoIControl() {
         val windowWidth = renderer?.window?.width ?: 512
         val windowHeight = renderer?.window?.height ?: 512
 

@@ -19,16 +19,23 @@ class TargetJudge(targetBlobs: List<ProceduralBlob>, val studySpatialLogger: Stu
     }
 
     enum class Results{NoHit,Hit, AlreadyHit,AllHit}
-    fun hit(pos: Vector3f): Results{
-        val closest = targets.map { (it.key.spatial().position - pos).length() to it }.minByOrNull { it.first } ?: return Results.NoHit
 
-        val result = when{
-            closest.first > hitRadius ->  Results.NoHit
-            closest.second.value ->  Results.AlreadyHit
+    fun hit(pos: Vector3f): Results {
+        val closest = targets.map { (it.key.spatial().position - pos).length() to it }.minByOrNull { it.first }
+            ?: return Results.NoHit
+
+        val result = when {
+            closest.first > hitRadius -> Results.NoHit
+            closest.second.value -> if (!targets.any { !it.value }) {
+                Results.AllHit
+            } else {
+                Results.AlreadyHit
+            }
+
             else -> {
                 targets[closest.second.key] = true
                 closest.second.key.showMaterial()
-                 if (!targets.any{!it.value}){
+                if (!targets.any { !it.value }) {
                     Results.AllHit
                 } else {
                     Results.Hit

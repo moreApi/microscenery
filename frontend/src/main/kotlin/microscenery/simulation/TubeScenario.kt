@@ -48,8 +48,12 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, v
     fun autoExplore(stageSpaceManager: StageSpaceManager, imageSize: Int){
         (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = true
 
+        fun roundToTen(f: Float, up: Boolean): Float = ((f/10f)+if (up) 1 else 0).toInt() * 10f
+
         val min = roiPos - Vector3f(radius,roiHeight/2, radius) * 1.2f
+        min.z = roundToTen(min.z,false)
         val max = roiPos + Vector3f(radius,roiHeight/2, radius) * 1.2f
+        max.z = roundToTen(max.z,true)
 
         stageSpaceManager.focusManager.mode = FocusManager.Mode.PASSIVE
         stageSpaceManager.stop()

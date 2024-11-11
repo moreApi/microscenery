@@ -34,7 +34,7 @@ import kotlin.math.roundToInt
 import kotlin.math.tan
 
 
-class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordinator: TrialCoordinator? = null) : DefaultScene(withSwingUI = true, width = 1000, height = 1000) {
+class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordinator: TrialCoordinator? = null) : DefaultScene(withSwingUI = !true, width = 1200, height = 1200) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
@@ -77,35 +77,6 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         stageSimulation = StageSimulation()
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
         studyLogger = StudySpatialLogger(cam, msHub,null)
-
-        thread {
-            waitForSceneInitialisation()
-            JOptionPane.showMessageDialog(
-                null,
-                "Press ok when ready"
-            )
-            logger.warn("Starting!")
-            trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam))
-
-            val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
-            val targetBlobs = targetPositions.map {
-                val blob = ProceduralBlob(size = 75)
-                blob.spatial().position = it
-                blob.material().diffuse = Vector3f(0f, .9f, 0f)
-                stageSpaceManager.stageRoot.addChild(blob)
-                blob
-            }
-
-            targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
-
-            (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
-
-            stageSpaceManager.sliceManager.transferFunctionManager.apply {
-                this.transferFunction = TransferFunction.flat(1f)
-            }
-
-        }
-
 
         currentZLevel = stageSpaceManager.stagePosition.z.toInt()
         ZLevelLabel.text = "Z: $currentZLevel"
@@ -166,11 +137,38 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         }
         cam.addChild(ZLevelLabelPivot)
 
+        val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
+
+        val targetBlobs = targetPositions.map {
+            val blob = ProceduralBlob(size = 75)
+            blob.spatial().position = it
+            blob.material().diffuse = Vector3f(0f, .9f, 0f)
+            stageSpaceManager.stageRoot.addChild(blob)
+            blob
+        }
+
+        targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
+
+        stageSpaceManager.sliceManager.transferFunctionManager.apply {
+            this.transferFunction = TransferFunction.flat(1f)
+        }
+
+        currentZLevel = 1000
+        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager,stageSimulation.imageSize)
+        currentZLevel = 500
+
         thread {
-            while (true) {
-                Thread.sleep(200)
-                scene to stageSpaceManager
-            }
+            waitForSceneInitialisation()
+
+            JOptionPane.showMessageDialog(
+                null,
+                "Press ok when ready"
+            )
+            logger.warn("Starting!")
+
+            initFrameAndRoiControls()
+
+            trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam))
         }
     }
 
@@ -220,7 +218,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         val ssUI = StageSpaceUI(stageSpaceManager)
         //ssUI.stageUI(this, inputHandler, msHub)
         val commands = listOf(ssUI.comStackAcq, ssUI.comStop, ssUI.comSteering, ssUI.comGoLive,
-            StageUICommand("toggle material", null, object : ClickBehaviour {
+            StageUICommand("toggle material", "M", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     scene.toggleMaterialRendering()
                 }
@@ -228,7 +226,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
                 override fun click(p0: Int, p1: Int) {
                     targetJudge?.hit(stageSpaceManager.focusManager.focusTarget.spatial().position)
                 }
-            }), StageUICommand("transfer function", null, object : ClickBehaviour {
+            }), StageUICommand("transfer function", "T", object : ClickBehaviour {
                 override fun click(p0: Int, p1: Int) {
                     TransferFunctionEditor.showTFFrame(stageSpaceManager.sliceManager.transferFunctionManager)
                 }
@@ -237,7 +235,6 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
 
         this.extraPanel?.let { ssUI.stageSwingUI(it, msHub, commands) }
         this.mainFrame?.pack()
-        DesktopUI.initMouseSelection(inputHandler, msHub)
 
         inputHandler?.let { inputHandler ->
             ssUI.stageKeyUI(inputHandler, cam, commands)
@@ -245,7 +242,9 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
 
         // disable fps camera control
         inputHandler?.addBehaviour("mouse_control", ClickBehaviour { _, _ -> /*dummy*/ })
+    }
 
+    private fun initFrameAndRoiControls() {
         val frameMouseDrag = FrameMouseDrag(stageSpaceManager.focusManager.focusTarget, cam, { 25f })
         inputHandler?.addBehaviour(frameMouseDrag.name, frameMouseDrag)
         inputHandler?.addKeyBinding(frameMouseDrag.name, "button1")
