@@ -56,6 +56,7 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         writer.newLine()
         writeSpatialLog("focusTarget", stageSpaceManager.focusManager.focusTarget.spatial())
         writer.newLine()
+        writeVectorLog("scale",stageSpaceManager.scaleAndRotationPivot.spatial().scale)
         uiModel.leftVRController?.model?.let {
             if (leftControllerSpatialBobbel.parent == null) it.addChild(leftControllerSpatialBobbel)
             writeSpatialLog("leftHand", leftControllerSpatialBobbel.spatial())
@@ -79,6 +80,12 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
             writer.newLine()
         }
         writer.flush()
+    }
+
+
+    private fun writeVectorLog(name: String, vec: Vector3f) {
+        val logLine = System.currentTimeMillis().toString() + ";$name;" + vec.toCSVString()
+        writer.write(logLine)
     }
 
     private fun writeSpatialLog(name: String, spatial: Spatial) {
