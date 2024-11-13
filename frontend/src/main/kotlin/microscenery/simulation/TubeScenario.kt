@@ -16,7 +16,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, val roiHeight: Float = 600f) :
+data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 350f, val roiHeight: Float = 600f) :
     StageSimulation.Scenario {
     val random = Random(randomSeed)
     val roiPos = random.nextVector3f()
@@ -42,7 +42,7 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, v
         }
 
         tube(stageRoot, roiPos, radius, roiHeight)
-        return generateTargetPositions(radius, roiHeight, roiPos, 5)
+        return generateTargetPositions(radius, roiHeight, roiPos, 15)
     }
 
     fun autoExplore(stageSpaceManager: StageSpaceManager, imageSize: Int) {
@@ -65,7 +65,7 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 150f, v
         (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = false
     }
 
-    private fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float = 200f, height: Float = 400f) {
+    private fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float , height: Float) {
         Cylinder(radius * 0.95f, height, 16).let { cy ->
             CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000
             cy.hideMaterial()
