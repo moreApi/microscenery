@@ -16,6 +16,7 @@ import microscenery.simulation.TubeScenario
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
+import javax.swing.JFrame
 import javax.swing.JOptionPane
 import kotlin.concurrent.thread
 
@@ -66,10 +67,18 @@ class StageViewerStudy3D(
         thread {
             waitForSceneInitialisation()
 
+            // The dialog box should show up in the task bar. That's why we create a frame for it.
+            val frame = JFrame("Ready Check")
+            frame.isUndecorated = true
+            frame.isVisible = true
+            frame.setLocationRelativeTo(null)
             JOptionPane.showMessageDialog(
-                null,
+                frame,
                 "Press ok when ready"
             )
+
+            frame.dispose()
+
             initFrameAndRoIControl()
             trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam))
 

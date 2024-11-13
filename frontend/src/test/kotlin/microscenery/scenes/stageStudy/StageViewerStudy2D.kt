@@ -26,6 +26,7 @@ import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.ClickBehaviour
 import org.scijava.ui.behaviour.ScrollBehaviour
+import javax.swing.JFrame
 import javax.swing.JOptionPane
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
@@ -162,8 +163,13 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
         thread {
             waitForSceneInitialisation()
 
+            // The dialog box should show up in the task bar. That's why we create a frame for it.
+            val frame = JFrame("Ready Check")
+            frame.isUndecorated = true
+            frame.isVisible = true
+            frame.setLocationRelativeTo(null)
             JOptionPane.showMessageDialog(
-                null,
+                frame,
                 "Press ok when ready"
             )
             logger.warn("Starting!")
