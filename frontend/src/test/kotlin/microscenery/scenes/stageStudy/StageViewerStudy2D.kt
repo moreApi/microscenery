@@ -168,6 +168,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
             frame.isUndecorated = true
             frame.isVisible = true
             frame.setLocationRelativeTo(null)
+            frame.setAlwaysOnTop(true)
             JOptionPane.showMessageDialog(
                 frame,
                 "Press ok when ready"

@@ -71,6 +71,7 @@ class StageViewerStudy3D(
             val frame = JFrame("Ready Check")
             frame.isUndecorated = true
             frame.isVisible = true
+            frame.setAlwaysOnTop(true)
             frame.setLocationRelativeTo(null)
             JOptionPane.showMessageDialog(
                 frame,
