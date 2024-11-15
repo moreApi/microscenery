@@ -86,12 +86,12 @@ class StageViewerStudy3D(
             logger.warn("Starting!")
         }
 
-//        thread {
-//            while (true) {
-//                Thread.sleep(200)
-//                scene to stageSpaceManager
-//            }
-//        }
+        thread {
+            while (true) {
+                Thread.sleep(200)
+                scene to stageSpaceManager
+            }
+        }
     }
 
     override fun inputSetup() {
@@ -152,8 +152,8 @@ class StageViewerStudy3D(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            StageViewerStudy3D(AxonScenario()).main()
-        //StageViewerStudy3D(TubeScenario()).main()
+//            StageViewerStudy3D(AxonScenario()).main()
+        StageViewerStudy3D(TubeScenario()).main()
         }
     }
 }

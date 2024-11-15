@@ -69,6 +69,7 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 350f, v
 
     private fun tube(stageRoot: HasSpatial, position: Vector3f, radius: Float , height: Float) {
         Cylinder(radius * 0.95f, height, 16).let { cy ->
+            cy.name = "tube"
             CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
@@ -76,6 +77,7 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 350f, v
         }
 
         Cylinder(radius, height, 16).let { cy ->
+            cy.name = "tube"
             CylinderSimulatable.addTo(cy, stageRoot.spatial()).maxIntensity = 3000
             cy.hideMaterial()
             cy.spatial().position = position + Vector3f(0f, -height * 0.5f, 0f)
@@ -92,10 +94,11 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 350f, v
         val targetPositions = mutableListOf<Vector3f>()
         while (targetPositions.size < amount) {
             val a = random.nextFloat()
+            val r = radius * 0.5f + radius * random.nextFloat() * 0.3f
             val new = Vector3f(
-                radius * 0.7f * cos(a * 2f * Math.PI.toFloat()),
+                r * cos(a * 2f * Math.PI.toFloat()),
                 (random.nextFloat() - 0.5f) * height,
-                radius * 0.7f * sin(a * 2f * Math.PI.toFloat())
+                r * sin(a * 2f * Math.PI.toFloat())
             ) + offset
 
             val targetSize = 30f
