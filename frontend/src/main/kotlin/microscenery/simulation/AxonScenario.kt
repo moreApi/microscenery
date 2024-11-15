@@ -15,7 +15,7 @@ import org.joml.Vector3f
 import java.io.File
 import kotlin.random.Random
 
-data class AxionScenario(
+data class AxonScenario(
     val randomSeed: Long = 3824716,
     val dir: Vector3f = Vector3f(0f, -0.5f, 0f),
     val stepSize: Float = 350f,

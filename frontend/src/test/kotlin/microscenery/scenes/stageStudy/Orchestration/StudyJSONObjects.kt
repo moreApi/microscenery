@@ -1,6 +1,6 @@
 package microscenery.scenes.stageStudy.Orchestration
 
-import microscenery.simulation.AxionScenario
+import microscenery.simulation.AxonScenario
 import microscenery.simulation.TubeScenario
 import org.joml.Vector3f
 
@@ -13,13 +13,13 @@ data class Case(val modality: Modality, val scenario: Scenario, var done: Boolea
 enum class Modality { VR, ThreeD, TwoD }
 
 
-data class Scenario(val tube: Tube? = null, val axion: Axion? = null) {
+data class Scenario(val tube: Tube? = null, val axon: Axon? = null) {
 
     data class Tube(val seed: Long) {
         fun toScenario() = TubeScenario(seed)
     }
 
-    data class Axion(
+    data class Axon(
         val seed: Long,
         val dir: FloatArray,
         val stepSize: Float,
@@ -29,7 +29,7 @@ data class Scenario(val tube: Tube? = null, val axion: Axion? = null) {
     ) {
 
         fun toScenario() =
-            AxionScenario(seed, Vector3f(dir), stepSize, iterations, childrenPerIterationFrom..childrenPerIterationTo)
+            AxonScenario(seed, Vector3f(dir), stepSize, iterations, childrenPerIterationFrom..childrenPerIterationTo)
     }
 }
 
