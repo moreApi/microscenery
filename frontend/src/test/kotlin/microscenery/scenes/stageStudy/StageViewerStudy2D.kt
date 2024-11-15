@@ -16,6 +16,7 @@ import microscenery.UI.StageUICommand
 import microscenery.VRUI.Gui3D.Row
 import microscenery.VRUI.Gui3D.TextBox
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
+import microscenery.simulation.AxonScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.hideMaterial
@@ -37,7 +38,7 @@ import kotlin.math.tan
 
 
 class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordinator: TrialCoordinator? = null) :
-    DefaultScene(withSwingUI = !true, width = 1200, height = 1200) {
+    DefaultScene(name= "Study: ${scenario.name}", withSwingUI = !true, width = 1200, height = 1200) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
@@ -156,12 +157,13 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
             this.transferFunction = TransferFunction.flat(1f)
         }
 
-        currentZLevel = 1000
-        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager, stageSimulation.imageSize)
-        currentZLevel = 500
 
         thread {
             waitForSceneInitialisation()
+
+            currentZLevel = 1000
+            (scenario as? TubeScenario)?.autoExplore(stageSpaceManager, stageSimulation.imageSize)
+            currentZLevel = 500
 
             // The dialog box should show up in the task bar. That's why we create a frame for it.
             val frame = JFrame("Ready Check")
@@ -171,7 +173,7 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
             frame.setAlwaysOnTop(true)
             JOptionPane.showMessageDialog(
                 frame,
-                "Press ok when ready"
+                "Scenario: ${scenario.name} \n Press ok when ready"
             )
             logger.warn("Starting!")
 
@@ -277,8 +279,8 @@ class StageViewerStudy2D(val scenario: StageSimulation.Scenario, val trialCoordi
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            StageViewerStudy2D(TubeScenario()).main()
-            //StageViewerStudy2D(AxionScenario()).main()
+            //StageViewerStudy2D(TubeScenario()).main()
+            StageViewerStudy2D(AxonScenario()).main()
         }
     }
 }

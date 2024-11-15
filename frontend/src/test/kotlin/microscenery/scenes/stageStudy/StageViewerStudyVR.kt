@@ -13,16 +13,15 @@ import graphics.scenery.utils.extensions.times
 import microscenery.*
 import microscenery.UI.UIModel
 import microscenery.VRUI.Gui3D.Button
+import microscenery.VRUI.Gui3D.Column
+import microscenery.VRUI.Gui3D.TextBox
 import microscenery.VRUI.InHandForwarder
 import microscenery.VRUI.VRHandTool
 import microscenery.VRUI.VRUIManager
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
-import microscenery.simulation.AxionScenario
-import microscenery.simulation.ProceduralBlob
-import microscenery.simulation.SimulationMicroscopeHardware
-import microscenery.simulation.StageSimulation
+import microscenery.simulation.*
 import microscenery.stageSpace.FocusManager.Mode
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
@@ -59,8 +58,21 @@ class StageViewerStudyVR(
         stageSpaceManager = stageSimulation.setupStage(msHub, scene)
         studyLogger = StudySpatialLogger(cam, msHub, null)
 
+        val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
+        val targetBlobs = targetPositions.map {
+            val blob = ProceduralBlob(size = 75)
+            blob.spatial().position = it
+            blob.material().diffuse = Vector3f(0f, .9f, 0f)
+            stageSpaceManager.stageRoot.addChild(blob)
+            blob
+        }
+        targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
+
+
         thread {
-            Thread.sleep(1000)
+            waitForSceneInitialisation()
+            (scenario as? TubeScenario)?.autoExplore(stageSpaceManager, stageSimulation.imageSize)
+
             val target = stageSpaceManager.scaleAndRotationPivot.spatial()
             val pivot = stageSpaceManager.stageRoot.spatial().worldPosition(stageSpaceManager.stageAreaCenter)
             val scaleDelta = 0.6f
@@ -69,35 +81,28 @@ class StageViewerStudyVR(
                 target.position.setComponent(i, (target.position[i] + pivot[i] * (scaleDelta - 1)))
             }
             target.scale *= scaleDelta
-
             target.needsUpdate = true
+
+            // greeting label and button
+            var greeting: Node? = null
+            greeting = Column(
+                TextBox(scenario.name),
+                Button("ready?") {
+                    greeting?.detach()
+                    logger.warn("Starting!")
+                    trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam, distance = 0.5f))
+
+                    // init focus frame movement
+                    StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, TrackerRole.RightHand)
+                }, middleAlign = true, invertedYOrder = true).apply {
+                this.spatial {
+                    this.position = stageSpaceManager.stageAreaCenter.copy() + Vector3f(-200f, -100f, 200f)
+                    this.scale = Vector3f(200f)
+                }
+                stageSpaceManager.stageRoot.addChild(this)
+            }
         }
 
-        var button: Node? = null
-        button = Button("ready?") {
-            button?.detach()
-            logger.warn("Starting!")
-            trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam, distance = 0.5f))
-            val targetPositions = scenario.generate(stageSpaceManager, stageSimulation.stageSpaceSize)
-            val targetBlobs = targetPositions.map {
-                val blob = ProceduralBlob(size = 75)
-                blob.spatial().position = it
-                blob.material().diffuse = Vector3f(0f, .9f, 0f)
-                stageSpaceManager.stageRoot.addChild(blob)
-                blob
-            }
-            targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
-
-            (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = true
-            // init focus frame movement
-            StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, TrackerRole.RightHand)
-        }.apply {
-            this.spatial {
-                this.position = stageSpaceManager.stageAreaCenter.copy() + Vector3f(-200f, -100f, 200f)
-                this.scale = Vector3f(200f)
-            }
-            stageSpaceManager.stageRoot.addChild(this)
-        }
     }
 
     override fun inputSetup() {
@@ -145,8 +150,8 @@ class StageViewerStudyVR(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            StageViewerStudyVR(AxionScenario()).main()
-            //StageViewerStudyVR(TubeScenario()).main()
+//            StageViewerStudyVR(AxionScenario()).main()
+            StageViewerStudyVR(TubeScenario()).main()
         }
     }
 }
@@ -158,8 +163,10 @@ class StudyFocusMover(val stageSpaceManager: StageSpaceManager, targetJudge: Tar
     init {
         focusManager.mode = Mode.STEERING
 
+        val offset = Vector3f(0f,100f,0f,)
+
         update += {
-            val positionStageSpace = stageSpaceManager.worldToStageSpace(spatial().worldPosition(), true)
+            val positionStageSpace = stageSpaceManager.worldToStageSpace(spatial().worldPosition(), true) + offset
             val coercedPosition =
                 stageSpaceManager.hardware.hardwareDimensions().coercePosition(positionStageSpace, null)
             focusManager.focusTarget.spatial().position = coercedPosition

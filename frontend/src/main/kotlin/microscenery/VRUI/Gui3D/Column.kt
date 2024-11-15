@@ -6,7 +6,7 @@ import graphics.scenery.RichNode
  * Rows cousin. Anchor is bottom middle. Elements can be changed via scene graph at runtime.
  *
  * @param middleAlign also align vertically to middle
- * @param invertedYOrder reverse order of elements - last child will be the top most TODO: Validate if it works
+ * @param invertedYOrder reverse order of elements - last child will be the top most
  */
 open class Column(vararg elements: Gui3DElement, val margin: Float = 0.2f, var middleAlign: Boolean = false, val invertedYOrder: Boolean = true)
 : RichNode("UI Column"), Gui3DElement {

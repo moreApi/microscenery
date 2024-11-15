@@ -14,7 +14,10 @@ import microscenery.showMessage2
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
+import java.lang.Error
 import java.security.InvalidParameterException
+import javax.swing.JFrame
+import javax.swing.JOptionPane
 import kotlin.system.exitProcess
 
 class TrialCoordinator {
@@ -29,6 +32,8 @@ class TrialCoordinator {
     val trialConfig: TrialConfig
     val case: Case
     var timeLimitAgent: Agent? = null
+
+    var caseSuccess = false
 
     init {
         logger.info("Starting trial Coordinator")
@@ -52,7 +57,7 @@ class TrialCoordinator {
         logger.info("starting case $case")
         val scenario = when {
             case.scenario.tube != null -> case.scenario.tube.toScenario()
-            case.scenario.axion != null -> case.scenario.axion.toScenario()
+            case.scenario.axon != null -> case.scenario.axon.toScenario()
             else -> throw InvalidParameterException("simulation param null")
         }
         when (case.modality) {
@@ -68,17 +73,27 @@ class TrialCoordinator {
 
         if (trialConfig.timeLimitPerCaseMS > 0) {
             timeLimitAgent = object : Agent() {
+                var startTime = System.currentTimeMillis()
                 init {
                     startAgent()
                 }
 
                 override fun onLoop() {
-                    Thread.sleep(trialConfig.timeLimitPerCaseMS)
-                    caseFinished(true)
+                    Thread.sleep(200)
+                    if (caseSuccess) caseFinished(false)
+
+                    if (startTime + trialConfig.timeLimitPerCaseMS < System.currentTimeMillis()){
+                        caseFinished(true)
+                    }
+
                 }
             }
         }
         studySpatialLogger.logEvent("StartCase", listOf(trialConfig.name, mapper.writeValueAsString(case)))
+    }
+
+    fun caseAllHit(){
+        caseSuccess = true
     }
 
     fun caseFinished(byTimeLimit: Boolean) {
@@ -118,7 +133,22 @@ class TrialCoordinator {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            TrialCoordinator().loadCase()
+            try {
+                TrialCoordinator().loadCase()
+            } catch (e: Error){
+                e.printStackTrace()
+                // The dialog box should show up in the task bar. That's why we create a frame for it.
+                val frame = JFrame("Ready Check")
+                frame.isUndecorated = true
+                frame.isVisible = true
+                frame.setLocationRelativeTo(null)
+                frame.setAlwaysOnTop(true)
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Please activate VR headset, establish Air Link and open SteamVR."
+                )
+                exitProcess(0)
+            }
         }
 
         fun writeConfig(config: TrialConfig, file: File) {
@@ -134,21 +164,52 @@ class TrialCoordinator {
 object WriteAConfig {
     @JvmStatic
     fun main(args: Array<String>) {
-        val case = Case(Modality.VR, Scenario(tube = Scenario.Tube(123)))
-        val case2 = Case(
-            Modality.ThreeD, Scenario(
-                axion = Scenario.Axion(
-                    3824716,
-                    listOf(0f, -0.5f, 0f).toFloatArray(),
-                    350f,
-                    3,
-                    1,
-                    3
+        val cases = listOf(
+            Case(Modality.ThreeD, Scenario(tube = Scenario.Tube(123))),
+            Case(
+                Modality.TwoD, Scenario(
+                    axon = Scenario.Axon(
+                        3824716,
+                        listOf(0f, -0.5f, 0f).toFloatArray(),
+                        350f,
+                        3,
+                        1,
+                        3
+                    )
+                )
+            ),
+            Case(
+                Modality.VR, Scenario(tube = Scenario.Tube(13))
+            ),
+            Case(
+                Modality.VR, Scenario(
+                    axon = Scenario.Axon(
+                        -740995428542201163,
+                        listOf(0f,-0.75f,0f).toFloatArray(),
+                        250f,
+                        4,
+                        1,
+                        2
+                    )
+                )
+            ),
+            Case(Modality.TwoD, Scenario(tube = Scenario.Tube(12))),
+            Case(
+                Modality.ThreeD, Scenario(
+                    axon = Scenario.Axon(
+                        -8036747134749984232,
+                        listOf(0f,-0.75f,0f).toFloatArray(),
+                        250f,
+                        4,
+                        1,
+                        2
+                    )
                 )
             )
         )
-        val config = TrialConfig("test trial config", listOf(case2), 2000)
 
+        val config = TrialConfig("test trial config", cases)
+        println("Writing config to file")
         TrialCoordinator.writeConfig(config, File("trialConfig1.json"))
     }
 }

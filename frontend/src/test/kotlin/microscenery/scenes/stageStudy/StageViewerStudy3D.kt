@@ -9,6 +9,7 @@ import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
+import microscenery.simulation.AxonScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering
@@ -24,7 +25,7 @@ import kotlin.concurrent.thread
 class StageViewerStudy3D(
     val scenario: StageSimulation.Scenario,
     val trialCoordinator: TrialCoordinator? = null
-) : DefaultScene(withSwingUI = !true, width = 1200, height = 1200, VR = false) {
+) : DefaultScene(name= "Study: ${scenario.name}", withSwingUI = !true, width = 1200, height = 1200, VR = false) {
     val msHub = MicrosceneryHub(hub)
     lateinit var stageSpaceManager: StageSpaceManager
 
@@ -62,10 +63,9 @@ class StageViewerStudy3D(
 
         targetJudge = TargetJudge(targetBlobs, studyLogger, trialCoordinator)
 
-        (scenario as? TubeScenario)?.autoExplore(stageSpaceManager, stageSimulation.imageSize)
-
         thread {
             waitForSceneInitialisation()
+            (scenario as? TubeScenario)?.autoExplore(stageSpaceManager, stageSimulation.imageSize)
 
             // The dialog box should show up in the task bar. That's why we create a frame for it.
             val frame = JFrame("Ready Check")
@@ -75,7 +75,7 @@ class StageViewerStudy3D(
             frame.setLocationRelativeTo(null)
             JOptionPane.showMessageDialog(
                 frame,
-                "Press ok when ready"
+                "Scenario: ${scenario.name} \n Press ok when ready"
             )
 
             frame.dispose()
@@ -152,8 +152,8 @@ class StageViewerStudy3D(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            //StageViewerStudy3D(AxionScenario()).main()
-            StageViewerStudy3D(TubeScenario()).main()
+            StageViewerStudy3D(AxonScenario()).main()
+        //StageViewerStudy3D(TubeScenario()).main()
         }
     }
 }
