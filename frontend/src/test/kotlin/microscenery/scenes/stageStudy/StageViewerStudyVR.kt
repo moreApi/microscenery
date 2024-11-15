@@ -93,7 +93,7 @@ class StageViewerStudyVR(
                     trialCoordinator?.startCase(studyLogger, TrialCoordinator.FinishMessageDisplayer(cam, distance = 0.5f))
 
                     // init focus frame movement
-                    StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, TrackerRole.RightHand)
+                    StudyFocusMover(stageSpaceManager, targetJudge).activate(uiModel, if (trialCoordinator?.trialConfig?.rightHanded?: true) TrackerRole.RightHand else TrackerRole.LeftHand)
                 }, middleAlign = true, invertedYOrder = true).apply {
                 this.spatial {
                     this.position = stageSpaceManager.stageAreaCenter.copy() + Vector3f(-200f, -100f, 200f)
