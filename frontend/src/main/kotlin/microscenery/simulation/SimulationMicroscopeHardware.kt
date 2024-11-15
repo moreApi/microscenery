@@ -57,13 +57,13 @@ class SimulationMicroscopeHardware(
                 stageSpeedumPerSek = 50000000f
             } else {
                 exposureMS = 100L
-                stageSpeedumPerSek = 500f
+                stageSpeedumPerSek = 400f
             }
         }
 
     private var timeBetweenLiveImagesMS = 200L
     private var exposureMS = 100L
-    private var stageSpeedumPerSek = 500f
+    private var stageSpeedumPerSek = 400f
 
 
     init {
