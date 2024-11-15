@@ -43,6 +43,7 @@ class StageSimulation(val stageSpaceSize: Float = 1000f, val imageSize: Int = 15
     }
 
     interface Scenario {
+        val name: String
         fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f>
     }
 

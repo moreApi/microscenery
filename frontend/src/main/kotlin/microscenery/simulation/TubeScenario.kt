@@ -21,6 +21,8 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 350f, v
     val random = Random(randomSeed)
     val roiPos = random.nextVector3f()
 
+    override val name = "many targets"
+
     override fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f> {
         val stageRoot = stageSpaceManager.stageRoot
 

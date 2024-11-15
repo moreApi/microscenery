@@ -23,6 +23,8 @@ data class AxionScenario(
     val childrenPerIteration: IntRange = 1..3
 ) : StageSimulation.Scenario {
 
+    override val name = "follow structure"
+
     override fun generate(stageSpaceManager: StageSpaceManager, stageSpaceSize: Float): List<Vector3f> {
         val random = Random(randomSeed)
         val stageRoot = stageSpaceManager.stageRoot
@@ -39,6 +41,8 @@ data class AxionScenario(
         val treeNodes =
             root.generateTree(random, dir, stepSize, iterations, childrenPerIteration, stageRoot = stageRoot)
         stageRoot.addChild(root)
+
+        stageSpaceManager.focusManager.focusTarget.spatial().position = Vector3f(stageSpaceSize / 2, stageSpaceSize, stageSpaceSize / 2)
 
         return treeNodes.last().map { it.pos + root.spatial().position }
     }
