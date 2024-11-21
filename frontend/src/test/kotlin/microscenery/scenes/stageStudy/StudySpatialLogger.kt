@@ -46,7 +46,7 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
         startAgent()
     }
 
-    fun logEvent(name: String, extraParams: List<String>? = null, time: Long = System.currentTimeMillis()) {
+    fun logEvent(name: String, extraParams: List<String>? = emptyList(), time: Long = System.currentTimeMillis()) {
         otherEvents.put(LoggingEvent(name, extraParams, time))
     }
 

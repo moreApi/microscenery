@@ -47,7 +47,7 @@ class TargetJudge(
             }
         }
 
-        studySpatialLogger.logEvent("MarkRoi")
+        studySpatialLogger.logEvent("MarkRoi", listOf(result.toString()))
         logger.warn("got a  " + result.toString())
         if (result == Results.AllHit) trialCoordinator?.caseAllHit()
 
