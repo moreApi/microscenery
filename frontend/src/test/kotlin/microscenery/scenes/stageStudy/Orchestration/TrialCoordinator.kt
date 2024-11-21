@@ -208,7 +208,8 @@ object WriteAConfig {
 //            )
         )
 
-        val config = TrialConfig("test trial config", cases, timeLimitPerCaseMS = 2000)
+                //val config = TrialConfig("test trial config", cases, timeLimitPerCaseMS = 2000)
+        val config = TrialGenerator.generateConfig()
         println("Writing config to file")
         TrialCoordinator.writeConfig(config, File("trialConfig1.json"))
     }
