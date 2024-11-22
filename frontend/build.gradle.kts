@@ -35,9 +35,9 @@ dependencies {
         version { strictly("1.33") }
     }
 
-    testImplementation("net.imagej:imagej:latest.release")
-    testImplementation("net.imagej:ij:latest.release")
-    testImplementation("net.imglib2:imglib2-ij:2.0.0-beta-46")
+    testImplementation("net.imagej:imagej:2.15.0")
+    testImplementation("net.imagej:ij:1.54f")
+    testImplementation("net.imglib2:imglib2-ij:2.0.1")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.mockito:mockito-core:5.10.0")
