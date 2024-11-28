@@ -34,10 +34,12 @@ dependencies {
     implementation("org.yaml:snakeyaml") {
         version { strictly("1.33") }
     }
+    val scijavaParentPomVersion = project.properties["scijavaParentPOMVersion"]
+    implementation(platform("org.scijava:pom-scijava:$scijavaParentPomVersion"))
 
-    testImplementation("net.imagej:imagej:2.15.0")
-    testImplementation("net.imagej:ij:1.54f")
-    testImplementation("net.imglib2:imglib2-ij:2.0.1")
+    testImplementation("net.imagej:imagej")
+    testImplementation("net.imagej:ij")
+    testImplementation("net.imglib2:imglib2-ij")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.mockito:mockito-core:5.10.0")

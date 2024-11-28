@@ -30,10 +30,10 @@ import kotlin.math.PI
 val openSpimScale3 = Vector3f(.225f, .225f, 3.348f)
 val openSpimScale15 = Vector3f(.225f, .225f, 1.524f)
 
-fun currentVolume(hub: Hub) = janasWingDisk(hub)
+fun currentVolume(hub: Hub) = spindle(hub)
 
 fun janasWingDisk(hub: Hub): Volume {
-    val imp: ImagePlus = IJ.openImage("""E:\volumes\de-skewed\WingDisk_deskewed.tif""")
+    val imp: ImagePlus = IJ.openImage("""D:\volumes\de-skewed\WingDisk_deskewed.tif""")
     val img: Img<UnsignedShortType> = ImageJFunctions.wrap(imp)
 
     val volume = Volume.fromRAI(
@@ -57,7 +57,7 @@ fun janasWingDisk(hub: Hub): Volume {
 
 fun spindle(hub: Hub): Volume {
     //val imp: ImagePlus = IJ.openImage("""E:\volumes\spindle\NikonSD_60x_HeLa_02.tif""")
-    val imp: ImagePlus = IJ.openImage("""E:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+    val imp: ImagePlus = IJ.openImage("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
     val img: Img<UnsignedShortType> = ImageJFunctions.wrap(imp)
 
     val volume = Volume.fromRAI(
