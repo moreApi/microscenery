@@ -1,6 +1,7 @@
 package microscenery.VRUI
 
 import graphics.scenery.Scene
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD
@@ -31,6 +32,7 @@ class VRUIManager {
             inputHandler: InputHandler?,
             customActions: WheelMenu? = null,
             stageSpaceUI: StageSpaceUI? = null,
+            alternativeTarget: Volume? = null,
             msHub: MicrosceneryHub
         ) {
             val uiModel = initUIModel(msHub, hmd)
@@ -50,7 +52,8 @@ class VRUIManager {
                     hmd,
                     OpenVRHMD.OpenVRButton.Side,
                     scene,
-                    stageSpaceManager = stageSpaceUI?.stageSpaceManager
+                    stageSpaceManager = stageSpaceUI?.stageSpaceManager,
+                    alternativeTarget = alternativeTarget?.spatial()
                 )
 
 
@@ -138,7 +141,7 @@ class VRUIManager {
                                     OpenVRHMD.OpenVRButton.Left,
                                     object : DragBehaviour {
                                         override fun init(x: Int, y: Int) {
-                                            val vol = uiModel.selected as? Volume ?: return
+                                            val vol = uiModel.selected as? Volume ?: alternativeTarget ?: return
                                             if (vol.currentTimepoint == 0) return
 
                                             vol.previousTimepoint()
@@ -158,7 +161,7 @@ class VRUIManager {
                                     OpenVRHMD.OpenVRButton.Right,
                                     object : DragBehaviour {
                                         override fun init(x: Int, y: Int) {
-                                            val vol = uiModel.selected as? Volume ?: return
+                                            val vol = uiModel.selected as? Volume ?: alternativeTarget ?: return
                                             if (vol.currentTimepoint + 1 == vol.timepointCount) return
 
                                             vol.nextTimepoint()

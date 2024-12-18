@@ -23,6 +23,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import java.io.File
 import kotlin.concurrent.thread
 import kotlin.io.path.Path
 import kotlin.math.PI
@@ -30,7 +31,7 @@ import kotlin.math.PI
 val openSpimScale3 = Vector3f(.225f, .225f, 3.348f)
 val openSpimScale15 = Vector3f(.225f, .225f, 1.524f)
 
-fun currentVolume(hub: Hub) = spindle(hub)
+fun currentVolume(hub: Hub) = arthurAblatedThing(hub)
 
 fun janasWingDisk(hub: Hub): Volume {
     val imp: ImagePlus = IJ.openImage("""D:\volumes\de-skewed\WingDisk_deskewed.tif""")
@@ -54,7 +55,29 @@ fun janasWingDisk(hub: Hub): Volume {
 
     return volume
 }
+fun arthurAblatedThing(hub: Hub): Volume {
+    //val imp: ImagePlus = IJ.openImage("""E:\volumes\spindle\NikonSD_60x_HeLa_02.tif""")
+    val imp: ImagePlus = IJ.openImage("""C:\Users\JanPhD\Documents\arthurs data\20220708_E1_before_and_after_ablation.tif""")
+    val img: Img<UnsignedByteType> = ImageJFunctions.wrap(imp)
 
+    val volume = Volume.fromRAI(
+        img,
+        UnsignedByteType(),
+        AxisOrder.DEFAULT,
+        "Volume loaded with IJ",
+        hub,
+        VolumeViewerOptions()
+    )
+    volume.spatial() {
+        scale = Vector3f(3f,3f,50f)
+    }
+    volume.origin = Origin.Center
+    volume.loadTransferFunctionFromFile(File("""C:\Users\JanPhD\Documents\arthurs data\arthurTF.txt"""))
+    volume.colormap = Colormap.get("grays")
+
+
+    return volume
+}
 fun spindle(hub: Hub): Volume {
     //val imp: ImagePlus = IJ.openImage("""E:\volumes\spindle\NikonSD_60x_HeLa_02.tif""")
     val imp: ImagePlus = IJ.openImage("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
@@ -313,26 +336,29 @@ class OfflineViewerVR() : DefaultVRScene("Embo Scene") {
             vol = currentVolume(hub)
             scene.addChild(vol)
             TransferFunctionEditor.showTFFrame(vol)
+            waitForSceneInitialisation()
+            VRUIManager.initBehavior(
+                scene, hmd, inputHandler, customActions =
+                WheelMenu(hmd, listOf(Switch("freeze blocks",false){
+                    vol.volumeManager.freezeRequiredBlocks = it
+                }), false,), msHub = MicrosceneryHub(hub),
+                alternativeTarget = vol
+            )
         }
 
-        thread {
-            // debug loop
-            while (true) {
-                Thread.sleep(500)
-                val s = vol
-            }
-        }
+//        thread {
+//            // debug loop
+//            while (true) {
+//                Thread.sleep(500)
+//                val s = vol
+//            }
+//        }
     }
 
     override fun inputSetup() {
         super.inputSetup()
 
-        VRUIManager.initBehavior(
-            scene, hmd, inputHandler, customActions =
-            WheelMenu(hmd, listOf(Switch("freeze blocks",false){
-                vol.volumeManager.freezeRequiredBlocks = it
-            }), false,), msHub = MicrosceneryHub(hub)
-        )
+
     }
 
     companion object {

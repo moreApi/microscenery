@@ -1,6 +1,7 @@
 package microscenery.VRUI.behaviors
 
 import graphics.scenery.Scene
+import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.behaviours.VRScale
@@ -26,7 +27,8 @@ class VR2HandSpatialManipulation(
     val scene: Scene,
     var scaleLocked: Boolean = false,
     var rotationLocked: Boolean = false,
-    val stageSpaceManager: StageSpaceManager?
+    val stageSpaceManager: StageSpaceManager?,
+    val alternativeTarget: Spatial? = null,
 ) : VRTwoHandDragBehavior(name, controller, offhand) {
 
 
@@ -48,10 +50,11 @@ class VR2HandSpatialManipulation(
         val oldReinRotation = Quaternionf().lookAlong(oldRein, UP)
         val diffRotation = oldReinRotation.mul(newReinRotation.invert())
 
-        stageSpaceManager?.let {
-            val target = stageSpaceManager.scaleAndRotationPivot.spatial()
-            val pivot = stageSpaceManager.stageRoot.spatial().worldPosition(stageSpaceManager.stageAreaCenter)
 
+        val target = stageSpaceManager?.scaleAndRotationPivot?.spatial() ?: alternativeTarget
+        val pivot = stageSpaceManager?.stageRoot?.spatial()?.worldPosition(stageSpaceManager.stageAreaCenter) ?: Vector3f()
+
+        target?.let {
             if (!rotationLocked) { //this.rotation.mul(diff)
                 val rot = Matrix4f().translate(pivot).rotate(diffRotation).translate(pivot.times(-1f))
                 target.position += rot.getTranslation(Vector3f())
@@ -80,6 +83,7 @@ class VR2HandSpatialManipulation(
             scaleLocked: Boolean = false,
             rotationLocked: Boolean = MicroscenerySettings.get(Settings.VRUI.LockRotationDefault, false),
             stageSpaceManager: StageSpaceManager?,
+            alternativeTarget: Spatial? = null,
         ): CompletableFuture<VR2HandSpatialManipulation> {
             @Suppress("UNCHECKED_CAST") return createAndSet(
                 hmd, button
@@ -91,7 +95,8 @@ class VR2HandSpatialManipulation(
                     scene,
                     scaleLocked,
                     rotationLocked,
-                    stageSpaceManager
+                    stageSpaceManager,
+                    alternativeTarget
                 )
             } as CompletableFuture<VR2HandSpatialManipulation>
         }
