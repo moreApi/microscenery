@@ -7,7 +7,6 @@ import graphics.scenery.controls.OpenVRHMD
 import graphics.scenery.controls.TrackedDeviceType
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.extensions.times
-import microscenery.simulation.StageSimulation.Companion.hideMaterial
 import net.miginfocom.swing.MigLayout
 import org.joml.Vector3f
 import org.scijava.ui.behaviour.InputTrigger
@@ -65,15 +64,11 @@ abstract class DefaultScene(
 
                         //Create aim balls on top of controllers
                         val indicator = Sphere(0.015f, 10)
-                        //TODO  POSTSTUDY reactivate
-                        indicator.hideMaterial()
                         indicator.name = "indicator"
                         indicator.material().diffuse = Vector3f(1f)
                         controller.addChild(indicator)
 
                         val collider = Box(Vector3f(.01f))
-                        //TODO  POSTSTUDY reactivate
-                        collider.hideMaterial()
                         collider.name = "collider"
                         controller.addChild(collider)
                     }

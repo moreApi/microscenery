@@ -47,7 +47,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
         focusTargetIndicator = Frame(uiModel, Vector3f(0.2f,0.2f,1f)) { focusTarget.spatial().position }.also {
             focusTarget.addChild(it)
             it.spatialOrNull()?.rotation = stageSpaceManager.layout.sheetRotation()
-            // TODO POSTSTUDY reactivate initVRInteraction(it,false)
+            initVRInteraction(it,false)
         }
 
         focus.update += {
