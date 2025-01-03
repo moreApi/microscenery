@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-import "BaseNetworkTypes.proto";
+import "BaseAPI/BaseNetworkTypes.proto";
 
-option java_package = "me.jancasus.microscenery.network.v2";
+option java_package = "me.jancasus.microscenery.network.v3";
 option java_outer_classname = "MicroManagerSignals";
 option java_multiple_files = true;
 

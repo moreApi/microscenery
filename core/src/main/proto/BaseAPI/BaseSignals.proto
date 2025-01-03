@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "BaseAPI/BaseNetworkTypes.proto";
+
+option java_package = "org.withXR.network.v3";
+option java_outer_classname = "WrapSignals";
+option java_multiple_files = true;
+
+message BaseSignal{
+  oneof signal{
+      DataAvailableSignal dataAvailableSignal = 1;
+      Other other = 2;
+  }
+}
+
+message Other{
+  bytes data = 1;
+}
+
+message DataAvailableSignal{
+  oneof availableData{
+    Stack stack = 1;
+    Slice slice = 2;
+  }
+}
+
+message Stack{
+  int32 id = 1;
+  int32 relatedToId = 2;
+  Vector3Float from = 3;
+  Vector3Float to = 4;
+  int32 slicesCount = 5;
+  google.protobuf.Timestamp created = 6;
+  ImageMeta imageMeta = 7;
+  optional Other other = 8;
+}
+
+message Slice{
+  int32 id = 1;
+  google.protobuf.Timestamp created = 2;
+  Vector3Float stagePos = 3;
+  int32 size = 4;
+  int32 stackId = 5;
+  int32 stackSliceIndex = 6;
+  int32 relatedToId = 7;
+  ImageMeta imageMeta = 8;
+  optional Other other = 9;
+}
+
+message ImageMeta{
+  Vector2Int imageSize = 1;
+  float vertexDiameter = 2;
+  EnumNumericType numericType = 3;
+}
+
+enum EnumNumericType{
+  VALUE_NUMERIC_UNKNOWN = 0;
+  VALUE_NUMERIC_INT8 = 1;
+  VALUE_NUMERIC_INT16 = 2;
+}
