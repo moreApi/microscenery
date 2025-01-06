@@ -1,10 +1,7 @@
 package microscenery.hardware
 
 import microscenery.Agent
-import microscenery.signals.HardwareDimensions
-import microscenery.signals.MicroscopeSignal
-import microscenery.signals.MicroscopeStatus
-import microscenery.signals.ServerState
+import microscenery.signals.*
 import org.joml.Vector3f
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
@@ -36,6 +33,11 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
         HardwareDimensions.EMPTY.copy()
     ) { _, old, new ->
         if (old != new) output.put(hardwareDimensions)
+    }
+    protected var imageMeta: ImageMeta by Delegates.observable(
+        ImageMeta.EMPTY.copy()
+    ) { _, old, new ->
+        hardwareDimensions = hardwareDimensions.copy(imageMeta = new)
     }
 
     override fun status(): MicroscopeStatus = status
