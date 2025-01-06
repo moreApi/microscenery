@@ -4,7 +4,10 @@ import fromScenery.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
-import microscenery.signals.*
+import microscenery.signals.ActualMicroscopeSignal
+import microscenery.signals.MicroscopeControlSignal
+import microscenery.signals.MicroscopeSlice
+import microscenery.signals.RemoteMicroscopeStatus
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
@@ -14,7 +17,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val microscope: MicroscopeHardware,
     private val zContext: ZContext,
     val storage: SliceStorage = SliceStorage(),
-    val basePort: Int = MicroscenerySettings.get("Network.basePort",4000),
+    val basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -39,12 +42,13 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         val signal = microscope.output.poll(200, TimeUnit.MILLISECONDS) ?: return
 
         when (signal) {
-            is Slice -> {
-                signal.data?.let {
-                    storage.addSlice(signal.Id, signal.data)
-                    controlConnection.sendSignal(ActualMicroscopeSignal(signal.copy(data = null)))
+            is MicroscopeSlice -> {
+                signal.slice.data?.let {
+                    storage.addSlice(signal.slice.Id, signal.slice.data)
+                    controlConnection.sendSignal(ActualMicroscopeSignal(MicroscopeSlice(signal.slice.copy(data = null))))
                 }
             }
+
             else -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
         }
     }
@@ -52,42 +56,45 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     /**
      * Executed by the network thread of [ControlSignalsServer]
      */
-    private fun processClientSignal(it: ClientSignal) {
+    private fun processClientSignal(it: MicroscopeControlSignal) {
         when (it) {
-            is ClientSignal.AcquireStack -> {
+            is MicroscopeControlSignal.AcquireStack -> {
                 microscope.acquireStack(it)
             }
-            ClientSignal.ClientSignOn -> {
+
+            MicroscopeControlSignal.ClientSignOn -> {
                 status = status.copy(connectedClients = status.connectedClients + 1)
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
             }
-            ClientSignal.Live -> microscope.goLive()
-            is ClientSignal.MoveStage -> microscope.stagePosition = it.target
-            ClientSignal.Shutdown -> {
+
+            MicroscopeControlSignal.Live -> microscope.goLive()
+            is MicroscopeControlSignal.MoveStage -> microscope.stagePosition = it.target
+            MicroscopeControlSignal.Shutdown -> {
                 logger.info("Shutting down server.")
                 microscope.shutdown()
                 close()
             }
-            ClientSignal.SnapImage -> microscope.snapSlice()
-            ClientSignal.Stop -> microscope.stop()
-            is ClientSignal.AblationPoints -> microscope.ablatePoints(it)
-            is ClientSignal.AblationShutter -> TODO()
-            ClientSignal.StartAcquisition -> microscope.startAcquisition()
-            is ClientSignal.DeviceSpecific -> microscope.deviceSpecificCommands(it.data)
+
+            MicroscopeControlSignal.SnapImage -> microscope.snapSlice()
+            MicroscopeControlSignal.Stop -> microscope.stop()
+            is MicroscopeControlSignal.AblationPoints -> microscope.ablatePoints(it)
+            is MicroscopeControlSignal.AblationShutter -> TODO()
+            MicroscopeControlSignal.StartAcquisition -> microscope.startAcquisition()
+            is MicroscopeControlSignal.DeviceSpecific -> microscope.deviceSpecificCommands(it.data)
         }
     }
 
     @Suppress("unused")
     fun stop() {
         logger.info("Got stop Command")
-        controlConnection.sendInternalSignals(listOf(ClientSignal.Stop))
+        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Stop))
     }
 
     @Suppress("unused")
     fun shutdown() {
         logger.info("Got Stop Command")
-        controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown))
+        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Shutdown))
     }
 
     /**

@@ -1,11 +1,11 @@
 package microscenery.network
 
 import fromScenery.lazyLogger
-import me.jancasus.microscenery.network.v2.ReplyHeaderSliceChunk
-import me.jancasus.microscenery.network.v2.RequestSliceChunk
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.Settings
+import org.withXR.network.v3.ReplyHeaderSliceChunk
+import org.withXR.network.v3.RequestSliceChunk
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZFrame
@@ -20,7 +20,7 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val router: ZMQ.Socket
-    private var sliceOffset = MicroscenerySettings.setIfUnset(Settings.Network.sliceOffset,0)
+    private var sliceOffset = MicroscenerySettings.setIfUnset(Settings.Network.sliceOffset, 0)
 
     init {
         router = zContext.createSocket(SocketType.ROUTER)
@@ -29,8 +29,8 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
         router.receiveTimeOut = 500
         logger.info("${BiggishDataServer::class.simpleName} bound to tcp://*:$port")
 
-        MicroscenerySettings.addUpdateRoutine(Settings.Network.sliceOffset){
-            sliceOffset = MicroscenerySettings.get(Settings.Network.sliceOffset,0)
+        MicroscenerySettings.addUpdateRoutine(Settings.Network.sliceOffset) {
+            sliceOffset = MicroscenerySettings.get(Settings.Network.sliceOffset, 0)
         }
 
         startAgent()

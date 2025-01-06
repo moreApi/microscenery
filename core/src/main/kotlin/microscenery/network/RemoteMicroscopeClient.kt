@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit
  *
  */
 class RemoteMicroscopeClient(
-    basePort: Int = MicroscenerySettings.get("Network.basePort",4000),
-    host: String = MicroscenerySettings.get("Network.host","localhost"),
+    basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
+    host: String = MicroscenerySettings.get("Network.host", "localhost"),
     val zContext: ZContext
 ) : MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -47,31 +47,31 @@ class RemoteMicroscopeClient(
             buffer.put(it.value)
         }
         buffer.flip()
-        output.put(meta.copy(data = buffer))
+        output.put(MicroscopeSlice(meta.copy(data = buffer)))
     }
 
     override fun snapSlice() {
-        controlConnection.sendSignal(ClientSignal.SnapImage)
+        controlConnection.sendSignal(MicroscopeControlSignal.SnapImage)
     }
 
     override fun moveStage(target: Vector3f) {
-        controlConnection.sendSignal(ClientSignal.MoveStage(target))
+        controlConnection.sendSignal(MicroscopeControlSignal.MoveStage(target))
     }
 
-    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+    override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
         controlConnection.sendSignal(meta)
     }
 
-    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
         controlConnection.sendSignal(signal)
     }
 
     override fun startAcquisition() {
-        controlConnection.sendSignal(ClientSignal.StartAcquisition)
+        controlConnection.sendSignal(MicroscopeControlSignal.StartAcquisition)
     }
 
     override fun goLive() {
-        controlConnection.sendSignal(ClientSignal.Live)
+        controlConnection.sendSignal(MicroscopeControlSignal.Live)
     }
 
     override fun sync(): Future<Boolean> {
@@ -79,11 +79,11 @@ class RemoteMicroscopeClient(
     }
 
     override fun stop() {
-        controlConnection.sendSignal(ClientSignal.Stop)
+        controlConnection.sendSignal(MicroscopeControlSignal.Stop)
     }
 
     override fun deviceSpecificCommands(data: ByteArray) {
-        controlConnection.sendSignal(ClientSignal.DeviceSpecific(data))
+        controlConnection.sendSignal(MicroscopeControlSignal.DeviceSpecific(data))
     }
 
     /**
@@ -97,21 +97,26 @@ class RemoteMicroscopeClient(
                     is HardwareDimensions -> {
                         hardwareDimensions = microscopeSignal
                     }
+
                     is MicroscopeStatus -> {
                         if (microscopeSignal.state == ServerState.SHUTTING_DOWN) this.close()
                         status = microscopeSignal
                     }
-                    is Slice -> {
-                        if (dataConnection.requestSlice(microscopeSignal.Id, microscopeSignal.size)) {
+
+                    is MicroscopeSlice -> {
+                        val slice = microscopeSignal.slice
+                        if (dataConnection.requestSlice(slice.Id, slice.size)) {
                             // save signal for eventual data receiving
-                            requestedSlices[microscopeSignal.Id] = microscopeSignal
+                            requestedSlices[slice.Id] = slice
                         }
                     }
+
                     else -> {
                         output.put(microscopeSignal)
                     }
                 }
             }
+
             is RemoteMicroscopeStatus -> {}
         }
     }
@@ -123,6 +128,6 @@ class RemoteMicroscopeClient(
     }
 
     override fun onClose() {
-        controlConnection.sendSignal(ClientSignal.Shutdown)
+        controlConnection.sendSignal(MicroscopeControlSignal.Shutdown)
     }
 }

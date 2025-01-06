@@ -2,11 +2,12 @@ package microscenery.network
 
 import fromScenery.lazyLogger
 import kotlinx.event.event
-import me.jancasus.microscenery.network.v2.ClientSignal
-import me.jancasus.microscenery.network.v2.EnumServerState
+import me.jancasus.microscenery.network.v3.MicroscopeControlSignal
 import microscenery.Agent
-import microscenery.signals.RemoteMicroscopeSignal
+import microscenery.signals.*
+import microscenery.signals.DataAvailableSignal.Companion.toPoko
 import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
+import org.withXR.network.v3.BaseSignal
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -14,7 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * A Client to send control [ClientSignal]s to [ControlSignalsServer] and receive [RemoteMicroscopeSignal]s.
+ * A Client to send control [MicroscopeControlSignal]s to [ControlSignalsServer] and receive [RemoteMicroscopeSignal]s.
  *
  * Client shuts down when a signal with shutdown status has been received.
  */
@@ -28,7 +29,7 @@ class ControlSignalsClient(
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<ClientSignal>(1000)
+    private val signalsOut = ArrayBlockingQueue<MicroscopeControlSignal>(1000)
     private val signalsIn = event<RemoteMicroscopeSignal>()
 
     init {
@@ -44,7 +45,7 @@ class ControlSignalsClient(
             throw IllegalStateException("Could not connect to ${ControlSignalsClient::class.simpleName} connected to tcp://${host}:${port}")
         }
 
-        signalsOut += ClientSignal.newBuilder().run {
+        signalsOut += MicroscopeControlSignal.newBuilder().run {
             clientSignOnBuilder.build()
             build()
         }
@@ -61,7 +62,7 @@ class ControlSignalsClient(
         }
     }
 
-    fun sendSignal(signal: microscenery.signals.ClientSignal): Boolean {
+    fun sendSignal(signal: microscenery.signals.MicroscopeControlSignal): Boolean {
         if (!signalsOut.offer(signal.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
@@ -77,15 +78,15 @@ class ControlSignalsClient(
         // process incoming messages first.
         // First frame in each message is the sender identity
         if (payloadIn != null) {
-            val event = me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.parseFrom(payloadIn)
+            val event = unwrapBaseSignalToRemoteMicroscopeSignal(BaseSignal.parseFrom(payloadIn))
 
             synchronized(signalsIn) {
-                signalsIn(event.toPoko())
+                signalsIn(event)
             }
 
-            if (event.hasMicroscopeSignal()
-                && event.microscopeSignal.hasStatus()
-                && event.microscopeSignal.status.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
+            if (event is ActualMicroscopeSignal
+                && event.signal is MicroscopeStatus
+                && event.signal.state == ServerState.SHUTTING_DOWN
             ) {
                 close()
             }
@@ -106,5 +107,28 @@ class ControlSignalsClient(
         socket.linger = 0
         socket.close()
 
+    }
+
+    companion object {
+        fun unwrapBaseSignalToRemoteMicroscopeSignal(signal: BaseSignal): RemoteMicroscopeSignal {
+            when (signal.signalCase) {
+                BaseSignal.SignalCase.DATAAVAILABLESIGNAL -> {
+                    val mSignal = when (val das = signal.dataAvailableSignal.toPoko()) {
+                        is Stack -> MicroscopeStack(das)
+                        is Slice -> MicroscopeSlice(das)
+                    }
+                    return ActualMicroscopeSignal(mSignal)
+                }
+
+                BaseSignal.SignalCase.APPSPECIFIC -> {
+                    val data = signal.appSpecific.data
+                    val rms = me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal.parseFrom(data)
+                    return rms.toPoko()
+                }
+
+                BaseSignal.SignalCase.SIGNAL_NOT_SET ->
+                    throw IllegalArgumentException("${BaseSignal::class.java.simpleName} is not set")
+            }
+        }
     }
 }
