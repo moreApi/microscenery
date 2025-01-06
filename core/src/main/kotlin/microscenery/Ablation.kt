@@ -8,7 +8,7 @@ import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import microscenery.hardware.MicroscopeHardware
-import microscenery.signals.ClientSignal
+import microscenery.signals.MicroscopeControlSignal
 import org.joml.Vector3f
 
 /**
@@ -72,9 +72,9 @@ fun initAblationSettings(){
 }
 
 /**
- * Uses [MicroscenerySettings] to map [points] to [ClientSignal.AblationPoints]
+ * Uses [MicroscenerySettings] to map [points] to [MicroscopeControlSignal.AblationPoints]
  */
-fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
+fun buildLaserPath(points: List<Vector3f>): MicroscopeControlSignal.AblationPoints {
     val dwellTime = MicroscenerySettings.get(Settings.Ablation.Repetitions, 1L) //todo this is not correct but for zen studz workaround
     val laserPower = MicroscenerySettings.get(Settings.Ablation.LaserPower, 0f)
     // count time it takes to move towards next point to that points dwell time
@@ -82,8 +82,8 @@ fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
     val pauseLaserOnMove = MicroscenerySettings.get(Settings.Ablation.PauseLaserOnMove, false)
     val dryRun = MicroscenerySettings.get(Settings.Ablation.DryRun, true)
 
-    return ClientSignal.AblationPoints(points.mapIndexed { index, vector3f ->
-        ClientSignal.AblationPoint(
+    return MicroscopeControlSignal.AblationPoints(points.mapIndexed { index, vector3f ->
+        MicroscopeControlSignal.AblationPoint(
             vector3f,
             dwellTime,
             (index == 0 || pauseLaserOnMove) && !dryRun,
@@ -95,7 +95,7 @@ fun buildLaserPath(points: List<Vector3f>): ClientSignal.AblationPoints{
 }
 
 //TODO move to MMMicroscope
-fun executeAblationCommandSequence(hardware: MicroscopeHardware, signal: ClientSignal.AblationPoints ){
+fun executeAblationCommandSequence(hardware: MicroscopeHardware, signal: MicroscopeControlSignal.AblationPoints) {
     val dryRun = MicroscenerySettings.get(Settings.Ablation.DryRun, true)
     val repetitions = MicroscenerySettings.get(Settings.Ablation.Repetitions, 1)
     val startAcquisitionAfter = MicroscenerySettings.get(Settings.Ablation.StartAcquisitionAfter, false)

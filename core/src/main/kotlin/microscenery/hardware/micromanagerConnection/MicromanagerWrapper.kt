@@ -6,7 +6,7 @@ import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import fromScenery.utils.extensions.xy
-import me.jancasus.microscenery.network.v2.MicroManagerSignal
+import me.jancasus.microscenery.network.v3.MicroManagerSignal
 import microscenery.*
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
@@ -48,7 +48,8 @@ class MicromanagerWrapper(
     var vertexDiameter = MicroscenerySettings.get(Settings.MMMicroscope.VertexDiameter, mmCoreConnector.pixelSizeUm)
         set(value) {
             field = value
-            hardwareDimensions = hardwareDimensions.copy(vertexDiameter = value)
+            hardwareDimensions =
+                hardwareDimensions.copy(imageMeta = hardwareDimensions.imageMeta.copy(vertexDiameter = value))
         }
 
     init {
@@ -131,7 +132,14 @@ class MicromanagerWrapper(
     @Suppress("MemberVisibilityCanBePrivate")
     fun updateImageSize() {
         mmCoreConnector.initImageSize()
-        hardwareDimensions = hardwareDimensions.copy(imageSize = Vector2i(mmCoreConnector.width, mmCoreConnector.height))
+        hardwareDimensions = hardwareDimensions.copy(
+            imageMeta = hardwareDimensions.imageMeta.copy(
+                imageSize = Vector2i(
+                    mmCoreConnector.width,
+                    mmCoreConnector.height
+                )
+            )
+        )
     }
 
     //############################## called from external threads ##############################
@@ -145,12 +153,12 @@ class MicromanagerWrapper(
         hardwareCommandsQueue.add(HardwareCommand.MoveStage(target, hardwareDimensions, true))
     }
 
-    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+    override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
         stop()
         hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
-    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
         val points = signal.points.map {
             it.copy(position = hardwareDimensions.coercePosition(it.position, logger))
         }
@@ -246,9 +254,10 @@ class MicromanagerWrapper(
             position,
             hardwareDimensions.byteSize,
             null,
+            hardwareDimensions.imageMeta,
             data
         )
-        output.put(sliceSignal)
+        output.put(MicroscopeSlice(sliceSignal))
     }
 
     //############################## end of called from external threads ##############################
@@ -331,9 +340,10 @@ class MicromanagerWrapper(
             mmCoreConnector.stagePosition,
             hardwareDimensions.byteSize,
             hwCommand.stackIdAndSliceIndex,
+            hardwareDimensions.imageMeta,
             buf
         )
-        output.put(sliceSignal)
+        output.put(MicroscopeSlice(sliceSignal))
     }
 
     private fun executeGenerateStackCommands(hwCommand: HardwareCommand.GenerateStackCommands) {
@@ -347,13 +357,13 @@ class MicromanagerWrapper(
 
         val currentStack = Stack(
             if (meta.id > 0) meta.id else idCounter++,
-            meta.live,
             start,
             end,
             steps,
-            nowMillis()
+            nowMillis(),
+            hardwareDimensions.imageMeta
         )
-        output.put(currentStack)
+        output.put(MicroscopeStack(currentStack))
         status = status.copy(state = ServerState.STACK)
 
         for (i in 0 until steps) {
@@ -487,11 +497,11 @@ class MicromanagerWrapper(
         }
 
         data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
-        data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
-        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()): HardwareCommand()
+        data class GenerateStackCommands(val signal: MicroscopeControlSignal.AcquireStack) : HardwareCommand()
+        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
-        data class AblatePoints(val points: List<ClientSignal.AblationPoint>) : HardwareCommand()
+        data class AblatePoints(val points: List<MicroscopeControlSignal.AblationPoint>) : HardwareCommand()
         object StartAcquisition : HardwareCommand()
     }
 }
