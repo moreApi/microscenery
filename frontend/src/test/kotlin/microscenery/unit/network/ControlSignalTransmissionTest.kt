@@ -18,7 +18,7 @@ class ControlSignalTransmissionTest {
 
     var ctx = ZContext()
     var lastSignalServer: RemoteMicroscopeSignal? = null
-    var lastSignalClient: ClientSignal? = null
+    var lastSignalClient: MicroscopeControlSignal? = null
     var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listOf {
         lastSignalClient = it
     })
@@ -52,26 +52,26 @@ class ControlSignalTransmissionTest {
     @Test
     fun transmittingSnapCommand() {
         lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         lastSignalClient = null
-        client.sendSignal(ClientSignal.SnapImage)
+        client.sendSignal(MicroscopeControlSignal.SnapImage)
 
         lightSleepOnNull { lastSignalClient }
         assertNotNull(lastSignalClient)
-        assert(lastSignalClient is ClientSignal.SnapImage)
+        assert(lastSignalClient is MicroscopeControlSignal.SnapImage)
     }
 
     @Test
     fun transmittingValues() {
 
         lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         val outHwd = HardwareDimensions(
-            Vector3f(1f, 2f, 3f), Vector3f(2f), Vector2i(20), 0.4f, NumericType.INT16
+            Vector3f(1f, 2f, 3f), Vector3f(2f), ImageMeta(Vector2i(20), 0.4f, NumericType.INT16)
         )
         server.sendSignal(ActualMicroscopeSignal(outHwd))
 
@@ -90,7 +90,7 @@ class ControlSignalTransmissionTest {
     @Test
     fun transmittingState() {
         lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f(), false)
@@ -107,20 +107,20 @@ class ControlSignalTransmissionTest {
     @Test
     fun transmittingCommand() {
         lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         lastSignalClient = null
-        client.sendSignal(ClientSignal.SnapImage)
+        client.sendSignal(MicroscopeControlSignal.SnapImage)
         lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient as ClientSignal.SnapImage)
+        assertNotNull(lastSignalClient as MicroscopeControlSignal.SnapImage)
     }
 
     @Test
     fun manySignals() {
 
         lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         var countServer = 0
@@ -137,7 +137,7 @@ class ControlSignalTransmissionTest {
         client.addListener { countClient++ }
 
         for (x in 1..2000) {
-            assert(client.sendSignal(ClientSignal.MoveStage(Vector3f(x.toFloat()))))
+            assert(client.sendSignal(MicroscopeControlSignal.MoveStage(Vector3f(x.toFloat()))))
         }
         Thread.sleep(5000)
 

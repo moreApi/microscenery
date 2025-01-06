@@ -101,8 +101,8 @@ class StageSpaceManager(
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
         signal?.let { logger.trace("got a ${signal::class.simpleName} signal:\n$signal") }
         when (signal) {
-            is Slice -> {
-                sliceManager.handleSliceSignal(signal, layout)
+            is MicroscopeSlice -> {
+                sliceManager.handleSliceSignal(signal.slice, layout)
             }
             is HardwareDimensions -> {
                 handleHardwareDimensionsSignal(signal)
@@ -111,8 +111,8 @@ class StageSpaceManager(
                 focusManager.newStagePosition(signal.stagePosition)
                 stageSpaceLabel?.updateMicroscopeStatusLabel(signal)
             }
-            is Stack -> {
-                sliceManager.handleStackSignal(signal, msHub.getAttribute(Hub::class.java))
+            is MicroscopeStack -> {
+                sliceManager.handleStackSignal(signal.stack, msHub.getAttribute(Hub::class.java))
             }
             is AblationResults -> {
                 logger.info("Ablation took ${signal.totalTimeMillis}ms for ${signal.perPointTime.size} points " +
@@ -150,7 +150,7 @@ class StageSpaceManager(
 
     fun stack(from: Vector3f, to: Vector3f, live: Boolean = MicroscenerySettings.get(Settings.Stage.NextStackLive, false)) {
         hardware.acquireStack(
-            ClientSignal.AcquireStack(
+            MicroscopeControlSignal.AcquireStack(
                 from,
                 to,
                 MicroscenerySettings.get(Settings.Stage.PrecisionZ, hardware.hardwareDimensions().vertexDiameter),

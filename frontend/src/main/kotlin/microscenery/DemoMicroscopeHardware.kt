@@ -42,14 +42,17 @@ class DemoMicroscopeHardware(
     var stackSliceCounter: Int = 0
 
     init {
-
-        hardwareDimensions = HardwareDimensions(
-            stageMin = Vector3f(0f),
-            stageMax = size,
-            imageSize = Vector2i(50 / binning, 50 / binning),
+        val im = ImageMeta(
+            Vector2i(50 / binning, 50 / binning),
             vertexDiameter = 1f * binning,
             numericType = NumericType.INT8
         )
+        hardwareDimensions = HardwareDimensions(
+            stageMin = Vector3f(0f),
+            stageMax = size,
+            imageMeta = im
+        )
+        imageMeta = im
         status = MicroscopeStatus(
             ServerState.MANUAL,
             stagePosition,
@@ -106,9 +109,10 @@ class DemoMicroscopeHardware(
             stagePosition,
             sliceBuffer.capacity(),
             currentStack?.let { it.Id to stackSliceCounter },
+            imageMeta,
             sliceBuffer
         )
-        output.put(signal)
+        output.put(MicroscopeSlice(signal))
     }
 
     override fun goLive() {
@@ -143,7 +147,7 @@ class DemoMicroscopeHardware(
         stop()
     }
 
-    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+    override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
         if (status.state != ServerState.MANUAL) {
             logger.warn("Ignoring Stack command because microscope is busy.")
         }
@@ -159,13 +163,13 @@ class DemoMicroscopeHardware(
 
             currentStack = Stack(
                 idCounter++,
-                false,
                 start,
                 end,
                 steps,
-                nowMillis()
+                nowMillis(),
+                imageMeta
             )
-            output.put(currentStack!!)
+            output.put(MicroscopeStack(currentStack!!))
 
             for (i in 0 until steps) {
                 stagePosition = start + (step * i.toFloat())
@@ -178,7 +182,7 @@ class DemoMicroscopeHardware(
         }
     }
 
-    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
         for (p in signal.points)
             logger.info("Ablating $p")
         output.put(AblationResults(signal.points.size * 50, (1..signal.points.size).map { Random().nextInt(20) + 40 }))

@@ -59,13 +59,17 @@ class FileMicroscopeHardware(
         imp = IJ.openImage(file)
         img = ImageJFunctions.wrap(imp)
 
-        hardwareDimensions = HardwareDimensions(
-            stageMin = Vector3f(0f),
-            stageMax = Vector3f(0f, 0f, dimensions.z.toFloat()*zPerXY),
+        val im = ImageMeta(
             imageSize = Vector2i(dimensions.x, dimensions.y),
             vertexDiameter = 1f,
             numericType = NumericType.INT16
         )
+        hardwareDimensions = HardwareDimensions(
+            stageMin = Vector3f(0f),
+            stageMax = Vector3f(0f, 0f, dimensions.z.toFloat()*zPerXY),
+            im
+        )
+        imageMeta = im
         status = MicroscopeStatus(
             ServerState.MANUAL,
             stagePosition,
@@ -103,9 +107,10 @@ class FileMicroscopeHardware(
             Vector3f(stagePosition.xy(),stagePosition.z * zPerXY),
             sliceBuffer.capacity(),
             currentStack?.let { it.Id to stackSliceCounter },
+            imageMeta,
             sliceBuffer
         )
-        output.put(signal)
+        output.put(MicroscopeSlice(signal))
     }
 
     override fun goLive() {
@@ -129,7 +134,7 @@ class FileMicroscopeHardware(
         stop()
     }
 
-    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+    override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
         if (status.state != ServerState.MANUAL) {
             logger.warn("Ignoring Stack command because microscope is busy.")
         }
@@ -143,13 +148,13 @@ class FileMicroscopeHardware(
 
             currentStack = Stack(
                 idCounter++,
-                false,
                 start,
                 end,
                 steps,
-                nowMillis()
+                nowMillis(),
+                imageMeta
             )
-            output.put(currentStack!!)
+            output.put(MicroscopeStack(currentStack!!))
 
             for (i in 0 until steps) {
                 stagePosition = start + Vector3f(0f, 0f, i.toFloat())
@@ -162,7 +167,7 @@ class FileMicroscopeHardware(
         }
     }
 
-    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
         for (p in signal.points)
             logger.info("Ablating $p")
         output.put(AblationResults(signal.points.size * 50, (1..signal.points.size).map { Random().nextInt(20) + 40 }))
