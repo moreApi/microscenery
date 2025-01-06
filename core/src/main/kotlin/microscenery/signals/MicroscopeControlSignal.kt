@@ -5,10 +5,10 @@ import org.joml.Vector2i
 import org.joml.Vector3f
 
 
-sealed class ClientSignal {
+sealed class MicroscopeControlSignal {
 
-    open fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
-        val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+    open fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
+        val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
         when (this) {
             is AcquireStack -> throw NotImplementedError("This case should be overwritten.")
             ClientSignOn -> cs.clientSignOnBuilder.build()
@@ -25,16 +25,16 @@ sealed class ClientSignal {
         return cs.build()
     }
 
-    object Live : ClientSignal()
-    object ClientSignOn : ClientSignal()
-    object Shutdown : ClientSignal()
-    object SnapImage : ClientSignal()
-    object Stop : ClientSignal()
-    object StartAcquisition : ClientSignal()
+    object Live : MicroscopeControlSignal()
+    object ClientSignOn : MicroscopeControlSignal()
+    object Shutdown : MicroscopeControlSignal()
+    object SnapImage : MicroscopeControlSignal()
+    object Stop : MicroscopeControlSignal()
+    object StartAcquisition : MicroscopeControlSignal()
 
-    data class MoveStage(val target: Vector3f) : ClientSignal() {
-        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
-            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+    data class MoveStage(val target: Vector3f) : MicroscopeControlSignal() {
+        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
+            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
             cs.moveStageBuilder.setTarget(this.target.toProto()).build()
             return cs.build()
         }
@@ -48,9 +48,9 @@ sealed class ClientSignal {
         val roiStart: Vector2i = Vector2i(),
         val roiEnd: Vector2i = Vector2i(),
         val id: Int = -1
-    ) : ClientSignal() {
-        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
-            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+    ) : MicroscopeControlSignal() {
+        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
+            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
             val asb = cs.acquireStackBuilder
             asb.startPosition = this.startPosition.toProto()
             asb.endPosition = this.endPosition.toProto()
@@ -64,9 +64,9 @@ sealed class ClientSignal {
         }
     }
 
-    data class AblationPoints(val points: List<AblationPoint>):ClientSignal(){
-        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
-            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+    data class AblationPoints(val points: List<AblationPoint>) : MicroscopeControlSignal() {
+        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
+            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
             val b = cs.ablationPointsBuilder
             b.addAllPoints(points.map { it.toProto() })
             b.build()
@@ -74,9 +74,9 @@ sealed class ClientSignal {
         }
     }
 
-    data class AblationShutter(val open: Boolean):ClientSignal(){
-        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal {
-            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+    data class AblationShutter(val open: Boolean) : MicroscopeControlSignal() {
+        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
+            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
             val b = cs.ablationShutterBuilder
             b.open = open
             b.build()
@@ -86,14 +86,14 @@ sealed class ClientSignal {
 
     data class AblationPoint(
         val position: Vector3f = Vector3f(),
-        val dwellTime: Long = 0 ,
+        val dwellTime: Long = 0,
         val laserOn: Boolean = false,
         val laserOff: Boolean = false,
         val laserPower: Float = 0f,
         val countMoveTime: Boolean = false
-    ){
-        fun toProto(): me.jancasus.microscenery.network.v2.AblationPoint{
-            val b = me.jancasus.microscenery.network.v2.AblationPoint.newBuilder()
+    ) {
+        fun toProto(): me.jancasus.microscenery.network.v3.AblationPoint {
+            val b = me.jancasus.microscenery.network.v3.AblationPoint.newBuilder()
             b.position = position.toProto()
             b.dwellTime = dwellTime
             b.laserOn = laserOn
@@ -104,7 +104,7 @@ sealed class ClientSignal {
         }
     }
 
-    data class DeviceSpecific(val data: ByteArray):ClientSignal() {
+    data class DeviceSpecific(val data: ByteArray) : MicroscopeControlSignal() {
         // autogenerated equas and hashcode because intellij said so
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -117,8 +117,8 @@ sealed class ClientSignal {
             return data.contentHashCode()
         }
 
-        override fun toProto(): me.jancasus.microscenery.network.v2.ClientSignal{
-            val cs = me.jancasus.microscenery.network.v2.ClientSignal.newBuilder()
+        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
+            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
             val ds = cs.deviceSpecificBuilder
             ds.setData(ByteString.copyFrom(data))
             ds.build()
@@ -127,21 +127,27 @@ sealed class ClientSignal {
     }
 
     companion object {
-        fun me.jancasus.microscenery.network.v2.ClientSignal.toPoko(): ClientSignal =
+        fun me.jancasus.microscenery.network.v3.MicroscopeControlSignal.toPoko(): MicroscopeControlSignal =
             when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.SIGNAL_NOT_SET ->
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SIGNAL_NOT_SET ->
                     throw IllegalArgumentException("Signal is not set in Client signal message")
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.LIVE ->
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.LIVE ->
                     Live
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.MOVESTAGE ->
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.MOVESTAGE ->
                     MoveStage(this.moveStage.target.toPoko())
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.CLIENTSIGNON ->
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.CLIENTSIGNON ->
                     ClientSignOn
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.SHUTDOWN ->
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SHUTDOWN ->
                     Shutdown
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.SNAPIMAGE ->
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SNAPIMAGE ->
                     SnapImage
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.ACQUIRESTACK -> {
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.ACQUIRESTACK -> {
                     val ast = this.acquireStack
                     AcquireStack(
                         ast.startPosition.toPoko(),
@@ -153,24 +159,27 @@ sealed class ClientSignal {
                         ast.id
                     )
                 }
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.STOP -> Stop
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.ABLATIONPOINTS ->{
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.STOP -> Stop
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.ABLATIONPOINTS -> {
                     val points = this.ablationPoints.pointsList
-                    AblationPoints(points.map{
+                    AblationPoints(points.map {
                         AblationPoint(
-                        it.position.toPoko(),
-                        it.dwellTime,
-                        it.laserOn,
-                        it.laserOff,
-                        it.laserPower,
-                        it.countMoveTime
-                    )
+                            it.position.toPoko(),
+                            it.dwellTime,
+                            it.laserOn,
+                            it.laserOff,
+                            it.laserPower,
+                            it.countMoveTime
+                        )
                     })
                 }
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.ABLATIONSHUTTER ->
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.ABLATIONSHUTTER ->
                     AblationShutter(this.ablationShutter.open)
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.STARTACQUISITION -> StartAcquisition
-                me.jancasus.microscenery.network.v2.ClientSignal.SignalCase.DEVICESPECIFIC ->{
+
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.STARTACQUISITION -> StartAcquisition
+                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.DEVICESPECIFIC -> {
                     DeviceSpecific(this.deviceSpecific.data.toByteArray())
                 }
             }
