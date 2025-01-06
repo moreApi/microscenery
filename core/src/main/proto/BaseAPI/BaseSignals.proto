@@ -10,11 +10,11 @@ option java_multiple_files = true;
 message BaseSignal{
   oneof signal{
       DataAvailableSignal dataAvailableSignal = 1;
-      Other other = 2;
+      AppSpecific appSpecific = 2;
   }
 }
 
-message Other{
+message AppSpecific{
   bytes data = 1;
 }
 
@@ -25,15 +25,17 @@ message DataAvailableSignal{
   }
 }
 
+// stack and slice IDs should come from the same generator and have to be unique and lager than 0
+
 message Stack{
   int32 id = 1;
-  int32 relatedToId = 2;
+  int32 relatedToId = 2; //0 or another time point of stack x
   Vector3Float from = 3;
   Vector3Float to = 4;
   int32 slicesCount = 5;
   google.protobuf.Timestamp created = 6;
   ImageMeta imageMeta = 7;
-  optional Other other = 8;
+  int32 channelId = 8;
 }
 
 message Slice{
@@ -41,13 +43,13 @@ message Slice{
   google.protobuf.Timestamp created = 2;
   Vector3Float stagePos = 3;
   int32 size = 4;
-  int32 stackId = 5;
+  int32 relatedToId = 5; //either slice or stack ID
   int32 stackSliceIndex = 6;
-  int32 relatedToId = 7;
-  ImageMeta imageMeta = 8;
-  optional Other other = 9;
+  ImageMeta imageMeta = 7;
+  int32 channelId = 8;
 }
 
+//values that tend to be the same for all data and are usually come from the used hardware
 message ImageMeta{
   Vector2Int imageSize = 1;
   float vertexDiameter = 2;
