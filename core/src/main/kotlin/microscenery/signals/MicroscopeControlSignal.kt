@@ -6,12 +6,12 @@ import org.joml.Vector3f
 
 
 sealed class MicroscopeControlSignal {
+    fun toBaseSignal() = BaseClientSignal.AppSpecific(this.toProto().toByteString())
 
     open fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
         val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
         when (this) {
             is AcquireStack -> throw NotImplementedError("This case should be overwritten.")
-            ClientSignOn -> cs.clientSignOnBuilder.build()
             is Live -> cs.liveBuilder.build()
             is MoveStage -> throw NotImplementedError("This case should be overwritten.")
             Shutdown -> cs.shutdownBuilder.build()
@@ -26,7 +26,6 @@ sealed class MicroscopeControlSignal {
     }
 
     object Live : MicroscopeControlSignal()
-    object ClientSignOn : MicroscopeControlSignal()
     object Shutdown : MicroscopeControlSignal()
     object SnapImage : MicroscopeControlSignal()
     object Stop : MicroscopeControlSignal()
@@ -127,6 +126,9 @@ sealed class MicroscopeControlSignal {
     }
 
     companion object {
+        fun BaseClientSignal.AppSpecific.toMicroscopeControlSignal() =
+            me.jancasus.microscenery.network.v3.MicroscopeControlSignal.parseFrom(this.data).toPoko()
+
         fun me.jancasus.microscenery.network.v3.MicroscopeControlSignal.toPoko(): MicroscopeControlSignal =
             when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
                 me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SIGNAL_NOT_SET ->
@@ -137,9 +139,6 @@ sealed class MicroscopeControlSignal {
 
                 me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.MOVESTAGE ->
                     MoveStage(this.moveStage.target.toPoko())
-
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.CLIENTSIGNON ->
-                    ClientSignOn
 
                 me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SHUTDOWN ->
                     Shutdown
