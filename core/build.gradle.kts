@@ -38,6 +38,18 @@ dependencies {
     implementation("org.lwjgl", "lwjgl")
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
     lwjglNatives.forEach { runtimeOnly("org.lwjgl", "lwjgl", classifier = it) }
+    
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.mockito:mockito-core:5.10.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("org.lwjgl:lwjgl-jawt:3.3.1")
+    testImplementation(kotlin("test"))
+}
+
+
+tasks.test {
+    jvmArgs = listOf("-Xmx28G")
+    useJUnitPlatform()
 }
 
 java.sourceSets["main"].java {

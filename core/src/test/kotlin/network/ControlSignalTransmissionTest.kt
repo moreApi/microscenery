@@ -1,10 +1,11 @@
-package microscenery.unit.network
+package network
 
 import microscenery.lightSleepOnCondition
 import microscenery.lightSleepOnNull
 import microscenery.network.ControlSignalsClient
 import microscenery.network.ControlSignalsServer
 import microscenery.signals.*
+import microscenery.signals.MicroscopeControlSignal.Companion.toMicroscopeControlSignal
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.junit.jupiter.api.AfterEach
@@ -19,8 +20,11 @@ class ControlSignalTransmissionTest {
     var ctx = ZContext()
     var lastSignalServer: RemoteMicroscopeSignal? = null
     var lastSignalClient: MicroscopeControlSignal? = null
+    var lastClientBaseSignal: BaseClientSignal? = null
     var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listOf {
-        lastSignalClient = it
+        lastClientBaseSignal = it
+        if (it is BaseClientSignal.AppSpecific)
+            lastSignalClient = it.toMicroscopeControlSignal()
     })
     var client: ControlSignalsClient = ControlSignalsClient(ctx, 11543, "*", listOf {
         lastSignalServer = it
@@ -51,12 +55,12 @@ class ControlSignalTransmissionTest {
 
     @Test
     fun transmittingSnapCommand() {
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         lastSignalClient = null
-        client.sendSignal(MicroscopeControlSignal.SnapImage)
+        client.sendSignal(MicroscopeControlSignal.SnapImage.toBaseSignal())
 
         lightSleepOnNull { lastSignalClient }
         assertNotNull(lastSignalClient)
@@ -66,8 +70,8 @@ class ControlSignalTransmissionTest {
     @Test
     fun transmittingValues() {
 
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         val outHwd = HardwareDimensions(
@@ -89,8 +93,8 @@ class ControlSignalTransmissionTest {
 
     @Test
     fun transmittingState() {
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f(), false)
@@ -106,12 +110,12 @@ class ControlSignalTransmissionTest {
 
     @Test
     fun transmittingCommand() {
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         lastSignalClient = null
-        client.sendSignal(MicroscopeControlSignal.SnapImage)
+        client.sendSignal(MicroscopeControlSignal.SnapImage.toBaseSignal())
         lightSleepOnNull { lastSignalClient }
         assertNotNull(lastSignalClient as MicroscopeControlSignal.SnapImage)
     }
@@ -119,8 +123,8 @@ class ControlSignalTransmissionTest {
     @Test
     fun manySignals() {
 
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is MicroscopeControlSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         var countServer = 0
@@ -137,11 +141,12 @@ class ControlSignalTransmissionTest {
         client.addListener { countClient++ }
 
         for (x in 1..2000) {
-            assert(client.sendSignal(MicroscopeControlSignal.MoveStage(Vector3f(x.toFloat()))))
+            assert(client.sendSignal(MicroscopeControlSignal.MoveStage(Vector3f(x.toFloat())).toBaseSignal()))
         }
         Thread.sleep(5000)
 
         assertEquals(2000, countServer)
         assertEquals(2000, countClient)
     }
+
 }
