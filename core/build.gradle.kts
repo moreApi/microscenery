@@ -29,6 +29,8 @@ dependencies {
     // this is the version micromanager uses
     implementation("com.miglayout:miglayout:3.7.4")
 
+    implementation("org.jmdns:jmdns:3.5.9")
+
 
 
     implementation(files("manualLib/MMCoreJ.jar"))
