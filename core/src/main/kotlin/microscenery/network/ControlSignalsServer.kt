@@ -27,7 +27,7 @@ class ControlSignalsServer(
     private val socket: ZMQ.Socket
 
     private val signalsOut = ArrayBlockingQueue<org.withXR.network.v3.BaseServerSignal>(1000)
-    private val signalsIn = event<org.withXR.network.v3.BaseClientSignal>()
+    private val signalsIn = event<BaseClientSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
 
@@ -52,7 +52,7 @@ class ControlSignalsServer(
      */
     fun addListener(listener: (BaseClientSignal) -> Unit) {
         synchronized(signalsIn) {
-            signalsIn += { listener(it.toPoko()) }
+            signalsIn += { listener(it) }
         }
     }
 
@@ -87,7 +87,7 @@ class ControlSignalsServer(
 
     fun sendInternalSignals(signals: List<BaseClientSignal>) {
         synchronized(signalsIn) {
-            signals.forEach { signalsIn(it.toProto()) }
+            signals.forEach { signalsIn(it) }
         }
     }
 
@@ -102,7 +102,7 @@ class ControlSignalsServer(
             val event = org.withXR.network.v3.BaseClientSignal.parseFrom(socket.recv())
 
             synchronized(signalsIn) {
-                signalsIn(event)
+                signalsIn(event.toPoko())
             }
         }
 
