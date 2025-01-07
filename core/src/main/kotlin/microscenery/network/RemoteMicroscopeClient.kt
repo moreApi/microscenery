@@ -7,11 +7,8 @@ import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
 import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
 import org.joml.Vector3f
-import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
 
 /**
  * Is a virtual [MicroscopeHardware] to send commands to a remote microscope over network.
@@ -26,33 +23,11 @@ class RemoteMicroscopeClient(
 ) : MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val controlConnection = ControlSignalsClient(zContext, basePort, host, listOf(this::processServerSignal))
-    private val dataConnection = BiggishDataClient(zContext, basePort + 1, host)
-
-    private val requestedSlices = ConcurrentHashMap<Int, Slice>()
+    private val controlConnection = ControlSignalsClient(zContext, basePort, host, listOf())
+    private val sliceRequester = SliceRequester(controlConnection, listOf(this::processServerSignal))
 
     init {
-        startAgent()
-    }
-
-    override fun onLoop() {
-        val sliceParts = dataConnection.outputQueue.poll(200, TimeUnit.MILLISECONDS) ?: return
-        val meta = requestedSlices[sliceParts.id]
-
-        if (meta == null) {
-            logger.warn("Got data for slice ${sliceParts.id} but it was not requested.")
-            return
-        }
-        if (sliceParts.size != meta.size) {
-            logger.error("Size mismatch for slice ${sliceParts.id} ${sliceParts.size} vs ${meta.size}")
-        }
-
-        val buffer = MemoryUtil.memAlloc(sliceParts.size)
-        sliceParts.chunks.forEach {
-            buffer.put(it.value)
-        }
-        buffer.flip()
-        output.put(MicroscopeSlice(meta.copy(data = buffer)))
+        //startAgent() we dont need the agent, we just like to use the other stuff [MicroscopeHardwareAgent] brings
     }
 
     override fun snapSlice() {
@@ -61,6 +36,10 @@ class RemoteMicroscopeClient(
 
     override fun moveStage(target: Vector3f) {
         sendBaseWrappedSignal(MicroscopeControlSignal.MoveStage(target))
+    }
+
+    override fun onLoop() {
+        throw IllegalStateException("this agent does not need to be started")
     }
 
     override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
@@ -98,9 +77,7 @@ class RemoteMicroscopeClient(
      * Executed by the network thread of [ControlSignalsClient]
      */
     private fun processServerSignal(signal: BaseServerSignal) {
-        val s = unwrapToRemoteMicroscopeSignal(signal)
-
-        when (s) {
+        when (val s = unwrapToRemoteMicroscopeSignal(signal)) {
             is RemoteMicroscopeStatus -> {}
             is ActualMicroscopeSignal -> {
                 when (val microscopeSignal = s.signal) {
@@ -111,19 +88,12 @@ class RemoteMicroscopeClient(
                     is MicroscopeStatus -> {
                         if (microscopeSignal.state == ServerState.SHUTTING_DOWN) {
                             controlConnection.close()
-                            dataConnection.close()
+                            sliceRequester.close()
                             this.close()
                         }
                         status = microscopeSignal
                     }
 
-                    is MicroscopeSlice -> {
-                        val slice = microscopeSignal.slice
-                        if (dataConnection.requestSlice(slice.Id, slice.size)) {
-                            // save signal for eventual data receiving
-                            requestedSlices[slice.Id] = slice
-                        }
-                    }
                     else -> {
                         output.put(microscopeSignal)
                     }

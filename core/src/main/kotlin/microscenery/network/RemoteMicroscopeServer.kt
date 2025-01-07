@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
 /**
- * Wraps an [MicroscopeHardware] and sends its output as [MicoscopeSignals]s wrapped in [BaseClientSignal].
+ * Wraps an [MicroscopeHardware] and sends its output as [MicoscopeSignal]s wrapped in [BaseClientSignal].
  * Also puts captured slice data into [SliceStorage] to be requested by [BiggishDataClient].
  * 
  * @param acquireOnConnect send an empty acquire stack signal to microscope on client connect
