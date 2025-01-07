@@ -8,10 +8,14 @@ import microscenery.signals.ActualMicroscopeSignal
 import microscenery.signals.MicroscopeControlSignal
 import microscenery.signals.MicroscopeSlice
 import microscenery.signals.RemoteMicroscopeStatus
+import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
+/**
+ * @param acquireOnConnect send an empty acquire stack signal to microscope on client connect
+ */
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class RemoteMicroscopeServer @JvmOverloads constructor(
     val microscope: MicroscopeHardware,
@@ -19,6 +23,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val storage: SliceStorage = SliceStorage(),
     val basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
+    val acquireOnConnect: Boolean = false
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -66,6 +71,9 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                 status = status.copy(connectedClients = status.connectedClients + 1)
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
+                if (acquireOnConnect){
+                    microscope.acquireStack(MicroscopeControlSignal.AcquireStack(Vector3f(),Vector3f(),1f))
+                }
             }
 
             MicroscopeControlSignal.Live -> microscope.goLive()
