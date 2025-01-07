@@ -5,9 +5,9 @@ import kotlinx.event.event
 import me.jancasus.microscenery.network.v3.MicroscopeControlSignal
 import microscenery.Agent
 import microscenery.signals.*
-import microscenery.signals.DataAvailableSignal.Companion.toPoko
+import microscenery.signals.BaseServerSignal.Companion.toPoko
 import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
-import org.withXR.network.v3.BaseSignal
+import org.withXR.network.v3.BaseServerSignal
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -78,7 +78,7 @@ class ControlSignalsClient(
         // process incoming messages first.
         // First frame in each message is the sender identity
         if (payloadIn != null) {
-            val event = unwrapBaseSignalToRemoteMicroscopeSignal(BaseSignal.parseFrom(payloadIn))
+            val event = unwrapBaseSignalToRemoteMicroscopeSignal(BaseServerSignal.parseFrom(payloadIn))
 
             synchronized(signalsIn) {
                 signalsIn(event)
@@ -110,24 +110,17 @@ class ControlSignalsClient(
     }
 
     companion object {
-        fun unwrapBaseSignalToRemoteMicroscopeSignal(signal: BaseSignal): RemoteMicroscopeSignal {
-            when (signal.signalCase) {
-                BaseSignal.SignalCase.DATAAVAILABLESIGNAL -> {
-                    val mSignal = when (val das = signal.dataAvailableSignal.toPoko()) {
-                        is Stack -> MicroscopeStack(das)
-                        is Slice -> MicroscopeSlice(das)
-                    }
-                    return ActualMicroscopeSignal(mSignal)
-                }
-
-                BaseSignal.SignalCase.APPSPECIFIC -> {
+        fun unwrapBaseSignalToRemoteMicroscopeSignal(signal: BaseServerSignal): RemoteMicroscopeSignal {
+            val s = signal.toPoko()
+            return when (s) {
+                is microscenery.signals.BaseServerSignal.AppSpecific -> {
                     val data = signal.appSpecific.data
                     val rms = me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal.parseFrom(data)
-                    return rms.toPoko()
+                    rms.toPoko()
                 }
 
-                BaseSignal.SignalCase.SIGNAL_NOT_SET ->
-                    throw IllegalArgumentException("${BaseSignal::class.java.simpleName} is not set")
+                is Slice -> ActualMicroscopeSignal(MicroscopeSlice(s))
+                is Stack -> ActualMicroscopeSignal(MicroscopeStack(s))
             }
         }
     }

@@ -7,7 +7,6 @@ import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.signals.*
 import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
-import org.withXR.network.v3.BaseSignal
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -27,7 +26,7 @@ class ControlSignalsServer(
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<BaseSignal>(1000)
+    private val signalsOut = ArrayBlockingQueue<org.withXR.network.v3.BaseServerSignal>(1000)
     private val signalsIn = event<MicroscopeControlSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
@@ -61,38 +60,25 @@ class ControlSignalsServer(
     fun sendSignal(signal: RemoteMicroscopeSignal): Boolean {
         val wrapped = when (signal) {
             is RemoteMicroscopeStatus -> {
-                BaseSignal.newBuilder().run {
-                    this.appSpecificBuilder.setData(signal.toProto().toByteString())
-                    this.build()
-                }
+                BaseServerSignal.AppSpecific(signal.toProto().toByteString())
             }
 
             is ActualMicroscopeSignal -> when (signal.signal) {
                 is MicroscopeStack -> {
-                    BaseSignal.newBuilder().run {
-                        this.dataAvailableSignal = signal.signal.stack.toProto()
-                        this.build()
-                    }
+                    signal.signal.stack
                 }
 
                 is MicroscopeSlice -> {
-                    BaseSignal.newBuilder().run {
-                        this.dataAvailableSignal = signal.signal.slice.toProto()
-                        this.build()
-                    }
+                    signal.signal.slice
                 }
-
                 else -> {
                     shutdown = signal.signal is MicroscopeStatus && signal.signal.state == ServerState.SHUTTING_DOWN
-                    BaseSignal.newBuilder().run {
-                        this.appSpecificBuilder.setData(signal.toProto().toByteString())
-                        this.build()
-                    }
+                    BaseServerSignal.AppSpecific(signal.toProto().toByteString())
                 }
             }
         }
 
-        if (!signalsOut.offer(wrapped, 5000, TimeUnit.MILLISECONDS)) {
+        if (!signalsOut.offer(wrapped.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
         }
