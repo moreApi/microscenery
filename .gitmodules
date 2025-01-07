@@ -1,3 +1,6 @@
 [submodule "zenSysConCon"]
 	path = zenSysConCon
 	url = git@github.com:moreApi/microscenery-ZenSysConCon.git
+[submodule "core/microscenery-protocol"]
+	path = core/microscenery-protocol
+	url = git@github.com:internalengineering/microscenery-protocol.git

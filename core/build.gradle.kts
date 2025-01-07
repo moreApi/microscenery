@@ -44,7 +44,6 @@ java.sourceSets["main"].java {
     srcDir("build/generated/source/proto/main/java")
 }
 
-
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
@@ -54,6 +53,9 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+sourceSets["main"].proto {
+    srcDir("microscenery-protocol/proto")
+}
 protobuf {
     var protocPath = providers.gradleProperty("protoc.path").orNull
     if(protocPath == null) {
