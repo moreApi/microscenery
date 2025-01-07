@@ -1,6 +1,6 @@
 syntax = "proto3";
+package withXR.proto;
 
-import "google/protobuf/timestamp.proto";
 import "BaseAPI/BaseNetworkTypes.proto";
 import "BaseAPI/BaseSignals.proto";
 
