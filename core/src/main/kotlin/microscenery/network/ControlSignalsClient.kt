@@ -2,9 +2,9 @@ package microscenery.network
 
 import fromScenery.lazyLogger
 import kotlinx.event.event
-import me.jancasus.microscenery.network.v3.MicroscopeControlSignal
 import microscenery.Agent
-import microscenery.signals.*
+import microscenery.signals.BaseClientSignal
+import microscenery.signals.BaseServerSignal
 import microscenery.signals.BaseServerSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
@@ -13,14 +13,17 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * A Client to send control [MicroscopeControlSignal]s to [ControlSignalsServer] and receive [RemoteMicroscopeSignal]s.
+ * A Client to send control [BaseClientSignal]s to [ControlSignalsServer] and receive [BaseServerSignal]s.
  *
- * Client shuts down when a signal with shutdown status has been received.
+ * Receive [BaseServerSignal]s via subscribing with a listener by [addListener].
+ * Don't add too elaborate listeners. They get executed by the network thread.
+ *
+ * Send via [sendSignal].
  */
 class ControlSignalsClient(
-    zContext: ZContext,
+    val zContext: ZContext,
     val port: Int,
-    host: String,
+    val host: String,
     listeners: List<(BaseServerSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))

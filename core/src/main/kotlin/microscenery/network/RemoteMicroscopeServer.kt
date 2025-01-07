@@ -12,6 +12,9 @@ import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
 /**
+ * Wraps an [MicroscopeHardware] and sends its output as [MicoscopeSignals]s wrapped in [BaseClientSignal].
+ * Also puts captured slice data into [SliceStorage] to be requested by [BiggishDataClient].
+ * 
  * @param acquireOnConnect send an empty acquire stack signal to microscope on client connect
  */
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
@@ -31,7 +34,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     var status: RemoteMicroscopeStatus by Delegates.observable(
         RemoteMicroscopeStatus(emptyList(), 0)
     ) { _, _, newStatus: RemoteMicroscopeStatus ->
-        controlConnection.sendSignal(newStatus)
+        sendBaseWrappedSignal(newStatus)
     }
 
     init {
@@ -48,12 +51,32 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
             is MicroscopeSlice -> {
                 signal.slice.data?.let {
                     storage.addSlice(signal.slice.Id, signal.slice.data)
-                    controlConnection.sendSignal(ActualMicroscopeSignal(MicroscopeSlice(signal.slice.copy(data = null))))
+                    sendBaseWrappedSignal(ActualMicroscopeSignal(MicroscopeSlice(signal.slice.copy(data = null))))
                 }
             }
 
-            else -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
+            else -> sendBaseWrappedSignal(ActualMicroscopeSignal(signal))
         }
+    }
+    
+    private fun sendBaseWrappedSignal(signal: RemoteMicroscopeSignal){
+        val wrapped = when (signal) {
+            is RemoteMicroscopeStatus -> {
+                BaseServerSignal.AppSpecific(signal.toProto().toByteString())
+            }
+            is ActualMicroscopeSignal -> when (signal.signal) {
+                is MicroscopeStack -> {
+                    signal.signal.stack
+                }
+                is MicroscopeSlice -> {
+                    signal.signal.slice
+                }
+                else -> {
+                    BaseServerSignal.AppSpecific(signal.toProto().toByteString())
+                }
+            }
+        }
+        controlConnection.sendSignal(wrapped)
     }
 
     /**
@@ -63,8 +86,8 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         when (bcs) {
             BaseClientSignal.ClientSignOn -> {
                 status = status.copy(connectedClients = status.connectedClients + 1)
-                controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
-                controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
+                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
+                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.status()))
                 if (acquireOnConnect){
                     microscope.acquireStack(MicroscopeControlSignal.AcquireStack(Vector3f(),Vector3f(),1f))
                 }
@@ -82,6 +105,8 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                     MicroscopeControlSignal.Shutdown -> {
                         logger.info("Shutting down server.")
                         microscope.shutdown()
+                        controlConnection.shutdown = true
+                        dataSender.close()
                         close()
                     }
 

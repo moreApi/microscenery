@@ -2,11 +2,11 @@ package microscenery.network
 
 import fromScenery.lazyLogger
 import kotlinx.event.event
-import me.jancasus.microscenery.network.v3.MicroscopeControlSignal
 import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.signals.*
+import microscenery.signals.BaseClientSignal
 import microscenery.signals.BaseClientSignal.Companion.toPoko
+import microscenery.signals.BaseServerSignal
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -14,9 +14,14 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * A server to receive [MicroscopeControlSignal]s and send [RemoteMicroscopeSignal]s from.
+ * A server to receive [BaseClientSignal]s and send [BaseServerSignal]s from.
  *
- * Server shuts down when a signal with shutdown status has been send.
+ * Tries the send the rest of the queue once shutdown is = true.
+ *
+ * Receive [BaseClientSignal]s via subscribing with a listener by [addListener].
+ * Don't add too elaborate listeners. They get executed by the network thread.
+ *
+ * Send via [sendSignal].
  */
 class ControlSignalsServer(
     zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort", 4000),
@@ -31,7 +36,7 @@ class ControlSignalsServer(
 
     private val clients = mutableSetOf<ByteArray>()
 
-    private var shutdown = false
+    internal var shutdown = false
 
     @Suppress("unused")
     val connectedClients
@@ -57,28 +62,8 @@ class ControlSignalsServer(
     }
 
     /** Queues signal to be sent in main loop */
-    fun sendSignal(signal: RemoteMicroscopeSignal): Boolean {
-        val wrapped = when (signal) {
-            is RemoteMicroscopeStatus -> {
-                BaseServerSignal.AppSpecific(signal.toProto().toByteString())
-            }
-
-            is ActualMicroscopeSignal -> when (signal.signal) {
-                is MicroscopeStack -> {
-                    signal.signal.stack
-                }
-
-                is MicroscopeSlice -> {
-                    signal.signal.slice
-                }
-                else -> {
-                    shutdown = signal.signal is MicroscopeStatus && signal.signal.state == ServerState.SHUTTING_DOWN
-                    BaseServerSignal.AppSpecific(signal.toProto().toByteString())
-                }
-            }
-        }
-
-        if (!signalsOut.offer(wrapped.toProto(), 5000, TimeUnit.MILLISECONDS)) {
+    fun sendSignal(signal: BaseServerSignal): Boolean {
+        if (!signalsOut.offer(signal.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
         }

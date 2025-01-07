@@ -14,7 +14,10 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 /**
+ * Is a virtual [MicroscopeHardware] to send commands to a remote microscope over network.
+ * Translates [MicroscopeControlSignal]s to [BaseClientSignal]s to be received by [RemoteMicroscopeServer].
  *
+ * Fetches slice data via [BiggishDataClient].
  */
 class RemoteMicroscopeClient(
     basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),

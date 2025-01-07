@@ -1,6 +1,5 @@
 package network
 
-import microscenery.lightSleepOnCondition
 import microscenery.lightSleepOnNull
 import microscenery.network.ControlSignalsClient
 import microscenery.network.ControlSignalsServer
@@ -46,18 +45,6 @@ class ControlSignalTransmissionTest {
     }
 
     @Test
-    fun shutdownServer() {
-        server.sendSignal(
-            ActualMicroscopeSignal(
-                MicroscopeStatus(ServerState.SHUTTING_DOWN, Vector3f(), false)
-            )
-        )
-
-        lightSleepOnCondition { !server.running }
-        assert(!server.running)
-    }
-
-    @Test
     fun transmittingSnapCommand() {
         lightSleepOnNull { lastClientBaseSignal }
         assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
@@ -81,7 +68,7 @@ class ControlSignalTransmissionTest {
         val outHwd = HardwareDimensions(
             Vector3f(1f, 2f, 3f), Vector3f(2f), ImageMeta(Vector2i(20), 0.4f, NumericType.INT16)
         )
-        server.sendSignal(ActualMicroscopeSignal(outHwd))
+        server.sendSignal(ActualMicroscopeSignal(outHwd).toBaseSignal())
 
         lightSleepOnNull { lastSignalServer }
         val inSignal = lastSignalServer as? ActualMicroscopeSignal
@@ -102,7 +89,7 @@ class ControlSignalTransmissionTest {
         assert(lastSignalServer == null)
 
         val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f(), false)
-        server.sendSignal(ActualMicroscopeSignal(s1))
+        server.sendSignal(ActualMicroscopeSignal(s1).toBaseSignal())
         lightSleepOnNull { lastSignalServer }
 
         val returnSignal = lastSignalServer as? ActualMicroscopeSignal
@@ -137,7 +124,7 @@ class ControlSignalTransmissionTest {
             // just to have an answer signal
             thread {
                 Thread.sleep(200)
-                server.sendSignal(RemoteMicroscopeStatus(emptyList(), 0))
+                server.sendSignal(RemoteMicroscopeStatus(emptyList(), 0).toBaseSignal())
             }
         }
 
