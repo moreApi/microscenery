@@ -4,10 +4,8 @@ import fromScenery.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
-import microscenery.signals.ActualMicroscopeSignal
-import microscenery.signals.MicroscopeControlSignal
-import microscenery.signals.MicroscopeSlice
-import microscenery.signals.RemoteMicroscopeStatus
+import microscenery.signals.*
+import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
 import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
@@ -61,13 +59,9 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     /**
      * Executed by the network thread of [ControlSignalsServer]
      */
-    private fun processClientSignal(it: MicroscopeControlSignal) {
-        when (it) {
-            is MicroscopeControlSignal.AcquireStack -> {
-                microscope.acquireStack(it)
-            }
-
-            MicroscopeControlSignal.ClientSignOn -> {
+    private fun processClientSignal(bcs: BaseClientSignal) {
+        when (bcs) {
+            BaseClientSignal.ClientSignOn -> {
                 status = status.copy(connectedClients = status.connectedClients + 1)
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
                 controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
@@ -76,33 +70,42 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
                 }
             }
 
-            MicroscopeControlSignal.Live -> microscope.goLive()
-            is MicroscopeControlSignal.MoveStage -> microscope.stagePosition = it.target
-            MicroscopeControlSignal.Shutdown -> {
-                logger.info("Shutting down server.")
-                microscope.shutdown()
-                close()
-            }
+            is BaseClientSignal.AppSpecific -> {
+                val it = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.parseFrom(bcs.data).toPoko()
+                when (it) {
+                    is MicroscopeControlSignal.AcquireStack -> {
+                        microscope.acquireStack(it)
+                    }
 
-            MicroscopeControlSignal.SnapImage -> microscope.snapSlice()
-            MicroscopeControlSignal.Stop -> microscope.stop()
-            is MicroscopeControlSignal.AblationPoints -> microscope.ablatePoints(it)
-            is MicroscopeControlSignal.AblationShutter -> TODO()
-            MicroscopeControlSignal.StartAcquisition -> microscope.startAcquisition()
-            is MicroscopeControlSignal.DeviceSpecific -> microscope.deviceSpecificCommands(it.data)
+                    MicroscopeControlSignal.Live -> microscope.goLive()
+                    is MicroscopeControlSignal.MoveStage -> microscope.stagePosition = it.target
+                    MicroscopeControlSignal.Shutdown -> {
+                        logger.info("Shutting down server.")
+                        microscope.shutdown()
+                        close()
+                    }
+
+                    MicroscopeControlSignal.SnapImage -> microscope.snapSlice()
+                    MicroscopeControlSignal.Stop -> microscope.stop()
+                    is MicroscopeControlSignal.AblationPoints -> microscope.ablatePoints(it)
+                    is MicroscopeControlSignal.AblationShutter -> TODO()
+                    MicroscopeControlSignal.StartAcquisition -> microscope.startAcquisition()
+                    is MicroscopeControlSignal.DeviceSpecific -> microscope.deviceSpecificCommands(it.data)
+                }
+            }
         }
     }
 
     @Suppress("unused")
     fun stop() {
         logger.info("Got stop Command")
-        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Stop))
+        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Stop.toBaseSignal()))
     }
 
     @Suppress("unused")
     fun shutdown() {
         logger.info("Got Stop Command")
-        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Shutdown))
+        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Shutdown.toBaseSignal()))
     }
 
     /**

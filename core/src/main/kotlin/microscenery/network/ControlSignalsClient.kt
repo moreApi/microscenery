@@ -7,7 +7,6 @@ import microscenery.Agent
 import microscenery.signals.*
 import microscenery.signals.BaseServerSignal.Companion.toPoko
 import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
-import org.withXR.network.v3.BaseServerSignal
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -29,7 +28,7 @@ class ControlSignalsClient(
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<MicroscopeControlSignal>(1000)
+    private val signalsOut = ArrayBlockingQueue<org.withXR.network.v3.BaseClientSignal>(1000)
     private val signalsIn = event<RemoteMicroscopeSignal>()
 
     init {
@@ -45,10 +44,7 @@ class ControlSignalsClient(
             throw IllegalStateException("Could not connect to ${ControlSignalsClient::class.simpleName} connected to tcp://${host}:${port}")
         }
 
-        signalsOut += MicroscopeControlSignal.newBuilder().run {
-            clientSignOnBuilder.build()
-            build()
-        }
+        signalsOut += BaseClientSignal.ClientSignOn.toProto()
 
         startAgent()
     }
@@ -62,7 +58,7 @@ class ControlSignalsClient(
         }
     }
 
-    fun sendSignal(signal: microscenery.signals.MicroscopeControlSignal): Boolean {
+    fun sendSignal(signal: BaseClientSignal): Boolean {
         if (!signalsOut.offer(signal.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
@@ -78,7 +74,8 @@ class ControlSignalsClient(
         // process incoming messages first.
         // First frame in each message is the sender identity
         if (payloadIn != null) {
-            val event = unwrapBaseSignalToRemoteMicroscopeSignal(BaseServerSignal.parseFrom(payloadIn))
+            val event =
+                unwrapBaseSignalToRemoteMicroscopeSignal(org.withXR.network.v3.BaseServerSignal.parseFrom(payloadIn))
 
             synchronized(signalsIn) {
                 signalsIn(event)
@@ -110,10 +107,10 @@ class ControlSignalsClient(
     }
 
     companion object {
-        fun unwrapBaseSignalToRemoteMicroscopeSignal(signal: BaseServerSignal): RemoteMicroscopeSignal {
+        fun unwrapBaseSignalToRemoteMicroscopeSignal(signal: org.withXR.network.v3.BaseServerSignal): RemoteMicroscopeSignal {
             val s = signal.toPoko()
             return when (s) {
-                is microscenery.signals.BaseServerSignal.AppSpecific -> {
+                is BaseServerSignal.AppSpecific -> {
                     val data = signal.appSpecific.data
                     val rms = me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal.parseFrom(data)
                     rms.toPoko()

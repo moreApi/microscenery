@@ -6,7 +6,7 @@ import me.jancasus.microscenery.network.v3.MicroscopeControlSignal
 import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.signals.*
-import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
+import microscenery.signals.BaseClientSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -20,14 +20,14 @@ import java.util.concurrent.TimeUnit
  */
 class ControlSignalsServer(
     zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort", 4000),
-    listeners: List<(microscenery.signals.MicroscopeControlSignal) -> Unit> = emptyList()
+    listeners: List<(BaseClientSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket
 
     private val signalsOut = ArrayBlockingQueue<org.withXR.network.v3.BaseServerSignal>(1000)
-    private val signalsIn = event<MicroscopeControlSignal>()
+    private val signalsIn = event<org.withXR.network.v3.BaseClientSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
 
@@ -50,7 +50,7 @@ class ControlSignalsServer(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (microscenery.signals.MicroscopeControlSignal) -> Unit) {
+    fun addListener(listener: (BaseClientSignal) -> Unit) {
         synchronized(signalsIn) {
             signalsIn += { listener(it.toPoko()) }
         }
@@ -85,7 +85,7 @@ class ControlSignalsServer(
         return true
     }
 
-    fun sendInternalSignals(signals: List<microscenery.signals.MicroscopeControlSignal>) {
+    fun sendInternalSignals(signals: List<BaseClientSignal>) {
         synchronized(signalsIn) {
             signals.forEach { signalsIn(it.toProto()) }
         }
@@ -99,7 +99,7 @@ class ControlSignalsServer(
         // First frame in each message is the sender identity
         if (identity != null) {
             clients += identity
-            val event = MicroscopeControlSignal.parseFrom(socket.recv())
+            val event = org.withXR.network.v3.BaseClientSignal.parseFrom(socket.recv())
 
             synchronized(signalsIn) {
                 signalsIn(event)

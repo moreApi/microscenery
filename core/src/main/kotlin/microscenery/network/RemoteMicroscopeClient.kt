@@ -51,27 +51,27 @@ class RemoteMicroscopeClient(
     }
 
     override fun snapSlice() {
-        controlConnection.sendSignal(MicroscopeControlSignal.SnapImage)
+        sendBaseWrappedSignal(MicroscopeControlSignal.SnapImage)
     }
 
     override fun moveStage(target: Vector3f) {
-        controlConnection.sendSignal(MicroscopeControlSignal.MoveStage(target))
+        sendBaseWrappedSignal(MicroscopeControlSignal.MoveStage(target))
     }
 
     override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
-        controlConnection.sendSignal(meta)
+        sendBaseWrappedSignal(meta)
     }
 
     override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
-        controlConnection.sendSignal(signal)
+        sendBaseWrappedSignal(signal)
     }
 
     override fun startAcquisition() {
-        controlConnection.sendSignal(MicroscopeControlSignal.StartAcquisition)
+        sendBaseWrappedSignal(MicroscopeControlSignal.StartAcquisition)
     }
 
     override fun goLive() {
-        controlConnection.sendSignal(MicroscopeControlSignal.Live)
+        sendBaseWrappedSignal(MicroscopeControlSignal.Live)
     }
 
     override fun sync(): Future<Boolean> {
@@ -79,12 +79,15 @@ class RemoteMicroscopeClient(
     }
 
     override fun stop() {
-        controlConnection.sendSignal(MicroscopeControlSignal.Stop)
+        sendBaseWrappedSignal(MicroscopeControlSignal.Stop)
     }
 
     override fun deviceSpecificCommands(data: ByteArray) {
-        controlConnection.sendSignal(MicroscopeControlSignal.DeviceSpecific(data))
+        sendBaseWrappedSignal(MicroscopeControlSignal.DeviceSpecific(data))
     }
+
+    private fun sendBaseWrappedSignal(signal: MicroscopeControlSignal) =
+        controlConnection.sendSignal(BaseClientSignal.AppSpecific(signal.toProto().toByteString()))
 
     /**
      * Executed by the network thread of [ControlSignalsClient]
@@ -128,6 +131,6 @@ class RemoteMicroscopeClient(
     }
 
     override fun onClose() {
-        controlConnection.sendSignal(MicroscopeControlSignal.Shutdown)
+        sendBaseWrappedSignal(MicroscopeControlSignal.Shutdown)
     }
 }
