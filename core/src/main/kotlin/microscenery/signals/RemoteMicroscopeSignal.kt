@@ -4,10 +4,14 @@ import microscenery.signals.MicroscopeSignal.Companion.toPoko
 
 
 sealed class RemoteMicroscopeSignal {
+    fun toBaseSignal() = BaseServerSignal.AppSpecific(this.toProto().toByteString())
 
     abstract fun toProto(): me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal
 
     companion object {
+        fun BaseServerSignal.AppSpecific.toRemoteMicroscopeSignal() =
+            me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal.parseFrom(this.data).toPoko()
+
         fun me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal.toPoko() =
             when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
                 me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal.SignalCase.STATUS -> {

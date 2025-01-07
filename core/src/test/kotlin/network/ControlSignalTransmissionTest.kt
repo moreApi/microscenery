@@ -6,6 +6,7 @@ import microscenery.network.ControlSignalsClient
 import microscenery.network.ControlSignalsServer
 import microscenery.signals.*
 import microscenery.signals.MicroscopeControlSignal.Companion.toMicroscopeControlSignal
+import microscenery.signals.RemoteMicroscopeSignal.Companion.toRemoteMicroscopeSignal
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.junit.jupiter.api.AfterEach
@@ -21,13 +22,16 @@ class ControlSignalTransmissionTest {
     var lastSignalServer: RemoteMicroscopeSignal? = null
     var lastSignalClient: MicroscopeControlSignal? = null
     var lastClientBaseSignal: BaseClientSignal? = null
+    var lastServerBaseSignal: BaseServerSignal? = null
     var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listOf {
         lastClientBaseSignal = it
         if (it is BaseClientSignal.AppSpecific)
             lastSignalClient = it.toMicroscopeControlSignal()
     })
     var client: ControlSignalsClient = ControlSignalsClient(ctx, 11543, "*", listOf {
-        lastSignalServer = it
+        lastServerBaseSignal = it
+        if (it is BaseServerSignal.AppSpecific)
+            lastSignalServer = it.toRemoteMicroscopeSignal()
     })
 
     @AfterEach

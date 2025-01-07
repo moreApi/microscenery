@@ -6,7 +6,6 @@ import me.jancasus.microscenery.network.v3.MicroscopeControlSignal
 import microscenery.Agent
 import microscenery.signals.*
 import microscenery.signals.BaseServerSignal.Companion.toPoko
-import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -22,14 +21,14 @@ class ControlSignalsClient(
     zContext: ZContext,
     val port: Int,
     host: String,
-    listeners: List<(RemoteMicroscopeSignal) -> Unit> = emptyList()
+    listeners: List<(BaseServerSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket
 
     private val signalsOut = ArrayBlockingQueue<org.withXR.network.v3.BaseClientSignal>(1000)
-    private val signalsIn = event<RemoteMicroscopeSignal>()
+    private val signalsIn = event<BaseServerSignal>()
 
     init {
         listeners.forEach { addListener(it) }
@@ -52,7 +51,7 @@ class ControlSignalsClient(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (RemoteMicroscopeSignal) -> Unit) {
+    fun addListener(listener: (BaseServerSignal) -> Unit) {
         synchronized(signalsIn) {
             signalsIn += { listener(it) }
         }
@@ -74,18 +73,10 @@ class ControlSignalsClient(
         // process incoming messages first.
         // First frame in each message is the sender identity
         if (payloadIn != null) {
-            val event =
-                unwrapBaseSignalToRemoteMicroscopeSignal(org.withXR.network.v3.BaseServerSignal.parseFrom(payloadIn))
+            val event = org.withXR.network.v3.BaseServerSignal.parseFrom(payloadIn)
 
             synchronized(signalsIn) {
-                signalsIn(event)
-            }
-
-            if (event is ActualMicroscopeSignal
-                && event.signal is MicroscopeStatus
-                && event.signal.state == ServerState.SHUTTING_DOWN
-            ) {
-                close()
+                signalsIn(event.toPoko())
             }
         }
 
@@ -104,21 +95,5 @@ class ControlSignalsClient(
         socket.linger = 0
         socket.close()
 
-    }
-
-    companion object {
-        fun unwrapBaseSignalToRemoteMicroscopeSignal(signal: org.withXR.network.v3.BaseServerSignal): RemoteMicroscopeSignal {
-            val s = signal.toPoko()
-            return when (s) {
-                is BaseServerSignal.AppSpecific -> {
-                    val data = signal.appSpecific.data
-                    val rms = me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal.parseFrom(data)
-                    rms.toPoko()
-                }
-
-                is Slice -> ActualMicroscopeSignal(MicroscopeSlice(s))
-                is Stack -> ActualMicroscopeSignal(MicroscopeStack(s))
-            }
-        }
     }
 }

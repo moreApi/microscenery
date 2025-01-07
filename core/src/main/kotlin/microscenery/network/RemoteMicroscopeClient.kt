@@ -1,9 +1,11 @@
 package microscenery.network
 
 import fromScenery.lazyLogger
+import me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
+import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
 import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import org.zeromq.ZContext
@@ -92,17 +94,23 @@ class RemoteMicroscopeClient(
     /**
      * Executed by the network thread of [ControlSignalsClient]
      */
-    private fun processServerSignal(signal: RemoteMicroscopeSignal) {
+    private fun processServerSignal(signal: BaseServerSignal) {
+        val s = unwrapToRemoteMicroscopeSignal(signal)
 
-        when (signal) {
+        when (s) {
+            is RemoteMicroscopeStatus -> {}
             is ActualMicroscopeSignal -> {
-                when (val microscopeSignal = signal.signal) {
+                when (val microscopeSignal = s.signal) {
                     is HardwareDimensions -> {
                         hardwareDimensions = microscopeSignal
                     }
 
                     is MicroscopeStatus -> {
-                        if (microscopeSignal.state == ServerState.SHUTTING_DOWN) this.close()
+                        if (microscopeSignal.state == ServerState.SHUTTING_DOWN) {
+                            controlConnection.close()
+                            dataConnection.close()
+                            this.close()
+                        }
                         status = microscopeSignal
                     }
 
@@ -113,15 +121,23 @@ class RemoteMicroscopeClient(
                             requestedSlices[slice.Id] = slice
                         }
                     }
-
                     else -> {
                         output.put(microscopeSignal)
                     }
                 }
             }
-
-            is RemoteMicroscopeStatus -> {}
         }
+    }
+
+    private fun unwrapToRemoteMicroscopeSignal(signal: BaseServerSignal) = when (signal) {
+        is BaseServerSignal.AppSpecific -> {
+            val data = signal.data
+            val rms = RemoteMicroscopeSignal.parseFrom(data)
+            rms.toPoko()
+        }
+
+        is Slice -> ActualMicroscopeSignal(MicroscopeSlice(signal))
+        is Stack -> ActualMicroscopeSignal(MicroscopeStack(signal))
     }
 
     @Suppress("unused")
