@@ -15,7 +15,7 @@ import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class ControlSignalTransmissionTest {
+class RemoteMicroscopeSignalAsBaseSignalTransmissionTest {
 
     var ctx = ZContext()
     var lastSignalServer: RemoteMicroscopeSignal? = null
