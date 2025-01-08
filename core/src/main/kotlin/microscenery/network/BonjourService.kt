@@ -7,9 +7,10 @@ import javax.jmdns.JmDNS
 import javax.jmdns.ServiceInfo
 
 
-class BonjourService(val type: String = "_xrsidecar._tcp.") : AutoCloseable {
+class BonjourService(val type: String = "_xrsidecar._tcp.local.") : AutoCloseable {
     private val jmDNS: JmDNS = JmDNS.create(InetAddress.getLocalHost())
     private val logger = LoggerFactory.getLogger(BonjourService::class.java)
+
 
     fun register(name: String, port: Int, text: String) {
         try {
