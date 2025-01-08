@@ -90,6 +90,6 @@ class SliceRequester(
     }
 
     override fun onClose() {
-        dataConnection.close()
+        dataConnection.close().join()
     }
 }
