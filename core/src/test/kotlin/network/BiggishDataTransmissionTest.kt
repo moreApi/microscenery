@@ -139,17 +139,15 @@ class BiggishDataTransmissionTest {
         }
 
         storage.addSlice(1, bBuffer)
-        assert(client.requestSlice(1, size))
+        assert(client.requestSlice(1, size * 2))
         val slice = client.outputQueue.poll(10000, TimeUnit.MILLISECONDS)
         assertNotNull(slice)
 
 
         bBuffer.rewind()
 
-        val bBuffer2 = MemoryUtil.memAlloc(size * 2)
         slice.chunks.firstEntry().value.forEach { byte ->
             assertEquals(bBuffer.get(), byte)
-            bBuffer2.put(byte)
         }
 
         MemoryUtil.memFree(bBuffer)
