@@ -6,6 +6,7 @@ import microscenery.network.BonjourService
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import org.zeromq.ZContext
+import java.net.InetAddress
 import kotlin.concurrent.thread
 
 class RemoteFileViewerServer {
@@ -22,7 +23,7 @@ class RemoteFileViewerServer {
                 RemoteMicroscopeServer(microscope, storage = SliceStorage(500 * 1024 * 1024), zContext = zContext, acquireOnConnect = true)
 
             val bonjour = BonjourService()
-            bonjour.register("FileViewerServer",server.basePort, microscope.hardwareDimensions().imageMeta.toString())
+            bonjour.register(InetAddress.getLocalHost().hostName+"FileViewerServer",server.basePort, microscope.hardwareDimensions().imageMeta.toString())
 
             thread {
                 while (true){

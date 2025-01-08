@@ -35,6 +35,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         RemoteMicroscopeStatus(emptyList(), 0)
     ) { _, _, newStatus: RemoteMicroscopeStatus ->
         sendBaseWrappedSignal(newStatus)
+        logger.info("Status: $newStatus")
     }
 
     init {
