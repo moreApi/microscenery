@@ -66,8 +66,38 @@ class BiggishDataTransmissionTest {
         assertNull(storage.getSlice(1))
     }
 
+
     @Test
-    fun large() {
+    fun TenMbTimed() {
+        val dataSize = 10 * 1024 * 1024
+
+        storage.addSlice(1, ByteBuffer.wrap(ByteArray(dataSize) { (it + 10).toByte() }))
+
+        val start = System.currentTimeMillis()
+        assert(client.requestSlice(1, dataSize))
+
+
+        val slice = client.outputQueue.poll(20000, TimeUnit.MILLISECONDS)
+        assertNotNull(slice)
+        val end = System.currentTimeMillis()
+        println("Sending 10 mb took ${(end-start)/1000f} seconds")
+
+        // check whole slice
+        val buffer = MemoryUtil.memAlloc(slice.size)
+        slice.chunks.forEach {
+            buffer.put(it.value)
+        }
+        buffer.flip()
+
+        for (i in 0 until dataSize) {
+            val byte = buffer.get()
+            assertEquals((i + 10).toByte(), byte, "at index $i")
+        }
+        assert(end - start < 1000)
+    }
+
+    @Test
+    fun multiChunkSlice() {
         val dataSize = CHUNK_SIZE * 2 + 5
         //increase storage size
         reset()
