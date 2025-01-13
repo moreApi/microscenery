@@ -9,7 +9,7 @@ import microscenery.stageSpace.StageSpaceManager
 import org.zeromq.ZContext
 
 
-class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
+class RemoteMicroscopeClientScene(nonMicroscopeMode: Boolean = true) : DefaultScene(withSwingUI = true) {
     val stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
@@ -19,7 +19,7 @@ class RemoteMicroscopeClientScene : DefaultScene(withSwingUI = true) {
         MicroscenerySettings.set(Settings.MMMicroscope.IsMicromanagerMicroscope,true)
 
         val zContext = ZContext()
-        val client = RemoteMicroscopeClient(zContext = zContext)
+        val client = RemoteMicroscopeClient(zContext = zContext, nonMicroscopeMode = nonMicroscopeMode)
         stageSpaceManager = StageSpaceManager(
             client, scene, msHub,
             //viewMode = true

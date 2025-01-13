@@ -19,7 +19,8 @@ import java.util.concurrent.Future
 class RemoteMicroscopeClient(
     basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
     host: String = MicroscenerySettings.get("Network.host", "localhost"),
-    val zContext: ZContext
+    val zContext: ZContext,
+    val nonMicroscopeMode: Boolean = false
 ) : MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -94,7 +95,18 @@ class RemoteMicroscopeClient(
                         status = microscopeSignal
                     }
 
+                    is MicroscopeStack ->{
+                        if (nonMicroscopeMode && status.state == ServerState.STARTUP){
+                            hardwareDimensions = HardwareDimensions(
+                                Vector3f(-100f), Vector3f(100f),microscopeSignal.stack.imageMeta)
+                            status = status.copy(state = ServerState.MANUAL)
+                        }
+                        output.put(microscopeSignal)
+                    }
+
                     else -> {
+                        if (microscopeSignal is MicroscopeSlice)
+                            logger.info("Got slicea of stackIndex ${microscopeSignal.slice.stackIdAndSliceIndex?.second}")
                         output.put(microscopeSignal)
                     }
                 }
