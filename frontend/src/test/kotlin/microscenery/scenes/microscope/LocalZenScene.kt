@@ -17,13 +17,13 @@ import kotlin.concurrent.thread
 
 @Suppress("unused")
 class LocalZenScene : DefaultScene(withSwingUI = true) {
-    val stageSpaceManager: StageSpaceManager
+    lateinit var  stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
 
-    val volumesFolder = """E:\volumes"""
-    val zeissFolder = """E:\ViingsNextcloud\Zeiss"""
+    val volumesFolder = """D:\volumes"""
+    val zeissFolder = """D:\ViingsCloud\Zeiss"""
 
-    val zenMicroscope: ZenMicroscope
+    lateinit var zenMicroscope: ZenMicroscope
     val crovWithoutHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_without_holes.czi"""
     val crovHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_with_holes.czi"""
     val experiment19 = zeissFolder + """\Zeiss\Experiment-19.czi"""
@@ -33,7 +33,8 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     val sd3Fly = volumesFolder + """\Zeiss\marina-sd3-drosophila1.czi"""
     val niceCut1 = volumesFolder + """\Zeiss\20230925_drosophila_niceSideCut1.czi"""
 
-    init {
+    override fun init() {
+        super.init()
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
 

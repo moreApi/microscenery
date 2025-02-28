@@ -290,7 +290,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
             val name = it.name
             val key = it.key
             val command = it.command
-            if (key == null || command == null) return@forEach
+            if (key == null || command == null || key.isEmpty()) return@forEach
 
             inputHandler.addBehaviour(name, command)
             inputHandler.addKeyBinding(name, key)
@@ -300,7 +300,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
     fun stageUI(base: DefaultScene, inputHandler: InputHandler?,msHub: MicrosceneryHub, customCommands: List<StageUICommand> = emptyList()) {
         base.extraPanel?.let { stageSwingUI(it, msHub, desktopCommands + customCommands)}
         base.mainFrame?.pack()
-        DesktopUI.initMouseSelection(inputHandler,msHub)
+        DesktopUI.initMouse(inputHandler,msHub)
 
         inputHandler?.let {
             stageKeyUI(it, base.cam, desktopCommands + customCommands)
