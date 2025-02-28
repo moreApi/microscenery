@@ -146,8 +146,8 @@ internal class MicromanagerWrapperTest {
         val wrapper = MicromanagerWrapper(mmCoreConnector)
         wrapper.output.pollForSignal<MicroscopeStatus>() //wait for start up to finish
 
-        wrapper.ablatePoints(ClientSignal.AblationPoints(
-            (0..500).map { ClientSignal.AblationPoint(Vector3f(), 50L.millisToNanos(), true, false, 0.5f, false) }
+        wrapper.ablatePoints(MicroscopeControlSignal.AblationPoints(
+            (0..500).map { MicroscopeControlSignal.AblationPoint(Vector3f(), 50L.millisToNanos(), true, false, 0.5f, false) }
         ))
         assert(wrapper.output.pollForSignal<MicroscopeStatus>(ignoreNotFitting = true) { it.state == ServerState.ABLATION })
         Thread.sleep(200)

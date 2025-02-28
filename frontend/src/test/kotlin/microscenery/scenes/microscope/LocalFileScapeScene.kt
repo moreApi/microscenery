@@ -1,10 +1,12 @@
 package microscenery.scenes.microscope
 
 import graphics.scenery.utils.lazyLogger
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
 import microscenery.UI.ScapeViewerUI
 import microscenery.UI.StageSpaceUI
 import microscenery.hardware.MicroscopeHardwareAgent
+import microscenery.lightSleepOnCondition
 import microscenery.signals.*
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
@@ -75,13 +77,18 @@ class FolderReaderMicroscope : MicroscopeHardwareAgent() {
 
     init {
 
-        hardwareDimensions = HardwareDimensions(
-            stageMin = Vector3f(-1000f),
-            stageMax = Vector3f(1000f),
+        val im = ImageMeta(
             imageSize = Vector2i(1024),
             vertexDiameter = 0.399f,
             numericType = NumericType.INT16
         )
+
+        hardwareDimensions = HardwareDimensions(
+            stageMin = Vector3f(-1000f),
+            stageMax = Vector3f(1000f),
+            im
+        )
+        imageMeta = im
         status = MicroscopeStatus(
             ServerState.MANUAL,
             stagePosition,
@@ -134,9 +141,10 @@ class FolderReaderMicroscope : MicroscopeHardwareAgent() {
             position,
             hardwareDimensions.byteSize,
             null,
+            imageMeta,
             data
         )
-        output.put(sliceSignal)
+        output.put(MicroscopeSlice(sliceSignal))
     }
 
     override fun moveStage(target: Vector3f) {
@@ -167,11 +175,11 @@ class FolderReaderMicroscope : MicroscopeHardwareAgent() {
         TODO("Not yet implemented")
     }
 
-    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+    override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
         TODO("Not yet implemented")
     }
 
-    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
         TODO("Not yet implemented")
     }
 

@@ -2,11 +2,10 @@ package microscenery.network
 
 import fromScenery.lazyLogger
 import kotlinx.event.event
-import me.jancasus.microscenery.network.v2.ClientSignal
-import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.Agent
-import microscenery.signals.RemoteMicroscopeSignal
-import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
+import microscenery.signals.BaseClientSignal
+import microscenery.signals.BaseServerSignal
+import microscenery.signals.BaseServerSignal.Companion.toPoko
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -14,22 +13,25 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * A Client to send control [ClientSignal]s to [ControlSignalsServer] and receive [RemoteMicroscopeSignal]s.
+ * A Client to send control [BaseClientSignal]s to [ControlSignalsServer] and receive [BaseServerSignal]s.
  *
- * Client shuts down when a signal with shutdown status has been received.
+ * Receive [BaseServerSignal]s via subscribing with a listener by [addListener].
+ * Don't add too elaborate listeners. They get executed by the network thread.
+ *
+ * Send via [sendSignal].
  */
 class ControlSignalsClient(
-    zContext: ZContext,
+    val zContext: ZContext,
     val port: Int,
-    host: String,
-    listeners: List<(RemoteMicroscopeSignal) -> Unit> = emptyList()
+    val host: String,
+    listeners: List<(BaseServerSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<ClientSignal>(1000)
-    private val signalsIn = event<RemoteMicroscopeSignal>()
+    private val signalsOut = ArrayBlockingQueue<org.withXR.network.v3.BaseClientSignal>(1000)
+    private val signalsIn = event<BaseServerSignal>()
 
     init {
         listeners.forEach { addListener(it) }
@@ -44,10 +46,7 @@ class ControlSignalsClient(
             throw IllegalStateException("Could not connect to ${ControlSignalsClient::class.simpleName} connected to tcp://${host}:${port}")
         }
 
-        signalsOut += ClientSignal.newBuilder().run {
-            clientSignOnBuilder.build()
-            build()
-        }
+        signalsOut += BaseClientSignal.ClientSignOn.toProto()
 
         startAgent()
     }
@@ -55,13 +54,13 @@ class ControlSignalsClient(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (RemoteMicroscopeSignal) -> Unit) {
+    fun addListener(listener: (BaseServerSignal) -> Unit) {
         synchronized(signalsIn) {
             signalsIn += { listener(it) }
         }
     }
 
-    fun sendSignal(signal: microscenery.signals.ClientSignal): Boolean {
+    fun sendSignal(signal: BaseClientSignal): Boolean {
         if (!signalsOut.offer(signal.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
@@ -77,17 +76,10 @@ class ControlSignalsClient(
         // process incoming messages first.
         // First frame in each message is the sender identity
         if (payloadIn != null) {
-            val event = me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal.parseFrom(payloadIn)
+            val event = org.withXR.network.v3.BaseServerSignal.parseFrom(payloadIn)
 
             synchronized(signalsIn) {
                 signalsIn(event.toPoko())
-            }
-
-            if (event.hasMicroscopeSignal()
-                && event.microscopeSignal.hasStatus()
-                && event.microscopeSignal.status.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
-            ) {
-                close()
             }
         }
 

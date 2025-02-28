@@ -1,9 +1,9 @@
 package microscenery.network
 
 import fromScenery.lazyLogger
-import me.jancasus.microscenery.network.v2.ReplyHeaderSliceChunk
-import me.jancasus.microscenery.network.v2.RequestSliceChunk
 import microscenery.Agent
+import org.withXR.network.v3.ReplyHeaderSliceChunk
+import org.withXR.network.v3.RequestSliceChunk
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZFrame
@@ -82,9 +82,11 @@ class BiggishDataClient(zContext: ZContext, port: Int, host: String = "localhost
                     dealer.send(reqBuilder.build().toByteArray())
                     credit--
                 }
+
                 requestQueue.isNotEmpty() -> {
                     openSlices = openSlices + requestQueue.poll()
                 }
+
                 else -> {
                     break // maybe some data arrived
                 }

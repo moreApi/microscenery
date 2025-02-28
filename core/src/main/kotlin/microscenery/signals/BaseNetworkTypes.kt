@@ -1,11 +1,11 @@
 package microscenery.signals
 
-import me.jancasus.microscenery.network.v2.Vector2Int
-import me.jancasus.microscenery.network.v2.Vector3Float
-import me.jancasus.microscenery.network.v2.Vector3Int
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.joml.Vector3i
+import org.withXR.network.v3.Vector2Int
+import org.withXR.network.v3.Vector3Float
+import org.withXR.network.v3.Vector3Int
 
 fun Vector2i.toProto() = Vector2Int.newBuilder().setX(this.x).setY(this.y).build()
 fun Vector2Int.toPoko() = Vector2i(this.x, this.y)

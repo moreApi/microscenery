@@ -70,13 +70,18 @@ class SimulationMicroscopeHardware(
 
         focalPlane.material().cullingMode = Material.CullingMode.FrontAndBack
 
-        hardwareDimensions = HardwareDimensions(
-            stageMin = Vector3f(0f),
-            stageMax = stageSize,
+        val im = ImageMeta(
             imageSize = imageSize,
             vertexDiameter = 1f,
             numericType = NumericType.INT16
         )
+        hardwareDimensions = HardwareDimensions(
+            stageMin = Vector3f(0f),
+            stageMax = stageSize,
+            im
+        )
+        imageMeta = im
+
         status = MicroscopeStatus(
             ServerState.MANUAL,
             stagePosition ?: (stageSize * 0.5f),
@@ -97,12 +102,12 @@ class SimulationMicroscopeHardware(
         hardwareCommandsQueue.add(HardwareCommand.MoveStage(target, hardwareDimensions))
     }
 
-    override fun acquireStack(meta: ClientSignal.AcquireStack) {
+    override fun acquireStack(meta: MicroscopeControlSignal.AcquireStack) {
         stop()
         hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
-    override fun ablatePoints(signal: ClientSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
     }
 
     override fun goLive() {
@@ -215,10 +220,11 @@ class SimulationMicroscopeHardware(
             stagePosition,
             sliceBuffer.capacity(),
             hwCommand.stackIdAndSliceIndex,
+            imageMeta,
             sliceBuffer
         )
         Thread.sleep(exposureMS)
-        output.put(signal)
+        output.put(MicroscopeSlice(signal))
     }
 
     private fun getMicroDummysInFocus(): List<Simulatable> {
@@ -244,13 +250,13 @@ class SimulationMicroscopeHardware(
 
         val currentStack = Stack(
             if (meta.id > 0) meta.id else idCounter++,
-            meta.live,
             start,
             end,
             steps,
-            nowMillis()
+            nowMillis(),
+            imageMeta
         )
-        output.put(currentStack)
+        output.put(MicroscopeStack(currentStack))
         status = status.copy(state = ServerState.STACK)
 
         for (i in 0 until steps) {
@@ -306,7 +312,7 @@ class SimulationMicroscopeHardware(
         }
 
         data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
-        data class GenerateStackCommands(val signal: ClientSignal.AcquireStack) : HardwareCommand()
+        data class GenerateStackCommands(val signal: MicroscopeControlSignal.AcquireStack) : HardwareCommand()
         data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()

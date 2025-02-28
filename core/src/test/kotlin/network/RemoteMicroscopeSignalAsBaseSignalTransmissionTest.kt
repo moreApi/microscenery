@@ -1,10 +1,11 @@
-package microscenery.unit.network
+package network
 
-import microscenery.lightSleepOnCondition
 import microscenery.lightSleepOnNull
 import microscenery.network.ControlSignalsClient
 import microscenery.network.ControlSignalsServer
 import microscenery.signals.*
+import microscenery.signals.MicroscopeControlSignal.Companion.toMicroscopeControlSignal
+import microscenery.signals.RemoteMicroscopeSignal.Companion.toRemoteMicroscopeSignal
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.junit.jupiter.api.AfterEach
@@ -14,16 +15,22 @@ import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class ControlSignalTransmissionTest {
+class RemoteMicroscopeSignalAsBaseSignalTransmissionTest {
 
     var ctx = ZContext()
     var lastSignalServer: RemoteMicroscopeSignal? = null
-    var lastSignalClient: ClientSignal? = null
+    var lastSignalClient: MicroscopeControlSignal? = null
+    var lastClientBaseSignal: BaseClientSignal? = null
+    var lastServerBaseSignal: BaseServerSignal? = null
     var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listOf {
-        lastSignalClient = it
+        lastClientBaseSignal = it
+        if (it is BaseClientSignal.AppSpecific)
+            lastSignalClient = it.toMicroscopeControlSignal()
     })
     var client: ControlSignalsClient = ControlSignalsClient(ctx, 11543, "*", listOf {
-        lastSignalServer = it
+        lastServerBaseSignal = it
+        if (it is BaseServerSignal.AppSpecific)
+            lastSignalServer = it.toRemoteMicroscopeSignal()
     })
 
     @AfterEach
@@ -38,42 +45,30 @@ class ControlSignalTransmissionTest {
     }
 
     @Test
-    fun shutdownServer() {
-        server.sendSignal(
-            ActualMicroscopeSignal(
-                MicroscopeStatus(ServerState.SHUTTING_DOWN, Vector3f(), false)
-            )
-        )
-
-        lightSleepOnCondition { !server.running }
-        assert(!server.running)
-    }
-
-    @Test
     fun transmittingSnapCommand() {
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         lastSignalClient = null
-        client.sendSignal(ClientSignal.SnapImage)
+        client.sendSignal(MicroscopeControlSignal.SnapImage.toBaseSignal())
 
         lightSleepOnNull { lastSignalClient }
         assertNotNull(lastSignalClient)
-        assert(lastSignalClient is ClientSignal.SnapImage)
+        assert(lastSignalClient is MicroscopeControlSignal.SnapImage)
     }
 
     @Test
     fun transmittingValues() {
 
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         val outHwd = HardwareDimensions(
-            Vector3f(1f, 2f, 3f), Vector3f(2f), Vector2i(20), 0.4f, NumericType.INT16
+            Vector3f(1f, 2f, 3f), Vector3f(2f), ImageMeta(Vector2i(20), 0.4f, NumericType.INT16)
         )
-        server.sendSignal(ActualMicroscopeSignal(outHwd))
+        server.sendSignal(ActualMicroscopeSignal(outHwd).toBaseSignal())
 
         lightSleepOnNull { lastSignalServer }
         val inSignal = lastSignalServer as? ActualMicroscopeSignal
@@ -89,12 +84,12 @@ class ControlSignalTransmissionTest {
 
     @Test
     fun transmittingState() {
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         val s1 = MicroscopeStatus(ServerState.MANUAL, Vector3f(), false)
-        server.sendSignal(ActualMicroscopeSignal(s1))
+        server.sendSignal(ActualMicroscopeSignal(s1).toBaseSignal())
         lightSleepOnNull { lastSignalServer }
 
         val returnSignal = lastSignalServer as? ActualMicroscopeSignal
@@ -106,21 +101,21 @@ class ControlSignalTransmissionTest {
 
     @Test
     fun transmittingCommand() {
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         lastSignalClient = null
-        client.sendSignal(ClientSignal.SnapImage)
+        client.sendSignal(MicroscopeControlSignal.SnapImage.toBaseSignal())
         lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient as ClientSignal.SnapImage)
+        assertNotNull(lastSignalClient as MicroscopeControlSignal.SnapImage)
     }
 
     @Test
     fun manySignals() {
 
-        lightSleepOnNull { lastSignalClient }
-        assertNotNull(lastSignalClient is ClientSignal.ClientSignOn)
+        lightSleepOnNull { lastClientBaseSignal }
+        assertNotNull(lastClientBaseSignal is BaseClientSignal.ClientSignOn)
         assert(lastSignalServer == null)
 
         var countServer = 0
@@ -129,7 +124,7 @@ class ControlSignalTransmissionTest {
             // just to have an answer signal
             thread {
                 Thread.sleep(200)
-                server.sendSignal(RemoteMicroscopeStatus(emptyList(), 0))
+                server.sendSignal(RemoteMicroscopeStatus(emptyList(), 0).toBaseSignal())
             }
         }
 
@@ -137,11 +132,12 @@ class ControlSignalTransmissionTest {
         client.addListener { countClient++ }
 
         for (x in 1..2000) {
-            assert(client.sendSignal(ClientSignal.MoveStage(Vector3f(x.toFloat()))))
+            assert(client.sendSignal(MicroscopeControlSignal.MoveStage(Vector3f(x.toFloat())).toBaseSignal()))
         }
         Thread.sleep(5000)
 
         assertEquals(2000, countServer)
         assertEquals(2000, countClient)
     }
+
 }

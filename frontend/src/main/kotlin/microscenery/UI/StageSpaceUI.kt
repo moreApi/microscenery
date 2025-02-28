@@ -169,7 +169,6 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                                 val created = SimpleDateFormat("hh:mm:ss").format(Date(meta.created))
                                 infoPanel.add(JLabel("Created: $created"),"wrap")
                                 infoPanel.add(JLabel("Slices: ${meta.slicesCount}"),"wrap")
-                                infoPanel.add(JLabel("Live: ${meta.live}"),"wrap")
                                 if (node.timepointCount > 1) {
                                     infoPanel.add(
                                         JLabel("Time Point: ${node.currentTimepoint + 1}/${node.timepointCount}"),

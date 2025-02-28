@@ -5,17 +5,26 @@ import microscenery.Agent
 import microscenery.MicroscenerySettings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
+import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
+import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
+/**
+ * Wraps an [MicroscopeHardware] and sends its output as [MicoscopeSignal]s wrapped in [BaseClientSignal].
+ * Also puts captured slice data into [SliceStorage] to be requested by [BiggishDataClient].
+ * 
+ * @param acquireOnConnect send an empty acquire stack signal to microscope on client connect
+ */
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class RemoteMicroscopeServer @JvmOverloads constructor(
     val microscope: MicroscopeHardware,
     private val zContext: ZContext,
     val storage: SliceStorage = SliceStorage(),
-    val basePort: Int = MicroscenerySettings.get("Network.basePort",4000),
+    val basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
     val connections: Int = MicroscenerySettings.get("Network.connections", 1),
+    val acquireOnConnect: Boolean = false
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -25,7 +34,8 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     var status: RemoteMicroscopeStatus by Delegates.observable(
         RemoteMicroscopeStatus(emptyList(), 0)
     ) { _, _, newStatus: RemoteMicroscopeStatus ->
-        controlConnection.sendSignal(newStatus)
+        sendBaseWrappedSignal(newStatus)
+        logger.info("Status: $newStatus")
     }
 
     init {
@@ -39,55 +49,89 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         val signal = microscope.output.poll(200, TimeUnit.MILLISECONDS) ?: return
 
         when (signal) {
-            is Slice -> {
-                signal.data?.let {
-                    storage.addSlice(signal.Id, signal.data)
-                    controlConnection.sendSignal(ActualMicroscopeSignal(signal.copy(data = null)))
+            is MicroscopeSlice -> {
+                signal.slice.data?.let {
+                    storage.addSlice(signal.slice.Id, signal.slice.data)
+                    sendBaseWrappedSignal(ActualMicroscopeSignal(MicroscopeSlice(signal.slice.copy(data = null))))
                 }
             }
-            else -> controlConnection.sendSignal(ActualMicroscopeSignal(signal))
+
+            else -> sendBaseWrappedSignal(ActualMicroscopeSignal(signal))
         }
+    }
+    
+    private fun sendBaseWrappedSignal(signal: RemoteMicroscopeSignal){
+        val wrapped = when (signal) {
+            is RemoteMicroscopeStatus -> {
+                BaseServerSignal.AppSpecific(signal.toProto().toByteString())
+            }
+            is ActualMicroscopeSignal -> when (signal.signal) {
+                is MicroscopeStack -> {
+                    signal.signal.stack
+                }
+                is MicroscopeSlice -> {
+                    signal.signal.slice
+                }
+                else -> {
+                    BaseServerSignal.AppSpecific(signal.toProto().toByteString())
+                }
+            }
+        }
+        controlConnection.sendSignal(wrapped)
     }
 
     /**
      * Executed by the network thread of [ControlSignalsServer]
      */
-    private fun processClientSignal(it: ClientSignal) {
-        when (it) {
-            is ClientSignal.AcquireStack -> {
-                microscope.acquireStack(it)
-            }
-            ClientSignal.ClientSignOn -> {
+    private fun processClientSignal(bcs: BaseClientSignal) {
+        when (bcs) {
+            BaseClientSignal.ClientSignOn -> {
                 status = status.copy(connectedClients = status.connectedClients + 1)
-                controlConnection.sendSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
-                controlConnection.sendSignal(ActualMicroscopeSignal(microscope.status()))
+                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
+                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.status()))
+                if (acquireOnConnect){
+                    microscope.acquireStack(MicroscopeControlSignal.AcquireStack(Vector3f(),Vector3f(),1f))
+                }
             }
-            ClientSignal.Live -> microscope.goLive()
-            is ClientSignal.MoveStage -> microscope.stagePosition = it.target
-            ClientSignal.Shutdown -> {
-                logger.info("Shutting down server.")
-                microscope.shutdown()
-                close()
+
+            is BaseClientSignal.AppSpecific -> {
+                val it = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.parseFrom(bcs.data).toPoko()
+                when (it) {
+                    is MicroscopeControlSignal.AcquireStack -> {
+                        microscope.acquireStack(it)
+                    }
+
+                    MicroscopeControlSignal.Live -> microscope.goLive()
+                    is MicroscopeControlSignal.MoveStage -> microscope.stagePosition = it.target
+                    MicroscopeControlSignal.Shutdown -> {
+                        logger.info("Shutting down server.")
+                        microscope.shutdown()
+                        controlConnection.shutdown = true
+                        dataSender.close()
+                        close()
+                    }
+
+                    MicroscopeControlSignal.SnapImage -> microscope.snapSlice()
+                    MicroscopeControlSignal.Stop -> microscope.stop()
+                    is MicroscopeControlSignal.AblationPoints -> microscope.ablatePoints(it)
+                    is MicroscopeControlSignal.AblationShutter -> TODO()
+                    MicroscopeControlSignal.StartAcquisition -> microscope.startAcquisition()
+                    is MicroscopeControlSignal.DeviceSpecific -> microscope.deviceSpecificCommands(it.data)
+                }
             }
-            ClientSignal.SnapImage -> microscope.snapSlice()
-            ClientSignal.Stop -> microscope.stop()
-            is ClientSignal.AblationPoints -> microscope.ablatePoints(it)
-            is ClientSignal.AblationShutter -> TODO()
-            ClientSignal.StartAcquisition -> microscope.startAcquisition()
-            is ClientSignal.DeviceSpecific -> microscope.deviceSpecificCommands(it.data)
         }
     }
 
     @Suppress("unused")
     fun stop() {
         logger.info("Got stop Command")
-        controlConnection.sendInternalSignals(listOf(ClientSignal.Stop))
+        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Stop.toBaseSignal()))
     }
 
     @Suppress("unused")
     fun shutdown() {
         logger.info("Got Stop Command")
-        controlConnection.sendInternalSignals(listOf(ClientSignal.Shutdown))
+        controlConnection.sendInternalSignals(listOf(MicroscopeControlSignal.Shutdown.toBaseSignal()))
     }
 
     /**

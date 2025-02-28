@@ -1,4 +1,4 @@
-package microscenery.unit.network
+package network
 
 import microscenery.Agent
 import microscenery.lightSleepOnCondition

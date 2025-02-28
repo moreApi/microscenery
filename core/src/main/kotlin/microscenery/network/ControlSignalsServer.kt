@@ -2,12 +2,11 @@ package microscenery.network
 
 import fromScenery.lazyLogger
 import kotlinx.event.event
-import me.jancasus.microscenery.network.v2.ClientSignal
-import me.jancasus.microscenery.network.v2.EnumServerState
 import microscenery.Agent
 import microscenery.MicroscenerySettings
-import microscenery.signals.ClientSignal.Companion.toPoko
-import microscenery.signals.RemoteMicroscopeSignal
+import microscenery.signals.BaseClientSignal
+import microscenery.signals.BaseClientSignal.Companion.toPoko
+import microscenery.signals.BaseServerSignal
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -15,22 +14,29 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * A server to receive [ClientSignal]s and send [RemoteMicroscopeSignal]s from.
+ * A server to receive [BaseClientSignal]s and send [BaseServerSignal]s from.
  *
- * Server shuts down when a signal with shutdown status has been send.
+ * Tries the send the rest of the queue once shutdown is = true.
+ *
+ * Receive [BaseClientSignal]s via subscribing with a listener by [addListener].
+ * Don't add too elaborate listeners. They get executed by the network thread.
+ *
+ * Send via [sendSignal].
  */
 class ControlSignalsServer(
-    zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort",4000),
-    listeners: List<(microscenery.signals.ClientSignal) -> Unit> = emptyList()
+    zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort", 4000),
+    listeners: List<(BaseClientSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val socket: ZMQ.Socket
 
-    private val signalsOut = ArrayBlockingQueue<me.jancasus.microscenery.network.v2.RemoteMicroscopeSignal>(1000)
-    private val signalsIn = event<ClientSignal>()
+    private val signalsOut = ArrayBlockingQueue<org.withXR.network.v3.BaseServerSignal>(1000)
+    private val signalsIn = event<BaseClientSignal>()
 
     private val clients = mutableSetOf<ByteArray>()
+
+    internal var shutdown = false
 
     @Suppress("unused")
     val connectedClients
@@ -49,13 +55,14 @@ class ControlSignalsServer(
     /**
      * Don't add too elaborate listeners. They get executed by the network thread.
      */
-    fun addListener(listener: (microscenery.signals.ClientSignal) -> Unit) {
+    fun addListener(listener: (BaseClientSignal) -> Unit) {
         synchronized(signalsIn) {
-            signalsIn += { listener(it.toPoko()) }
+            signalsIn += { listener(it) }
         }
     }
 
-    fun sendSignal(signal: RemoteMicroscopeSignal): Boolean {
+    /** Queues signal to be sent in main loop */
+    fun sendSignal(signal: BaseServerSignal): Boolean {
         if (!signalsOut.offer(signal.toProto(), 5000, TimeUnit.MILLISECONDS)) {
             logger.warn("Dropped ${signal::class.simpleName} package because of full queue.")
             return false
@@ -63,9 +70,9 @@ class ControlSignalsServer(
         return true
     }
 
-    fun sendInternalSignals(signals: List<microscenery.signals.ClientSignal>) {
+    fun sendInternalSignals(signals: List<BaseClientSignal>) {
         synchronized(signalsIn) {
-            signals.forEach { signalsIn(it.toProto()) }
+            signals.forEach { signalsIn(it) }
         }
     }
 
@@ -77,10 +84,10 @@ class ControlSignalsServer(
         // First frame in each message is the sender identity
         if (identity != null) {
             clients += identity
-            val event = ClientSignal.parseFrom(socket.recv())
+            val event = org.withXR.network.v3.BaseClientSignal.parseFrom(socket.recv())
 
             synchronized(signalsIn) {
-                signalsIn(event)
+                signalsIn(event.toPoko())
             }
         }
 
@@ -95,16 +102,14 @@ class ControlSignalsServer(
                 Thread.sleep(1)
             }
 
-            if (outSignal.hasMicroscopeSignal()
-                && outSignal.microscopeSignal.hasStatus()
-                && outSignal.microscopeSignal.status.state == EnumServerState.SERVER_STATE_SHUTTING_DOWN
-            ) {
-                this.close()
-            }
+
         }
 
         if (identity == null && outSignal == null)
             Thread.sleep(200)
+        if (shutdown) {
+            this.close()
+        }
     }
 
     override fun onClose() {
