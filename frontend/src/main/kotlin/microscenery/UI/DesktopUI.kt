@@ -3,13 +3,15 @@ package microscenery.UI
 import graphics.scenery.Node
 import graphics.scenery.Scene
 import graphics.scenery.controls.InputHandler
+import graphics.scenery.controls.behaviours.ArcballCameraControl
 import graphics.scenery.volumes.Volume
 import microscenery.MicrosceneryHub
 import microscenery.stageSpace.SliceRenderNode
+import microscenery.stageSpace.StageSpaceManager
 import org.scijava.ui.behaviour.ClickBehaviour
 
 object DesktopUI {
-    fun initMouseSelection(inputHandler: InputHandler?, msHub: MicrosceneryHub){
+    fun initMouse(inputHandler: InputHandler?, msHub: MicrosceneryHub){
         inputHandler ?: return
 
         val name = "selectNodeWithMouse"
@@ -24,6 +26,16 @@ object DesktopUI {
                 }
         })
         inputHandler.addKeyBinding( name, "1")
+
+        val stageSpaceManager =  msHub.getAttribute(StageSpaceManager::class.java)
+        val targetArcball =
+            ArcballCameraControl("mouse_control", { scene.findObserver() }, 500, 500, {
+                uiModel.selected?.spatialOrNull()?.worldPosition()
+                    ?: stageSpaceManager.focusManager.focusTarget.spatial().worldPosition()
+            })
+
+        inputHandler.addBehaviour("arcCam", targetArcball)
+        inputHandler.addKeyBinding("arcCam", "button2")
     }
 
     private fun isValidSelectionTarget(node: Node) : Boolean = when{
