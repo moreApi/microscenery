@@ -22,6 +22,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.Lock
 
 /**
  * Handles in and output events concerning the microscope.
@@ -173,9 +174,9 @@ class StageSpaceManager(
         hardware.stop()
     }
 
-    fun sync(): Future<Boolean>{
+    fun sync() {
         logger.info("starting sync")
-        return hardware.sync()
+        hardware.sync().acquire()
     }
 
     fun exploreCubeStageSpace(

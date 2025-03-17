@@ -15,10 +15,9 @@ import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.nio.Buffer
 import java.nio.ByteBuffer
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
@@ -169,10 +168,11 @@ class MicromanagerWrapper(
         hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
     }
 
-    override fun sync(): Future<Boolean> {
-        val sync = HardwareCommand.Sync()
-        hardwareCommandsQueue.add(sync)
-        return sync.future
+    override fun sync(): Semaphore {
+        val lock = Semaphore(1)
+        lock.acquire()
+        hardwareCommandsQueue.add(HardwareCommand.Sync(lock))
+        return lock
     }
 
     override fun stop() {
@@ -276,7 +276,7 @@ class MicromanagerWrapper(
                 executeSnapImage(hwCommand)
             }
 
-            is HardwareCommand.Sync -> hwCommand.future.complete(true)
+            is HardwareCommand.Sync -> hwCommand.lock.release()
 
             is HardwareCommand.Stop -> {
                 mmStudioConnector.live(false)
@@ -498,7 +498,7 @@ class MicromanagerWrapper(
 
         data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
         data class GenerateStackCommands(val signal: MicroscopeControlSignal.AcquireStack) : HardwareCommand()
-        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()) : HardwareCommand()
+        data class Sync(val lock: Semaphore) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
         data class AblatePoints(val points: List<MicroscopeControlSignal.AblationPoint>) : HardwareCommand()

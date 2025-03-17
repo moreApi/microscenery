@@ -6,7 +6,7 @@ import microscenery.signals.MicroscopeSignal
 import microscenery.signals.MicroscopeStatus
 import org.joml.Vector3f
 import java.util.concurrent.BlockingQueue
-import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
 
 interface MicroscopeHardware {
     var stagePosition: Vector3f
@@ -28,7 +28,12 @@ interface MicroscopeHardware {
 
     fun deviceSpecificCommands(data: ByteArray){}
 
-    fun sync(): Future<Boolean>
+    /**
+     * Sync with microscope runtime. Blocks until microscope is in a free state again.
+     *
+     * (Using a Semaphore here since locks cant be released from non-owning threads.
+     */
+    fun sync(): Semaphore
 
     val output: BlockingQueue<MicroscopeSignal>
 }

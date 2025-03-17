@@ -9,6 +9,8 @@ import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
 import org.joml.Vector3f
 import org.zeromq.ZContext
 import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
+import java.util.concurrent.locks.Lock
 
 /**
  * Is a virtual [MicroscopeHardware] to send commands to a remote microscope over network.
@@ -59,7 +61,7 @@ class RemoteMicroscopeClient(
         sendBaseWrappedSignal(MicroscopeControlSignal.Live)
     }
 
-    override fun sync(): Future<Boolean> {
+    override fun sync(): Semaphore {
         TODO("Not yet implemented")
     }
 

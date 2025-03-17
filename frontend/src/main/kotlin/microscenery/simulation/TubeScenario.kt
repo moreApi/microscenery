@@ -59,9 +59,9 @@ data class TubeScenario(val randomSeed: Long = 1337, val radius: Float = 350f, v
 
         stageSpaceManager.focusManager.mode = FocusManager.Mode.PASSIVE
         stageSpaceManager.stop()
-        stageSpaceManager.sync().get()
+        stageSpaceManager.sync()
         stageSpaceManager.exploreCubeStageSpace(min, max, Vector3f(imageSize * 1.2f, imageSize * 1.2f, 50f))
-        stageSpaceManager.sync().get()
+        stageSpaceManager.sync()
         stageSpaceManager.goLive()
         stageSpaceManager.focusManager.mode = FocusManager.Mode.STEERING
         (stageSpaceManager.hardware as? SimulationMicroscopeHardware)?.fastMode = false
