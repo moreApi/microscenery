@@ -8,7 +8,7 @@ import microscenery.UI.StageUICommand
 import microscenery.hardware.MicroscopeHardware
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
-import microscenery.zenSysConCon.ZenMicroscope
+import microscenery.zenSysConCon.ZenSysConMicroscope
 import microscenery.zenSysConCon.sysCon.SysConConnection
 import org.joml.Vector3f
 import org.mockito.Mockito
@@ -23,7 +23,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     val volumesFolder = """D:\volumes"""
     val zeissFolder = """D:\ViingsCloud\Zeiss"""
 
-    lateinit var zenMicroscope: ZenMicroscope
+    lateinit var zenMicroscope: ZenSysConMicroscope
     val crovWithoutHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_without_holes.czi"""
     val crovHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_with_holes.czi"""
     val experiment19 = zeissFolder + """\Zeiss\Experiment-19.czi"""
@@ -45,7 +45,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConConnection = Mockito.mock(SysConConnection::class.java)
         whenever(zenBlue.getCurrentDocument()).thenReturn(squareRing)
-        zenMicroscope = ZenMicroscope(zenBlue, sysCon)
+        zenMicroscope = ZenSysConMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
         stageSpaceManager = StageSpaceManager(hardware, scene, msHub)

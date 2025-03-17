@@ -8,7 +8,7 @@ import microscenery.VRUI.VRUIManager
 import microscenery.hardware.MicroscopeHardware
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
-import microscenery.zenSysConCon.ZenMicroscope
+import microscenery.zenSysConCon.ZenSysConMicroscope
 import microscenery.zenSysConCon.sysCon.SysConConnection
 import org.joml.Vector3f
 import org.mockito.Mockito
@@ -44,7 +44,7 @@ class LocalZenSceneVR : DefaultVRScene() {
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConConnection = Mockito.mock(SysConConnection::class.java)
-        val zenMicroscope = ZenMicroscope(zenBlue, sysCon)
+        val zenMicroscope = ZenSysConMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
         msHub = MicrosceneryHub(hub)
