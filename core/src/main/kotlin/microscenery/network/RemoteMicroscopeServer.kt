@@ -8,6 +8,7 @@ import microscenery.signals.*
 import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
 import org.joml.Vector3f
 import org.zeromq.ZContext
+import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
@@ -30,6 +31,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
     private val controlConnection = ControlSignalsServer(zContext, basePort, listOf(this::processClientSignal))
     val dataSender = BiggishDataServer(basePort + 1, storage, zContext)
+    val bonjourService = BonjourService()
 
     var status: RemoteMicroscopeStatus by Delegates.observable(
         RemoteMicroscopeStatus(emptyList(), 0)
@@ -43,6 +45,10 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
         status = RemoteMicroscopeStatus(listOf(dataSender.port), 0)
         startAgent()
+    }
+
+    override fun onStart() {
+        bonjourService.register(InetAddress.getLocalHost().hostName, basePort, "RemoteMicroscope")
     }
 
     override fun onLoop() {
@@ -142,5 +148,6 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
     override fun onClose() {
         dataSender.close().join()
+        bonjourService.close()
     }
 }

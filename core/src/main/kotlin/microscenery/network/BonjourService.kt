@@ -6,7 +6,6 @@ import java.net.InetAddress
 import javax.jmdns.JmDNS
 import javax.jmdns.ServiceInfo
 
-
 class BonjourService(val type: String = "_xrsidecar._tcp.local.") : AutoCloseable {
     private val jmDNS: JmDNS = JmDNS.create(InetAddress.getLocalHost())
     private val logger = LoggerFactory.getLogger(BonjourService::class.java)
@@ -17,6 +16,7 @@ class BonjourService(val type: String = "_xrsidecar._tcp.local.") : AutoCloseabl
             // Register a service
             val serviceInfo = ServiceInfo.create(type, name, port, text)
             jmDNS.registerService(serviceInfo)
+            logger.info("Registered Bonjour service at ${jmDNS.inetAddress}:$port type: $type text: $text")
         } catch(e: IOException) {
             logger.error(e.message)
         }
