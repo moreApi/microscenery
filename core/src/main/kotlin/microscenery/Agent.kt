@@ -29,6 +29,7 @@ abstract class Agent(val isDaemon: Boolean = true) {
                 running = true
                 lock.release()
                 try {
+                    onStart()
                     while (running && !Thread.currentThread().isInterrupted) {
                         onLoop()
                     }
@@ -46,6 +47,12 @@ abstract class Agent(val isDaemon: Boolean = true) {
      * Called in a while loop once started. Add [Thread.sleep] if needed. Otherwise, the agent will busy wait.
      */
     protected abstract fun onLoop()
+
+    /**
+     * Called before the first loop.
+     */
+    protected open fun onStart() {}
+
 
     /**
      * Called after the last loop or an interrupt.
