@@ -19,8 +19,7 @@ import org.joml.Vector3f
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.math.roundToInt
 
@@ -114,10 +113,11 @@ class SimulationMicroscopeHardware(
         hardwareCommandsQueue.add(HardwareCommand.SnapImage(true))
     }
 
-    override fun sync(): Future<Boolean> {
-        val sync = HardwareCommand.Sync()
-        hardwareCommandsQueue.add(sync)
-        return sync.future
+    override fun sync(): Semaphore {
+        val lock = Semaphore(1)
+        lock.acquire()
+        hardwareCommandsQueue.add(HardwareCommand.Sync(lock))
+        return lock
     }
 
     override fun stop() {
@@ -162,7 +162,7 @@ class SimulationMicroscopeHardware(
                 status = status.copy(state = ServerState.MANUAL)
             }
 
-            is HardwareCommand.Sync -> hwCommand.future.complete(true)
+            is HardwareCommand.Sync -> hwCommand.lock.release()
             HardwareCommand.Shutdown -> {}
         }
     }
@@ -313,7 +313,7 @@ class SimulationMicroscopeHardware(
 
         data class SnapImage(val live: Boolean, val stackIdAndSliceIndex: Pair<Int, Int>? = null) : HardwareCommand()
         data class GenerateStackCommands(val signal: MicroscopeControlSignal.AcquireStack) : HardwareCommand()
-        data class Sync(val future: CompletableFuture<Boolean> = CompletableFuture()) : HardwareCommand()
+        data class Sync(val lock: Semaphore) : HardwareCommand()
         object Stop : HardwareCommand()
         object Shutdown : HardwareCommand()
     }

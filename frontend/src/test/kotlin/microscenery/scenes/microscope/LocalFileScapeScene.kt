@@ -19,8 +19,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 
@@ -159,8 +158,8 @@ class FolderReaderMicroscope : MicroscopeHardwareAgent() {
         TODO("Not yet implemented")
     }
 
-    override fun sync(): Future<Boolean> {
-        return CompletableFuture<Boolean>().apply { complete(true) }
+    override fun sync(): Semaphore {
+        return Semaphore(1) // It's already free. Come get it!
     }
 
     override fun stop() {

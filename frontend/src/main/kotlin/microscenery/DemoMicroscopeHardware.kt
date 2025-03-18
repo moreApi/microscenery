@@ -14,8 +14,7 @@ import org.lwjgl.system.MemoryUtil
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
@@ -130,8 +129,8 @@ class DemoMicroscopeHardware(
         }
     }
 
-    override fun sync(): Future<Boolean> {
-        return CompletableFuture<Boolean>().apply { complete(true) }
+    override fun sync(): Semaphore {
+        return Semaphore(1) // It's already free. Come get it!
     }
 
     override fun stop() {
