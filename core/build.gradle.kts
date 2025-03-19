@@ -14,8 +14,6 @@ repositories {
     maven("https://jitpack.io")
 }
 
-val lwjglVersion = "3.3.1"
-val lwjglNatives = listOf("natives-linux","natives-windows")
 
 dependencies {
     implementation(kotlin("reflect"))
@@ -31,14 +29,14 @@ dependencies {
 
     implementation("org.jmdns:jmdns:3.5.9")
 
-
-
-    implementation(files("manualLib/MMCoreJ.jar"))
-
+    val lwjglVersion = "3.3.1"
+    val lwjglNatives = listOf("natives-linux", "natives-windows", "natives-macos", "natives-macos-arm64")
     implementation("org.lwjgl", "lwjgl")
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
     lwjglNatives.forEach { runtimeOnly("org.lwjgl", "lwjgl", classifier = it) }
-    
+
+    implementation(files("manualLib/MMCoreJ.jar"))
+
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.mockito:mockito-core:5.10.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
