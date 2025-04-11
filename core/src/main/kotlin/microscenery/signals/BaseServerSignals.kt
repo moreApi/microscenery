@@ -168,7 +168,11 @@ data class ImageMeta(
 
 enum class NumericType(val bytes: Int) {
     INT8(1),
-    INT16(2)
+    INT16(2);
+
+    companion object {
+        fun fromNumBytes(bytes: Int) = entries.firstOrNull { it.bytes == bytes }
+    }
 }
 
 fun NumericType.toProto() = when (this) {
