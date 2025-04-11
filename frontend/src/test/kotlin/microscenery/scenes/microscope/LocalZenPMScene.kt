@@ -35,6 +35,7 @@ class LocalZenPMScene : DefaultScene(withSwingUI = true) {
         super.init()
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
+        MicroscenerySettings.set(Settings.ZenMicroscope.readChannel,1)
 
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
