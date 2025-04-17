@@ -80,6 +80,7 @@ object Settings {
 
     object ZenMicroscope {
         /** bool */ const val MockSysCon = "ZenMicroscope.mockSysCon"
+        /** bool */ const val MockZenConnection = "ZenMicroscope.mockZenConnection"
         /** float */ const val exposureTime = "ZenMicroscope.exposureTime"
         /** int */ const val readChannel = "ZenMicroscope.readChannel"
     }

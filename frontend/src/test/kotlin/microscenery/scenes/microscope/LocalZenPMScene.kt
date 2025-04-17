@@ -39,9 +39,16 @@ class LocalZenPMScene : DefaultScene(withSwingUI = true) {
 
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
-        val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
-        whenever(zenBlue.saveExperimentAndGetFilePath()).thenReturn(initalExperimentFile)
-        whenever(zenBlue.getCurrentDocument()).thenReturn(crovWithoutHoles)
+        val zenBlue: ZenBlueTCPConnector = let{
+            if (MicroscenerySettings.get(Settings.ZenMicroscope.MockZenConnection, true)) {
+                val tmp = Mockito.mock(ZenBlueTCPConnector::class.java)
+                whenever(tmp.saveExperimentAndGetFilePath()).thenReturn(initalExperimentFile)
+                whenever(tmp.getCurrentDocument()).thenReturn(crovWithoutHoles)
+                tmp
+            } else {
+                ZenBlueTCPConnector()
+            }
+        }
 
         zenMicroscope = ZenPhotoMnplMicroscope(zenBlue)
 
