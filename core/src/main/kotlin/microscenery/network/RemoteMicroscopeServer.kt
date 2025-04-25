@@ -8,7 +8,6 @@ import microscenery.signals.*
 import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
 import org.joml.Vector3f
 import org.zeromq.ZContext
-import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
