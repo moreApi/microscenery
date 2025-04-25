@@ -48,7 +48,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     }
 
     override fun onStart() {
-        bonjourService.register(InetAddress.getLocalHost().hostName, basePort, "RemoteMicroscope")
+        bonjourService.register("microscenery-Microscope", basePort, "RemoteMicroscope")
     }
 
     override fun onLoop() {
