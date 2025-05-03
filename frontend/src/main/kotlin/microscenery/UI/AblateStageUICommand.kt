@@ -99,5 +99,4 @@ class AblateStageUICommand(stageSpaceManager: StageSpaceManager): StageUICommand
             logger.info("set ablation point to ${frame.spatial().position.toReadableString()}")
         }
     }
-}) {
-}
+})

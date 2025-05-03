@@ -29,7 +29,7 @@ abstract class MicroscopeHardwareAgent : Agent(), MicroscopeHardware {
             moveStage(value)
         }
 
-    protected var hardwareDimensions: HardwareDimensions by Delegates.observable(
+    protected open var hardwareDimensions: HardwareDimensions by Delegates.observable(
         HardwareDimensions.EMPTY.copy()
     ) { _, old, new ->
         if (old != new) output.put(hardwareDimensions)
