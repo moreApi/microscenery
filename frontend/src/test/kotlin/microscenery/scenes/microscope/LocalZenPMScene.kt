@@ -9,12 +9,14 @@ import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.VRUI.PointCloudAblationTool.Ink
 import microscenery.hardware.MicroscopeHardware
+import microscenery.simulation.AblationSimulationMicroscope
 import microscenery.stageSpace.StageSpaceManager
 import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenPhotoMnplMicroscope
 import org.joml.Vector3f
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
+import java.io.File
 import kotlin.concurrent.thread
 
 @Suppress("unused")
@@ -31,19 +33,23 @@ class LocalZenPMScene : DefaultScene(withSwingUI = true) {
     val mbCZI = """D:\volumes\20250305_arthur_3d_ablation\20250305_MAmCherry_-15-1.czi"""
     val initalExperimentFile = """zenSysConCon/src/test/resources/20250305_3D_laser_ablation_settings_test_1_shorted.czexp"""
 
+    val drosphila_cut = listOf("""D:\volumes\Zeiss\20230925_drosophila_niceSideCut1.czi""","""D:\volumes\Zeiss\20230925_drosophila_niceSideCut2.czi""")
+
     override fun init() {
         super.init()
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
         MicroscenerySettings.set(Settings.ZenMicroscope.readChannel,1)
+        MicroscenerySettings.set(Settings.Ablation.SizeUM,30f)
 
-        cam.spatial().position = Vector3f(0f, 0f, 5f)
+        cam.spatial().position = Vector3f(0f, 0f, 2f)
 
         val zenBlue: ZenBlueTCPConnector = let{
             if (MicroscenerySettings.get(Settings.ZenMicroscope.MockZenConnection, true)) {
                 val tmp = Mockito.mock(ZenBlueTCPConnector::class.java)
                 whenever(tmp.saveExperimentAndGetFilePath()).thenReturn(initalExperimentFile)
-                whenever(tmp.getCurrentDocument()).thenReturn(crovWithoutHoles)
+                whenever(tmp.getCurrentDocument()).thenReturn(singleCZI)
+                //whenever(tmp.getCurrentDocument()).thenReturn(drosphila_cut[0],drosphila_cut[1])
                 tmp
             } else {
                 ZenBlueTCPConnector()
@@ -52,7 +58,7 @@ class LocalZenPMScene : DefaultScene(withSwingUI = true) {
 
         zenMicroscope = ZenPhotoMnplMicroscope(zenBlue)
 
-        val hardware: MicroscopeHardware = zenMicroscope
+        val hardware: MicroscopeHardware = AblationSimulationMicroscope(zenMicroscope)
         stageSpaceManager = StageSpaceManager(hardware, scene, msHub)
 
         //for nice cut pictures
@@ -63,6 +69,9 @@ class LocalZenPMScene : DefaultScene(withSwingUI = true) {
             Thread.sleep(100)
             zenMicroscope.sync()
             zenMicroscope.snapSlice()
+            //stageSpaceManager.sliceManager.transferFunctionManager.loadTransferFunctionFromFile(File("""C:\Users\JanPhD\Downloads\drosophila.tf"""))
+            stageSpaceManager.sliceManager.transferFunctionManager.loadTransferFunctionFromFile(File("""C:\Users\JanPhD\Downloads\MamCherryArthur.tf"""))
+            stageSpaceManager.focusManager.focusTarget.spatial().position = stageSpaceManager.stageAreaCenter
         }
 
         thread {
