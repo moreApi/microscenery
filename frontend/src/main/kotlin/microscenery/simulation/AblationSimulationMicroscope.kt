@@ -1,20 +1,28 @@
 package microscenery.simulation
 
 import fromScenery.lazyLogger
+import graphics.scenery.Origin
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
+import microscenery.toReadableString
 import org.joml.Vector3f
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
+
+/**
+ * Wraps around a microscope and simulates ablation by subtracting pixel values aground ablation points, like a negative SDF rendering.
+ */
 class AblationSimulationMicroscope (
     val microscope: MicroscopeHardware,
-    val actionAfterAblation: (AblationSimulationMicroscope) -> Unit = {it.startAcquisition()}
+    val actionAfterAblation: (AblationSimulationMicroscope) -> Unit = {it.startAcquisition()},
+    var imgOrigin: Origin = Origin.Center
 ): MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
+
 
 
     private var ablationPoints: List<MicroscopeControlSignal.AblationPoint> = emptyList()
@@ -24,10 +32,15 @@ class AblationSimulationMicroscope (
     }
 
     override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
+        logger.info("Adding ablation points to simulation: "+signal.points.map { it.position.toReadableString() })
         ablationPoints += signal.points
         actionAfterAblation(this)
     }
 
+    override fun stop() {
+        ablationPoints = emptyList()
+        microscope.stop()
+    }
 
     override fun onLoop() {
         val signal = microscope.output.poll(200, TimeUnit.MILLISECONDS) ?: return
@@ -38,7 +51,7 @@ class AblationSimulationMicroscope (
                 return
             }
 
-            logger.info("Processing Slice ${signal.slice.Id}")
+            //logger.info("Processing Slice ${signal.slice.Id}")
 
             val slice = signal.slice
             val hwd = hardwareDimensions
@@ -50,19 +63,23 @@ class AblationSimulationMicroscope (
             val data8 = raw
             val data16 = raw.asShortBuffer()
 
-            for (y in 0 until hwd.imageSize.y) for (x in 0 until hwd.imageSize.x){
+            for (imgY in 0 until hwd.imageSize.y) for (imgX in 0 until hwd.imageSize.x){
                 val value = when(hwd.numericType){
-                    NumericType.INT8 -> data8.get().toInt() + Byte.MAX_VALUE
-                    NumericType.INT16 -> data16.get().toInt() + Short.MAX_VALUE
+                    NumericType.INT8 -> data8.get().toInt()
+                    NumericType.INT16 -> data16.get().toInt()
                 }
 
                 var newValue = value
-                val pos = Vector3f(slice.stagePos)
-                pos.x += x * hwd.vertexDiameter
-                pos.y += y * hwd.vertexDiameter
+                val pixelStagePos = Vector3f(slice.stagePos)
+                pixelStagePos.x += imgX * hwd.vertexDiameter
+                pixelStagePos.y += imgY * hwd.vertexDiameter
+                if (imgOrigin == Origin.Center){
+                    pixelStagePos.x -= hwd.imageSize.x * 0.5f * hwd.vertexDiameter
+                    pixelStagePos.y -= hwd.imageSize.y * 0.5f * hwd.vertexDiameter
+                }
 
                 ablationPoints.forEach { ablationPoint ->
-                    val diff = ablationPoint.position.distance(pos)
+                    val diff = ablationPoint.position.distance(pixelStagePos)
                     if (diff <= ablationRadius) {
                         newValue = (newValue * (diff / ablationRadius)).toInt()
                     }
@@ -70,10 +87,10 @@ class AblationSimulationMicroscope (
                 if (newValue != value) {
                     when(hwd.numericType){
                         NumericType.INT8 -> {
-                            data8.put(data8.position() - 1, (newValue - Byte.MAX_VALUE).toByte())
+                            data8.put(data8.position() - 1, (newValue).toByte())
                         }
                         NumericType.INT16 -> {
-                            data16.put(data16.position() - 1, (newValue - Short.MAX_VALUE).toShort())
+                            data16.put(data16.position() - 1, (newValue).toShort())
                         }
                     }
                 }
@@ -95,11 +112,6 @@ class AblationSimulationMicroscope (
 
     override fun goLive() {
         microscope.goLive()
-    }
-
-    override fun stop() {
-        ablationPoints = emptyList()
-        microscope.stop()
     }
 
     override fun snapSlice() {
