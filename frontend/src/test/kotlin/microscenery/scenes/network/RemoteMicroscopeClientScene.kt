@@ -4,7 +4,6 @@ import microscenery.*
 import microscenery.UI.StageSpaceUI
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
-import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
 import org.zeromq.ZContext
 
@@ -16,7 +15,7 @@ class RemoteMicroscopeClientScene(nonMicroscopeMode: Boolean = true) : DefaultSc
     init {
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,false)
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,false)
-        MicroscenerySettings.set(Settings.MMMicroscope.IsMicromanagerMicroscope,true)
+        MicroscenerySettings.set(Settings.MMMicroscope.IsMicromanagerMicroscope,false)
 
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext, nonMicroscopeMode = nonMicroscopeMode)
