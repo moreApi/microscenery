@@ -16,7 +16,8 @@ class RemoteFileViewerServer {
             // settings like port can be set in [microscenery.properties]
             val zContext = ZContext()
 
-            val microscope = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+            //val microscope = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+            val microscope = FileMicroscopeHardware("""volumes/Lund-100MB.tif""")
 
             @Suppress("UNUSED_VARIABLE")
             val server =
