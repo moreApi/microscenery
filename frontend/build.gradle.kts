@@ -70,16 +70,17 @@ tasks{
 tasks{
     // This registers gradle tasks for all example scenes
     sourceSets.test.get().allSource.files
+        .filter { it.extension == "kt" }
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
         .filter { it.contains("microscenery.scenes.") && !it.contains("resources") }
         .forEach { className ->
             val exampleName = className.substringAfterLast(".")
-            val exampleType = className.substringBeforeLast(".").substringAfterLast(".")
+            val exampleType = className.substringBeforeLast(".").substringAfter("microscenery.scenes.")
 
             register<JavaExec>(name = exampleName) {
                 classpath = sourceSets.test.get().runtimeClasspath
                 mainClass.set(className)
-                group = "examples.$exampleType"
+                group = "scenes.$exampleType"
                 workingDir = workingDir.parentFile
                 jvmArguments.add("-Dscenery.Renderer.Device=NVIDIA")
 
