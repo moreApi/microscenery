@@ -193,6 +193,6 @@ class FileMicroscopeHardware(
     }
 
     override fun startAcquisition() {
-        snapSlice()
+        acquireStack(MicroscopeControlSignal.AcquireStack(Vector3f(0f),Vector3f(0f),1f))
     }
 }
