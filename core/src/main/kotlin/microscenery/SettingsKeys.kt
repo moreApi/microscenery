@@ -94,6 +94,8 @@ object Settings {
 
     object Network {
         /** int */ const val sliceOffset = "Network.sliceOffset"
+        /** string */ const val Host = "Network.host"
+        /** int */ const val BasePort = "Network.basePort"
     }
 
     object MMMicroscope {

@@ -4,6 +4,7 @@ import fromScenery.lazyLogger
 import kotlinx.event.event
 import microscenery.Agent
 import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.signals.BaseClientSignal
 import microscenery.signals.BaseClientSignal.Companion.toPoko
 import microscenery.signals.BaseServerSignal
@@ -24,7 +25,8 @@ import java.util.concurrent.TimeUnit
  * Send via [sendSignal].
  */
 class ControlSignalsServer(
-    zContext: ZContext, val port: Int = MicroscenerySettings.get("Network.basePort", 4000),
+    zContext: ZContext, val port: Int = MicroscenerySettings.get(Settings.Network.BasePort, 4000),
+    host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(),
     listeners: List<(BaseClientSignal) -> Unit> = emptyList()
 ) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
@@ -46,8 +48,9 @@ class ControlSignalsServer(
         listeners.forEach { addListener(it) }
 
         socket = zContext.createSocket(SocketType.ROUTER)
-        socket.bind("tcp://*:${port}")
-        logger.info("${ControlSignalsServer::class.simpleName} bound to tcp://*:${port}")
+        val adr = "tcp://${host}:${port}"
+        socket.bind(adr)
+        logger.info("${ControlSignalsServer::class.simpleName} bound to $adr")
 
         startAgent()
     }

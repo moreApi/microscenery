@@ -16,7 +16,7 @@ import java.nio.ByteOrder
 /**
  * Dumb server that answers requests for parts of slices from the storage.
  */
-class BiggishDataServer(val port: Int, private val storage: SliceStorage, zContext: ZContext) : Agent() {
+class BiggishDataServer(val port: Int, host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(), private val storage: SliceStorage, zContext: ZContext) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val router: ZMQ.Socket
@@ -25,9 +25,10 @@ class BiggishDataServer(val port: Int, private val storage: SliceStorage, zConte
     init {
         router = zContext.createSocket(SocketType.ROUTER)
         router.hwm = PIPELINE * 2
-        router.bind("tcp://*:$port")
+        val adr = "tcp://${host}:${port}"
+        router.bind(adr)
         router.receiveTimeOut = 500
-        logger.info("${BiggishDataServer::class.simpleName} bound to tcp://*:$port")
+        logger.info("${BiggishDataServer::class.simpleName} bound to $adr")
 
         MicroscenerySettings.addUpdateRoutine(Settings.Network.sliceOffset) {
             sliceOffset = MicroscenerySettings.get(Settings.Network.sliceOffset, 0)

@@ -3,6 +3,7 @@ package microscenery.network
 import fromScenery.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
 import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
@@ -22,14 +23,14 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val microscope: MicroscopeHardware,
     private val zContext: ZContext,
     val storage: SliceStorage = SliceStorage(),
-    val basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
-    val connections: Int = MicroscenerySettings.get("Network.connections", 1),
+    val basePort: Int = MicroscenerySettings.get(Settings.Network.BasePort, 4000),
+    val host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(),
     val acquireOnConnect: Boolean = false
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val controlConnection = ControlSignalsServer(zContext, basePort, listOf(this::processClientSignal))
-    val dataSender = BiggishDataServer(basePort + 1, storage, zContext)
+    private val controlConnection = ControlSignalsServer(zContext, basePort, host = host, listOf(this::processClientSignal))
+    val dataSender = BiggishDataServer(basePort + 1, host = host, storage, zContext)
     val bonjourService = BonjourService()
 
     private var lastStack: Stack? = null
@@ -47,8 +48,6 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     }
 
     init {
-        if (connections != 1) logger.warn("More than one data connection are currently not supported. Config asks for $connections")
-
         status = RemoteMicroscopeStatus(listOf(dataSender.port), 0)
         startAgent()
     }
