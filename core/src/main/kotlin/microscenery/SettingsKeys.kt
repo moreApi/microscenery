@@ -96,6 +96,7 @@ object Settings {
         /** int */ const val sliceOffset = "Network.sliceOffset"
         /** string */ const val Host = "Network.host"
         /** int */ const val BasePort = "Network.basePort"
+        /** bool */ const val AnnounceBonjour = "Network.announceBonjour"
     }
 
     object MMMicroscope {

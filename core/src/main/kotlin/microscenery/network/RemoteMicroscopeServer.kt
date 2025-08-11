@@ -15,7 +15,7 @@ import kotlin.properties.Delegates
 /**
  * Wraps an [MicroscopeHardware] and sends its output as [MicoscopeSignal]s wrapped in [BaseClientSignal].
  * Also puts captured slice data into [SliceStorage] to be requested by [BiggishDataClient].
- * 
+ * 10.1.145.99:4000
  * @param acquireOnConnect tries to resend the last stack or trigger a new capture on client connect
  */
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
@@ -25,13 +25,14 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val storage: SliceStorage = SliceStorage(),
     val basePort: Int = MicroscenerySettings.get(Settings.Network.BasePort, 4000),
     val host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(),
-    val acquireOnConnect: Boolean = false
+    val acquireOnConnect: Boolean = false,
+    val announceWithBonjour: Boolean = MicroscenerySettings.get(Settings.Network.AnnounceBonjour,false)
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val controlConnection = ControlSignalsServer(zContext, basePort, host = host, listOf(this::processClientSignal))
     val dataSender = BiggishDataServer(basePort + 1, host = host, storage, zContext)
-    val bonjourService = BonjourService()
+    val bonjourService = if (announceWithBonjour) BonjourService() else null
 
     private var lastStack: Stack? = null
         set(value) {
@@ -53,7 +54,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     }
 
     override fun onStart() {
-        bonjourService.register("microscenery-Microscope", basePort, "RemoteMicroscope")
+        bonjourService?.register("microscenery-Microscope", basePort, "RemoteMicroscope")
     }
 
     override fun onLoop() {
@@ -170,6 +171,6 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
     override fun onClose() {
         dataSender.close().join()
-        bonjourService.close()
+        bonjourService?.close()
     }
 }
