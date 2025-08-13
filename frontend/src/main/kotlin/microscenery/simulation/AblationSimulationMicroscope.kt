@@ -55,7 +55,7 @@ class AblationSimulationMicroscope (
 
             val slice = signal.slice
             val hwd = hardwareDimensions
-            val ablationRadius = MicroscenerySettings.get(Settings.Ablation.SizeUM,15f)
+            val ablationRadius = MicroscenerySettings.get(Settings.Ablation.SizeUM,153f)
 
             val raw = slice.data ?: throw IllegalArgumentException("got slice signal without data buffer")
             if (raw.isReadOnly) throw IllegalArgumentException("read only data buffer currently not supported")

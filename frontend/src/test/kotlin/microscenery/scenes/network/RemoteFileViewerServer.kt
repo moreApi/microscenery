@@ -7,7 +7,6 @@ import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import microscenery.simulation.AblationSimulationMicroscope
 import org.zeromq.ZContext
-import kotlin.concurrent.thread
 
 class RemoteFileViewerServer {
     companion object {
@@ -20,23 +19,28 @@ class RemoteFileViewerServer {
             val microscope = FileMicroscopeHardware("""volumes/Lund-100MB.tif""")
 
             val server =
-                RemoteMicroscopeServer(AblationSimulationMicroscope(microscope, imgOrigin = Origin.FrontBottomLeft), storage = SliceStorage(500 * 1024 * 1024), zContext = zContext, acquireOnConnect = true)
+                RemoteMicroscopeServer(
+                    AblationSimulationMicroscope(microscope, imgOrigin = Origin.FrontBottomLeft),
+                    storage = SliceStorage(500 * 1024 * 1024),
+                    zContext = zContext,
+                    announceWithBonjour = true,
+                    acquireOnConnect = true)
 
             val bonjour = BonjourService()
             bonjour.register("Microscope_FileViewerServer",server.basePort, microscope.hardwareDimensions().imageMeta.toString())
 
-            thread {
-                while (true){
-                    val inn = readln().trim()
-                    println("got $inn")
-                    if ( inn  == "q"){
-                        println("closing")
-                        bonjour.close()
-                        server.shutdown()
-                        break
-                    }
-                }
-            }
+//            thread {
+//                while (true){
+//                    val inn = readln().trim()
+//                    println("got $inn")
+//                    if ( inn  == "q"){
+//                        println("closing")
+//                        bonjour.close()
+//                        server.shutdown()
+//                        break
+//                    }
+//                }
+//            }
         }
     }
 }
