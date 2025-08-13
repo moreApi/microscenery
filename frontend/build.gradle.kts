@@ -24,9 +24,8 @@ dependencies {
     // - improveDisplayRangeLimitsNaming
     // - fix/attachment-order-in-dssdo-shaders
     implementation("com.github.scenerygraphics:scenery:d2c7e737ad63b2ba7cb05c42c9c0e09acb6e63ca")
-    // necessary for logging to work correctly
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.0")
 
+    implementation("org.slf4j:slf4j-simple:1.7.36")
     implementation(project(":core"))
     implementation(project(":zenSysConCon"))
     implementation(files("../core/manualLib/MMCoreJ.jar"))
