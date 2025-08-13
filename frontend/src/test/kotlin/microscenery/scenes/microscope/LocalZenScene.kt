@@ -33,6 +33,9 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     val sd3Fly = volumesFolder + """\Zeiss\marina-sd3-drosophila1.czi"""
     val niceCut1 = volumesFolder + """\Zeiss\20230925_drosophila_niceSideCut1.czi"""
 
+    val sd3error = "volumes/sd3-file-error.czi"
+    val convoloaria_20x = "volumes/20250812_convoloaria_20x.czi"
+
     override fun init() {
         super.init()
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
@@ -56,7 +59,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
 
         thread {
             Thread.sleep(100)
-            val l1 = niceCut1
+            val l1 = convoloaria_20x
             logger.info("init $l1")
             zenMicroscope.debugStack(l1)
 
