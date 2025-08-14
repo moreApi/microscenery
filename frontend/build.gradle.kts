@@ -25,7 +25,7 @@ dependencies {
     // - fix/attachment-order-in-dssdo-shaders
     implementation("com.github.scenerygraphics:scenery:d2c7e737ad63b2ba7cb05c42c9c0e09acb6e63ca")
 
-    implementation("org.slf4j:slf4j-simple:1.7.36")
+    implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation(project(":core"))
     implementation(project(":zenSysConCon"))
     implementation(files("../core/manualLib/MMCoreJ.jar"))

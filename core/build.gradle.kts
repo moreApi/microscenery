@@ -17,8 +17,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("reflect"))
-    implementation("org.slf4j:slf4j-api:1.7.36")
-    implementation("org.slf4j:slf4j-simple:1.7.36")
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("org.joml:joml:1.10.5")
     if(System.getProperty("os.name").lowercase().contains("mac")) {
