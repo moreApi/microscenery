@@ -26,7 +26,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val basePort: Int = MicroscenerySettings.get(Settings.Network.BasePort, 4000),
     val host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(),
     val acquireOnConnect: Boolean = false,
-    val announceWithBonjour: Boolean = MicroscenerySettings.get(Settings.Network.AnnounceBonjour,false)
+    val announceWithBonjour: Boolean = MicroscenerySettings.get(Settings.Network.AnnounceBonjour,true)
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
