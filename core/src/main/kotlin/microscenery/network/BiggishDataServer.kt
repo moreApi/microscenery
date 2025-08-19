@@ -20,6 +20,7 @@ class BiggishDataServer(val port: Int, host: String = MicroscenerySettings.get(S
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val router: ZMQ.Socket
+    // this is a workaround for a bug with the SD3 microscope from LMF MPI-CBG. Todo: unify with the other workaround on the client side
     private var sliceOffset = MicroscenerySettings.setIfUnset(Settings.Network.sliceOffset, 0)
 
     init {
