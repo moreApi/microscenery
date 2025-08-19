@@ -14,18 +14,9 @@ import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.zeromq.ZContext
 
-@Suppress("unused")
 class RemoteZenPMScene : DefaultScene(withSwingUI = true) {
     lateinit var  stageSpaceManager: StageSpaceManager
     val msHub = MicrosceneryHub(hub)
-
-    val volumesFolder = """D:\volumes"""
-    val zeissFolder = """D:\ViingsCloud\Zeiss"""
-
-    val crovWithoutHoles = volumesFolder + """\Zeiss\20230915_488_corvoria_without_holes.czi"""
-    val singleCZI = """D:\volumes\20250305_arthur_3d_ablation\20250305_MAmCherry_-15-1.czi\20250305_MAmCherry_-15-1_AcquisitionBlock4.czi\20250305_MAmCherry_-15-1_AcquisitionBlock4.czi"""
-    val mbCZI = """D:\volumes\20250305_arthur_3d_ablation\20250305_MAmCherry_-15-1.czi"""
-    val initalExperimentFile = """zenSysConCon/src/test/resources/20250305_3D_laser_ablation_settings_test_1_shorted.czexp"""
 
     override fun init() {
         super.init()

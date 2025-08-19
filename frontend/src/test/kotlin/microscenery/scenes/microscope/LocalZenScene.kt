@@ -36,18 +36,22 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
     val sd3error = "volumes/sd3-file-error.czi"
     val convoloaria_20x = "volumes/20250812_convoloaria_20x.czi"
 
+    val sd3transfomFixCzi = "volumes/20250813 avp ablation - everything is a bit off/Experiment-808.czi"
+    val sd3transfomFixExp = "volumes/20250813 avp ablation - everything is a bit off/JanT_RAPP_488_zStack2.czexp"
+
     override fun init() {
         super.init()
         MicroscenerySettings.set(Settings.StageSpace.HideFocusFrame,true)
         MicroscenerySettings.set(Settings.StageSpace.HideFocusTargetFrame,true)
 
-        cam.spatial().position = Vector3f(0f, 0f, 5f)
+        cam.spatial().position = Vector3f(0f, 0f, 2.5f)
 
 
 
         val zenBlue: ZenBlueTCPConnector = Mockito.mock(ZenBlueTCPConnector::class.java)
         val sysCon: SysConConnection = Mockito.mock(SysConConnection::class.java)
-        whenever(zenBlue.getCurrentDocument()).thenReturn(squareRing)
+        whenever(zenBlue.getCurrentDocument()).thenReturn(sd3transfomFixCzi)
+        whenever(zenBlue.saveExperimentAndGetFilePath()).thenReturn(sd3transfomFixExp)
         zenMicroscope = ZenSysConMicroscope(zenBlue, sysCon)
 
         val hardware: MicroscopeHardware = zenMicroscope
@@ -59,7 +63,7 @@ class LocalZenScene : DefaultScene(withSwingUI = true) {
 
         thread {
             Thread.sleep(100)
-            val l1 = convoloaria_20x
+            val l1 = sd3transfomFixCzi
             logger.info("init $l1")
             zenMicroscope.debugStack(l1)
 
