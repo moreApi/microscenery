@@ -1,13 +1,11 @@
 package microscenery.unit.hardware.micromanagerConnection
 
 import microscenery.*
-import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMCoreConnector
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.signals.*
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import org.mockito.kotlin.*
 import kotlin.test.assertEquals
@@ -94,25 +92,25 @@ internal class MicromanagerWrapperTest {
 
     }
 
-
-    @Test
-    fun rangeCheckAtStartup() {
-
-        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
-
-        whenever(mmCoreConnector.width).thenReturn(200)
-        whenever(mmCoreConnector.height).thenReturn(200)
-        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f(-4000f))
-
-        assertThrows<IllegalStateException> {
-            val wrapper = spy(MicromanagerWrapper(mmCoreConnector) as MicroscopeHardware)
-            wrapper.output.pollForSignal<MicroscopeStatus>()
-        }
-
-        //no error is happening
-        assertEquals(Vector3f(-4000f), mmCoreConnector.stagePosition)
-        verify(mmCoreConnector, never()).moveStage(any(), any())
-    }
+// disabled because we don't throw errors anymore but log and return
+//    @Test
+//    fun rangeCheckAtStartup() {
+//
+//        val mmCoreConnector = Mockito.mock(MMCoreConnector::class.java)
+//
+//        whenever(mmCoreConnector.width).thenReturn(200)
+//        whenever(mmCoreConnector.height).thenReturn(200)
+//        whenever(mmCoreConnector.stagePosition).thenReturn(Vector3f(-4000f))
+//
+//        assertThrows<IllegalStateException> {
+//            val wrapper = spy(MicromanagerWrapper(mmCoreConnector) as MicroscopeHardware)
+//            wrapper.output.pollForSignal<MicroscopeStatus>()
+//        }
+//
+//        //no error is happening
+//        assertEquals(Vector3f(-4000f), mmCoreConnector.stagePosition)
+//        verify(mmCoreConnector, never()).moveStage(any(), any())
+//    }
 
     @Test
     fun minimalStartup() {

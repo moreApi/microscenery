@@ -3,14 +3,13 @@ package microscenery.network
 import fromScenery.lazyLogger
 import me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal
 import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
 import microscenery.signals.RemoteMicroscopeSignal.Companion.toPoko
 import org.joml.Vector3f
 import org.zeromq.ZContext
-import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
-import java.util.concurrent.locks.Lock
 
 /**
  * Is a virtual [MicroscopeHardware] to send commands to a remote microscope over network.
@@ -19,8 +18,8 @@ import java.util.concurrent.locks.Lock
  * Fetches slice data via [BiggishDataClient].
  */
 class RemoteMicroscopeClient(
-    basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
-    host: String = MicroscenerySettings.get("Network.host", "localhost"),
+    basePort: Int = MicroscenerySettings.get(Settings.Network.BasePort, 4000),
+    host: String = MicroscenerySettings.get(Settings.Network.Host, "localhost"),
     val zContext: ZContext,
     val nonMicroscopeMode: Boolean = false
 ) : MicroscopeHardwareAgent() {

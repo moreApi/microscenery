@@ -29,7 +29,7 @@ class BiggishDataTransmissionTest {
         zContext = ZContext()
         zContext.linger = 0
         this.storage = storage
-        server = BiggishDataServer(port, storage, zContext)
+        server = BiggishDataServer(port, "*", storage, zContext)
         client = BiggishDataClient(zContext, port)
         Thread.sleep(500)
     }

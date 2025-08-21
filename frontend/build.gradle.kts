@@ -9,8 +9,8 @@ group = "me.jancasus"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    maven("https://jitpack.io")
     mavenCentral()
+    maven("https://jitpack.io")
     maven("https://maven.scijava.org/content/groups/public")
 }
 
@@ -24,9 +24,8 @@ dependencies {
     // - improveDisplayRangeLimitsNaming
     // - fix/attachment-order-in-dssdo-shaders
     implementation("com.github.scenerygraphics:scenery:d2c7e737ad63b2ba7cb05c42c9c0e09acb6e63ca")
-    // necessary for logging to work correctly
-    runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
+    implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation(project(":core"))
     implementation(project(":zenSysConCon"))
     implementation(files("../core/manualLib/MMCoreJ.jar"))
@@ -70,16 +69,17 @@ tasks{
 tasks{
     // This registers gradle tasks for all example scenes
     sourceSets.test.get().allSource.files
+        .filter { it.extension == "kt" }
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
         .filter { it.contains("microscenery.scenes.") && !it.contains("resources") }
         .forEach { className ->
             val exampleName = className.substringAfterLast(".")
-            val exampleType = className.substringBeforeLast(".").substringAfterLast(".")
+            val exampleType = className.substringBeforeLast(".").substringAfter("microscenery.scenes.")
 
             register<JavaExec>(name = exampleName) {
                 classpath = sourceSets.test.get().runtimeClasspath
                 mainClass.set(className)
-                group = "examples.$exampleType"
+                group = "scenes.$exampleType"
                 workingDir = workingDir.parentFile
                 jvmArguments.add("-Dscenery.Renderer.Device=NVIDIA")
 

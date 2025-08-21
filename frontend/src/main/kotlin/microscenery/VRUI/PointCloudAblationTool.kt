@@ -175,12 +175,14 @@ class PointCloudAblationTool(
         prepareInk()
     }
 
-    class Ink(radius: Float, color: Vector3f, source: PointCloudAblationTool) : Sphere(radius) {
+    class Ink(radius: Float, color: Vector3f, source: PointCloudAblationTool?) : Sphere(radius) {
         init {
-            this.addAttribute(Touchable::class.java, Touchable(
-                onTouch = { source.inkTouchingEraser += this },
-                onRelease = { source.inkTouchingEraser -= this }
-            ))
+            source?.let {
+                this.addAttribute(Touchable::class.java, Touchable(
+                    onTouch = { source.inkTouchingEraser += this },
+                    onRelease = { source.inkTouchingEraser -= this }
+                ))
+            }
 
             material().diffuse = color
             material().metallic = 0.0f

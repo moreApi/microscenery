@@ -27,13 +27,14 @@ class DemoMicroscopeHardware(
     stagePosition: Vector3f = Vector3f(),
     var timeBetweenUpdatesMilli: Int = 200,
     val size: Vector3f = Vector3f(300f),
-    val binning: Int = 1
+    val binning: Int = 1,
+    seed: Long? = null
 ) : MicroscopeHardwareAgent() {
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     override val output: BlockingQueue<MicroscopeSignal> = ArrayBlockingQueue(10)
 
-    val procedural = Procedural()
+    val procedural = Procedural(seed = seed ?: Random().nextLong())
 
     var idCounter = 0
     var liveThread: Thread? = null

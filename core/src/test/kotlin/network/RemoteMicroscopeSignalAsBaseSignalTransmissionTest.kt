@@ -22,7 +22,7 @@ class RemoteMicroscopeSignalAsBaseSignalTransmissionTest {
     var lastSignalClient: MicroscopeControlSignal? = null
     var lastClientBaseSignal: BaseClientSignal? = null
     var lastServerBaseSignal: BaseServerSignal? = null
-    var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listOf {
+    var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listeners = listOf {
         lastClientBaseSignal = it
         if (it is BaseClientSignal.AppSpecific)
             lastSignalClient = it.toMicroscopeControlSignal()

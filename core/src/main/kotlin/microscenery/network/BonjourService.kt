@@ -16,7 +16,7 @@ class BonjourService(val type: String = "_xrsidecar._tcp.local.") : AutoCloseabl
             // Register a service
             val serviceInfo = ServiceInfo.create(type, name, port, text)
             jmDNS.registerService(serviceInfo)
-            logger.info("Registered Bonjour service at ${jmDNS.inetAddress}:$port type: $type text: $text")
+            logger.info("Registered Bonjour service at ${jmDNS.inetAddress}:$port name: $name type: $type text: $text")
         } catch(e: IOException) {
             logger.error(e.message)
         }
@@ -25,6 +25,7 @@ class BonjourService(val type: String = "_xrsidecar._tcp.local.") : AutoCloseabl
     override fun close() {
         // Unregister all services and close
         jmDNS.unregisterAllServices()
+        logger.info("Unregistered Bonjour all service at ${jmDNS.inetAddress}")
         jmDNS.close()
     }
 }

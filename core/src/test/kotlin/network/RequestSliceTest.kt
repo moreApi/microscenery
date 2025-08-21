@@ -21,11 +21,11 @@ class RequestSliceTest {
     var lastServerBaseSignal: BaseServerSignal? = null
     var lastSliceRequestSignal: BaseServerSignal? = null
 
-    var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listOf {
+    var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, "*", listOf {
         lastClientBaseSignal = it
     })
     var storage = SliceStorage()
-    var biggishDataServer = BiggishDataServer(11544, storage,ctx)
+    var biggishDataServer = BiggishDataServer(11544, "*", storage,ctx)
 
     var client: ControlSignalsClient = ControlSignalsClient(ctx, 11543, "*", listOf {
         lastServerBaseSignal = it

@@ -1,13 +1,12 @@
 package microscenery.scenes.network
 
-import microscenery.DemoMicroscopeHardware
+import graphics.scenery.Origin
 import microscenery.FileMicroscopeHardware
 import microscenery.network.BonjourService
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
+import microscenery.simulation.AblationSimulationMicroscope
 import org.zeromq.ZContext
-import java.net.InetAddress
-import kotlin.concurrent.thread
 
 class RemoteFileViewerServer {
     companion object {
@@ -16,27 +15,32 @@ class RemoteFileViewerServer {
             // settings like port can be set in [microscenery.properties]
             val zContext = ZContext()
 
-            val microscope = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+            //val microscope = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+            val microscope = FileMicroscopeHardware("""volumes/Lund-100MB.tif""")
 
-            @Suppress("UNUSED_VARIABLE")
             val server =
-                RemoteMicroscopeServer(microscope, storage = SliceStorage(500 * 1024 * 1024), zContext = zContext, acquireOnConnect = true)
+                RemoteMicroscopeServer(
+                    AblationSimulationMicroscope(microscope, imgOrigin = Origin.FrontBottomLeft),
+                    storage = SliceStorage(500 * 1024 * 1024),
+                    zContext = zContext,
+                    announceWithBonjour = true,
+                    acquireOnConnect = true)
 
             val bonjour = BonjourService()
-            bonjour.register(InetAddress.getLocalHost().hostName+"FileViewerServer",server.basePort, microscope.hardwareDimensions().imageMeta.toString())
+            bonjour.register("Microscope_FileViewerServer",server.basePort, microscope.hardwareDimensions().imageMeta.toString())
 
-            thread {
-                while (true){
-                    val inn = readln().strip()
-                    println("got $inn")
-                    if ( inn  == "q"){
-                        println("closing")
-                        bonjour.close()
-                        server.shutdown()
-                        break
-                    }
-                }
-            }
+//            thread {
+//                while (true){
+//                    val inn = readln().trim()
+//                    println("got $inn")
+//                    if ( inn  == "q"){
+//                        println("closing")
+//                        bonjour.close()
+//                        server.shutdown()
+//                        break
+//                    }
+//                }
+//            }
         }
     }
 }

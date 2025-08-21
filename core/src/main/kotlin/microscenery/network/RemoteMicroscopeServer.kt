@@ -3,35 +3,43 @@ package microscenery.network
 import fromScenery.lazyLogger
 import microscenery.Agent
 import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.*
 import microscenery.signals.MicroscopeControlSignal.Companion.toPoko
 import org.joml.Vector3f
 import org.zeromq.ZContext
-import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
 /**
  * Wraps an [MicroscopeHardware] and sends its output as [MicoscopeSignal]s wrapped in [BaseClientSignal].
  * Also puts captured slice data into [SliceStorage] to be requested by [BiggishDataClient].
- * 
- * @param acquireOnConnect send an empty acquire stack signal to microscope on client connect
+ * 10.1.145.99:4000
+ * @param acquireOnConnect tries to resend the last stack or trigger a new capture on client connect
  */
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
 class RemoteMicroscopeServer @JvmOverloads constructor(
     val microscope: MicroscopeHardware,
     private val zContext: ZContext,
     val storage: SliceStorage = SliceStorage(),
-    val basePort: Int = MicroscenerySettings.get("Network.basePort", 4000),
-    val connections: Int = MicroscenerySettings.get("Network.connections", 1),
-    val acquireOnConnect: Boolean = false
+    val basePort: Int = MicroscenerySettings.get(Settings.Network.BasePort, 4000),
+    val host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(),
+    val acquireOnConnect: Boolean = false,
+    val announceWithBonjour: Boolean = MicroscenerySettings.get(Settings.Network.AnnounceBonjour,true)
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-    private val controlConnection = ControlSignalsServer(zContext, basePort, listOf(this::processClientSignal))
-    val dataSender = BiggishDataServer(basePort + 1, storage, zContext)
-    val bonjourService = BonjourService()
+    private val controlConnection = ControlSignalsServer(zContext, basePort, host = host, listOf(this::processClientSignal))
+    val dataSender = BiggishDataServer(basePort + 1, host = host, storage, zContext)
+    val bonjourService = if (announceWithBonjour) BonjourService() else null
+
+    private var lastStack: Stack? = null
+        set(value) {
+            lastStackSlices = emptyList()
+            field = value
+        }
+    private var lastStackSlices = emptyList<Slice>()
 
     var status: RemoteMicroscopeStatus by Delegates.observable(
         RemoteMicroscopeStatus(emptyList(), 0)
@@ -41,14 +49,12 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     }
 
     init {
-        if (connections != 1) logger.warn("More than one data connection are currently not supported. Config asks for $connections")
-
         status = RemoteMicroscopeStatus(listOf(dataSender.port), 0)
         startAgent()
     }
 
     override fun onStart() {
-        bonjourService.register(InetAddress.getLocalHost().hostName, basePort, "RemoteMicroscope")
+        bonjourService?.register("microscenery-Microscope", basePort, "RemoteMicroscope")
     }
 
     override fun onLoop() {
@@ -66,19 +72,29 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         }
     }
     
-    private fun sendBaseWrappedSignal(signal: RemoteMicroscopeSignal){
+    private fun sendBaseWrappedSignal(signal: RemoteMicroscopeSignal, isResend: Boolean = false){
         val wrapped = when (signal) {
             is RemoteMicroscopeStatus -> {
                 BaseServerSignal.AppSpecific(signal.toProto().toByteString())
             }
             is ActualMicroscopeSignal -> when (signal.signal) {
                 is MicroscopeStack -> {
+                    lastStack = signal.signal.stack
                     signal.signal.stack
                 }
                 is MicroscopeSlice -> {
-                    signal.signal.slice
+                    val slice = signal.signal.slice
+                    if (slice.stackIdAndSliceIndex?.first == lastStack?.Id){
+                        lastStackSlices += slice
+                    }
+                    slice
+
                 }
                 else -> {
+                    if (signal.signal is HardwareDimensions && !isResend){
+                        lastStack = null
+                        lastStackSlices = emptyList()
+                    }
                     BaseServerSignal.AppSpecific(signal.toProto().toByteString())
                 }
             }
@@ -93,10 +109,17 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
         when (bcs) {
             BaseClientSignal.ClientSignOn -> {
                 status = status.copy(connectedClients = status.connectedClients + 1)
-                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()))
-                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.status()))
+                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()), isResend = true)
+                sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.status()), isResend = true)
                 if (acquireOnConnect){
-                    microscope.acquireStack(MicroscopeControlSignal.AcquireStack(Vector3f(),Vector3f(),1f))
+                    lastStack?.let { stack ->
+                        logger.info("Resending last stack for new client")
+                        controlConnection.sendSignal(stack)
+                        lastStackSlices.forEach(controlConnection::sendSignal)
+                    } ?: run {
+                        logger.info("No previous stack found, acquiring new stack for new client.")
+                        microscope.acquireStack(MicroscopeControlSignal.AcquireStack(Vector3f(), Vector3f(), 1f))
+                    }
                 }
             }
 
@@ -148,6 +171,6 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
     override fun onClose() {
         dataSender.close().join()
-        bonjourService.close()
+        bonjourService?.close()
     }
 }

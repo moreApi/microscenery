@@ -8,8 +8,10 @@ import ij.ImagePlus
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*
 import microscenery.signals.Stack
+import net.imglib2.RandomAccess
 import net.imglib2.img.Img
 import net.imglib2.img.display.imagej.ImageJFunctions
+import net.imglib2.type.numeric.integer.UnsignedByteType
 import net.imglib2.type.numeric.integer.UnsignedShortType
 import org.joml.Vector2i
 import org.joml.Vector3f
@@ -25,12 +27,13 @@ import kotlin.concurrent.thread
 class FileMicroscopeHardware(
     file: String,
     stagePosition: Vector3f = Vector3f(),
-    var zPerXY: Float = 1f
+    var zPerXY: Float = 1f,
 ) : MicroscopeHardwareAgent() {
     protected val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     lateinit var imp: ImagePlus
-    lateinit var img: Img<UnsignedShortType>
+    lateinit var img: Img<*>
+    var is16Bit = false
 
     val dimensions: Vector3i
         get() {
@@ -54,12 +57,18 @@ class FileMicroscopeHardware(
 
     fun loadImg(file:String){
         imp = IJ.openImage(file)
-        img = ImageJFunctions.wrap(imp)
+        is16Bit = imp.bitDepth == 16
+
+        img = if (is16Bit)
+            ImageJFunctions.wrap<UnsignedShortType>(imp)
+        else
+            ImageJFunctions.wrap<UnsignedByteType>(imp)
+
 
         val im = ImageMeta(
             imageSize = Vector2i(dimensions.x, dimensions.y),
             vertexDiameter = 1f,
-            numericType = NumericType.INT16
+            numericType = if (is16Bit) NumericType.INT16 else NumericType.INT8
         )
         hardwareDimensions = HardwareDimensions(
             stageMin = Vector3f(0f),
@@ -83,16 +92,21 @@ class FileMicroscopeHardware(
     override fun snapSlice() {
         val imgX = hardwareDimensions.imageSize.x
         val imgY = hardwareDimensions.imageSize.y
-        val sliceBuffer = MemoryUtil.memAlloc(imgX * imgY * 2)
+        val sliceBuffer = MemoryUtil.memAlloc(imgX * imgY * if (is16Bit) 2 else 1)
         val shortBuffer = sliceBuffer.asShortBuffer()
 
         val z = stagePosition.z.toInt()
 
         val ra = img.randomAccess()
 
+        val index = IntArray(ra.numDimensions()) { 0 }
+        index[2] = z
         for (y in 0 until imgY) {
+            index[1] = y
             for (x in 0 until imgX) {
-                shortBuffer.put(ra.setPositionAndGet(x, y, z).get().toShort())
+                index[0] = x
+                if (is16Bit) shortBuffer.put((ra as RandomAccess<UnsignedShortType>).setPositionAndGet(*index).get().toShort())
+                else sliceBuffer.put((ra as RandomAccess<UnsignedByteType>).setPositionAndGet(*index).get().toByte())
             }
         }
 
@@ -179,6 +193,6 @@ class FileMicroscopeHardware(
     }
 
     override fun startAcquisition() {
-        snapSlice()
+        acquireStack(MicroscopeControlSignal.AcquireStack(Vector3f(0f),Vector3f(0f),1f))
     }
 }

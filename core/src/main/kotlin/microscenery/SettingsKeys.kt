@@ -80,7 +80,11 @@ object Settings {
 
     object ZenMicroscope {
         /** bool */ const val MockSysCon = "ZenMicroscope.mockSysCon"
+        /** bool */ const val MockZenConnection = "ZenMicroscope.mockZenConnection"
+        /** bool */ const val ContinueAfterError = "ZenMicroscope.continueAfterError"
+        /** bool */ const val SD3OffsetFix = "ZenMicroscope.sd3OffsetFix"
         /** float */ const val exposureTime = "ZenMicroscope.exposureTime"
+        /** int */ const val readChannel = "ZenMicroscope.readChannel"
     }
 
     object UI {
@@ -91,6 +95,9 @@ object Settings {
 
     object Network {
         /** int */ const val sliceOffset = "Network.sliceOffset"
+        /** string */ const val Host = "Network.host"
+        /** int */ const val BasePort = "Network.basePort"
+        /** bool */ const val AnnounceBonjour = "Network.announceBonjour"
     }
 
     object MMMicroscope {
