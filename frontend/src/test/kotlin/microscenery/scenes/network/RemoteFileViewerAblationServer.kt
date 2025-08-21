@@ -1,14 +1,19 @@
 package microscenery.scenes.network
 
+import fromScenery.SettingsEditor
 import graphics.scenery.Origin
 import microscenery.FileMicroscopeHardware
+import microscenery.MicroscenerySettings
 import microscenery.network.BonjourService
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import microscenery.simulation.AblationSimulationMicroscope
 import org.zeromq.ZContext
 
-class RemoteFileViewerServer {
+/**
+ * Simulated ablation on files
+ */
+class RemoteFileViewerAblationServer {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
@@ -25,6 +30,8 @@ class RemoteFileViewerServer {
                     zContext = zContext,
                     announceWithBonjour = true,
                     acquireOnConnect = true)
+
+            SettingsEditor(MicroscenerySettings)
 
             val bonjour = BonjourService()
             bonjour.register("Microscope_FileViewerServer",server.basePort, microscope.hardwareDimensions().imageMeta.toString())

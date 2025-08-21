@@ -23,7 +23,9 @@ class AblationSimulationMicroscope (
 ): MicroscopeHardwareAgent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
-
+    init {
+        MicroscenerySettings.setIfUnset(Settings.Ablation.SizeUM,153f)
+    }
 
     private var ablationPoints: List<MicroscopeControlSignal.AblationPoint> = emptyList()
 

@@ -15,7 +15,6 @@ import kotlin.properties.Delegates
 /**
  * Wraps an [MicroscopeHardware] and sends its output as [MicoscopeSignal]s wrapped in [BaseClientSignal].
  * Also puts captured slice data into [SliceStorage] to be requested by [BiggishDataClient].
- * 10.1.145.99:4000
  * @param acquireOnConnect tries to resend the last stack or trigger a new capture on client connect
  */
 @Suppress("MemberVisibilityCanBePrivate", "CanBeParameter")
