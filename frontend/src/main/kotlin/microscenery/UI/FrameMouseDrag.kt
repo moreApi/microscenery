@@ -1,9 +1,7 @@
 package microscenery.UI
 
 import fromScenery.utils.extensions.times
-import graphics.scenery.BoundingGrid
 import graphics.scenery.Camera
-import graphics.scenery.Node
 import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.utils.lazyLogger
 import microscenery.UP

@@ -20,9 +20,7 @@ import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Lock
 
 /**
  * Handles in and output events concerning the microscope.
@@ -100,7 +98,7 @@ class StageSpaceManager(
 
     override fun onLoop() {
         val signal = hardware.output.poll(200, TimeUnit.MILLISECONDS)
-        signal?.let { logger.trace("got a ${signal::class.simpleName} signal:\n$signal") }
+        signal?.let { logger.trace("got a {} signal:\n{}", signal::class.simpleName, signal) }
         when (signal) {
             is MicroscopeSlice -> {
                 sliceManager.handleSliceSignal(signal.slice, layout)

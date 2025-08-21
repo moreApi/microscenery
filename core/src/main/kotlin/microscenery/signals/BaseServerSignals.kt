@@ -2,7 +2,6 @@ package microscenery.signals
 
 import com.google.protobuf.ByteString
 import com.google.protobuf.util.Timestamps.fromMillis
-import microscenery.signals.BaseServerSignal.Companion.toPoko
 import microscenery.signals.BaseServerSignal.DataAvailableSignal.Companion.toPoko
 import microscenery.signals.BaseServerSignal.ServerHello.Companion.toPoko
 import microscenery.signals.ImageMeta.Companion.toPoko

@@ -1,7 +1,11 @@
 package fromScenery
 
-import org.joml.*
-import java.io.*
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.Path

@@ -2,7 +2,10 @@ package microscenery.scenes.microscope
 
 import graphics.scenery.Light
 import graphics.scenery.volumes.Colormap
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.hardware.MicroscopeHardware

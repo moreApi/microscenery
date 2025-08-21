@@ -9,9 +9,11 @@ import graphics.scenery.utils.lazyLogger
 import graphics.scenery.volumes.BufferedVolume
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.Volume
-import microscenery.*
+import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.UI.UIModel
+import microscenery.detach
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.NumericType
 import microscenery.signals.Slice

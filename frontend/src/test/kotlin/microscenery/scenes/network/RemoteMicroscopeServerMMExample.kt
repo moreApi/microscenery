@@ -1,11 +1,11 @@
 package microscenery.scenes.network
 
-import microscenery.scenes.microscope.LocalMMScene.Companion.initLocalMMCoreFake
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMCoreConnector
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
+import microscenery.scenes.microscope.LocalMMScene.Companion.initLocalMMCoreFake
 import org.zeromq.ZContext
 
 

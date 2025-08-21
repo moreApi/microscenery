@@ -2,7 +2,9 @@ package fromScenery
 
 
 import net.miginfocom.swing.MigLayout
-import org.joml.*
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener

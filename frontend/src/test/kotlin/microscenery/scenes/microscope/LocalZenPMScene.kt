@@ -3,7 +3,10 @@ package microscenery.scenes.microscope
 import graphics.scenery.Light
 import graphics.scenery.utils.Wiggler
 import graphics.scenery.volumes.Colormap
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.UI.CrossRayToPosBehavior
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand

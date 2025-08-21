@@ -1,8 +1,10 @@
 package microscenery.scenes.network
 
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
 import microscenery.UI.ScapeViewerUI
 import microscenery.UI.StageSpaceUI
+import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout

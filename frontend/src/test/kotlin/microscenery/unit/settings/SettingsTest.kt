@@ -9,7 +9,6 @@ import org.joml.Vector4f
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalArgumentException
 import kotlin.test.assertEquals
 
 class SettingsTest {

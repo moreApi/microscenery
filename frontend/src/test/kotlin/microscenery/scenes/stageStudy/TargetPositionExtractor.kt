@@ -1,7 +1,10 @@
 package microscenery.scenes.stageStudy
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
+import microscenery.Settings
 import microscenery.scenes.stageStudy.Orchestration.TrialGenerator
 import microscenery.simulation.StageSimulation
 import microscenery.stageSpace.StageSpaceManager

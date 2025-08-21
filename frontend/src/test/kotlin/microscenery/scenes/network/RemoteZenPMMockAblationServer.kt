@@ -5,7 +5,6 @@ import graphics.scenery.Origin
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.network.RemoteMicroscopeServer
-import microscenery.signals.MicroscopeControlSignal
 import microscenery.simulation.AblationSimulationMicroscope
 import microscenery.zenSysConCon.ZenBlueTCPConnector
 import microscenery.zenSysConCon.ZenSysConMicroscope

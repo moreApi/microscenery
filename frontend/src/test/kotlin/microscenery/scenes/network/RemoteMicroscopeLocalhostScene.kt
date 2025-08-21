@@ -3,11 +3,13 @@ package microscenery.scenes.network
 import graphics.scenery.Box
 import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.times
-import microscenery.*
-import microscenery.scenes.microscope.DemoBehavior
+import microscenery.DefaultScene
+import microscenery.DemoMicroscopeHardware
+import microscenery.MicrosceneryHub
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
+import microscenery.scenes.microscope.DemoBehavior
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f
 import org.zeromq.ZContext

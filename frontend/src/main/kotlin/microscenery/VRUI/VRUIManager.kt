@@ -1,7 +1,6 @@
 package microscenery.VRUI
 
 import graphics.scenery.Scene
-import graphics.scenery.attribute.spatial.HasSpatial
 import graphics.scenery.attribute.spatial.Spatial
 import graphics.scenery.controls.InputHandler
 import graphics.scenery.controls.OpenVRHMD

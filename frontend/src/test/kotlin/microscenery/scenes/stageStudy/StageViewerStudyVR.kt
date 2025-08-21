@@ -21,7 +21,10 @@ import microscenery.VRUI.VRUIManager
 import microscenery.VRUI.behaviors.VR2HandSpatialManipulation
 import microscenery.VRUI.behaviors.VRGrabTheWorldSelfMove
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
-import microscenery.simulation.*
+import microscenery.simulation.AxonScenario
+import microscenery.simulation.ProceduralBlob
+import microscenery.simulation.StageSimulation
+import microscenery.simulation.TubeScenario
 import microscenery.stageSpace.FocusManager.Mode
 import microscenery.stageSpace.StageSpaceManager
 import org.joml.Vector3f

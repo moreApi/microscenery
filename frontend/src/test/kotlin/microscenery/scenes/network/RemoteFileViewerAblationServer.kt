@@ -4,7 +4,6 @@ import fromScenery.SettingsEditor
 import graphics.scenery.Origin
 import microscenery.FileMicroscopeHardware
 import microscenery.MicroscenerySettings
-import microscenery.network.BonjourService
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import microscenery.signals.BaseServerSignal

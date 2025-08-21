@@ -9,7 +9,6 @@ import microscenery.UI.FrameMouseDrag
 import microscenery.UI.StageSpaceUI
 import microscenery.UI.StageUICommand
 import microscenery.scenes.stageStudy.Orchestration.TrialCoordinator
-import microscenery.simulation.AxonScenario
 import microscenery.simulation.ProceduralBlob
 import microscenery.simulation.StageSimulation
 import microscenery.simulation.StageSimulation.Companion.toggleMaterialRendering

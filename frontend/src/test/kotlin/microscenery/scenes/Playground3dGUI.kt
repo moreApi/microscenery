@@ -10,11 +10,7 @@ import graphics.scenery.numerics.Random
 import microscenery.DefaultScene
 import microscenery.MicroscenerySettings
 import microscenery.Settings
-import microscenery.VRUI.Gui3D.Button
-import microscenery.VRUI.Gui3D.Column
-import microscenery.VRUI.Gui3D.Row
-import microscenery.VRUI.Gui3D.TextBox
-import microscenery.VRUI.Gui3D.ValueEdit
+import microscenery.VRUI.Gui3D.*
 import microscenery.primitives.LineNode
 import org.joml.Matrix4f
 import org.joml.Vector3f

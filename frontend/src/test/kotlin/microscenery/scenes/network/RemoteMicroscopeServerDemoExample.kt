@@ -1,7 +1,6 @@
 package microscenery.scenes.network
 
 import microscenery.DemoMicroscopeHardware
-import microscenery.scenes.microscope.FolderReaderMicroscope
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
 import org.zeromq.ZContext

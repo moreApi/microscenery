@@ -14,7 +14,6 @@ import microscenery.showMessage2
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
-import java.lang.Error
 import java.security.InvalidParameterException
 import javax.swing.JFrame
 import javax.swing.JOptionPane

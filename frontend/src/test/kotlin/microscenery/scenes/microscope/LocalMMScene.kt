@@ -1,10 +1,13 @@
 package microscenery.scenes.microscope
 
-import microscenery.*
+import microscenery.DefaultScene
+import microscenery.MicrosceneryHub
+import microscenery.MicroscenerySettings
 import microscenery.UI.StageSpaceUI
 import microscenery.hardware.MicroscopeHardware
 import microscenery.hardware.micromanagerConnection.MMCoreConnector
 import microscenery.hardware.micromanagerConnection.MicromanagerWrapper
+import microscenery.lightSleepOnCondition
 import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout
 import microscenery.stageSpace.StageSpaceManager
