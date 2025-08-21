@@ -16,7 +16,7 @@ import java.nio.ByteOrder
 /**
  * Dumb server that answers requests for parts of slices from the storage.
  */
-class BiggishDataServer(val port: Int, host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(), private val storage: SliceStorage, zContext: ZContext) : Agent() {
+class BiggishDataServer(val port: Int, host: String, private val storage: SliceStorage, zContext: ZContext) : Agent() {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     private val router: ZMQ.Socket

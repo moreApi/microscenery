@@ -17,7 +17,7 @@ class ControlSignalTransmissionTest {
     var ctx = ZContext()
     var lastClientBaseSignal: BaseClientSignal? = null
     var lastServerBaseSignal: BaseServerSignal? = null
-    var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543, listOf {
+    var server: ControlSignalsServer = ControlSignalsServer(ctx, 11543,"*", listOf {
         lastClientBaseSignal = it
     })
     var client: ControlSignalsClient = ControlSignalsClient(ctx, 11543, "*", listOf {
