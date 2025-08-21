@@ -25,7 +25,9 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     val basePort: Int = MicroscenerySettings.get(Settings.Network.BasePort, 4000),
     val host: String = MicroscenerySettings.get(Settings.Network.Host,"*").trim(),
     val acquireOnConnect: Boolean = false,
-    val announceWithBonjour: Boolean = MicroscenerySettings.get(Settings.Network.AnnounceBonjour,true)
+    val announceWithBonjour: Boolean = MicroscenerySettings.get(Settings.Network.AnnounceBonjour,true),
+    var serverHello: BaseServerSignal.ServerHello =
+        BaseServerSignal.ServerHello("a microscope", ServerType.MICROSCOPE, "")
 ) : Agent(false) {
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
@@ -107,6 +109,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
     private fun processClientSignal(bcs: BaseClientSignal) {
         when (bcs) {
             BaseClientSignal.ClientSignOn -> {
+                controlConnection.sendSignal(serverHello)
                 status = status.copy(connectedClients = status.connectedClients + 1)
                 sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.hardwareDimensions()), isResend = true)
                 sendBaseWrappedSignal(ActualMicroscopeSignal(microscope.status()), isResend = true)

@@ -80,6 +80,7 @@ class RemoteMicroscopeClient(
      */
     private fun processServerSignal(signal: BaseServerSignal) {
         when (val s = unwrapToRemoteMicroscopeSignal(signal)) {
+            null -> {}
             is RemoteMicroscopeStatus -> {}
             is ActualMicroscopeSignal -> {
                 when (val microscopeSignal = s.signal) {
@@ -124,6 +125,10 @@ class RemoteMicroscopeClient(
 
         is Slice -> ActualMicroscopeSignal(MicroscopeSlice(signal))
         is Stack -> ActualMicroscopeSignal(MicroscopeStack(signal))
+        is BaseServerSignal.ServerHello -> {
+            logger.info("Connected server says hello: $signal")
+            null
+        }
     }
 
     @Suppress("unused")

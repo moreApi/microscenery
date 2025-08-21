@@ -2,11 +2,14 @@ package microscenery.signals
 
 import com.google.protobuf.ByteString
 import com.google.protobuf.util.Timestamps.fromMillis
+import microscenery.signals.BaseServerSignal.Companion.toPoko
 import microscenery.signals.BaseServerSignal.DataAvailableSignal.Companion.toPoko
+import microscenery.signals.BaseServerSignal.ServerHello.Companion.toPoko
 import microscenery.signals.ImageMeta.Companion.toPoko
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.withXR.network.v3.EnumNumericType
+import org.withXR.network.v3.EnumServerType
 import java.nio.ByteBuffer
 
 sealed class BaseServerSignal {
@@ -66,6 +69,29 @@ sealed class BaseServerSignal {
 
     }
 
+    data class ServerHello(
+        val serverName: String,
+        val serverType: ServerType,
+        val subType: String
+    ) : BaseServerSignal() {
+
+        override fun toProto(): org.withXR.network.v3.BaseServerSignal {
+            val b = org.withXR.network.v3.BaseServerSignal.newBuilder()
+            val b2 = b.serverHelloBuilder
+            b2.serverName = serverName
+            b2.serverType = serverType.toProto()
+            b2.subType = subType
+
+            return b.build()
+        }
+
+        companion object{
+            fun org.withXR.network.v3.ServerHello.toPoko() =
+                ServerHello(this.serverName, this.serverType.toPoko(), this.subType)
+        }
+    }
+
+
     companion object {
         fun org.withXR.network.v3.BaseServerSignal.toPoko() =
             when (this.signalCase?: throw IllegalArgumentException("Illegal payload")) {
@@ -75,6 +101,8 @@ sealed class BaseServerSignal {
                     this.dataAvailableSignal.toPoko()
                 org.withXR.network.v3.BaseServerSignal.SignalCase.APPSPECIFIC ->
                     AppSpecific(this.appSpecific.data)
+                org.withXR.network.v3.BaseServerSignal.SignalCase.SERVERHELLO ->
+                    this.serverHello.toPoko()
             }
     }
 }
@@ -185,4 +213,23 @@ fun EnumNumericType.toPoko() = when (this) {
     EnumNumericType.VALUE_NUMERIC_INT8 -> NumericType.INT8
     EnumNumericType.VALUE_NUMERIC_INT16 -> NumericType.INT16
     EnumNumericType.UNRECOGNIZED -> throw IllegalArgumentException("Cant convert to NumericType")
+}
+
+
+enum class ServerType{
+    OTHER, VIEWER, MICROSCOPE;
+
+    fun toProto() = when(this) {
+        OTHER -> EnumServerType.SERVER_TYPE_OTHER
+        VIEWER -> EnumServerType.SERVER_TYPE_VIEWER
+        MICROSCOPE -> EnumServerType.SERVER_TYPE_MICROSCOPE
+    }
+}
+
+fun EnumServerType.toPoko() = when(this) {
+    EnumServerType.SERVER_TYPE_UNKNOWN -> throw IllegalArgumentException("Cant convert to ServerType")
+    EnumServerType.SERVER_TYPE_OTHER -> ServerType.OTHER
+    EnumServerType.SERVER_TYPE_VIEWER -> ServerType.VIEWER
+    EnumServerType.SERVER_TYPE_MICROSCOPE -> ServerType.MICROSCOPE
+    EnumServerType.UNRECOGNIZED -> throw IllegalArgumentException("Cant convert to ServerType")
 }
