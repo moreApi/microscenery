@@ -69,6 +69,10 @@ sealed class BaseServerSignal {
 
     }
 
+    /**
+     * Self identification message that will be send to new clients.
+     * @param serverName be careful with special characters. This variable is also the bonjour name which prefers plain letters.
+     */
     data class ServerHello(
         val serverName: String,
         val serverType: ServerType,

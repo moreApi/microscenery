@@ -7,6 +7,8 @@ import microscenery.MicroscenerySettings
 import microscenery.network.BonjourService
 import microscenery.network.RemoteMicroscopeServer
 import microscenery.network.SliceStorage
+import microscenery.signals.BaseServerSignal
+import microscenery.signals.ServerType
 import microscenery.simulation.AblationSimulationMicroscope
 import org.zeromq.ZContext
 
@@ -23,18 +25,19 @@ class RemoteFileViewerAblationServer {
             //val microscope = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
             val microscope = FileMicroscopeHardware("""volumes/Lund-100MB.tif""")
 
-            val server =
-                RemoteMicroscopeServer(
-                    AblationSimulationMicroscope(microscope, imgOrigin = Origin.FrontBottomLeft),
-                    storage = SliceStorage(500 * 1024 * 1024),
-                    zContext = zContext,
-                    announceWithBonjour = true,
-                    acquireOnConnect = true)
+            RemoteMicroscopeServer(
+                AblationSimulationMicroscope(microscope, imgOrigin = Origin.FrontBottomLeft),
+                storage = SliceStorage(500 * 1024 * 1024),
+                zContext = zContext,
+                announceWithBonjour = true,
+                acquireOnConnect = true,
+                serverHello = BaseServerSignal.ServerHello(
+                    "File Microscope",
+                    ServerType.MICROSCOPE,
+                    "Ablation Simulation"
+                ))
 
             SettingsEditor(MicroscenerySettings)
-
-            val bonjour = BonjourService()
-            bonjour.register("Microscope_FileViewerServer",server.basePort, microscope.hardwareDimensions().imageMeta.toString())
 
 //            thread {
 //                while (true){
