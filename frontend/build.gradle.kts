@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version embeddedKotlinVersion
+    application
 }
 
 group = "me.jancasus"
@@ -62,6 +63,10 @@ tasks{
         targetCompatibility = "21"
         sourceCompatibility = "21"
     }
+}
+
+application{
+    mainClass = "microscenery.apps.RemoteSCAPEClientScene"
 }
 
 

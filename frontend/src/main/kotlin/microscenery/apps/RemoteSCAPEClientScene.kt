@@ -1,10 +1,8 @@
-package microscenery.scenes.network
+package microscenery.apps
 
-import microscenery.DefaultScene
-import microscenery.MicrosceneryHub
+import microscenery.*
 import microscenery.UI.ScapeViewerUI
 import microscenery.UI.StageSpaceUI
-import microscenery.lightSleepOnCondition
 import microscenery.network.RemoteMicroscopeClient
 import microscenery.signals.ServerState
 import microscenery.stageSpace.MicroscopeLayout
@@ -19,11 +17,15 @@ class RemoteSCAPEClientScene : DefaultScene(withSwingUI = true) {
     init {
         ScapeViewerUI.scapeViewerSettings()
 
+        MicroscenerySettings.setIfUnset(Settings.MMMicroscope.AngleOfScapeSheet,-40.5)
+
         val zContext = ZContext()
         val client = RemoteMicroscopeClient(zContext = zContext)
         stageSpaceManager = StageSpaceManager(
             client, scene, msHub,
-            layout = MicroscopeLayout.Scape(MicroscopeLayout.Axis.Z, -40.5),
+            layout = MicroscopeLayout.Scape(
+                MicroscopeLayout.Axis.Z,
+                MicroscenerySettings.get(Settings.MMMicroscope.AngleOfScapeSheet,-40.5)),
             viewMode = true
         )
 

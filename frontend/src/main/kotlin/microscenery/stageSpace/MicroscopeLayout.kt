@@ -15,9 +15,6 @@ sealed class MicroscopeLayout(val sheet: Axis) {
         }
     }
 
-    /**
-     * TODO: leaning of the sheet
-     */
     class Scape(sheet: Axis, val leaningOfSheetDeg: Double) : MicroscopeLayout(sheet) {
         override fun sheetRotation(): Quaternionf {
             val rot = Quaternionf()

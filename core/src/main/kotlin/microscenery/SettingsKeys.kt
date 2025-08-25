@@ -105,6 +105,7 @@ object Settings {
         /** int */ const val PollStagePositionFrequencyMS = "MMMicroscope.PollStagePositionFrequencyMS"
         /** bool */ const val IsMicromanagerMicroscope = "MMMicroscope.IsMicromanagerMicroscope"
         /** bool */ const val UseImageMetadataPosition = "MMMicroscope.useImageMetadataPosition"
+        /** float **/ const val AngleOfScapeSheet = "MMMicroscope.angleOfScapeSheet"
 
         object Stream{
             /** int */ const val ImageRateLimitPerSec = "MMMicroscope.Stream.imageRateLimitPerSec"
