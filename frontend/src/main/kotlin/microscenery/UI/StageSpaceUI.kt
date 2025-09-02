@@ -284,7 +284,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                 false,
                 mouseSpeed = { 25f })
         )
-        inputHandler.addKeyBinding("frameDragging", "1")
+        inputHandler.addKeyBinding("frameDragging", "button1")
 
         commands.forEach {
             val name = it.name

@@ -25,7 +25,10 @@ object DesktopUI {
                     }
                 }
         })
-        inputHandler.addKeyBinding( name, "1")
+        inputHandler.addKeyBinding( name, "button1")
+
+        // remove FPS camera on mouse button 1
+        inputHandler.removeKeyBinding("mouse_control")
 
         val stageSpaceManager =  msHub.getAttribute(StageSpaceManager::class.java)
         val targetArcball =
