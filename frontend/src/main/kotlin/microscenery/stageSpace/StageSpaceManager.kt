@@ -60,6 +60,13 @@ class StageSpaceManager(
 
     init {
         MicroscenerySettings.setIfUnset(Settings.StageSpace.CameraDependendZSorting, true)
+        MicroscenerySettings.setVector3f(Settings.Stage.ExploreResolution,
+            Vector3f(
+                hardware.hardwareDimensions().imageSize.x.toFloat(),
+                hardware.hardwareDimensions().imageSize.y.toFloat(),
+                50f
+            ))
+
 
         //init hub TODO: move out of ssmanager
         msHub.addAttribute(Scene::class.java, scene)
