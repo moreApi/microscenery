@@ -34,6 +34,7 @@ class StudySpatialLogger(val camera: Camera, val msHub: MicrosceneryHub, file: F
     init {
         val sdf = SimpleDateFormat("yyyy-MM-dd--hh-mm-ss")
         val currentDate = sdf.format(Date())
+        File("./spatialLogs").mkdir()
         val f = file ?: File("spatialLogs/$currentDate.csv")
 
         writer = BufferedWriter(FileWriter(f))
