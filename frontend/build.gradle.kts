@@ -28,7 +28,10 @@ dependencies {
 
     implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation(project(":core"))
-    implementation(project(":zenSysConCon"))
+    val withSysCon: String? by project
+    if(withSysCon?.toBoolean() == true) {
+        implementation(project(":zenSysConCon"))
+    }
     implementation(files("../core/manualLib/MMCoreJ.jar"))
 
     implementation("org.yaml:snakeyaml") {
@@ -69,6 +72,17 @@ application{
     mainClass = "microscenery.apps.RemoteSCAPEClientScene"
 }
 
+sourceSets {
+    test {
+        kotlin {
+            val withSysCon: String? by project
+            if(withSysCon?.toBoolean() == false || withSysCon == null) {
+                println("Excluding Zen-based tests")
+                exclude("**/*Zen*.kt")
+            }
+        }
+    }
+}
 
 
 tasks{
