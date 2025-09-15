@@ -1,11 +1,11 @@
 package network
 
-import microscenery.lightSleepOnNull
-import microscenery.network.*
-import microscenery.signals.BaseClientSignal
-import microscenery.signals.BaseServerSignal
-import microscenery.signals.ImageMeta
-import microscenery.signals.Slice
+import anon.lightSleepOnNull
+import anon.network.*
+import anon.signals.BaseClientSignal
+import anon.signals.BaseServerSignal
+import anon.signals.ImageMeta
+import anon.signals.Slice
 import org.joml.Vector3f
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test

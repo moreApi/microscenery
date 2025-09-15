@@ -69,7 +69,7 @@ tasks{
 }
 
 application{
-    mainClass = "microscenery.apps.RemoteSCAPEClientScene"
+    mainClass = "anon.apps.RemoteSCAPEClientScene"
 }
 
 sourceSets {
@@ -90,10 +90,10 @@ tasks{
     sourceSets.test.get().allSource.files
         .filter { it.extension == "kt" }
         .map { it.path.substringAfter("kotlin${File.separatorChar}").replace(File.separatorChar, '.').substringBefore(".kt") }
-        .filter { it.contains("microscenery.scenes.") && !it.contains("resources") }
+        .filter { it.contains("anon.scenes.") && !it.contains("resources") }
         .forEach { className ->
             val exampleName = className.substringAfterLast(".")
-            val exampleType = className.substringBeforeLast(".").substringAfter("microscenery.scenes.")
+            val exampleType = className.substringBeforeLast(".").substringAfter("anon.scenes.")
 
             register<JavaExec>(name = exampleName) {
                 classpath = sourceSets.test.get().runtimeClasspath

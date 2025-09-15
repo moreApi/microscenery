@@ -1,11 +1,11 @@
 package network
 
 import com.google.protobuf.ByteString
-import microscenery.lightSleepOnNull
-import microscenery.network.ControlSignalsClient
-import microscenery.network.ControlSignalsServer
-import microscenery.signals.BaseClientSignal
-import microscenery.signals.BaseServerSignal
+import anon.lightSleepOnNull
+import anon.network.ControlSignalsClient
+import anon.network.ControlSignalsServer
+import anon.signals.BaseClientSignal
+import anon.signals.BaseServerSignal
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.zeromq.ZContext

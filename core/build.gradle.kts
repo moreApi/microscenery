@@ -68,6 +68,6 @@ tasks{
         from(configurations.runtimeClasspath)
     }
     jar{
-        this.archiveBaseName.set("microscenery-core")
+        this.archiveBaseName.set("anon-core")
     }
 }

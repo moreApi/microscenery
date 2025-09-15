@@ -1,11 +1,11 @@
 package network
 
-import microscenery.lightSleepOnNull
-import microscenery.network.ControlSignalsClient
-import microscenery.network.ControlSignalsServer
-import microscenery.signals.*
-import microscenery.signals.MicroscopeControlSignal.Companion.toMicroscopeControlSignal
-import microscenery.signals.RemoteMicroscopeSignal.Companion.toRemoteMicroscopeSignal
+import anon.lightSleepOnNull
+import anon.network.ControlSignalsClient
+import anon.network.ControlSignalsServer
+import anon.signals.*
+import anon.signals.MicroscopeControlSignal.Companion.toMicroscopeControlSignal
+import anon.signals.RemoteMicroscopeSignal.Companion.toRemoteMicroscopeSignal
 import org.joml.Vector2i
 import org.joml.Vector3f
 import org.junit.jupiter.api.AfterEach

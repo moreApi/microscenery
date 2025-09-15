@@ -1,4 +1,4 @@
-rootProject.name = "microscenery"
+rootProject.name = "anon"
 
 include("core")
 include("frontend")

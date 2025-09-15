@@ -1,8 +1,8 @@
 package network
-import microscenery.network.BiggishDataClient
-import microscenery.network.BiggishDataServer
-import microscenery.network.CHUNK_SIZE
-import microscenery.network.SliceStorage
+import anon.network.BiggishDataClient
+import anon.network.BiggishDataServer
+import anon.network.CHUNK_SIZE
+import anon.network.SliceStorage
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
