@@ -1,8 +1,5 @@
-import com.google.protobuf.gradle.protoc
-
 plugins {
     kotlin("jvm") version embeddedKotlinVersion
-    id("com.google.protobuf") version "0.8.19"
 }
 
 group = "me.jancasus"
@@ -41,6 +38,7 @@ dependencies {
     lwjglNatives.forEach { runtimeOnly("org.lwjgl", "lwjgl", classifier = it) }
 
     implementation(files("manualLib/MMCoreJ.jar"))
+    implementation(files("manualLib/microscenery-stub-java-1.0-SNAPSHOT.jar"))
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.mockito:mockito-core:5.10.0")
@@ -55,10 +53,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-java.sourceSets["main"].java {
-    srcDir("build/generated/source/proto/main/java")
-}
-
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
@@ -66,22 +60,6 @@ java {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
-}
-
-sourceSets["main"].proto {
-    srcDir("microscenery-protocol/proto")
-}
-protobuf {
-    var protocPath = providers.gradleProperty("protoc.path").orNull
-    if(protocPath == null) {
-        logger.warn("protoc path property (protoc.path) not found, falling back to default.")
-        protocPath = projectDir.resolve("protoc/bin/protoc.exe").absolutePath
-    }
-
-    logger.info("Using protoc from $protocPath")
-    this.protobuf.protoc {
-        this.path = protocPath
-    }
 }
 
 tasks{
