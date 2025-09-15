@@ -3,7 +3,6 @@
 ## Running user studies
 ### Requirements
 * JDK of Java 17 or higher installed
-* Protobuf compiler installed (comes with the repository for Windows, needs to be installed for macOS or Linux)
 * SteamVR and a working VR headset set up
 * up-to-date graphics drivers with Vulkan support
 
