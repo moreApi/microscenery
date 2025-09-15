@@ -8,8 +8,8 @@ import org.joml.Vector3f
 sealed class MicroscopeControlSignal {
     fun toBaseSignal() = BaseClientSignal.AppSpecific(this.toProto().toByteString())
 
-    open fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
-        val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
+    open fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeControlSignal {
+        val cs = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.newBuilder()
         when (this) {
             is AcquireStack -> throw NotImplementedError("This case should be overwritten.")
             is Live -> cs.liveBuilder.build()
@@ -32,8 +32,8 @@ sealed class MicroscopeControlSignal {
     object StartAcquisition : MicroscopeControlSignal()
 
     data class MoveStage(val target: Vector3f) : MicroscopeControlSignal() {
-        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
-            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
+        override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeControlSignal {
+            val cs = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.newBuilder()
             cs.moveStageBuilder.setTarget(this.target.toProto()).build()
             return cs.build()
         }
@@ -48,8 +48,8 @@ sealed class MicroscopeControlSignal {
         val roiEnd: Vector2i = Vector2i(),
         val id: Int = -1
     ) : MicroscopeControlSignal() {
-        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
-            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
+        override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeControlSignal {
+            val cs = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.newBuilder()
             val asb = cs.acquireStackBuilder
             asb.startPosition = this.startPosition.toProto()
             asb.endPosition = this.endPosition.toProto()
@@ -64,8 +64,8 @@ sealed class MicroscopeControlSignal {
     }
 
     data class AblationPoints(val points: List<AblationPoint>) : MicroscopeControlSignal() {
-        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
-            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
+        override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeControlSignal {
+            val cs = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.newBuilder()
             val b = cs.ablationPointsBuilder
             b.addAllPoints(points.map { it.toProto() })
             b.build()
@@ -74,8 +74,8 @@ sealed class MicroscopeControlSignal {
     }
 
     data class AblationShutter(val open: Boolean) : MicroscopeControlSignal() {
-        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
-            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
+        override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeControlSignal {
+            val cs = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.newBuilder()
             val b = cs.ablationShutterBuilder
             b.open = open
             b.build()
@@ -91,8 +91,8 @@ sealed class MicroscopeControlSignal {
         val laserPower: Float = 0f,
         val countMoveTime: Boolean = false
     ) {
-        fun toProto(): me.jancasus.microscenery.network.v3.AblationPoint {
-            val b = me.jancasus.microscenery.network.v3.AblationPoint.newBuilder()
+        fun toProto(): org.withXR.network.v3.microscopeApi.AblationPoint {
+            val b = org.withXR.network.v3.microscopeApi.AblationPoint.newBuilder()
             b.position = position.toProto()
             b.dwellTime = dwellTime
             b.laserOn = laserOn
@@ -116,8 +116,8 @@ sealed class MicroscopeControlSignal {
             return data.contentHashCode()
         }
 
-        override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeControlSignal {
-            val cs = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.newBuilder()
+        override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeControlSignal {
+            val cs = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.newBuilder()
             val ds = cs.deviceSpecificBuilder
             ds.setData(ByteString.copyFrom(data))
             ds.build()
@@ -127,26 +127,26 @@ sealed class MicroscopeControlSignal {
 
     companion object {
         fun BaseClientSignal.AppSpecific.toMicroscopeControlSignal() =
-            me.jancasus.microscenery.network.v3.MicroscopeControlSignal.parseFrom(this.data).toPoko()
+            org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.parseFrom(this.data).toPoko()
 
-        fun me.jancasus.microscenery.network.v3.MicroscopeControlSignal.toPoko(): MicroscopeControlSignal =
+        fun org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.toPoko(): MicroscopeControlSignal =
             when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SIGNAL_NOT_SET ->
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.SIGNAL_NOT_SET ->
                     throw IllegalArgumentException("Signal is not set in Client signal message")
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.LIVE ->
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.LIVE ->
                     Live
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.MOVESTAGE ->
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.MOVESTAGE ->
                     MoveStage(this.moveStage.target.toPoko())
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SHUTDOWN ->
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.SHUTDOWN ->
                     Shutdown
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.SNAPIMAGE ->
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.SNAPIMAGE ->
                     SnapImage
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.ACQUIRESTACK -> {
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.ACQUIRESTACK -> {
                     val ast = this.acquireStack
                     AcquireStack(
                         ast.startPosition.toPoko(),
@@ -159,8 +159,8 @@ sealed class MicroscopeControlSignal {
                     )
                 }
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.STOP -> Stop
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.ABLATIONPOINTS -> {
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.STOP -> Stop
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.ABLATIONPOINTS -> {
                     val points = this.ablationPoints.pointsList
                     AblationPoints(points.map {
                         AblationPoint(
@@ -174,11 +174,11 @@ sealed class MicroscopeControlSignal {
                     })
                 }
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.ABLATIONSHUTTER ->
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.ABLATIONSHUTTER ->
                     AblationShutter(this.ablationShutter.open)
 
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.STARTACQUISITION -> StartAcquisition
-                me.jancasus.microscenery.network.v3.MicroscopeControlSignal.SignalCase.DEVICESPECIFIC -> {
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.STARTACQUISITION -> StartAcquisition
+                org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.DEVICESPECIFIC -> {
                     DeviceSpecific(this.deviceSpecific.data.toByteArray())
                 }
             }

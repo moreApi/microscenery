@@ -1,7 +1,7 @@
 package anon.network
 
 import fromScenery.lazyLogger
-import me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal
+import org.withXR.network.v3.microscopeApi.RemoteMicroscopeSignal
 import anon.MicroscenerySettings
 import anon.Settings
 import anon.hardware.MicroscopeHardwareAgent

@@ -1,9 +1,9 @@
 package anon.hardware.micromanagerConnection
 
-import me.jancasus.microscenery.network.v3.MicroManagerSignal
 import anon.hardware.MicroscopeHardware
 import anon.signals.toProto
 import org.joml.Vector3f
+import org.withXR.network.v3.microscopeApi.MicroManagerSignal
 
 object MicroManagerUtil {
     fun addPositionToPositionList(microscopeHardware: MicroscopeHardware, label: String, position: Vector3f) {
