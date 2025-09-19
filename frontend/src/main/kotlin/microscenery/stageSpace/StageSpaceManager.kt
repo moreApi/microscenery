@@ -37,6 +37,7 @@ class StageSpaceManager(
     private val logger by lazyLogger(System.getProperty("scenery.LogLevel", "info"))
 
     val uiModel = msHub.getAttribute(UIModel::class.java)
+    val stageSpaceModel = msHub.getAttribute(StageSpaceModel::class.java)
 
     val stageRoot = RichNode("stage root")
     val scaleAndRotationPivot = RichNode("scaleAndRotationPivot")
@@ -49,7 +50,7 @@ class StageSpaceManager(
 
     val sliceManager = SliceManager(hardware, stageRoot, scene, msHub)
     val ablationManager = AblationManager(hardware,this,scene)
-    val focusManager = FocusManager(this,uiModel)
+    val focusManager = FocusManager(this,msHub)
     private val stageSpaceLabel: StageSpaceLabel?
 
     var stagePosition: Vector3f
@@ -151,7 +152,7 @@ class StageSpaceManager(
             }
         }
 
-        uiModel.hardwareDimensions = signal
+        stageSpaceModel.hardwareDimensions = signal
     }
 
     fun stack(from: Vector3f, to: Vector3f, live: Boolean = MicroscenerySettings.get(Settings.Stage.NextStackLive, false)) {

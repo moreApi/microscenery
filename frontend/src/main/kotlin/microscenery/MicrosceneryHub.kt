@@ -3,14 +3,16 @@ package microscenery
 import graphics.scenery.DefaultNode
 import graphics.scenery.Hub
 import microscenery.UI.UIModel
+import microscenery.stageSpace.StageSpaceModel
 
 /**
  * Currently most of this is initialized in the StageSpaceManager
  */
-class MicrosceneryHub(hub: Hub, uiModel: UIModel = UIModel()): DefaultNode("MicrosceneryHub") {
+class MicrosceneryHub(hub: Hub, uiModel: UIModel = UIModel(), stageSpaceModel: StageSpaceModel = StageSpaceModel()): DefaultNode("MicrosceneryHub") {
     init {
         addShort(hub)
         addShort(uiModel)
+        addShort(stageSpaceModel)
     }
     // TODO move ms init into hub like this:
 //    var isInit = false

@@ -6,9 +6,9 @@ import graphics.scenery.primitives.TextBoard
 import graphics.scenery.utils.extensions.minus
 import graphics.scenery.utils.extensions.plus
 import graphics.scenery.utils.extensions.times
+import microscenery.MicrosceneryHub
 import microscenery.MicroscenerySettings
 import microscenery.Settings
-import microscenery.UI.UIModel
 import microscenery.signals.HardwareDimensions
 import microscenery.toReadableString
 import org.joml.Vector3f
@@ -18,10 +18,11 @@ import org.joml.Vector4f
  * A frame that can be scaled according to the image size
  */
 open class Frame(
-    uiModel: UIModel,
+    msHub: MicrosceneryHub,
     color: Vector3f? = null,
     alternativeLabelPos: (() -> Vector3f)? = null
 ) : RichNode("focus") {
+    val stageSpaceModel = msHub.getAttribute(StageSpaceModel::class.java)
 
     protected val pivot: RichNode
     val beams: List<Box>
@@ -72,8 +73,8 @@ open class Frame(
             }
         }
 
-        applyHardwareDimensions(uiModel.hardwareDimensions)
-        uiModel.registerListener<HardwareDimensions>(UIModel::hardwareDimensions) { _, new ->
+        applyHardwareDimensions(stageSpaceModel.hardwareDimensions)
+        stageSpaceModel.registerListener<HardwareDimensions>(StageSpaceModel::hardwareDimensions) { _, new ->
             new?.let { applyHardwareDimensions(new) }
         }
     }

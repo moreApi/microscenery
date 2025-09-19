@@ -76,7 +76,7 @@ class StageSpaceUI(val stageSpaceManager: StageSpaceManager) {
                 stageSpaceManager.focusManager.mode = FocusManager.Mode.PASSIVE
                 stageSpaceManager.stop()
 
-                searchCubeStart = Frame(stageSpaceManager.uiModel, Vector3f(0.2f,0.8f,0.5f)).also {
+                searchCubeStart = Frame(stageSpaceManager.msHub, Vector3f(0.2f,0.8f,0.5f)).also {
                     it.spatial {
                         rotation = stageSpaceManager.layout.sheetRotation()
                         position = focusTarget.spatial().position.copy()

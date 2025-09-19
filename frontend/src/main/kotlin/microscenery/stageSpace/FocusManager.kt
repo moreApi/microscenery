@@ -13,27 +13,29 @@ import microscenery.VRUI.VRHandTool
 import org.joml.Vector3f
 import kotlin.math.absoluteValue
 
-class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIModel) {
+class FocusManager(val stageSpaceManager: StageSpaceManager, val msHub: MicrosceneryHub) {
+    private val stageSpaceModel = msHub.getAttribute(StageSpaceModel::class.java)
+    private val uiModel = msHub.getAttribute(UIModel::class.java)
+
     val focus: Frame
     val focusTargetIndicator: Frame
-    var focusTarget: RichNode = RichNode("Focus target")
 
-    var mode = Mode.PASSIVE
-        set(value) {
-            field = value
-            modeChanged(value)
-        }
+    var focusTarget: RichNode = RichNode("Focus target")
+    var mode
+        get() = stageSpaceModel.focusMode
+        set(value) {stageSpaceModel.focusMode = value}
+
     enum class Mode{
         PASSIVE, STEERING, STACK_SELECTION
     }
-
     var stackStartPos = Vector3f()
         private set
+
     private var stackStartIndicator: Frame? = null
 
     init {
 
-        focus = Frame(uiModel, Vector3f(1f)).apply {
+        focus = Frame(msHub, Vector3f(1f)).apply {
             spatial().position = stageSpaceManager.hardware.stagePosition.copy()
             stageSpaceManager.stageRoot.addChild(this)
             visible = !MicroscenerySettings.get(Settings.StageSpace.HideFocusFrame,false)
@@ -44,7 +46,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
         stageSpaceManager.stageRoot.addChild(focusTarget)
         focusTarget.spatial().position = stageSpaceManager.hardware.stagePosition.copy()
 
-        focusTargetIndicator = Frame(uiModel, Vector3f(0.2f,0.2f,1f)) { focusTarget.spatial().position }.also {
+        focusTargetIndicator = Frame(msHub, Vector3f(0.2f,0.2f,1f)) { focusTarget.spatial().position }.also {
             focusTarget.addChild(it)
             it.spatialOrNull()?.rotation = stageSpaceManager.layout.sheetRotation()
             initVRInteraction(it,false)
@@ -79,6 +81,10 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
                     }
                 }
             }
+        }
+
+        stageSpaceModel.registerListener<Mode>(StageSpaceModel::focusMode) { _, new ->
+            new?.let {modeChanged(new) }
         }
     }
 
@@ -155,7 +161,7 @@ class FocusManager(val stageSpaceManager: StageSpaceManager, val uiModel: UIMode
             Mode.STACK_SELECTION -> {
                 stackStartPos = focusTarget.spatial().position.copy()
                 stackStartIndicator?.detach()
-                stackStartIndicator = Frame(uiModel,Vector3f(0.1f,0.8f,0.8f)).apply {
+                stackStartIndicator = Frame(msHub,Vector3f(0.1f,0.8f,0.8f)).apply {
                     spatial().position = stackStartPos
                     stageSpaceManager.stageRoot.addChild(this)
                 }

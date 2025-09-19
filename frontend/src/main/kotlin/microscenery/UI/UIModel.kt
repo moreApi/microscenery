@@ -13,8 +13,6 @@ class UIModel : PropertyChangeObservable() {
         selected = selected
     }
 
-    var hardwareDimensions: HardwareDimensions by propertyObservable(HardwareDimensions.EMPTY)
-
     var inLeftHand: VRHandTool? by propertyObservable(null)
     var inRightHand: VRHandTool? by propertyObservable(null)
 
