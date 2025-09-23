@@ -6,7 +6,7 @@ import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
 import fromScenery.utils.extensions.xy
-import me.jancasus.microscenery.network.v3.MicroManagerSignal
+import org.withXR.network.v3.microscopeApi.MicroManagerSignal
 import microscenery.*
 import microscenery.hardware.MicroscopeHardwareAgent
 import microscenery.signals.*

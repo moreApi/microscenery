@@ -3,7 +3,7 @@ package microscenery.signals
 import fromScenery.utils.extensions.minus
 import fromScenery.utils.extensions.plus
 import fromScenery.utils.extensions.times
-import me.jancasus.microscenery.network.v3.EnumServerState
+import org.withXR.network.v3.microscopeApi.EnumServerState
 import microscenery.signals.HardwareDimensions.Companion.toPoko
 import microscenery.signals.ImageMeta.Companion.toPoko
 import microscenery.signals.MicroscopeStatus.Companion.toPoko
@@ -15,23 +15,23 @@ import org.joml.Vector3f
 
 sealed class MicroscopeSignal {
 
-    abstract fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeSignal
+    abstract fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeSignal
 
     companion object {
-        fun me.jancasus.microscenery.network.v3.MicroscopeSignal.toPoko() =
+        fun org.withXR.network.v3.microscopeApi.MicroscopeSignal.toPoko() =
             when (this.signalCase ?: throw IllegalArgumentException("Illegal payload")) {
-                me.jancasus.microscenery.network.v3.MicroscopeSignal.SignalCase.STATUS -> {
+                org.withXR.network.v3.microscopeApi.MicroscopeSignal.SignalCase.STATUS -> {
                     this.status.toPoko()
                 }
 
-                me.jancasus.microscenery.network.v3.MicroscopeSignal.SignalCase.SIGNAL_NOT_SET ->
+                org.withXR.network.v3.microscopeApi.MicroscopeSignal.SignalCase.SIGNAL_NOT_SET ->
                     throw IllegalArgumentException("Signal is not set in Server signal message")
 
-                me.jancasus.microscenery.network.v3.MicroscopeSignal.SignalCase.HARDWAREDIMENSIONS -> {
+                org.withXR.network.v3.microscopeApi.MicroscopeSignal.SignalCase.HARDWAREDIMENSIONS -> {
                     this.hardwareDimensions.toPoko()
                 }
 
-                me.jancasus.microscenery.network.v3.MicroscopeSignal.SignalCase.ABLATIONRESULTS -> {
+                org.withXR.network.v3.microscopeApi.MicroscopeSignal.SignalCase.ABLATIONRESULTS -> {
                     val ar = this.ablationResults
                     AblationResults(ar.totalTimeMillis, ar.perPointTimeList)
                 }
@@ -41,14 +41,14 @@ sealed class MicroscopeSignal {
 
 /** workaround for transitioning from v2 to v3 */
 data class MicroscopeStack(val stack: Stack) : MicroscopeSignal() {
-    override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeSignal {
+    override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeSignal {
         TODO("Not yet implemented")
     }
 }
 
 /** workaround for transitioning from v2 to v3 */
 data class MicroscopeSlice(val slice: Slice) : MicroscopeSignal() {
-    override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeSignal {
+    override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeSignal {
         TODO("Not yet implemented")
     }
 }
@@ -67,8 +67,8 @@ data class HardwareDimensions(
     val vertexDiameter: Float = imageMeta.vertexDiameter
     val numericType: NumericType = imageMeta.numericType
 
-    override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeSignal {
-        val microscopeSignal = me.jancasus.microscenery.network.v3.MicroscopeSignal.newBuilder()
+    override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeSignal {
+        val microscopeSignal = org.withXR.network.v3.microscopeApi.MicroscopeSignal.newBuilder()
 
         val hd = microscopeSignal.hardwareDimensionsBuilder
         hd.stageMin = this.stageMin.toProto()
@@ -85,7 +85,7 @@ data class HardwareDimensions(
     companion object {
         val EMPTY = HardwareDimensions(Vector3f(), Vector3f(), ImageMeta.EMPTY)
 
-        fun me.jancasus.microscenery.network.v3.HardwareDimensions.toPoko(): HardwareDimensions {
+        fun org.withXR.network.v3.microscopeApi.HardwareDimensions.toPoko(): HardwareDimensions {
             val hwd = this
             return HardwareDimensions(
                 hwd.stageMin.toPoko(),
@@ -131,8 +131,8 @@ data class MicroscopeStatus(
     val stagePosition: Vector3f,
     val live: Boolean
 ) : MicroscopeSignal() {
-    override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeSignal {
-        val microscopeSignal = me.jancasus.microscenery.network.v3.MicroscopeSignal.newBuilder()
+    override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeSignal {
+        val microscopeSignal = org.withXR.network.v3.microscopeApi.MicroscopeSignal.newBuilder()
 
         val status = microscopeSignal.statusBuilder
         status.state = this.state.toProto()
@@ -144,7 +144,7 @@ data class MicroscopeStatus(
     }
 
     companion object {
-        fun me.jancasus.microscenery.network.v3.MicroscopeStatus.toPoko(): MicroscopeStatus {
+        fun org.withXR.network.v3.microscopeApi.MicroscopeStatus.toPoko(): MicroscopeStatus {
             val ss = this
             return MicroscopeStatus(
                 ss.state.toPoko(),
@@ -156,8 +156,8 @@ data class MicroscopeStatus(
 }
 
 data class AblationResults(val totalTimeMillis: Int, val perPointTime: List<Int>) : MicroscopeSignal() {
-    override fun toProto(): me.jancasus.microscenery.network.v3.MicroscopeSignal {
-        val microscopeSignal = me.jancasus.microscenery.network.v3.MicroscopeSignal.newBuilder()
+    override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeSignal {
+        val microscopeSignal = org.withXR.network.v3.microscopeApi.MicroscopeSignal.newBuilder()
         val ar = microscopeSignal.ablationResultsBuilder
         ar.totalTimeMillis = totalTimeMillis
         ar.addAllPerPointTime(perPointTime)

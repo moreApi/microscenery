@@ -1,6 +1,6 @@
 package microscenery.hardware.micromanagerConnection
 
-import me.jancasus.microscenery.network.v3.MicroManagerSignal
+import org.withXR.network.v3.microscopeApi.MicroManagerSignal
 import microscenery.hardware.MicroscopeHardware
 import microscenery.signals.toProto
 import org.joml.Vector3f

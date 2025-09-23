@@ -126,7 +126,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
             }
 
             is BaseClientSignal.AppSpecific -> {
-                val it = me.jancasus.microscenery.network.v3.MicroscopeControlSignal.parseFrom(bcs.data).toPoko()
+                val it = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.parseFrom(bcs.data).toPoko()
                 when (it) {
                     is MicroscopeControlSignal.AcquireStack -> {
                         microscope.acquireStack(it)

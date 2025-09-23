@@ -1,7 +1,7 @@
 package microscenery.network
 
 import fromScenery.lazyLogger
-import me.jancasus.microscenery.network.v3.RemoteMicroscopeSignal
+import org.withXR.network.v3.microscopeApi.RemoteMicroscopeSignal
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.hardware.MicroscopeHardwareAgent
