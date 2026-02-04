@@ -115,4 +115,8 @@ object Settings {
             /** int */ const val Camera = "MMMicroscope.Stream.camera"
         }
     }
+
+    object Debug {
+        /** string */ const val VolumeFolder = "Debug.volumeFolder"
+    }
 }
