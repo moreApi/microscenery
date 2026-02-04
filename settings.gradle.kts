@@ -3,7 +3,7 @@ rootProject.name = "microscenery"
 include("core")
 include("frontend")
 
-val withSysCon: String? by extra
-if (withSysCon?.toBoolean() == true) {
+val withZenSysConCon: String? by extra
+if (withZenSysConCon?.toBoolean() == true) {
     include("zenSysConCon")
 }
