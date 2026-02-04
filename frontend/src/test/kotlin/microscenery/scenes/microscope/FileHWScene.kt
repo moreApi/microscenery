@@ -39,7 +39,7 @@ class FileHWScene : DefaultScene(withSwingUI = false, VR = true) {
         logger.info("Starting demo hw scene")
         cam.spatial().position = Vector3f(0f, 0f, 5f)
 
-        val hw = FileMicroscopeHardware("""E:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+        val hw = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
         stageSpaceManager = StageSpaceManager(
             hw,
             scene,
