@@ -80,7 +80,7 @@ object Settings {
 
     object ZenMicroscope {
         /** bool
-         * boot microscenery server into only zen manipulation mode using the bleaching tool for ablation.
+         * boot microscenery server into only zen-manipulation-mode using the bleaching tool for ablation.
          * */ const val ZenOnlyManipulation = "ZenMicroscope.zenOnlyManipulation"
         /** bool */ const val MockSysCon = "ZenMicroscope.mockSysCon"
         /** bool */ const val MockZenConnection = "ZenMicroscope.mockZenConnection"
