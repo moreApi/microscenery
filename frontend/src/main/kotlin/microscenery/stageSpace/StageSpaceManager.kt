@@ -190,10 +190,16 @@ class StageSpaceManager(
         p2: Vector3f,
         resolution: Vector3f = MicroscenerySettings.getVector3(Settings.Stage.ExploreResolution) ?: Vector3f()
     ) {
-        if (hardware.status().state != ServerState.MANUAL) {
-            logger.warn("Can only start sampling stage space if server is in Manual state.")
-            return
-            //throw IllegalStateException("Can only start sampling stage space if server is in Manual state.")
+        when (hardware.status().state) {
+            ServerState.MANUAL -> {}// this is good, continue
+            ServerState.LIVE -> {
+                logger.warn("Server is in LIVE state. Stopping it now and continue with explore operation.")
+                this.stop()
+            }
+            else ->  {
+                logger.warn("Server is in ${hardware.status().state} state. Aborting explore operation.")
+                return
+            }
         }
 
         resolution.x = resolution.x.let {
