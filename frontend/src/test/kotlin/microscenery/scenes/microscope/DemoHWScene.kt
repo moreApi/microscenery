@@ -26,6 +26,7 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
         MicroscenerySettings.set("Stage.precisionXY", 1f)
         MicroscenerySettings.set("Stage.precisionZ", 1f)
         MicroscenerySettings.get(Settings.Ablation.SizeUM,30f)
+        MicroscenerySettings.set(Settings.StageSpace.HideStageSpaceLabel,true)
 
 
         val hw = AblationSimulationMicroscope(DemoMicroscopeHardware(binning = 1, size = Vector3f(100f),seed = 1337))
@@ -47,7 +48,7 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
                 hw.hardwareDimensions().stageMax,
                 stageSpaceManager
             )
-
+/*
             val points = (0 until 5).flatMap { y ->
                 (0 until 5).map { x ->
                         Vector3f(x*20f, y*20f,0f)
@@ -62,7 +63,7 @@ class DemoHWScene : DefaultScene(withSwingUI = true) {
             db.positions(*points.toTypedArray())
 
 
-
+*/
 
             //db.fixedStack(Vector3f(100f,100f,000f), Vector3f(100f, 100f,200f))
             //Thread.sleep(2500)

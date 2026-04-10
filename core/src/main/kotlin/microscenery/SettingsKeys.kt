@@ -86,7 +86,9 @@ object Settings {
         /** bool */ const val MockZenConnection = "ZenMicroscope.mockZenConnection"
         /** bool */ const val ContinueAfterError = "ZenMicroscope.continueAfterError"
         /** bool */ const val SD3OffsetFix = "ZenMicroscope.sd3OffsetFix"
-        /** float */ const val exposureTime = "ZenMicroscope.exposureTime"
+        /** int
+         * overwrites the exposure time extracted from the first extracted .czexp
+         * */ const val exposureTime = "ZenMicroscope.exposureTime"
         /** int */ const val readChannel = "ZenMicroscope.readChannel"
     }
 
