@@ -28,8 +28,8 @@ dependencies {
 
     implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation(project(":core"))
-    val withSysCon: String? by project
-    if(withSysCon?.toBoolean() == true) {
+    val withZenSysConCon: String? by project
+    if(withZenSysConCon?.toBoolean() == true) {
         implementation(project(":zenSysConCon"))
     }
     implementation(files("../core/manualLib/MMCoreJ.jar"))
@@ -75,8 +75,8 @@ application{
 sourceSets {
     test {
         kotlin {
-            val withSysCon: String? by project
-            if(withSysCon?.toBoolean() == false || withSysCon == null) {
+            val withZenSysConCon: String? by project
+            if(withZenSysConCon?.toBoolean() == false || withZenSysConCon == null) {
                 println("Excluding Zen-based tests")
                 exclude("**/*Zen*.kt")
             }
