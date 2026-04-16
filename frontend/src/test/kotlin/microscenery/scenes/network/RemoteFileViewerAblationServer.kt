@@ -21,8 +21,8 @@ class RemoteFileViewerAblationServer {
             // settings like port can be set in [microscenery.properties]
             val zContext = ZContext()
 
-            //val microscope = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
-            val microscope = FileMicroscopeHardware("""/Users/jan/volumes/Lund-100MB.tif""")
+            val microscope = FileMicroscopeHardware("""D:\volumes\spindle\NikonSD_100x_R1EmESC_01-1.tif""")
+//            val microscope = FileMicroscopeHardware("""/Users/jan/volumes/Lund-100MB.tif""")
 
             RemoteMicroscopeServer(
                 AblationSimulationMicroscope(microscope, imgOrigin = Origin.FrontBottomLeft),
