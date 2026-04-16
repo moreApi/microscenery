@@ -107,8 +107,8 @@ class RemoteMicroscopeClient(
                     }
 
                     else -> {
-                        if (microscopeSignal is MicroscopeSlice)
-                            logger.info("Got slice ${microscopeSignal.slice.stackIdAndSliceIndex?.second} of stackIndex ${microscopeSignal.slice.stackIdAndSliceIndex?.first}")
+                        if (microscopeSignal is MicroscopeSlice && microscopeSignal.slice.stackIdAndSliceIndex != null)
+                            logger.info("Got slice ${microscopeSignal.slice.stackIdAndSliceIndex.second} of stackIndex ${microscopeSignal.slice.stackIdAndSliceIndex.first}")
                         output.put(microscopeSignal)
                     }
                 }
