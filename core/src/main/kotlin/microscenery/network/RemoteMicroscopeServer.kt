@@ -144,7 +144,7 @@ class RemoteMicroscopeServer @JvmOverloads constructor(
 
                     MicroscopeControlSignal.SnapImage -> microscope.snapSlice()
                     MicroscopeControlSignal.Stop -> microscope.stop()
-                    is MicroscopeControlSignal.AblationPoints -> microscope.ablatePoints(it)
+                    is MicroscopeControlSignal.PhotoManipulation -> microscope.ablatePoints(it)
                     is MicroscopeControlSignal.AblationShutter -> TODO()
                     MicroscopeControlSignal.StartAcquisition -> microscope.startAcquisition()
                     is MicroscopeControlSignal.DeviceSpecific -> microscope.deviceSpecificCommands(it.data)

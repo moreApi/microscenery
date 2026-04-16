@@ -1,7 +1,6 @@
 package microscenery.network
 
 import fromScenery.lazyLogger
-import org.withXR.network.v3.microscopeApi.RemoteMicroscopeSignal
 import microscenery.MicroscenerySettings
 import microscenery.Settings
 import microscenery.hardware.MicroscopeHardwareAgent
@@ -48,7 +47,7 @@ class RemoteMicroscopeClient(
         sendBaseWrappedSignal(meta)
     }
 
-    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.PhotoManipulation) {
         sendBaseWrappedSignal(signal)
     }
 
@@ -119,7 +118,7 @@ class RemoteMicroscopeClient(
     private fun unwrapToRemoteMicroscopeSignal(signal: BaseServerSignal) = when (signal) {
         is BaseServerSignal.AppSpecific -> {
             val data = signal.data
-            val rms = RemoteMicroscopeSignal.parseFrom(data)
+            val rms = org.withXR.network.v3.microscopeApi.RemoteMicroscopeSignal.parseFrom(data)
             rms.toPoko()
         }
 

@@ -17,7 +17,7 @@ sealed class MicroscopeControlSignal {
             Shutdown -> cs.shutdownBuilder.build()
             SnapImage -> cs.snapImageBuilder.build()
             Stop -> cs.stopBuilder.build()
-            is AblationPoints -> throw NotImplementedError("This case should be overwritten.")
+            is PhotoManipulation -> throw NotImplementedError("This case should be overwritten.")
             is AblationShutter -> throw NotImplementedError("This case should be overwritten.")
             StartAcquisition -> cs.startAcquisitionBuilder.build()
             is DeviceSpecific -> throw NotImplementedError("This case should be overwritten.")
@@ -63,10 +63,12 @@ sealed class MicroscopeControlSignal {
         }
     }
 
-    data class AblationPoints(val points: List<AblationPoint>) : MicroscopeControlSignal() {
+    data class PhotoManipulation(val dwellTime: Long = 5, val laserPower: Float = 1f, val points: List<AblationPoint>) : MicroscopeControlSignal() {
         override fun toProto(): org.withXR.network.v3.microscopeApi.MicroscopeControlSignal {
             val cs = org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.newBuilder()
             val b = cs.ablationPointsBuilder
+            b.dwellTime = dwellTime
+            b.laserPower = laserPower
             b.addAllPoints(points.map { it.toProto() })
             b.build()
             return cs.build()
@@ -85,10 +87,10 @@ sealed class MicroscopeControlSignal {
 
     data class AblationPoint(
         val position: Vector3f = Vector3f(),
-        val dwellTime: Long = 0,
+        val dwellTime: Long = 5,
         val laserOn: Boolean = false,
         val laserOff: Boolean = false,
-        val laserPower: Float = 0f,
+        val laserPower: Float = 1f,
         val countMoveTime: Boolean = false
     ) {
         fun toProto(): org.withXR.network.v3.microscopeApi.AblationPoint {
@@ -162,7 +164,7 @@ sealed class MicroscopeControlSignal {
                 org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.STOP -> Stop
                 org.withXR.network.v3.microscopeApi.MicroscopeControlSignal.SignalCase.ABLATIONPOINTS -> {
                     val points = this.ablationPoints.pointsList
-                    AblationPoints(points.map {
+                    PhotoManipulation(points = points.map {
                         AblationPoint(
                             it.position.toPoko(),
                             it.dwellTime,

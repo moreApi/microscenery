@@ -106,7 +106,7 @@ class SimulationMicroscopeHardware(
         hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
-    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.PhotoManipulation) {
     }
 
     override fun goLive() {

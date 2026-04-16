@@ -155,7 +155,7 @@ class MicromanagerWrapper(
         hardwareCommandsQueue.add(HardwareCommand.GenerateStackCommands(meta))
     }
 
-    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.PhotoManipulation) {
         val points = signal.points.map {
             it.copy(position = hardwareDimensions.coercePosition(it.position, logger))
         }

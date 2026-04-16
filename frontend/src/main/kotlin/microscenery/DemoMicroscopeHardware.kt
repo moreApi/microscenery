@@ -182,7 +182,7 @@ class DemoMicroscopeHardware(
         }
     }
 
-    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.PhotoManipulation) {
         for (p in signal.points)
             logger.info("Ablating $p")
         output.put(AblationResults(signal.points.size * 50, (1..signal.points.size).map { Random().nextInt(20) + 40 }))

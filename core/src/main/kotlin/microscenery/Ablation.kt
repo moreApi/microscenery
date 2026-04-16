@@ -72,9 +72,9 @@ fun initAblationSettings(){
 }
 
 /**
- * Uses [MicroscenerySettings] to map [points] to [MicroscopeControlSignal.AblationPoints]
+ * Uses [MicroscenerySettings] to map [points] to [MicroscopeControlSignal.PhotoManipulation]
  */
-fun buildLaserPath(points: List<Vector3f>): MicroscopeControlSignal.AblationPoints {
+fun buildLaserPath(points: List<Vector3f>): MicroscopeControlSignal.PhotoManipulation {
     val dwellTime = MicroscenerySettings.get(Settings.Ablation.Repetitions, 1L) //todo this is not correct but for zen studz workaround
     val laserPower = MicroscenerySettings.get(Settings.Ablation.LaserPower, 0f)
     // count time it takes to move towards next point to that points dwell time
@@ -82,7 +82,7 @@ fun buildLaserPath(points: List<Vector3f>): MicroscopeControlSignal.AblationPoin
     val pauseLaserOnMove = MicroscenerySettings.get(Settings.Ablation.PauseLaserOnMove, false)
     val dryRun = MicroscenerySettings.get(Settings.Ablation.DryRun, true)
 
-    return MicroscopeControlSignal.AblationPoints(points.mapIndexed { index, vector3f ->
+    return MicroscopeControlSignal.PhotoManipulation(points = points.mapIndexed { index, vector3f ->
         MicroscopeControlSignal.AblationPoint(
             vector3f,
             dwellTime,
@@ -95,7 +95,7 @@ fun buildLaserPath(points: List<Vector3f>): MicroscopeControlSignal.AblationPoin
 }
 
 //TODO move to MMMicroscope
-fun executeAblationCommandSequence(hardware: MicroscopeHardware, signal: MicroscopeControlSignal.AblationPoints) {
+fun executeAblationCommandSequence(hardware: MicroscopeHardware, signal: MicroscopeControlSignal.PhotoManipulation) {
     val dryRun = MicroscenerySettings.get(Settings.Ablation.DryRun, true)
     val repetitions = MicroscenerySettings.get(Settings.Ablation.Repetitions, 1)
     val startAcquisitionAfter = MicroscenerySettings.get(Settings.Ablation.StartAcquisitionAfter, false)

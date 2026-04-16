@@ -23,7 +23,7 @@ interface MicroscopeHardware {
     fun status(): MicroscopeStatus
     fun hardwareDimensions(): HardwareDimensions
 
-    fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints)
+    fun ablatePoints(signal: MicroscopeControlSignal.PhotoManipulation)
     fun startAcquisition()
 
     fun deviceSpecificCommands(data: ByteArray){}

@@ -33,7 +33,7 @@ class AblationSimulationMicroscope (
         startAgent()
     }
 
-    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.PhotoManipulation) {
         logger.info("Adding ablation points to simulation: "+signal.points.map { it.position.toReadableString() })
         ablationPoints += signal.points
         actionAfterAblation(this)

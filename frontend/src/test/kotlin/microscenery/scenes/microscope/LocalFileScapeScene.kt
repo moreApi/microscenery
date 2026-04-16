@@ -178,7 +178,7 @@ class FolderReaderMicroscope : MicroscopeHardwareAgent() {
         TODO("Not yet implemented")
     }
 
-    override fun ablatePoints(signal: MicroscopeControlSignal.AblationPoints) {
+    override fun ablatePoints(signal: MicroscopeControlSignal.PhotoManipulation) {
         TODO("Not yet implemented")
     }
 
