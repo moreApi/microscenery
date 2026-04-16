@@ -19,7 +19,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("org.joml:joml:1.10.5")
     if(System.getProperty("os.name").lowercase().contains("mac")) {
-        implementation ("com.google.protobuf:protobuf-java:4.32.0") //current macOS homebrew version
+        implementation ("com.google.protobuf:protobuf-java:4.34.1") // current macOS homebrew version
     } else {
         implementation ("com.google.protobuf:protobuf-java:3.25.3") // I think this one was still compatible with micromanager
     }
