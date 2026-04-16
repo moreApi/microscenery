@@ -26,9 +26,10 @@ class ScapeViewerUI(val msHub: MicrosceneryHub) {
         }
     }
 
-    fun orthoViewCommands() = listOf(StageUICommand("Right", "") { _, _ ->
-        this.setViewDirection(Vector3f(-1f, 0f, 0f))
-    },
+    fun orthoViewCommands() = listOf(
+        StageUICommand("Right", "") { _, _ ->
+            this.setViewDirection(Vector3f(-1f, 0f, 0f))
+        },
         StageUICommand("Left", "") { _, _ ->
             this.setViewDirection(Vector3f(1f, 0f, 0f))
         }, StageUICommand("Top", "") { _, _ ->
@@ -36,9 +37,6 @@ class ScapeViewerUI(val msHub: MicrosceneryHub) {
         },
         StageUICommand("Bottom", "") { _, _ ->
             this.setViewDirection(Vector3f(0f, 1f, -0.1f))
-        },
-        StageUICommand("reset", "") { _, _ ->
-            this.resetView()
         },
         StageUICommand("Back", "") { _, _ ->
             this.setViewDirection(Vector3f(0f, 0f, 1f))
