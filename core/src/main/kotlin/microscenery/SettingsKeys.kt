@@ -40,6 +40,8 @@ object Settings {
         object SysCon {
             /** bool */ const val ScanModeFast = "Ablation.SysCon.scanModeFast"
             /** string */ const val LightSourceId = "Ablation.SysCon.lightSourceId"
+            /** string */ const val LightSourceIdForSeq = "Ablation.SysCon.lightSourceIdForSeq"
+            /** string */ const val LightSourceDescription = "Ablation.SysCon.lightSourceDescription"
             /** string */ const val TriggerPort = "Ablation.SysCon.triggerPort"
         }
         object MM {
