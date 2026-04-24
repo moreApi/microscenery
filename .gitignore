@@ -188,3 +188,4 @@ ExampleRunner-*/
 
 # microscenery specific
 /spatialLogs/
+/GeneratedExperiments/
