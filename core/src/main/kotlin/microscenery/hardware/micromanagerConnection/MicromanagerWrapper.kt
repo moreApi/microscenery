@@ -244,18 +244,44 @@ class MicromanagerWrapper(
      * Used for data acquired by use of the traditional micromanager interface.
      */
     @Suppress("unused")
-    fun externalSnap(position: Vector3f, data: ByteBuffer) {
+    fun externalSnap(position: Vector3f, data: ByteBuffer, stackIdAndSliceIndex: Pair<Int, Int>? = null) {
         if (data.capacity() != hardwareDimensions.byteSize) updateImageSize()
         val sliceSignal = Slice(
             idCounter++,
             System.currentTimeMillis(),
             position,
             hardwareDimensions.byteSize,
-            null,
+            stackIdAndSliceIndex,
             hardwareDimensions.imageMeta,
             data
         )
         output.put(MicroscopeSlice(sliceSignal))
+    }
+
+    /**
+     * Announces a stack over the network. And sets the status to [ServerState.STACK]
+     * If the data has different imageMeta, this has to be changed before this function is called.
+     * Use the .id as a stack id for sending slices with the [externalSnap] function
+     */
+    @Suppress("unused")
+    fun announceExternalStack(startPosition: Vector3f, endPosition: Vector3f, stepSize: Float): Stack {
+        val start = hardwareDimensions.coercePosition(startPosition, logger)
+        val end = hardwareDimensions.coercePosition(endPosition, logger)
+        val dist = end - start
+        val steps = (dist.length() / stepSize).roundToInt()
+        val step = dist * (1f / steps)
+
+        val currentStack = Stack(
+            idCounter++,
+            start,
+            end,
+            steps,
+            nowMillis(),
+            hardwareDimensions.imageMeta
+        )
+        output.put(MicroscopeStack(currentStack))
+        status = status.copy(state = ServerState.STACK)
+        return currentStack
     }
 
     //############################## end of called from external threads ##############################
